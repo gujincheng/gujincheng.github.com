@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Flink简介 Flink如何提交任务到Yarn Flink任务案例">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flink学习笔记（一）">
+<meta property="og:url" content="https://gujincheng.github.io/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Flink简介 Flink如何提交任务到Yarn Flink任务案例">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210122/flink-yarn-deploy.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210124/Application-Mode%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0Yarn.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210122/flink%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0yarn%E4%B8%8A%E5%88%97%E8%A1%A8.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210122/yarn%E4%B8%8A%E7%9A%84%E4%BB%BB%E5%8A%A1%E8%AF%A6%E6%83%85.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210122/flink-maven-1.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210122/flink-maven-2.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/IDEA%E7%9B%B4%E6%8E%A5%E8%BF%90%E8%A1%8CFlink%E4%BB%BB%E5%8A%A1.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/IDEA%E9%85%8D%E7%BD%AEFlink-lib%E6%96%87%E4%BB%B6%E5%A4%B9.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/IDEA%E6%89%A7%E8%A1%8CFlink%E7%A8%8B%E5%BA%8F%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/IDEA%E9%85%8D%E7%BD%AEJRE.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/Kafka%E5%8E%9F%E5%A7%8Btopic%E7%94%9F%E4%BA%A7%E6%95%B0%E6%8D%AE.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/%E6%B6%88%E8%B4%B9Flink%E5%86%99%E5%85%A5Kafka%E5%8F%A6%E4%B8%80%E4%B8%AAtopic%E6%95%B0%E6%8D%AE.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/Flink%E6%9C%89%E6%B6%88%E8%B4%B9%E6%97%A0%E8%BE%93%E5%87%BA.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/offset%E6%B6%88%E8%B4%B9%E6%83%85%E5%86%B5.png">
+<meta property="article:published_time" content="2021-01-19T09:35:20.000Z">
+<meta property="article:modified_time" content="2021-04-29T09:48:42.788Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/20210122/flink-yarn-deploy.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Flink学习笔记（一） | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Flink学习笔记（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-19 17:35:20" itemprop="dateCreated datePublished" datetime="2021-01-19T17:35:20+08:00">2021-01-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Flink/" itemprop="url" rel="index"><span itemprop="name">Flink</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-meta-item leancloud_visitors" data-flag-title="Flink学习笔记（一）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Flink简介</li>
+<li>Flink如何提交任务到Yarn</li>
+<li>Flink任务案例</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Flink简介"><a href="#Flink简介" class="headerlink" title="Flink简介"></a>Flink简介</h2><h3 id="Flink是什么？"><a href="#Flink是什么？" class="headerlink" title="Flink是什么？"></a>Flink是什么？</h3><p>Apache Flink 是一个<code>框架</code>和<code>分布式处理引擎</code>，用于在<code>无边界</code>和<code>有边界</code>数据流上进行<code>有状态</code>的计算。Flink 能在所有常见集群环境中运行，并能以<code>内存速度</code>和<code>任意规模</code>进行计算。  </p>
+<blockquote>
+<p>Flink是一个流计算驱动的引擎，核心是Streaming。但是，它可以基于Streaming的内核，实现流批一体更全能的架构</p>
+</blockquote>
+<ul>
+<li>无边界数据流<br>有定义流的开始，但没有定义流的结束。它们会无休止地产生数据。无界流的数据必须持续处理，即数据被摄取后需要立刻处理。我们不能等到所有数据都到达再处理，因为输入是无限的，在任何时候输入都不会完成。处理无界数据通常要求以特定顺序摄取事件，例如事件发生的顺序，以便能够推断结果的完整性  <blockquote>
+<p>纯实时数据，不存在等数据累计一定程度再处理的情况，数据生产后，立刻消费</p>
+</blockquote>
+</li>
+<li>有边界数据流<br>有定义流的开始，也有定义流的结束。有界流可以在摄取所有数据后再进行计算。有界流所有数据可以被排序，所以并不需要有序摄取。有界流处理通常被称为批处理  <blockquote>
+<p>批处理数据，需要数累积一定量以后再行处理</p>
+</blockquote>
+</li>
+<li>有状态的计算  </li>
+</ul>
+<p>Flink有如下优点：</p>
+<ul>
+<li>真正的流处理</li>
+<li>多种窗口</li>
+<li>自带状态(state) </li>
+<li>精确一次传输语义</li>
+<li>时间管理</li>
+</ul>
+<h3 id="流式计算框架对比"><a href="#流式计算框架对比" class="headerlink" title="流式计算框架对比"></a>流式计算框架对比</h3><ul>
+<li>模型：Storm和Flink是真正的一条一条处理数据；Spark Streaming其实是小批处理，一次处理一批数据（小批量）</li>
+<li>API：Storm使用基础API进行开发，比如实现一个简单的sum求和操作；而Spark Streaming和Flink中都提供封装后的高阶函数，可以直接拿来使用</li>
+<li>保证次数：在数据处理方面，Storm可以实现至少处理一次，但不能保证仅处理一次，这样就会导致数据重复处理问题，所以针对计数类的需求，可能会产生一些误差；Spark Streaming和Flink通过事务可以保证对数据实现仅一次的处理</li>
+<li>容错机制：Storm通过ACK机制实现数据的容错机制，而SparkStreaming和Flink可以通过CheckPoint机制实现容错机制</li>
+<li>状态管理：Storm中没有实现状态管理，Spark Streaming实现了基于DStream的状态管理，Flink实现了基于操作的状态管理</li>
+<li>延时：表示数据处理的延时情况，因此Storm和Flink接收到一条数据就处理一条数据，其数据处理的延时性是很低的；而Spark Streaming是小型批处理，数据处理的延时性相对会偏高</li>
+<li>吞吐量：Storm的吞吐量其实也不低，只是相对于其他几个框架而言较低；而Spark Streaming和Flink的吞吐量是比较高的</li>
+</ul>
+<blockquote>
+<p>Strom是第一代实时处理框架，基于流处理，数据吞吐量和延迟上效果不理想，只支持at least once和at most once，不能保证精确一次性，在数据准确性上存在不足<br>Spark Streaming作为第二代实时处理框架，基于mini-batch思想，每次处理一小批数据，一小批数据包含多个事件，以接近事实处理效果，概况性来说是微批次、准实时<br>Spark Streaming说到底，还是微批处理，并不是真正的实时处理，所以它的吞吐量很好，但是实时性没有Flink好，而且Spark官方也说了，最好不要把batch设置的太小<br>第三代实时处理框架，支持有界和无界数据流上做有状态计算，以时间为单位，支持exactly once，数据的准确性得到提高，相比Strom，吞吐量更高，延迟更低，相比SparkStreaming，Flink是真正意义上的实时计算，所需计算资源更少</p>
+</blockquote>
+<h3 id="工作中如何选择实时计算框架"><a href="#工作中如何选择实时计算框架" class="headerlink" title="工作中如何选择实时计算框架"></a>工作中如何选择实时计算框架</h3><ul>
+<li>需要关注流数据是否需要进行状态管理，如果是，那么只能SparkStreaming和Flink中选择一个。</li>
+<li>需要考虑项目对At-least-once（至少一次）或者Exactly-once（仅一次）消息投递模式是否有特殊要求，如果必须要保证仅一次，也不能选择Storm。</li>
+<li>对于小型独立的项目，并且需要低延迟的场景，建议使用Storm，这样比较简单。</li>
+<li>如果你的项目已经使用了Spark，并且秒级别的实时处理可以满足需求的话，建议使用Spark Streaming</li>
+<li>要求消息投递语义为Exactly-once；数据量较大，要求高吞吐低延迟；需要进行状态管理或窗口统计，这时建议使用Flink。</li>
+</ul>
+<h3 id="Flink下载安装"><a href="#Flink下载安装" class="headerlink" title="Flink下载安装"></a>Flink下载安装</h3><p>到官网上下载Flink安装包，并解压<br>这里只是要把Flink当成一个客户端，提交任务到Yarn上，所以不必配置Flink集群，只需要配置一下<code>HADOOP_CLASSPATH</code></p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export HADOOP_CLASSPATH&#x3D;&#96;hadoop classpath&#96;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>最后，配置Flink的环境变量</p>
+<h2 id="Flink如何提交任务到Yarn"><a href="#Flink如何提交任务到Yarn" class="headerlink" title="Flink如何提交任务到Yarn"></a>Flink如何提交任务到Yarn</h2><p>在官网点击<code>Documentation</code> -&gt; <code>Latest stable release</code> -&gt; <code>Deploy Flink</code> -&gt; <code> Clusters and Deployments</code> -&gt; <code>YARN</code><br><img src="/uploads/20210122/flink-yarn-deploy.png" alt="flink-yarn-deploy"><br>Flink提交任务到Yarn有3种方式：  </p>
+<ul>
+<li><p>Application Mode<br>Application Mode将在YARN上启动一个Flink集群，其中Application jar的main()方法将在YARN中的JobManager上执行。<br>应用程序完成后，Flink集群将立即关闭。可以使用<code>yarn application -kill &lt;ApplicationId&gt;</code>或取消Flink作业来手动停止集群</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run-application -t yarn-application .&#x2F;examples&#x2F;streaming&#x2F;TopSpeedWindowing.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="/uploads/20210124/Application-Mode%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0Yarn.png" alt="Application-Mode提交任务到Yarn"></p>
+<blockquote>
+<p>这种就是直接把Flink任务注册到Yarn上，就跟Spark、Hive任务提交Yarn任务一样。</p>
+</blockquote>
+<p> 通过这种方式提交到Yarn上，可以与它交互以执行诸如取消、获取保存点之类的操作</p>
+ <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 列举集群上的app
+flink list -t yarn-application -Dyarn.application.id&#x3D;application_XXXX_YY
+# 取消正在执行的job
+flink cancel -t yarn-application -Dyarn.application.id&#x3D;application_XXXX_YY &lt;jobId&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p> 需要注意的是，任务取消后，Flink集群也会停止<br> 为了挖掘Application Mode的潜力，可以考虑使用<code>yarn.provided.lib.dirs</code>配置选项，将应用程序jar上传到集群中所有节点都可以访问的位置，例如HDFS上</p>
+ <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">   flink run-application -t yarn-application \
+-Dyarn.provided.lib.dirs&#x3D;&quot;hdfs:&#x2F;&#x2F;myhdfs&#x2F;my-remote-flink-dist-dir&quot; \
+hdfs:&#x2F;&#x2F;myhdfs&#x2F;jars&#x2F;my-application.jar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p> 由于所需的Flink jar和应用程序jar将由指定的远程位置接收，而不是由客户机发送到集群，因此上面的内容将允许作业提交变得格外轻量级。</p>
+<blockquote>
+<p>任务启动的时候，客户端不需要再把jar上传到每个jobManager了，跑完了也不会再删除。</p>
+</blockquote>
+</li>
+<li><p>Per-Job Cluster Mode<br>Per-Job Cluster Mode将在Yarn上启动Flink集群，然后在本地运行提供的应用程序jar，最后将JobGraph提交给YARN上的JobManager<br>如果传递–detached参数，客户端将在集群接受提交后停止。<br>提交的任务一旦停止，Flink集群也将停止</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run -t yarn-per-job --detached .&#x2F;examples&#x2F;streaming&#x2F;TopSpeedWindowing.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>同样，通过这种方式提交的任务，也可以与它交互以执行诸如取消、获取保存点之类的操作</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 列举集群上的app
+flink list -t yarn-application -Dyarn.application.id&#x3D;application_XXXX_YY
+# 取消正在执行的job
+flink cancel -t yarn-application -Dyarn.application.id&#x3D;application_XXXX_YY &lt;jobId&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p>Session Mode</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 如果成功，在yarn上是可以看到application_id的
+yarn-session.sh --detached
+# 成功后会打印：
+#JobManager Web Interface: http:&#x2F;&#x2F;golden-02:39461
+#2021-01-22 17:29:31,594 INFO  org.apache.flink.yarn.cli.FlinkYarnSessionCli                
+# [] - The Flink YARN session cluster has been started in detached mode. 
+# In order to stop Flink gracefully, use the following command:
+#$ echo &quot;stop&quot; | yarn-session.sh -id application_1611306127593_0001
+#If this should not be possible, then you can also kill Flink via YARN&#39;s web interface or via:
+#$ yarn application -kill application_1611306127593_0001
+#Note that killing Flink might not clean up all job artifacts and temporary files.
+# 执行一个测试job
+flink run .&#x2F;examples&#x2F;streaming&#x2F;TopSpeedWindowing.jar
+# 杀掉Flink的任务可以使用cancel
+flink cancel $&#123;flink_app_id&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/uploads/20210122/flink%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0yarn%E4%B8%8A%E5%88%97%E8%A1%A8.png" alt="flink提交任务到yarn上列表"><br><img src="/uploads/20210122/yarn%E4%B8%8A%E7%9A%84%E4%BB%BB%E5%8A%A1%E8%AF%A6%E6%83%85.png" alt="yarn上的任务详情"><br>可以看到，yarn的任务监控页面只能找到一个application_id，但是Flink的任务列表有2个</p>
+<p> <code>Session Mode</code>有两种操作模式：</p>
+<ul>
+<li><p>attached mode (default):<code>yarn-session.sh</code>将任务提交到Yarn上以后，不会关闭，会继续与集群通信，跟踪集群任务的状态，如果任务失败，会在客户端显示错误，如果客户端被停止，它也会向集群发送关闭任务的信号                         </p>
+</li>
+<li><p>detached mode (-d or –detached):<code>yarn-session.sh</code>将任务提交到Yarn上以后，会直接返回，要是想停止集群中的任务，就需要调用另外一个客户端，或者使用Yarn的工具(<code>yarn application -kill</code>)<br><code>Session Mode</code>将在<code>/tmp/.YARN properties-&lt;username&gt;</code>中创建一个隐藏的<code>YARN properties</code>文件，提交作业时，命令行界面将提取该文件进行集群发现<br>提交Flink作业时，也可以在命令行界面中手动指定目标session。举个例子：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run -t yarn-session -Dyarn.application.id&#x3D;application_XXXX_YY .&#x2F;examples&#x2F;streaming&#x2F;TopSpeedWindowing.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<blockquote>
+<p>这里测试了一下，只能是注册session的application_id</p>
+</blockquote>
+<p>可以使用<code>yarn-session.sh -id application_XXXX_YY</code>重新连接session<br>除了通过配置conf/flink-conf.yaml，还可以在提交session时将使用-Dkey=value参数配置传递给yarn-session.sh客户端。</p>
+<blockquote>
+<p>Flink提交任务到yarn上，需要提前启动一个application，然后后面的flink任务会共享这个application的资源？  </p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><p>公司是Flink是以java为开发语言的，这里学习也使用java</p>
+<h3 id="配置Flink的Maven开发环境"><a href="#配置Flink的Maven开发环境" class="headerlink" title="配置Flink的Maven开发环境"></a>配置Flink的Maven开发环境</h3><p>到Flink的官网，点击<code>Getting Started</code> -&gt; <code>Application Development</code> -&gt; <code>DataStream API</code> -&gt; <code>Project Configuration</code><br><img src="/uploads/20210122/flink-maven-1.png" alt="flink-maven-1"><br><img src="/uploads/20210122/flink-maven-2.png" alt="flink-maven-2"><br>也可以在Flink的下载页面寻找maven的配置项<br>得到maven配置:</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependencies</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-streaming-java_2.11<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.12.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>provided<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-java<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.12.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-clients_2.11<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.12.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-connector-kafka_2.11<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.12.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependencies</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="实现简单功能：Flink消费Kafka数据后再写入Kafka"><a href="#实现简单功能：Flink消费Kafka数据后再写入Kafka" class="headerlink" title="实现简单功能：Flink消费Kafka数据后再写入Kafka"></a>实现简单功能：Flink消费Kafka数据后再写入Kafka</h3><p>下面直接上代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStreamSource</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaProducer</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka2Kafka</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 创建Flink执行环境</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Kafka参数</span>
+        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"auto.offset.reset"</span><span class="token punctuation">,</span><span class="token string">"earliest"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
+        <span class="token comment">// Source</span>
+        <span class="token class-name">DataStreamSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> kafkaData <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>
+                inputTopic<span class="token punctuation">,</span>
+                <span class="token keyword">new</span> <span class="token class-name">SimpleStringSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                properties<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        kafkaData<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Sink</span>
+        <span class="token class-name">Properties</span> prop <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        prop<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        prop<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"zookeeper.connect"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:2181"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        prop<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"flink-write"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        kafkaData<span class="token punctuation">.</span><span class="token function">addSink</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlinkKafkaProducer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>
+                <span class="token string">"golden-02:9092"</span><span class="token punctuation">,</span>
+                <span class="token string">"flink-write"</span><span class="token punctuation">,</span>
+                <span class="token keyword">new</span> <span class="token class-name">SimpleStringSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token string">"flink-connectors-kafka"</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// execute</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka consumer to kafka "</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="IDEA本地调试Flink程序报错"><a href="#IDEA本地调试Flink程序报错" class="headerlink" title="IDEA本地调试Flink程序报错"></a>IDEA本地调试Flink程序报错</h3><p>如果直接在IDEA上执行，会报如下错误：<br><img src="/uploads/20210125/IDEA%E7%9B%B4%E6%8E%A5%E8%BF%90%E8%A1%8CFlink%E4%BB%BB%E5%8A%A1.png" alt="IDEA直接运行Flink任务"><br>本质上，这是因为没有配置java的jre环境，可以使用两种办法解决：</p>
+<ul>
+<li><p>导入<code>Flink</code> lib文件夹下的jar包<br>导入流程：<br>依次点击 <code>File</code> -&gt; <code>Project Structure</code> -&gt; <code>Module</code> -&gt; <code>Dependencies</code><br><img src="/uploads/20210125/IDEA%E9%85%8D%E7%BD%AEFlink-lib%E6%96%87%E4%BB%B6%E5%A4%B9.png" alt="IDEA配置Flink-lib文件夹"><br>配置完成后，右键<code>run</code>，控制台就能看到程序的运行结果了<br><img src="/uploads/20210125/IDEA%E6%89%A7%E8%A1%8CFlink%E7%A8%8B%E5%BA%8F%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C.png" alt="IDEA执行Flink程序执行结果"></p>
+</li>
+<li><p>通过配置java的jre环境解决：<br>配置方法：<br><img src="/uploads/20210125/IDEA%E9%85%8D%E7%BD%AEJRE.png" alt="IDEA配置JRE"><br>或者，配置JRE的环境变量</p>
+</li>
+</ul>
+<p>通过命令行提交任务到yarn上执行：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run -t yarn-per-job --class com.hzw.bigdata.flinkstudy.FlinkConsumerKafka2Kafka FlinkStudy-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>给<code>first</code>topic生产点数据：<br><img src="/uploads/20210125/Kafka%E5%8E%9F%E5%A7%8Btopic%E7%94%9F%E4%BA%A7%E6%95%B0%E6%8D%AE.png" alt="Kafka原始topic生产数据"><br>消费flink写入的另一个topic数据<br><img src="/uploads/20210125/%E6%B6%88%E8%B4%B9Flink%E5%86%99%E5%85%A5Kafka%E5%8F%A6%E4%B8%80%E4%B8%AAtopic%E6%95%B0%E6%8D%AE.png" alt="消费Flink写入Kafka另一个topic数据"></p>
+<p>虽然利用<code>Per-Job Cluster Mode</code>方式提交到Yarn上执行成功了，但是使用<code>Application Mode</code>方式是报错的<br>报错信息如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.streaming.runtime.tasks.StreamTaskException: Cannot instantiate user function.
+	at org.apache.flink.streaming.api.graph.StreamConfig.getStreamOperatorFactory(StreamConfig.java:339) ~[flink-dist_2.12-1.12.1.jar:1.12.1]
+	at org.apache.flink.streaming.runtime.tasks.OperatorChain.&lt;init&gt;(OperatorChain.java:143) ~[flink-dist_2.12-1.12.1.jar:1.12.1]
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.beforeInvoke(StreamTask.java:509) ~[flink-dist_2.12-1.12.1.jar:1.12.1]
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.invoke(StreamTask.java:565) ~[flink-dist_2.12-1.12.1.jar:1.12.1]
+	at org.apache.flink.runtime.taskmanager.Task.doRun(Task.java:722) ~[FlinkStudy-1.0-SNAPSHOT-jar-with-dependencies.jar:?]
+	at org.apache.flink.runtime.taskmanager.Task.run(Task.java:547) ~[FlinkStudy-1.0-SNAPSHOT-jar-with-dependencies.jar:?]
+	at java.lang.Thread.run(Thread.java:748) ~[?:1.8.0_201]
+Caused by: java.lang.ClassCastException: cannot assign instance of org.apache.commons.collections.map.LinkedMap to field org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumerBase.pendingOffsetsToCommit of type org.apache.commons.collections.map.LinkedMap in instance of org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
+	at java.io.ObjectStreamClass$FieldReflector.setObjFieldValues(ObjectStreamClass.java:2287) ~[?:1.8.0_201]
+	at java.io.ObjectStreamClass.setObjFieldValues(ObjectStreamClass.java:1417) ~[?:1.8.0_201]
+	at java.io.ObjectInputStream.defaultReadFields(ObjectInputStream.java:2293) ~[?:1.8.0_201]
+	at java.io.ObjectInputStream.readSerialData(ObjectInputStream.java:2211) ~[?:1.8.0_201]
+	at java.io.ObjectInputStream.readOrdinaryObject(ObjectInputStream.java:2069) ~[?:1.8.0_201]<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>报错原因：<br><code>LinkedMap cannot be cast to LinkedMap exceptions</code><br><code>LinkedMap class is being loaded from two different packages, and those are being assigned to each other.</code></li>
+<li>解决办法：<br>在conf/flink-conf.yaml 添加如下内容<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">classloader.resolve-order: parent-first<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+</li>
+</ul>
+<h3 id="实现简单功能：Flink消费Kafka数据并实现wordCount"><a href="#实现简单功能：Flink消费Kafka数据并实现wordCount" class="headerlink" title="实现简单功能：Flink消费Kafka数据并实现wordCount"></a>实现简单功能：Flink消费Kafka数据并实现wordCount</h3><p>这里遇到了问题</p>
+<ul>
+<li>直接消费kafka数据，不使用window函数，可以正常wordCount</li>
+<li>直接copy网上的代码，使用<code>timeWindow(Time.seconds(5))</code>，kafka数据正常消费，但是没有正常计算并打印</li>
+<li><code>window(EventTimeSessionWindows.withGap(Time.seconds(1L)))</code>kafka数据正常消费，但是没有正常计算并打印<br>代码如下：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">Types</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>windowing<span class="token punctuation">.</span>assigners<span class="token punctuation">.</span></span><span class="token class-name">EventTimeSessionWindows</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>windowing<span class="token punctuation">.</span>assigners<span class="token punctuation">.</span></span><span class="token class-name">TumblingProcessingTimeWindows</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>windowing<span class="token punctuation">.</span>time<span class="token punctuation">.</span></span><span class="token class-name">Time</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 创建Flink执行环境</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Kafka参数</span>
+        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
+        <span class="token comment">// Source</span>
+        <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> consumer <span class="token operator">=</span>
+                <span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>inputTopic<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">SimpleStringSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> properties<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>consumer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> wordCount <span class="token operator">=</span> stream
+                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span> line<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+                    <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> tokens <span class="token operator">=</span> line<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">"\\s"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">// 输出结果 (word, 1)</span>
+                    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">String</span> token <span class="token operator">:</span> tokens<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>token<span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                            collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">returns</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span><span class="token function">TUPLE</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> <span class="token class-name">Types</span><span class="token punctuation">.</span>INT<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>key <span class="token operator">-></span> key<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
+                <span class="token comment">//.window(EventTimeSessionWindows.withGap(Time.seconds(1L)))  //无数据</span>
+                <span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token class-name">TumblingProcessingTimeWindows</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token class-name">Time</span><span class="token punctuation">.</span><span class="token function">seconds</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">//有数据</span>
+                <span class="token comment">//.timeWindow(Time.seconds(5))   //无数据</span>
+                <span class="token punctuation">.</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>key <span class="token operator">-></span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span>f0 <span class="token operator">+</span> <span class="token string">":"</span> <span class="token operator">+</span> key<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<img src="/uploads/20210125/Flink%E6%9C%89%E6%B6%88%E8%B4%B9%E6%97%A0%E8%BE%93%E5%87%BA.png" alt="Flink有消费无输出"><br><img src="/uploads/20210125/offset%E6%B6%88%E8%B4%B9%E6%83%85%E5%86%B5.png" alt="offset消费情况"></li>
+</ul>
+<h3 id="从checkpoint点重新消费kafka数据"><a href="#从checkpoint点重新消费kafka数据" class="headerlink" title="从checkpoint点重新消费kafka数据"></a>从checkpoint点重新消费kafka数据</h3><p>发现通过公司封装的Flink，虽然在配置任务的时候，选择了从某个检查点恢复，但是消费的kafka的offset还是从最新的位置开始，这里自己调研一下：</p>
+<h3 id="Flink-kafka-consumer的消费模式设置"><a href="#Flink-kafka-consumer的消费模式设置" class="headerlink" title="Flink kafka consumer的消费模式设置"></a>Flink kafka consumer的消费模式设置</h3><ul>
+<li>setStartFromEarliest：从队头开始，最早的记录，内部的Consumer提交到Kafka/zk中的偏移量将被忽略。</li>
+<li>setStartFromLatest：从队尾开始，最新的记录，内部的Consumer提交到Kafka/zk中的偏移量将被忽略。</li>
+<li>setStartFromGroupOffsets()：默认值，从当前消费组记录的偏移量开始，接着上次的偏移量消费，以Consumer提交到Kafka/zk中的偏移量最为起始位置开始消费，group.id设置在consumer的properties里;如果没找到记录的偏移量，则使用consumer的properties的auto.offset.reset设置的策略。</li>
+<li>setStartFromSpecificOffsets(Map&lt;TopicPartition, Long&gt;的参数)：从指定的具体位置开始消费</li>
+<li>setStartFromTimestamp(long)：从指定的时间戳开始消费，对于每个分区，时间戳大于或等于指定时间戳的记录将用作起始位置。如果一个分区的最新记录早于时间戳，那么只需要从最新记录中读取该分区。在此模式下，Kafka/zk中提交的偏移量将被忽略。<blockquote>
+<p>从队头、指定offset、指定时间戳位置开始消费，会把历史数据当成批数据处理，不会有一条处理一条。</p>
+</blockquote>
+</li>
+</ul>
+<p>验证代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">Types</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 创建Flink执行环境</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);</span>
+        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"auto.offset.reset"</span><span class="token punctuation">,</span><span class="token string">"earliest"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"key.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"value.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
+        <span class="token comment">// Source</span>
+        <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> consumer <span class="token operator">=</span>
+                <span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>inputTopic<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">SimpleStringSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> properties<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//这里设置一开始总是失败，原因是token.length() &lt; 6不满足，直接exit了</span>
+        <span class="token comment">//但是这里有个问题，数据不应该是来一条消费一条吗？，最开始的几条数据，是满足token.length() &lt; 6的</span>
+        <span class="token comment">//看这样的情况是，flatmap执行完以后，才会触发后面的函数</span>
+        consumer<span class="token punctuation">.</span><span class="token function">setStartFromEarliest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//consumer.setStartFromTimestamp(1612246518000l);</span>
+        <span class="token comment">//consumer.setStartFromLatest();</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>consumer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> wordCount <span class="token operator">=</span> stream
+                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span> line<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+                    <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> tokens <span class="token operator">=</span> line<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">"/s"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">// 输出结果 (word, 1)</span>
+                    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">String</span> token <span class="token operator">:</span> tokens<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                        <span class="token comment">//这里的现象是：一直没有输出结果，突然exit(1)，直接走了else，也就是说，它会把历史数据消费完/消费一个批次，再执行后面的聚合</span>
+                        <span class="token comment">//但是，这里不知道是会把历史数据消费完才执行后面的聚合，还是只要消费到一定程度就会执行聚合</span>
+                        <span class="token comment">//如果一定要消费所有历史数据才聚合，那么可能以后对历史数据的消费需要慎重，因为一口气读取的历史数据如果太多，绝对会出问题</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>token<span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> token<span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">6</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                            collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>token<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>token<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">returns</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span><span class="token function">TUPLE</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> <span class="token class-name">Types</span><span class="token punctuation">.</span>INT<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>key <span class="token operator">-></span> key<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
+                <span class="token comment">//.window(TumblingProcessingTimeWindows.of(Time.seconds(1))) //有数据</span>
+                <span class="token punctuation">.</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>key <span class="token operator">-></span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span>f0 <span class="token operator">+</span> <span class="token string">":"</span> <span class="token operator">+</span> key<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Flink/" rel="tag"># Flink</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/01/18/Scala%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" rel="prev" title="Scala杂记（一）">
+      <i class="fa fa-chevron-left"></i> Scala杂记（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/01/20/Markdown%E6%96%87%E6%A1%A3%E7%BC%96%E5%86%99%E8%A7%84%E8%8C%83/" rel="next" title="Markdown文档编写规范">
+      Markdown文档编写规范 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Flink简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">Flink是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E5%BC%8F%E8%AE%A1%E7%AE%97%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94"><span class="nav-number">1.2.</span> <span class="nav-text">流式计算框架对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E4%B8%AD%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E5%AE%9E%E6%97%B6%E8%AE%A1%E7%AE%97%E6%A1%86%E6%9E%B6"><span class="nav-number">1.3.</span> <span class="nav-text">工作中如何选择实时计算框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85"><span class="nav-number">1.4.</span> <span class="nav-text">Flink下载安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%A6%82%E4%BD%95%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0Yarn"><span class="nav-number">2.</span> <span class="nav-text">Flink如何提交任务到Yarn</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E4%BB%BB%E5%8A%A1%E6%A1%88%E4%BE%8B"><span class="nav-number">3.</span> <span class="nav-text">Flink任务案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEFlink%E7%9A%84Maven%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="nav-number">3.1.</span> <span class="nav-text">配置Flink的Maven开发环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E5%8A%9F%E8%83%BD%EF%BC%9AFlink%E6%B6%88%E8%B4%B9Kafka%E6%95%B0%E6%8D%AE%E5%90%8E%E5%86%8D%E5%86%99%E5%85%A5Kafka"><span class="nav-number">3.2.</span> <span class="nav-text">实现简单功能：Flink消费Kafka数据后再写入Kafka</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IDEA%E6%9C%AC%E5%9C%B0%E8%B0%83%E8%AF%95Flink%E7%A8%8B%E5%BA%8F%E6%8A%A5%E9%94%99"><span class="nav-number">3.3.</span> <span class="nav-text">IDEA本地调试Flink程序报错</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E5%8A%9F%E8%83%BD%EF%BC%9AFlink%E6%B6%88%E8%B4%B9Kafka%E6%95%B0%E6%8D%AE%E5%B9%B6%E5%AE%9E%E7%8E%B0wordCount"><span class="nav-number">3.4.</span> <span class="nav-text">实现简单功能：Flink消费Kafka数据并实现wordCount</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8Echeckpoint%E7%82%B9%E9%87%8D%E6%96%B0%E6%B6%88%E8%B4%B9kafka%E6%95%B0%E6%8D%AE"><span class="nav-number">3.5.</span> <span class="nav-text">从checkpoint点重新消费kafka数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-kafka-consumer%E7%9A%84%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">3.6.</span> <span class="nav-text">Flink kafka consumer的消费模式设置</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

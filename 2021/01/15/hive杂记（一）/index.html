@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  hive中的复杂数据类型数据如何导入(array) hive中load数据到分区和add partition的区别： hive引用udf的jar报无效 hive实现job并发执行 验证hive两个join的结果是否相等">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hive杂记（一）">
+<meta property="og:url" content="https://gujincheng.github.io/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  hive中的复杂数据类型数据如何导入(array) hive中load数据到分区和add partition的区别： hive引用udf的jar报无效 hive实现job并发执行 验证hive两个join的结果是否相等">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210114/hive-import-data.png">
+<meta property="article:published_time" content="2021-01-15T09:55:05.000Z">
+<meta property="article:modified_time" content="2021-04-29T09:48:42.791Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Hive">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/20210114/hive-import-data.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>hive杂记（一） | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          hive杂记（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-15 17:55:05" itemprop="dateCreated datePublished" datetime="2021-01-15T17:55:05+08:00">2021-01-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hive/" itemprop="url" rel="index"><span itemprop="name">Hive</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-meta-item leancloud_visitors" data-flag-title="hive杂记（一）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>hive中的复杂数据类型数据如何导入(array)</li>
+<li>hive中load数据到分区和add partition的区别：</li>
+<li>hive引用udf的jar报无效</li>
+<li>hive实现job并发执行</li>
+<li>验证hive两个join的结果是否相等<a id="more"></a>
+<h2 id="hive中的复杂数据类型数据如何导入-array"><a href="#hive中的复杂数据类型数据如何导入-array" class="headerlink" title="hive中的复杂数据类型数据如何导入(array)"></a>hive中的复杂数据类型数据如何导入(array)</h2><h3 id="创建hive表"><a href="#创建hive表" class="headerlink" title="创建hive表"></a>创建hive表</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>dws_search_by_program_set_count_his<span class="token punctuation">(</span>
+  program_set_id string<span class="token punctuation">,</span> 
+  click_array array<span class="token operator">&lt;</span>string<span class="token operator">></span><span class="token punctuation">)</span>
+<span class="token keyword">row</span> format delimited
+<span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">','</span>
+collection items <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'#'</span>
+<span class="token keyword">lines</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'\n'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+其中click_array 为array类型。</li>
+</ul>
+<blockquote>
+<p>注意：</p>
+</blockquote>
+<ul>
+<li>在建表的时候一定要指定row format delimited，我这里指定了列与列质检为逗号，array的元素内容为#</li>
+</ul>
+<p>数据格式：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">100051130,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051133,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051134,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051136,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051138,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051140,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051157,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051161,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051163,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>下面来导入数据：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> inpath <span class="token string">'/home/gold/dws_search_by_program_set_count_his.csv'</span> overwrite <span class="token keyword">into</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>dws_search_by_program_set_count_his<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>效果：<br><img src="/uploads/20210114/hive-import-data.png" alt="hive-import-data"></p>
+<h2 id="hive中load数据到分区和add-partition的区别："><a href="#hive中load数据到分区和add-partition的区别：" class="headerlink" title="hive中load数据到分区和add partition的区别："></a>hive中load数据到分区和add partition的区别：</h2><p>load data的方式需要移动文件路径，如果把文件就放在分区位置，这时候如果用load data的方式，就会报错，需要用add partition的方式</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> dws<span class="token punctuation">.</span>dws_device_box_info_his_v2 <span class="token keyword">ADD</span> <span class="token keyword">partition</span><span class="token punctuation">(</span>province_alias<span class="token operator">=</span><span class="token string">'js'</span><span class="token punctuation">,</span>dt<span class="token operator">=</span><span class="token string">'20190701'</span><span class="token punctuation">)</span> 
+location <span class="token string">'hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>如果用load data的方式：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">load</span> <span class="token keyword">data</span> inpath <span class="token string">'hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701'</span> 
+overwrite <span class="token keyword">into</span> <span class="token keyword">table</span> dws<span class="token punctuation">.</span>dws_device_box_info_his_v2 <span class="token keyword">partition</span><span class="token punctuation">(</span>province_alias<span class="token operator">=</span><span class="token string">'js'</span><span class="token punctuation">,</span>dt<span class="token operator">=</span><span class="token string">'20190701'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span>
+就会报错：
+<span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span>shell
+FAILED: Execution Error<span class="token punctuation">,</span> <span class="token keyword">return</span> code <span class="token number">1</span> <span class="token keyword">from</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hive<span class="token punctuation">.</span>ql<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>MoveTask<span class="token punctuation">.</span> Unable <span class="token keyword">to</span> move source hdfs:<span class="token comment">//ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701 to destination hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看出，报错是不能移动文件位置，因为文件已经在这个路径下了</p>
+<p>总结：</p>
+<ul>
+<li>如果文件已经在分区的位置，这时候，需要用add partition的方式</li>
+<li>如果文件不在分区的位置，这时候用load data的方式</li>
+</ul>
+<p>具体的可以参考<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/worldchinalee/article/details/80278111">hive中的复杂类型struct、array、map</a>，这里struct、array、map都有</p>
+<h2 id="hive引用udf的jar报无效"><a href="#hive引用udf的jar报无效" class="headerlink" title="hive引用udf的jar报无效"></a>hive引用udf的jar报无效</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>原始的hive jar包在/opt/hive/auxlib/udf.jar，因为要测试代码，就又创建了一个jar包，/opt/hive/auxlib/udf1.jar<br>但是不管怎么创建udf，新的udf的代码都没有被引用</p>
+<h3 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h3><p>udf1.jar和udf.jar的java 类的路径和类名都是一样的，虽然在引用udf1.jar的时候，重新add jar了，但是hive不是把原始udf.jar从资源配置里拿去，当创建udf的时候，由于引用的类在原始的udf.jar中也有，所以，hive默认会引用hive在启动的时候加载的udf.jar，而不会使用udf1.jar</p>
+<h3 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h3><p>新旧两个jar包，类名或者路径保持不一致</p>
+<h2 id="hive实现job并发执行"><a href="#hive实现job并发执行" class="headerlink" title="hive实现job并发执行"></a>hive实现job并发执行</h2><p>写了个sql，job数有20多个，一直都是上一个job跑完，下一个才开始执行，需要执行40多分钟<br>最近找到个方法，可以设置hive-job并发执行，但是这样会提高资源消耗，如果读取的表都是明细表，谨慎使用</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> hive<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>parallel<span class="token operator">=</span><span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token keyword">set</span> hive<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>parallel<span class="token punctuation">.</span>thread<span class="token punctuation">.</span>number<span class="token operator">=</span>最大并发job数<span class="token punctuation">;</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>启动了5个并发，时间被控制在10分钟以内了。</p>
+<h2 id="hive-两个join的结果是否相等"><a href="#hive-两个join的结果是否相等" class="headerlink" title="hive 两个join的结果是否相等"></a>hive 两个join的结果是否相等</h2><p>有3个表A(id,name) B(id,name) C(id,name)<br>其中A的name为空，B两个都非空</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">A <span class="token keyword">inner</span> <span class="token keyword">join</span> C <span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id 
+<span class="token keyword">union</span> <span class="token keyword">all</span>
+B <span class="token keyword">join</span> C <span class="token keyword">on</span> b<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id <span class="token operator">and</span> b<span class="token punctuation">.</span>name <span class="token operator">=</span> c<span class="token punctuation">.</span>name<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>是否等于</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token punctuation">(</span>A <span class="token keyword">union</span> <span class="token keyword">all</span> B<span class="token punctuation">)</span> t1
+<span class="token keyword">join</span> C t2
+<span class="token keyword">on</span> t1<span class="token punctuation">.</span>id <span class="token operator">=</span> t2<span class="token punctuation">.</span>id
+<span class="token keyword">where</span> t1<span class="token punctuation">.</span>name <span class="token operator">is</span> <span class="token boolean">null</span> <span class="token operator">or</span> t1<span class="token punctuation">.</span>name <span class="token operator">=</span> t2<span class="token punctuation">.</span>name<span class="token punctuation">)</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>验证过程:</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
+<span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
+<span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
+<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 <span class="token keyword">values</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span>
+<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222 <span class="token keyword">values</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'b'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'c'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'d'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token string">'e'</span><span class="token punctuation">)</span>
+<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 <span class="token keyword">values</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'b'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'c'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'d'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token string">'e'</span><span class="token punctuation">)</span>
+
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
+<span class="token punctuation">(</span><span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 
+<span class="token keyword">union</span> <span class="token keyword">all</span> 
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222<span class="token punctuation">)</span> t1
+<span class="token keyword">inner</span> <span class="token keyword">join</span> 
+<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 t2
+<span class="token keyword">on</span> t1<span class="token punctuation">.</span>id <span class="token operator">=</span> t2<span class="token punctuation">.</span>id
+<span class="token keyword">where</span> t1<span class="token punctuation">.</span>name <span class="token operator">is</span> <span class="token boolean">null</span> <span class="token operator">or</span> t1<span class="token punctuation">.</span>name <span class="token operator">=</span> t2<span class="token punctuation">.</span>name
+
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
+<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 a <span class="token keyword">inner</span> <span class="token keyword">join</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 b
+<span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> b<span class="token punctuation">.</span>id
+<span class="token keyword">union</span> <span class="token keyword">all</span>
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
+<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222 a <span class="token keyword">inner</span> <span class="token keyword">join</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 c
+<span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id <span class="token operator">and</span> a<span class="token punctuation">.</span>name <span class="token operator">=</span> c<span class="token punctuation">.</span>name<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>经过验证，两个结果相同 </p>
+<h2 id="基于python编写udf，实现判断字符串是否是标准json"><a href="#基于python编写udf，实现判断字符串是否是标准json" class="headerlink" title="基于python编写udf，实现判断字符串是否是标准json"></a>基于python编写udf，实现判断字符串是否是标准json</h2><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment"># -*- coding: utf-8 -*-</span>
+<span class="token comment">## add file /home/19190845/udf.py</span>
+<span class="token comment">## select transform(fbdeal_id,orderdata) USING 'python udf.py'  AS (fbdeal_id,orderdata) from app.app_onedata_oms_orders_t_bdeal_da;</span>
+<span class="token keyword">import</span> sys
+<span class="token keyword">import</span> json
+
+<span class="token keyword">def</span> <span class="token function">is_json</span><span class="token punctuation">(</span>myjson<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        json_object <span class="token operator">=</span> json<span class="token punctuation">.</span>loads<span class="token punctuation">(</span>myjson<span class="token punctuation">)</span>
+    <span class="token keyword">except</span> ValueError<span class="token punctuation">,</span> e<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token boolean">False</span>
+    <span class="token keyword">return</span> <span class="token boolean">True</span>
+<span class="token keyword">for</span> line <span class="token keyword">in</span> sys<span class="token punctuation">.</span>stdin<span class="token punctuation">:</span>
+    detail <span class="token operator">=</span> line<span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">"\t"</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>detail<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">2</span><span class="token punctuation">:</span>
+        <span class="token keyword">continue</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        deal_id <span class="token operator">=</span> detail<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+        orderData <span class="token operator">=</span> detail<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+        isJson <span class="token operator">=</span> is_json<span class="token punctuation">(</span>orderData<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> <span class="token keyword">not</span> isJson<span class="token punctuation">:</span>
+            <span class="token keyword">print</span> <span class="token builtin">str</span><span class="token punctuation">(</span>deal_id<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"\t"</span> <span class="token operator">+</span> orderData
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">add</span> <span class="token keyword">file</span> <span class="token operator">/</span>home<span class="token operator">/</span><span class="token number">19190845</span><span class="token operator">/</span>udf<span class="token punctuation">.</span>py
+<span class="token keyword">select</span> transform<span class="token punctuation">(</span>fbdeal_id<span class="token punctuation">,</span>orderdata<span class="token punctuation">)</span> <span class="token keyword">USING</span> <span class="token string">'python udf.py'</span>  <span class="token keyword">AS</span> <span class="token punctuation">(</span>fbdeal_id<span class="token punctuation">,</span>orderdata<span class="token punctuation">)</span> <span class="token keyword">from</span> app<span class="token punctuation">.</span>app_onedata_oms_orders_t_bdeal_da<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>以上语句，支持hive mr、tez引擎，并支持spark-sql命令行</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Hive/" rel="tag"># Hive</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/" rel="prev" title="spark性能优化之序列化">
+      <i class="fa fa-chevron-left"></i> spark性能优化之序列化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/" rel="next" title="python实现scp功能">
+      python实现scp功能 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#hive%E4%B8%AD%E7%9A%84%E5%A4%8D%E6%9D%82%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%A6%82%E4%BD%95%E5%AF%BC%E5%85%A5-array"><span class="nav-number">1.</span> <span class="nav-text">hive中的复杂数据类型数据如何导入(array)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BAhive%E8%A1%A8"><span class="nav-number">1.1.</span> <span class="nav-text">创建hive表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive%E4%B8%ADload%E6%95%B0%E6%8D%AE%E5%88%B0%E5%88%86%E5%8C%BA%E5%92%8Cadd-partition%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">hive中load数据到分区和add partition的区别：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive%E5%BC%95%E7%94%A8udf%E7%9A%84jar%E6%8A%A5%E6%97%A0%E6%95%88"><span class="nav-number">3.</span> <span class="nav-text">hive引用udf的jar报无效</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">3.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">3.2.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="nav-number">3.3.</span> <span class="nav-text">解决办法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive%E5%AE%9E%E7%8E%B0job%E5%B9%B6%E5%8F%91%E6%89%A7%E8%A1%8C"><span class="nav-number">4.</span> <span class="nav-text">hive实现job并发执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive-%E4%B8%A4%E4%B8%AAjoin%E7%9A%84%E7%BB%93%E6%9E%9C%E6%98%AF%E5%90%A6%E7%9B%B8%E7%AD%89"><span class="nav-number">5.</span> <span class="nav-text">hive 两个join的结果是否相等</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Epython%E7%BC%96%E5%86%99udf%EF%BC%8C%E5%AE%9E%E7%8E%B0%E5%88%A4%E6%96%AD%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%98%AF%E5%90%A6%E6%98%AF%E6%A0%87%E5%87%86json"><span class="nav-number">6.</span> <span class="nav-text">基于python编写udf，实现判断字符串是否是标准json</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

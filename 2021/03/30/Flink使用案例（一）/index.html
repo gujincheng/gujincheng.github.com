@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  实时订单模型实现">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flink使用案例（一）">
+<meta property="og:url" content="https://gujincheng.github.io/2021/03/30/Flink%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  实时订单模型实现">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210330/%E6%95%B0%E6%8D%AE%E5%85%B3%E7%B3%BB%E5%9B%BE.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210330/bdeal%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210330/deal%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210330/trade%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210330/%E5%AE%9E%E6%97%B6%E8%AE%A2%E5%8D%95%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88.png">
+<meta property="article:published_time" content="2021-03-30T07:10:04.000Z">
+<meta property="article:modified_time" content="2021-04-29T09:48:42.788Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/20210330/%E6%95%B0%E6%8D%AE%E5%85%B3%E7%B3%BB%E5%9B%BE.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2021/03/30/Flink%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Flink使用案例（一） | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/03/30/Flink%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Flink使用案例（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-30 15:10:04" itemprop="dateCreated datePublished" datetime="2021-03-30T15:10:04+08:00">2021-03-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Flink/" itemprop="url" rel="index"><span itemprop="name">Flink</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/03/30/Flink%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-meta-item leancloud_visitors" data-flag-title="Flink使用案例（一）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/03/30/Flink%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%88%E4%B8%80%EF%BC%89/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/03/30/Flink%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%88%E4%B8%80%EF%BC%89/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>实时订单模型实现</li>
+</ul>
+<a id="more"></a>
+<h2 id="实时订单模型实现"><a href="#实时订单模型实现" class="headerlink" title="实时订单模型实现"></a>实时订单模型实现</h2><p>公司最近要重构订单模型，需求是，把订单模型从离线完全转为实时，但是，需要解决如下几点问题：</p>
+<ul>
+<li>底层的订单表分为3张表，最终的模型是把3个表关联成一张表</li>
+<li>底层三个表的数据不是同时产生的，时间跨度有大有小，导致时间窗口不好控制</li>
+<li>订单状态随时间变化，导致数据肯定会跨天，甚至有的订单状态变成完成状态需要30天以上  </li>
+<li>某个时间点，可能只会有一个表的数据更新，就会导致在处理这条数据的时候，肯定关联不上另外两个表</li>
+</ul>
+<p>为了解决如上问题，有如下几个思路解决：</p>
+<ul>
+<li>使用Flink的状态计算</li>
+<li>把订单的3个表先缓存下来，每条数据来之后，先去缓存重获取另外两个表的数据</li>
+</ul>
+<p>考虑到，订单的生命周期太长，一个订单从产生到结束，时间跨度大部分在2周之内，但是在大促期间，有的甚至能跨好几个月，这时候用状态计算来保留订单的状态就有些不恰当了。<br>所以最终考虑使用Hbase作为缓存组件，先将3个订单表缓存到Hbase中</p>
+<h3 id="数据源样例："><a href="#数据源样例：" class="headerlink" title="数据源样例："></a>数据源样例：</h3><p>数据源分为t_bdeal(fbdeal_id),t_deal(fdeal_id),t_trade(ftrade_id)表，其中，t_deal中含有fbdeal_id，t_trade表中含有fbdeal_id和fdeal_id<br>数据关系如下图：<br><img src="/uploads/20210330/%E6%95%B0%E6%8D%AE%E5%85%B3%E7%B3%BB%E5%9B%BE.png" alt="数据关系图"></p>
+<p>所以设置<code>Hbase</code> 3个表的<code>rowkey</code>分别是每个表的主键，并在t_bdeal表中添加${fdeal_id}_${ftrade_id}的集合<br>数据样例如下：<br>bdeal缓存数据样例如下：<br><img src="/uploads/20210330/bdeal%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B.png" alt="bdeal缓存数据样例"><br>deal缓存数据样例如下：<br><img src="/uploads/20210330/deal%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B.png" alt="bdeal缓存数据样例"><br>trade缓存数据样例如下：<br><img src="/uploads/20210330/trade%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B.png" alt="bdeal缓存数据样例"></p>
+<h3 id="设计方案流程图如下："><a href="#设计方案流程图如下：" class="headerlink" title="设计方案流程图如下："></a>设计方案流程图如下：</h3><p><img src="/uploads/20210330/%E5%AE%9E%E6%97%B6%E8%AE%A2%E5%8D%95%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88.png" alt="实时订单模型设计方案"></p>
+<h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><p>这里只贴关键部分的代码。<br>数据流都在<code>transform</code>中实现，这里只贴<code>transform</code>的代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>executor</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span>JSON<span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span><span class="token class-name">JSONArray</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span><span class="token class-name">JSONObject</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>collect<span class="token punctuation">.</span></span><span class="token class-name">Maps</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>common<span class="token punctuation">.</span>base<span class="token punctuation">.</span></span><span class="token class-name">AbstractStreamExcutor</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>common<span class="token punctuation">.</span>base<span class="token punctuation">.</span></span><span class="token class-name">AbstractStreamSink</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>common<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">ResourcesUtil</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>constant<span class="token punctuation">.</span></span><span class="token class-name">UserTagConstant</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>sink<span class="token punctuation">.</span></span><span class="token class-name">OmsOrderBdealSink</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">DateUtil</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">GdmFactOmsOrdersUtil</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>haiziwang<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">HBaseUtil</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">FilterFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">FlatMapFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">MapFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">RichFlatMapFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple3</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>configuration<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">SingleOutputStreamOperator</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">StringUtils</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">Serializable</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>text<span class="token punctuation">.</span></span><span class="token class-name">ParseException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">ArrayList</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">List</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Map</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>regex<span class="token punctuation">.</span></span><span class="token class-name">Pattern</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * Author:   gujc
+ * Date:     2021/03/03 15:38
+ * Description:
+ * rowkey设计：
+ * bdeal: Fbdeal_id
+ * deal: Fdeal_id
+ * trade:Ftrade_id
+ * 1、Hbase的bdeal表里存deal_id和trade_id的集合（deal_id_set,trade_id_set）
+ * 2、之后trade表和bdeal表数据更新，如果是新增，那么也会更新bdeal表数据
+ * 3、可能需要在窗口里对数据根据update_time排序，取最新的数据
+ * 4、需要考虑一下，如果两个流数据同时过来，应该先更新哪个的问题
+ * 5、如果数据更新方式是delete，需要过滤掉吗？
+ *
+ *
+ * 重要未做：
+ *      订单表的预分区，你可以找杜鹏这边了解一下采集系统的做法
+ *      需要考虑在查询hbase的同时，另外一个并发在更新同一条记录，这里暂时无解，可能需要用到锁
+ *      3个表的每条记录都会更新一次kudu，
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">GdmFactOmsOrdersExecutor</span> <span class="token keyword">extends</span> <span class="token class-name">AbstractStreamExcutor</span> <span class="token keyword">implements</span> <span class="token class-name">Serializable</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">/**
+     * OMS订单表
+     */</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> T_DEAL <span class="token operator">=</span> <span class="token string">"t_deal"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> T_BDEAL <span class="token operator">=</span> <span class="token string">"t_bdeal"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> T_TRADE <span class="token operator">=</span> <span class="token string">"t_trade"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> BDEAL_MATCHES <span class="token operator">=</span> <span class="token string">"t_bdeal_[0-9]+$"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> DEAL_MATCHES <span class="token operator">=</span> <span class="token string">"t_deal_[0-9]+$"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> TRADE_MATCHES <span class="token operator">=</span> <span class="token string">"t_trade_[0-9]+$"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> HBASE_TABLE_TRADE <span class="token operator">=</span> <span class="token string">"hb_app_onedata_oms_orders_t_trade_da"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> HBASE_TABLE_DEAL <span class="token operator">=</span> <span class="token string">"hb_app_onedata_oms_orders_t_deal_da"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> HBASE_TABLE_BDEAL <span class="token operator">=</span> <span class="token string">"hb_app_onedata_oms_orders_t_bdeal_da"</span><span class="token punctuation">;</span>
+
+
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">AbstractStreamSink</span> <span class="token function">getFlinkSink</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">OmsOrderBdealSink</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> <span class="token function">transform</span><span class="token punctuation">(</span><span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> dataStream<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">SingleOutputStreamOperator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> singleStream <span class="token operator">=</span> dataStream<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">MapFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Tuple3</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token annotation punctuation">@Override</span>
+            <span class="token keyword">public</span> <span class="token class-name">Tuple3</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token function">map</span><span class="token punctuation">(</span><span class="token class-name">String</span> value<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">JSONObject</span> jsonObject <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token class-name">String</span> data <span class="token operator">=</span> jsonObject<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token class-name">String</span> table <span class="token operator">=</span> jsonObject<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"table"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token class-name">String</span> type <span class="token operator">=</span> jsonObject<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Tuple3</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>table<span class="token punctuation">,</span> data<span class="token punctuation">,</span>type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FilterFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple3</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token annotation punctuation">@Override</span>
+            <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">filter</span><span class="token punctuation">(</span><span class="token class-name">Tuple3</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span></span> value<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">String</span> optType <span class="token operator">=</span> value<span class="token punctuation">.</span>f2<span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> value<span class="token punctuation">.</span>f1 <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>value<span class="token punctuation">.</span>f1<span class="token punctuation">.</span><span class="token function">isEmpty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token string">"delete"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>optType<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+
+                <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlatMapFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple3</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span><span class="token punctuation">,</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">JSONObject</span><span class="token punctuation">></span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token annotation punctuation">@Override</span>
+            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token class-name">Tuple3</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span></span> value<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">JSONObject</span><span class="token punctuation">></span><span class="token punctuation">></span></span> out<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JSONObject</span><span class="token punctuation">></span></span> jsonObjects <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">parseArray</span><span class="token punctuation">(</span>value<span class="token punctuation">.</span>f1<span class="token punctuation">,</span> <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token class-name">String</span> tableName <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token class-name">Pattern</span><span class="token punctuation">.</span><span class="token function">matches</span><span class="token punctuation">(</span>BDEAL_MATCHES<span class="token punctuation">,</span> value<span class="token punctuation">.</span>f0<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    tableName <span class="token operator">=</span> <span class="token class-name">UserTagConstant</span><span class="token punctuation">.</span>T_BDEAL<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token class-name">Pattern</span><span class="token punctuation">.</span><span class="token function">matches</span><span class="token punctuation">(</span>DEAL_MATCHES<span class="token punctuation">,</span> value<span class="token punctuation">.</span>f0<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    tableName <span class="token operator">=</span> <span class="token class-name">UserTagConstant</span><span class="token punctuation">.</span>T_DEAL<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token class-name">Pattern</span><span class="token punctuation">.</span><span class="token function">matches</span><span class="token punctuation">(</span>TRADE_MATCHES<span class="token punctuation">,</span> value<span class="token punctuation">.</span>f0<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    tableName <span class="token operator">=</span> <span class="token class-name">UserTagConstant</span><span class="token punctuation">.</span>T_TRADE<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span><span class="token class-name">StringUtils</span><span class="token punctuation">.</span><span class="token function">isNullOrWhitespaceOnly</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">JSONObject</span> jsonObject <span class="token operator">:</span> jsonObjects<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                        out<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>tableName<span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>jsonObject<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">RichFlatMapFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">JSONObject</span><span class="token punctuation">></span><span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">private</span> <span class="token class-name">HBaseUtil</span> hBaseUtil<span class="token punctuation">;</span>
+            <span class="token annotation punctuation">@Override</span>
+            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token keyword">open</span><span class="token punctuation">(</span><span class="token class-name">Configuration</span> parameters<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">super</span><span class="token punctuation">.</span><span class="token keyword">open</span><span class="token punctuation">(</span>parameters<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                hBaseUtil <span class="token operator">=</span> <span class="token class-name">HBaseUtil</span><span class="token punctuation">.</span><span class="token function">getInstance</span><span class="token punctuation">(</span><span class="token class-name">ResourcesUtil</span><span class="token punctuation">.</span><span class="token function">getValue</span><span class="token punctuation">(</span><span class="token string">"conf"</span><span class="token punctuation">,</span> <span class="token string">"zookeeper"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+
+            <span class="token keyword">private</span> <span class="token class-name">JSONArray</span> <span class="token function">mergeProp</span><span class="token punctuation">(</span><span class="token class-name">JSONArray</span> jsonArray<span class="token punctuation">,</span> <span class="token class-name">String</span> prop<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>jsonArray <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    jsonArray <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">JSONArray</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>jsonArray<span class="token punctuation">.</span><span class="token function">contains</span><span class="token punctuation">(</span>prop<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    jsonArray<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>prop<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">return</span> jsonArray<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+
+
+            <span class="token comment">/**
+             * 更新Hbase表数据
+             * 如果数据已经存在，判断update时间是否在历史数据之后，是则更新
+             * 数据需要清洗后才能入Hbase
+             * Hbase数据结构：
+             * rowkey -> Map&lt;orderData,updateTime>
+             * 如果是trade数据，那么还需要再更新一下bdeal数据，为了存储tradeArray
+             * @param data
+             * @return updateRes,更新true，未更新false
+             */</span>
+            <span class="token keyword">private</span> <span class="token class-name">Boolean</span> <span class="token function">updateHbase</span><span class="token punctuation">(</span><span class="token class-name">JSONObject</span> data<span class="token punctuation">,</span><span class="token class-name">String</span> tableName<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">ParseException</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">String</span> updateTime <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>
+                <span class="token class-name">String</span> cacheTableName <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>
+                <span class="token class-name">String</span> rowkey <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>
+                <span class="token class-name">String</span> updateTimeCache <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>
+                <span class="token class-name">JSONArray</span> tradeArray <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span> cacheMap <span class="token operator">=</span> <span class="token class-name">Maps</span><span class="token punctuation">.</span><span class="token function">newHashMap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span><span class="token punctuation">(</span>T_DEAL<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    updateTime <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Flast_update_time"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    cacheTableName <span class="token operator">=</span> HBASE_TABLE_DEAL<span class="token punctuation">;</span>
+                    rowkey <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    cacheMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"ext_data"</span><span class="token punctuation">,</span>data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fdeal_ext_data"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>T_BDEAL<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    updateTime <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fbdeal_update_time"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    cacheTableName <span class="token operator">=</span> HBASE_TABLE_BDEAL<span class="token punctuation">;</span>
+                    rowkey <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fbdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    tradeArray <span class="token operator">=</span> <span class="token class-name">JSONArray</span><span class="token punctuation">.</span><span class="token function">parseArray</span><span class="token punctuation">(</span>data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>T_TRADE<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    updateTime <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Ftrade_update_time"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    cacheTableName <span class="token operator">=</span> HBASE_TABLE_TRADE<span class="token punctuation">;</span>
+                    rowkey <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Ftrade_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                    <span class="token comment">//更新fbdeal缓存的tradeArray</span>
+                    <span class="token class-name">String</span> bdealId <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fbdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token class-name">String</span> dealId <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    cacheMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"ext_data"</span><span class="token punctuation">,</span>data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Ftrade_ext_data"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span> bdealDataMap <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_BDEAL<span class="token punctuation">,</span>bdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token class-name">JSONArray</span> tradeArrayTemp <span class="token operator">=</span> <span class="token keyword">null</span> <span class="token operator">==</span> bdealDataMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">)</span> <span class="token operator">?</span>
+                            <span class="token keyword">new</span> <span class="token class-name">JSONArray</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token class-name">JSONArray</span><span class="token punctuation">.</span><span class="token function">parseArray</span><span class="token punctuation">(</span>bdealDataMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                    tradeArrayTemp <span class="token operator">=</span> <span class="token function">mergeProp</span><span class="token punctuation">(</span>tradeArrayTemp<span class="token punctuation">,</span>dealId <span class="token operator">+</span> <span class="token string">"_"</span> <span class="token operator">+</span> rowkey<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">if</span><span class="token punctuation">(</span>bdealDataMap<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token comment">//如果bdeal还没有数据,不加updateTime，为了让bdeal数据来了以后，能够更新数据</span>
+                        bdealDataMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"Fbdeal_id"</span><span class="token punctuation">,</span>bdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        bdealDataMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">,</span>tradeArrayTemp<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                        <span class="token comment">//如果bdeal已经有数据</span>
+                        bdealDataMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">,</span>tradeArrayTemp<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                    hBaseUtil<span class="token punctuation">.</span><span class="token function">insertOrderData</span><span class="token punctuation">(</span>HBASE_TABLE_BDEAL<span class="token punctuation">,</span> bdealId<span class="token punctuation">,</span>bdealDataMap<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+
+                updateTimeCache <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>cacheTableName<span class="token punctuation">,</span>rowkey<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"updateTime"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">//如果更新时间大于缓存的时间，则更新数据，否则不更新</span>
+                <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token class-name">StringUtils</span><span class="token punctuation">.</span><span class="token function">isNullOrWhitespaceOnly</span><span class="token punctuation">(</span>updateTimeCache<span class="token punctuation">)</span> <span class="token operator">||</span>  <span class="token class-name">DateUtil</span><span class="token punctuation">.</span><span class="token function">dateDiffMilliSecond</span><span class="token punctuation">(</span>updateTimeCache<span class="token punctuation">,</span>updateTime<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> tradeArray<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        data<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">,</span>tradeArray<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                    cacheMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">,</span>data<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    cacheMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"updateTime"</span><span class="token punctuation">,</span>updateTime<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    hBaseUtil<span class="token punctuation">.</span><span class="token function">insertOrderData</span><span class="token punctuation">(</span>cacheTableName<span class="token punctuation">,</span> rowkey<span class="token punctuation">,</span> cacheMap<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">DateUtil</span><span class="token punctuation">.</span><span class="token function">dateDiffMilliSecond</span><span class="token punctuation">(</span>updateTimeCache<span class="token punctuation">,</span>updateTime<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token comment">//如果这个数据已经在hbase里存在了，那么不更新hbase，但是需要处理后面的逻辑</span>
+                    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+
+
+            <span class="token comment">/**
+             * 主逻辑：
+             * updateHbase返回值，更新了数据则继续，否则结束
+             * 按照3个订单表的不同，处理逻辑不同：
+             *
+             * 1. 交易单执行逻辑（bdeal）
+             * 1.1 根据tradeArray获取Hbase中trade的数据
+             * 1.2 从trade表中获取Fdeal_id，以此获取Hbase中deal的数据
+             * 1.3 拼接结果数据，并返回
+             *
+             * 2. 商品单数据更新处理逻辑(trade)
+             * 2.1. 根据Fdeal_id获取Hbase中deal的数据
+             * 2.2. 根据Fbdeal_id获取Hbase中bdeal中的数据,并拼接tradeArray，写入bdeal表
+             * 2.3. 拼接结果数据，并返回
+             *
+             * 3. 包裹单数据更新处理逻辑(deal)
+             * 3.1 根据Fbdeal_id获取Hbase中bdeal的数据,
+             * 3.2 并根据bdeal表的tradeArray获取trade表数据
+             * 3.3 拼接结果数据，并返回
+             *
+             * 需要解决一个问题:
+             * 如果trade数据先进来，只会更新trade缓存。那么等到bdeal数据来之后，因为没有tradeArray，数据就没法处理了
+             * 所以，在更新trade缓存的时候，也需要更新bdeal的缓存。
+             * @param data
+             */</span>
+            <span class="token keyword">private</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JSONObject</span><span class="token punctuation">></span></span> <span class="token function">handle</span><span class="token punctuation">(</span><span class="token class-name">JSONObject</span> data<span class="token punctuation">,</span><span class="token class-name">String</span> tableName<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">ParseException</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JSONObject</span><span class="token punctuation">></span></span> resArr <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">boolean</span> flag <span class="token operator">=</span> <span class="token function">updateHbase</span><span class="token punctuation">(</span>data<span class="token punctuation">,</span>tableName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                <span class="token keyword">if</span><span class="token punctuation">(</span>flag<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token keyword">if</span><span class="token punctuation">(</span>T_BDEAL<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token class-name">String</span> fbdealId <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fbdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token comment">//根据Fbdeal_id获取Hbase中bdeal的数据('data',jsonObject)</span>
+                        <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span></span> bdealCacheData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_BDEAL<span class="token punctuation">,</span>fbdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> bdealOrderCacheData <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> dealOrderCacheData <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> tradeOrderCacheData <span class="token operator">=</span>  <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                            bdealOrderCacheData <span class="token operator">=</span>  <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"=========== bdeal:bdeal:"</span> <span class="token operator">+</span> fbdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+                        <span class="token class-name">JSONArray</span> tradeArray <span class="token operator">=</span> <span class="token class-name">JSONArray</span><span class="token punctuation">.</span><span class="token function">parseArray</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token comment">//根据trade_id获取trade和deal表信息</span>
+                        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> tradeArray<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>size <span class="token operator">=</span> tradeArray<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> size<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                <span class="token class-name">String</span> dealId <span class="token operator">=</span> tradeArray<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">"_"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+                                <span class="token class-name">String</span> tradeId <span class="token operator">=</span> tradeArray<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">"_"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+                                <span class="token class-name">String</span> orderDataStr <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_TRADE<span class="token punctuation">,</span>tradeId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token class-name">String</span> tradeExtData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_TRADE<span class="token punctuation">,</span>tradeId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span><span class="token string">"ext_data"</span><span class="token punctuation">,</span><span class="token string">"&#123;&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                                <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                                    tradeOrderCacheData <span class="token operator">=</span>  <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>orderDataStr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>orderDataStr <span class="token operator">+</span> <span class="token string">"=========== bdeal:trade:"</span> <span class="token operator">+</span> tradeId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                    <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token punctuation">&#125;</span>
+
+                                <span class="token class-name">String</span> dealOrderStr <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_DEAL<span class="token punctuation">,</span>dealId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token class-name">String</span> dealExtData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_DEAL<span class="token punctuation">,</span>dealId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span><span class="token string">"ext_data"</span><span class="token punctuation">,</span><span class="token string">"&#123;&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                                <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                                    dealOrderCacheData <span class="token operator">=</span> <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>dealOrderStr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>dealOrderStr <span class="token operator">+</span> <span class="token string">"=========== bdeal:deal:"</span> <span class="token operator">+</span> dealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                    <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token punctuation">&#125;</span>
+
+
+                                <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> dealOrderCacheData <span class="token operator">&amp;&amp;</span> <span class="token keyword">null</span> <span class="token operator">!=</span> tradeOrderCacheData<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                    tradeOrderCacheData<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"Ftrade_ext_data"</span><span class="token punctuation">,</span>tradeExtData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                    dealOrderCacheData<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"Fdeal_ext_data"</span><span class="token punctuation">,</span>dealExtData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                    <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JSONObject</span><span class="token punctuation">></span></span> unionOrders <span class="token operator">=</span> <span class="token class-name">GdmFactOmsOrdersUtil</span><span class="token punctuation">.</span><span class="token function">mergeResult</span><span class="token punctuation">(</span>bdealOrderCacheData<span class="token punctuation">,</span>dealOrderCacheData<span class="token punctuation">,</span>tradeOrderCacheData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                    resArr<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>unionOrders<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token punctuation">&#125;</span>
+                            <span class="token punctuation">&#125;</span>
+                        <span class="token punctuation">&#125;</span>
+
+                        <span class="token keyword">return</span> resArr<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>T_DEAL<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token class-name">String</span> fdealId <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">String</span> fbdealId <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fbdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token comment">//根据Fdeal_id获取Hbase中bdeal的数据('data',jsonObject)</span>
+                        <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span></span> bdealCacheData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_BDEAL<span class="token punctuation">,</span>fbdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> bdealOrderCacheData <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> dealOrderCacheData <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> tradeOrderCacheData <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                            bdealOrderCacheData <span class="token operator">=</span>  <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"=========== deal:bdeal:"</span> <span class="token operator">+</span> fbdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+
+                        <span class="token comment">/**
+                         * 这里是可以省略一次查询Hbase的。之后做优化。
+                         */</span>
+                        <span class="token class-name">String</span> dealOrderStr <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_DEAL<span class="token punctuation">,</span>fdealId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">String</span> dealExtData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_DEAL<span class="token punctuation">,</span>fdealId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span><span class="token string">"ext_data"</span><span class="token punctuation">,</span><span class="token string">"&#123;&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                            dealOrderCacheData <span class="token operator">=</span>  <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>dealOrderStr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>dealOrderStr <span class="token operator">+</span> <span class="token string">"=========== deal:deal"</span> <span class="token operator">+</span> fdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+                        dealOrderCacheData<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"Fdeal_ext_data"</span><span class="token punctuation">,</span>dealExtData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> bdealOrderCacheData<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token class-name">JSONArray</span> tradeArray <span class="token operator">=</span> <span class="token class-name">JSONArray</span><span class="token punctuation">.</span><span class="token function">parseArray</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> tradeArray<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                <span class="token comment">//根据trade_id获取trade和deal表信息</span>
+                                <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>size <span class="token operator">=</span> tradeArray<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> size<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                    <span class="token class-name">String</span> dealId <span class="token operator">=</span> tradeArray<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">"_"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+                                    <span class="token class-name">String</span> tradeId <span class="token operator">=</span> tradeArray<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">"_"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+                                    <span class="token class-name">String</span> tradeExtData <span class="token operator">=</span> <span class="token string">"&#123;&#125;"</span><span class="token punctuation">;</span>
+                                    <span class="token keyword">if</span><span class="token punctuation">(</span>dealId<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>fdealId<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                        <span class="token class-name">String</span> orderDataStr <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_TRADE<span class="token punctuation">,</span>tradeId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                        tradeExtData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_TRADE<span class="token punctuation">,</span>tradeId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span><span class="token string">"ext_data"</span><span class="token punctuation">,</span><span class="token string">"&#123;&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                                        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                                            tradeOrderCacheData <span class="token operator">=</span>  <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>orderDataStr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>orderDataStr <span class="token operator">+</span> <span class="token string">"=========== deal:trade:"</span> <span class="token operator">+</span> tradeId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                        <span class="token punctuation">&#125;</span>
+                                    <span class="token punctuation">&#125;</span>
+
+                                    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> tradeOrderCacheData<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                        tradeOrderCacheData<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"Ftrade_ext_data"</span><span class="token punctuation">,</span>tradeExtData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JSONObject</span><span class="token punctuation">></span></span> unionOrders <span class="token operator">=</span> <span class="token class-name">GdmFactOmsOrdersUtil</span><span class="token punctuation">.</span><span class="token function">mergeResult</span><span class="token punctuation">(</span>bdealOrderCacheData<span class="token punctuation">,</span>dealOrderCacheData<span class="token punctuation">,</span>tradeOrderCacheData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                        resArr<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>unionOrders<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                    <span class="token punctuation">&#125;</span>
+                                <span class="token punctuation">&#125;</span>
+                            <span class="token punctuation">&#125;</span>
+                        <span class="token punctuation">&#125;</span>
+
+                        <span class="token keyword">return</span> resArr<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>T_TRADE<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token class-name">String</span> fdealId <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">String</span> fbdealId <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Fbdeal_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">String</span> ftradeId <span class="token operator">=</span> data<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"Ftrade_id"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                        <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">String</span><span class="token punctuation">></span></span> bdealCacheData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_BDEAL<span class="token punctuation">,</span>fbdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> bdealOrderCacheData <span class="token operator">=</span> <span class="token keyword">null</span> <span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> dealOrderCacheData <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> tradeOrderCacheData <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                            bdealOrderCacheData <span class="token operator">=</span>  <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"=========== trade:bdeal:"</span> <span class="token operator">+</span> fbdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+
+
+                        <span class="token class-name">String</span> orderDataStr <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_DEAL<span class="token punctuation">,</span>fdealId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">String</span> dealExtData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_DEAL<span class="token punctuation">,</span>fdealId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span><span class="token string">"ext_data"</span><span class="token punctuation">,</span><span class="token string">"&#123;&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                            dealOrderCacheData <span class="token operator">=</span> <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>orderDataStr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>orderDataStr <span class="token operator">+</span> <span class="token string">"=========== trade:deal:"</span> <span class="token operator">+</span> fdealId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+
+
+                        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> bdealOrderCacheData <span class="token operator">&amp;&amp;</span> <span class="token keyword">null</span> <span class="token operator">!=</span> dealOrderCacheData<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            dealOrderCacheData<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"Fdeal_ext_data"</span><span class="token punctuation">,</span>dealExtData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">JSONArray</span> tradeArray <span class="token operator">=</span> <span class="token class-name">JSONArray</span><span class="token punctuation">.</span><span class="token function">parseArray</span><span class="token punctuation">(</span>bdealCacheData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">==</span> tradeArray<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                tradeArray <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">JSONArray</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span>
+                            tradeArray <span class="token operator">=</span> <span class="token function">mergeProp</span><span class="token punctuation">(</span>tradeArray<span class="token punctuation">,</span>fdealId <span class="token operator">+</span> <span class="token string">"_"</span> <span class="token operator">+</span> ftradeId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            bdealCacheData<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"tradeArray"</span><span class="token punctuation">,</span>tradeArray<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//tradeArray</span>
+                            hBaseUtil<span class="token punctuation">.</span><span class="token function">insertOrderData</span><span class="token punctuation">(</span>HBASE_TABLE_BDEAL<span class="token punctuation">,</span> fbdealId<span class="token punctuation">,</span> bdealCacheData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token comment">//根据trade_id获取trade和deal表信息</span>
+                            <span class="token class-name">String</span> tradeOrderDataStr <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_TRADE<span class="token punctuation">,</span>ftradeId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"orderData"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">String</span> tradeExtData <span class="token operator">=</span> hBaseUtil<span class="token punctuation">.</span><span class="token function">getRow</span><span class="token punctuation">(</span>HBASE_TABLE_TRADE<span class="token punctuation">,</span>ftradeId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span><span class="token string">"ext_data"</span><span class="token punctuation">,</span><span class="token string">"&#123;&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                            <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+                                tradeOrderCacheData <span class="token operator">=</span> <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>tradeOrderDataStr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                                <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>tradeOrderDataStr <span class="token operator">+</span> <span class="token string">"=========== trade:trade:"</span> <span class="token operator">+</span> ftradeId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span>
+
+                            tradeOrderCacheData<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"Ftrade_ext_data"</span><span class="token punctuation">,</span>tradeExtData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                            <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JSONObject</span><span class="token punctuation">></span></span> unionOrders <span class="token operator">=</span> <span class="token class-name">GdmFactOmsOrdersUtil</span><span class="token punctuation">.</span><span class="token function">mergeResult</span><span class="token punctuation">(</span>bdealOrderCacheData<span class="token punctuation">,</span>dealOrderCacheData<span class="token punctuation">,</span>tradeOrderCacheData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            resArr<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>unionOrders<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+
+                        <span class="token keyword">return</span> resArr<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                    <span class="token keyword">return</span> resArr<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">return</span> resArr<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+
+            <span class="token annotation punctuation">@Override</span>
+            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">JSONObject</span><span class="token punctuation">></span></span> value<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> out<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">String</span> tableName <span class="token operator">=</span> value<span class="token punctuation">.</span>f0<span class="token punctuation">;</span>
+                <span class="token class-name">JSONObject</span> data <span class="token operator">=</span> value<span class="token punctuation">.</span>f1<span class="token punctuation">;</span>
+                <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JSONObject</span><span class="token punctuation">></span></span> list <span class="token operator">=</span> <span class="token function">handle</span><span class="token punctuation">(</span>data<span class="token punctuation">,</span>tableName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span><span class="token punctuation">(</span>list<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>size <span class="token operator">=</span> list<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> size<span class="token punctuation">;</span> i <span class="token operator">++</span> <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        out<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>list<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> singleStream<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这个方案的好处是，任务挂掉以后，不用担心丢数据。重新消费即可</p>
+<p>经过测试，此方案完全可行，但是这个方案有如下几点问题：</p>
+<ul>
+<li>3个表每条数据更新都会更新一次kudu，造成下游的Kudu压力有些大。</li>
+<li>在高并发的情况下，Hbase的压力不知道能否抗住，理论上应该没事，后期观察</li>
+</ul>
+<p>虽然没有用到Flink的状态计算，但是，还是很想研究一下Flink的状态计算，想测试一个案例：<br>实现如下功能：</p>
+<ul>
+<li>3个kafka输入源，并且实现这3个数据源关联，模仿3个表join</li>
+<li>改变其中一个表的字段值，使用状态计算更新最终的结果</li>
+<li>增加大时间跨度大于1天，7天，30天。</li>
+</ul>
+<p>Flink读取kafka多个topic遇到的问题：<br>如果要读取的Topic列表中，其中一个在Topic中没有数据，而你又基于Event Time提取Timestamp并且设置Watermark，<br>会导致整个Topic列表都没法基于时间窗口触发操作，解决方案：<br>先rebalance，然后再设置水位：</p>
+<pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> monitorSampling <span class="token operator">=</span> env
+    <span class="token punctuation">.</span>addSource<span class="token punctuation">(</span>kafkaConsumer<span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>rebalance
+    <span class="token punctuation">.</span>assignTimestampsAndWatermarks<span class="token punctuation">(</span><span class="token keyword">new</span> MyWatermarkGenerator<span class="token punctuation">[</span>MyRecord<span class="token punctuation">]</span><span class="token punctuation">(</span>Time<span class="token punctuation">.</span>seconds<span class="token punctuation">(</span>config<span class="token punctuation">.</span>latencyDuration<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Flink/" rel="tag"># Flink</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/" rel="prev" title="Flink学习笔记（三）">
+      <i class="fa fa-chevron-left"></i> Flink学习笔记（三）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E8%AE%A2%E5%8D%95%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.</span> <span class="nav-text">实时订单模型实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%BA%90%E6%A0%B7%E4%BE%8B%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">数据源样例：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88%E6%B5%81%E7%A8%8B%E5%9B%BE%E5%A6%82%E4%B8%8B%EF%BC%9A"><span class="nav-number">1.2.</span> <span class="nav-text">设计方案流程图如下：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.3.</span> <span class="nav-text">代码实现</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
