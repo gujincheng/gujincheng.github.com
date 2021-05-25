@@ -29,126 +29,6 @@
       </categories>
   </entry>
   <entry>
-    <title>Flink学习笔记（二）</title>
-    <url>/2021/01/29/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink任务案例</li>
-</ul>
-<a id="more"></a>
-<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><h3 id="Flink消费Kafka-自定义KafkaDeserializationSchema"><a href="#Flink消费Kafka-自定义KafkaDeserializationSchema" class="headerlink" title="Flink消费Kafka:自定义KafkaDeserializationSchema"></a>Flink消费Kafka:自定义KafkaDeserializationSchema</h3><p>Flink已经定义好的反序列化shema:</p>
-<ul>
-<li>SimpleStringSchema：返回的结果只有Kafka的value，没有其它信息：</li>
-<li>TypeInformationKeyValueSerializationSchema：返回的结果只有Kafka的key,value，没有其它信息</li>
-</ul>
-<p>如果需要获得Kafka的topic或者其它信息，就需要通过实现KafkaDeserializationSchema接口来自定义返回数据的结构</p>
-<ul>
-<li>自定义KafkaDeserializationSchema：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeHint</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeInformation</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">KafkaDeserializationSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span>clients<span class="token punctuation">.</span>consumer<span class="token punctuation">.</span></span><span class="token class-name">ConsumerRecord</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">Charset</span><span class="token punctuation">;</span>
-
-<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MyKafkaDeserializationSchema</span> <span class="token keyword">implements</span> <span class="token class-name">KafkaDeserializationSchema</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Charset</span> UTF_8 <span class="token operator">=</span> <span class="token class-name">Charset</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"UTF-8"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isEndOfStream</span><span class="token punctuation">(</span><span class="token class-name">String</span> nextElement<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">deserialize</span><span class="token punctuation">(</span><span class="token class-name">ConsumerRecord</span><span class="token operator">&lt;</span><span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">></span> consumerRecord<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-        <span class="token class-name">String</span> value <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">(</span>consumerRecord<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> UTF_8<span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">long</span> offset <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">offset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">int</span> partition <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">partition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">return</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token class-name">TypeInformation</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token function">getProducedType</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token class-name">TypeInformation</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">TypeHint</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token comment">//return null; //会报错</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-如果不重写，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Exception in thread &quot;main&quot; org.apache.flink.api.common.functions.InvalidTypesException: The return type of function &#39;Custom Source&#39; could not be determined automatically, due to type erasure. You can give type information hints by using the returns(...) method on the result of the transformation call, or by letting your function implement the &#39;ResultTypeQueryable&#39; interface.
-	at org.apache.flink.api.dag.Transformation.getOutputType(Transformation.java:479)
-	at org.apache.flink.streaming.api.datastream.DataStream.getType(DataStream.java:193)
-	at org.apache.flink.streaming.api.datastream.DataStream.flatMap(DataStream.java:613)
-	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:60)
-Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of TypeVariable &#39;OUT&#39; in &#39;interface org.apache.flink.streaming.api.functions.source.ParallelSourceFunction&#39; could not be determined. This is most likely a type erasure problem. The type extraction currently supports types with generic variables only in cases where all variables in the return type can be deduced from the input type(s). Otherwise the type has to be specified explicitly using type information.
-	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfoWithTypeHierarchy(TypeExtractor.java:923)
-	at org.apache.flink.api.java.typeutils.TypeExtractor.privateCreateTypeInfo(TypeExtractor.java:828)
-	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfo(TypeExtractor.java:787)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.getTypeInfo(StreamExecutionEnvironment.java:2287)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1681)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1668)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1637)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1623)
-	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:58)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>主类调用：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
-
-
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">Types</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">TimeCharacteristic</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer011</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
-
-
-<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-        <span class="token comment">// 创建Flink执行环境</span>
-        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token comment">// Kafka参数</span>
-        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"auto.offset.reset"</span><span class="token punctuation">,</span><span class="token string">"earliest"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"key.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"value.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
-        <span class="token comment">// Source</span>
-        <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> consumer <span class="token operator">=</span>
-                <span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>inputTopic<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">MyKafkaDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> properties<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        consumer<span class="token punctuation">.</span><span class="token function">setStartFromEarliest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>consumer<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> wordCount <span class="token operator">=</span> stream
-                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span> line<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
-                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>line<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">returns</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span><span class="token function">TUPLE</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> <span class="token class-name">Types</span><span class="token punctuation">.</span>INT<span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>key <span class="token operator">-></span> key<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>key <span class="token operator">-></span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span>f0 <span class="token operator">+</span> <span class="token string">":"</span> <span class="token operator">+</span> key<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-具体的可以参考<br><a href="https://my.oschina.net/u/2380815/blog/4453531">Flink实战：自定义KafkaDeserializationSchema(Java/Scala)</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-        <tag>Kafka</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Flink学习笔记（三）</title>
     <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -322,6 +202,126 @@ bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe -
         <category>Kafka</category>
       </categories>
       <tags>
+        <tag>Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Flink学习笔记（二）</title>
+    <url>/2021/01/29/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink任务案例</li>
+</ul>
+<a id="more"></a>
+<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><h3 id="Flink消费Kafka-自定义KafkaDeserializationSchema"><a href="#Flink消费Kafka-自定义KafkaDeserializationSchema" class="headerlink" title="Flink消费Kafka:自定义KafkaDeserializationSchema"></a>Flink消费Kafka:自定义KafkaDeserializationSchema</h3><p>Flink已经定义好的反序列化shema:</p>
+<ul>
+<li>SimpleStringSchema：返回的结果只有Kafka的value，没有其它信息：</li>
+<li>TypeInformationKeyValueSerializationSchema：返回的结果只有Kafka的key,value，没有其它信息</li>
+</ul>
+<p>如果需要获得Kafka的topic或者其它信息，就需要通过实现KafkaDeserializationSchema接口来自定义返回数据的结构</p>
+<ul>
+<li>自定义KafkaDeserializationSchema：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeHint</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeInformation</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">KafkaDeserializationSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span>clients<span class="token punctuation">.</span>consumer<span class="token punctuation">.</span></span><span class="token class-name">ConsumerRecord</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">Charset</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MyKafkaDeserializationSchema</span> <span class="token keyword">implements</span> <span class="token class-name">KafkaDeserializationSchema</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Charset</span> UTF_8 <span class="token operator">=</span> <span class="token class-name">Charset</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"UTF-8"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isEndOfStream</span><span class="token punctuation">(</span><span class="token class-name">String</span> nextElement<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">deserialize</span><span class="token punctuation">(</span><span class="token class-name">ConsumerRecord</span><span class="token operator">&lt;</span><span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">></span> consumerRecord<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> value <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">(</span>consumerRecord<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> UTF_8<span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">long</span> offset <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">offset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> partition <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">partition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">TypeInformation</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token function">getProducedType</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token class-name">TypeInformation</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">TypeHint</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//return null; //会报错</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+如果不重写，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Exception in thread &quot;main&quot; org.apache.flink.api.common.functions.InvalidTypesException: The return type of function &#39;Custom Source&#39; could not be determined automatically, due to type erasure. You can give type information hints by using the returns(...) method on the result of the transformation call, or by letting your function implement the &#39;ResultTypeQueryable&#39; interface.
+	at org.apache.flink.api.dag.Transformation.getOutputType(Transformation.java:479)
+	at org.apache.flink.streaming.api.datastream.DataStream.getType(DataStream.java:193)
+	at org.apache.flink.streaming.api.datastream.DataStream.flatMap(DataStream.java:613)
+	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:60)
+Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of TypeVariable &#39;OUT&#39; in &#39;interface org.apache.flink.streaming.api.functions.source.ParallelSourceFunction&#39; could not be determined. This is most likely a type erasure problem. The type extraction currently supports types with generic variables only in cases where all variables in the return type can be deduced from the input type(s). Otherwise the type has to be specified explicitly using type information.
+	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfoWithTypeHierarchy(TypeExtractor.java:923)
+	at org.apache.flink.api.java.typeutils.TypeExtractor.privateCreateTypeInfo(TypeExtractor.java:828)
+	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfo(TypeExtractor.java:787)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.getTypeInfo(StreamExecutionEnvironment.java:2287)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1681)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1668)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1637)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1623)
+	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:58)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>主类调用：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">Types</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">TimeCharacteristic</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer011</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 创建Flink执行环境</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Kafka参数</span>
+        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"auto.offset.reset"</span><span class="token punctuation">,</span><span class="token string">"earliest"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"key.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"value.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
+        <span class="token comment">// Source</span>
+        <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> consumer <span class="token operator">=</span>
+                <span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>inputTopic<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">MyKafkaDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> properties<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        consumer<span class="token punctuation">.</span><span class="token function">setStartFromEarliest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>consumer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> wordCount <span class="token operator">=</span> stream
+                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span> line<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>line<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">returns</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span><span class="token function">TUPLE</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> <span class="token class-name">Types</span><span class="token punctuation">.</span>INT<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>key <span class="token operator">-></span> key<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>key <span class="token operator">-></span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span>f0 <span class="token operator">+</span> <span class="token string">":"</span> <span class="token operator">+</span> key<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+具体的可以参考<br><a href="https://my.oschina.net/u/2380815/blog/4453531">Flink实战：自定义KafkaDeserializationSchema(Java/Scala)</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
         <tag>Kafka</tag>
       </tags>
   </entry>
@@ -845,6 +845,90 @@ B <span class="token keyword">join</span> C <span class="token keyword">on</span
 <pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">add</span> <span class="token keyword">file</span> <span class="token operator">/</span>home<span class="token operator">/</span><span class="token number">19190845</span><span class="token operator">/</span>udf<span class="token punctuation">.</span>py
 <span class="token keyword">select</span> transform<span class="token punctuation">(</span>fbdeal_id<span class="token punctuation">,</span>orderdata<span class="token punctuation">)</span> <span class="token keyword">USING</span> <span class="token string">'python udf.py'</span>  <span class="token keyword">AS</span> <span class="token punctuation">(</span>fbdeal_id<span class="token punctuation">,</span>orderdata<span class="token punctuation">)</span> <span class="token keyword">from</span> app<span class="token punctuation">.</span>app_onedata_oms_orders_t_bdeal_da<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>以上语句，支持hive mr、tez引擎，并支持spark-sql命令行</p>
+<h2 id="hive列转行"><a href="#hive列转行" class="headerlink" title="hive列转行"></a>hive列转行</h2><p>可以使用map和ateral view explode新造列名，很实用</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span>  model_code<span class="token punctuation">,</span>
+        fact_rate<span class="token punctuation">,</span>
+        item_code<span class="token punctuation">,</span>
+        quota_name<span class="token punctuation">,</span>
+        refer_enum<span class="token punctuation">,</span>
+        busi_cnt
+<span class="token keyword">from</span>
+<span class="token punctuation">(</span><span class="token keyword">select</span> model_code<span class="token punctuation">,</span>
+       <span class="token string">'POP001'</span> <span class="token keyword">AS</span> fact_rate<span class="token punctuation">,</span>
+       item_code<span class="token punctuation">,</span>
+       <span class="token keyword">case</span> <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00101'</span> <span class="token keyword">then</span> <span class="token string">'商品满意度'</span>
+            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00103'</span> <span class="token keyword">then</span> <span class="token string">'物流配送'</span>
+            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00104'</span> <span class="token keyword">then</span> <span class="token string">'服务满意度'</span>
+            <span class="token keyword">else</span> <span class="token string">'unknown'</span>
+       <span class="token keyword">end</span> <span class="token keyword">as</span> quota_name<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">2</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">2.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt2<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">3</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">3.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt3<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">4</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">4.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt4<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">5</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">5.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt5<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">6</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">6.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt6<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">7</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">7.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt7<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">8</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">8.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt8<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">9</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">10</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt9
+<span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_business_growth_comment_item_score_da
+<span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;stat_date&#125;'</span>
+  <span class="token operator">and</span> item_code <span class="token operator">in</span> <span class="token punctuation">(</span><span class="token string">'POP00101'</span><span class="token punctuation">,</span><span class="token string">'POP00103'</span><span class="token punctuation">,</span><span class="token string">'POP00104'</span><span class="token punctuation">)</span>
+<span class="token keyword">group</span> <span class="token keyword">by</span> model_code<span class="token punctuation">,</span>
+         item_code<span class="token punctuation">)</span> a
+lateral <span class="token keyword">view</span> explode<span class="token punctuation">(</span>map<span class="token punctuation">(</span><span class="token string">'2-2.99'</span><span class="token punctuation">,</span> cnt2<span class="token punctuation">,</span>
+                         <span class="token string">'3-3.99'</span><span class="token punctuation">,</span> cnt3<span class="token punctuation">,</span>
+                         <span class="token string">'4-4.99'</span><span class="token punctuation">,</span> cnt4<span class="token punctuation">,</span>
+                         <span class="token string">'5-5.99'</span><span class="token punctuation">,</span> cnt5<span class="token punctuation">,</span>
+                         <span class="token string">'6-6.99'</span><span class="token punctuation">,</span> cnt6<span class="token punctuation">,</span>
+                         <span class="token string">'7-7.99'</span><span class="token punctuation">,</span> cnt7<span class="token punctuation">,</span>
+                         <span class="token string">'8-8.99'</span><span class="token punctuation">,</span> cnt8<span class="token punctuation">,</span>
+                         <span class="token string">'9-10'</span><span class="token punctuation">,</span> cnt9<span class="token punctuation">)</span><span class="token punctuation">)</span> b <span class="token keyword">as</span> refer_enum<span class="token punctuation">,</span> busi_cnt
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>或者使用str_to_map函数,不过感觉还不如直接用map</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span>  model_code<span class="token punctuation">,</span>
+        fact_rate<span class="token punctuation">,</span>
+        item_code<span class="token punctuation">,</span>
+        quota_name<span class="token punctuation">,</span>
+        refer_enum<span class="token punctuation">,</span>
+        busi_cnt
+<span class="token keyword">from</span>
+<span class="token punctuation">(</span><span class="token keyword">select</span> model_code<span class="token punctuation">,</span>
+       <span class="token string">'POP001'</span> <span class="token keyword">AS</span> fact_rate<span class="token punctuation">,</span>
+       item_code<span class="token punctuation">,</span>
+       <span class="token keyword">case</span> <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00101'</span> <span class="token keyword">then</span> <span class="token string">'商品满意度'</span>
+            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00103'</span> <span class="token keyword">then</span> <span class="token string">'物流配送'</span>
+            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00104'</span> <span class="token keyword">then</span> <span class="token string">'服务满意度'</span>
+            <span class="token keyword">else</span> <span class="token string">'unknown'</span>
+       <span class="token keyword">end</span> <span class="token keyword">as</span> quota_name<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">2</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">2.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt2<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">3</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">3.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt3<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">4</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">4.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt4<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">5</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">5.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt5<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">6</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">6.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt6<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">7</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">7.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt7<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">8</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">8.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt8<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">9</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">10</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt9
+<span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_business_growth_comment_item_score_da
+<span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;stat_date&#125;'</span>
+  <span class="token operator">and</span> item_code <span class="token operator">in</span> <span class="token punctuation">(</span><span class="token string">'POP00101'</span><span class="token punctuation">,</span><span class="token string">'POP00103'</span><span class="token punctuation">,</span><span class="token string">'POP00104'</span><span class="token punctuation">)</span>
+<span class="token keyword">group</span> <span class="token keyword">by</span> model_code<span class="token punctuation">,</span>
+         item_code<span class="token punctuation">)</span> a
+LATERAL <span class="token keyword">VIEW</span>
+    EXPLODE<span class="token punctuation">(</span>
+            STR_TO_MAP<span class="token punctuation">(</span>
+                    CONCAT<span class="token punctuation">(</span>
+                        <span class="token string">'2-2.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt2 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;3-3.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt3 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;4-4.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt4 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;5-5.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt5 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;6-6.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt6 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;7-7.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt7 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;8-8.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt8 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;9-10='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt9 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token punctuation">)</span>
+                <span class="token punctuation">,</span><span class="token string">'&amp;'</span><span class="token punctuation">,</span> <span class="token string">'='</span><span class="token punctuation">)</span>
+        <span class="token punctuation">)</span> lateral_table <span class="token keyword">AS</span> refer_enum<span class="token punctuation">,</span> busi_cnt
+<span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 ]]></content>
       <categories>
         <category>大数据</category>
@@ -1074,6 +1158,18 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       </tags>
   </entry>
   <entry>
+    <title>python杂记（一）</title>
+    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
     <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1111,18 +1207,6 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       </categories>
       <tags>
         <tag>Jenkins</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python杂记（一）</title>
-    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
@@ -1196,6 +1280,31 @@ org.apache.spark.SparkException: Yarn application has already ended! It might ha
       <tags>
         <tag>Spark</tag>
         <tag>Yarn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark性能优化之序列化</title>
+    <url>/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/</url>
+    <content><![CDATA[<h3 id="序列化是干什么的？"><a href="#序列化是干什么的？" class="headerlink" title="序列化是干什么的？"></a>序列化是干什么的？</h3><p>序列化简单来说就保存对象在内存中的状态也可以说是实例化变量。这是Java提供的用来保存 Object state，一种保存对象状态的机制。只有实现了serializable接口的类的对象才能被实例化<br>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
+<h3 id="什么情况下会用到序列化？"><a href="#什么情况下会用到序列化？" class="headerlink" title="什么情况下会用到序列化？"></a>什么情况下会用到序列化？</h3><ul>
+<li>当你想把内存中的对象写入到硬盘时</li>
+<li>当你想用套接字在网络上传输对象时</li>
+<li>当你想通过RMI调用对象时(RMI总结来说就是远程调用对象，在一个jvm上调用另一个jvm的对象)</li>
+</ul>
+<h3 id="Spark为什么需要序列化？"><a href="#Spark为什么需要序列化？" class="headerlink" title="Spark为什么需要序列化？"></a>Spark为什么需要序列化？</h3><p>Spark是分布式执行引擎，其核心抽象是弹性分布式数据集RDD，其代表了分布在不同节点的数据。Spark的计算是在executor上分布式执行的，所以对象在执行中需要通过网络传输，或者持久化到本地磁盘的时候必须要经过序列化。</p>
+<h3 id="Spark支持的序列化"><a href="#Spark支持的序列化" class="headerlink" title="Spark支持的序列化"></a>Spark支持的序列化</h3><p>spark默认使用的是java序列化，java序列化的好处是非常灵活，开发起来很简单，缺点是速度较慢，在某些情况下序列化的结果也比较大<br>Spark也能使用Kryo（版本2）序列化对象。Kryo不但速度极快，而且产生的结果更为紧凑（通常能提高10倍）。Kryo的缺点是不支持所有类型，为了更好的性能，你需要提前注册程序中所使用的类（class）。</p>
+<h3 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h3><pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> SparkConf<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>setAppName<span class="token punctuation">(</span><span class="token string">"Test"</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span>set<span class="token punctuation">(</span><span class="token string">"spark.serializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.spark.serializer.KryoSerializer"</span><span class="token punctuation">)</span>   <span class="token comment">//声明序列化器为KryoSerializer</span>
+      <span class="token punctuation">.</span>registerKryoClasses<span class="token punctuation">(</span>Array<span class="token punctuation">(</span>classOf<span class="token punctuation">[</span>MyClass1<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass2<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass3<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment">//注册要序列化的自定义类型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>参考：<a href="https://tech.meituan.com/2016/04/29/spark-tuning-basic.html">https://tech.meituan.com/2016/04/29/spark-tuning-basic.html</a><br>原则八</p>
+<h3 id="spark性能调优"><a href="#spark性能调优" class="headerlink" title="spark性能调优"></a>spark性能调优</h3><p>有篇文章写得很好，可以参考下<br><a href="https://www.cnblogs.com/stillcoolme/p/10576563.html">https://www.cnblogs.com/stillcoolme/p/10576563.html</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
       </tags>
   </entry>
   <entry>
@@ -1300,6 +1409,21 @@ java.lang.RuntimeException: serious problem
       </tags>
   </entry>
   <entry>
+    <title>sqoop从mysql导数据到hive报错</title>
+    <url>/2021/01/18/sqoop%E4%BB%8Emysql%E5%AF%BC%E6%95%B0%E6%8D%AE%E5%88%B0hive%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>   使用sqoop从mysql导数据到hive，从本地服务器是可以访问mysql的（本地服务器是hadoop集群的一个datanode），但是sqoop导数据的时候依然连接不上mysql<br>报错如下：<br><img src="/uploads/20210118/sqoop-import-error.png" alt="sqoop-import-error"><br>从报错可以看出，是数据库连接失败，很常见的问题，但是从本地是可以直连mysql的。</p>
+<p>因为sqoop导数据的时候，默认会启动4个map task，这4个map task会随机启动在不动的datanode上，所以在想，是不是因为其他节点没有权限访问mysql导致。<br>但是需要先搞清楚，sqoop在抽取数据的时候，是不是会把4个map task随机启动在不动的datanode上</p>
+<p>在官网上有如下内容：<br><img src="/uploads/20210118/sqoop-official-website.png" alt="sqoop-official-website"><br>虽然讲的不是我们要找到，但是可以判断出，sqoop导数据就是会把maptask随机启动在不通的datanode上。<br>因此，sqoop在导数据到mysql的时候，要确认，hadoop集群的每个节点都要有mysql的读权限</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Sqoop</category>
+      </categories>
+      <tags>
+        <tag>Sqoop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>vim使用手册（一）</title>
     <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1386,46 +1510,6 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       </categories>
       <tags>
         <tag>vim</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>spark性能优化之序列化</title>
-    <url>/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/</url>
-    <content><![CDATA[<h3 id="序列化是干什么的？"><a href="#序列化是干什么的？" class="headerlink" title="序列化是干什么的？"></a>序列化是干什么的？</h3><p>序列化简单来说就保存对象在内存中的状态也可以说是实例化变量。这是Java提供的用来保存 Object state，一种保存对象状态的机制。只有实现了serializable接口的类的对象才能被实例化<br>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
-<h3 id="什么情况下会用到序列化？"><a href="#什么情况下会用到序列化？" class="headerlink" title="什么情况下会用到序列化？"></a>什么情况下会用到序列化？</h3><ul>
-<li>当你想把内存中的对象写入到硬盘时</li>
-<li>当你想用套接字在网络上传输对象时</li>
-<li>当你想通过RMI调用对象时(RMI总结来说就是远程调用对象，在一个jvm上调用另一个jvm的对象)</li>
-</ul>
-<h3 id="Spark为什么需要序列化？"><a href="#Spark为什么需要序列化？" class="headerlink" title="Spark为什么需要序列化？"></a>Spark为什么需要序列化？</h3><p>Spark是分布式执行引擎，其核心抽象是弹性分布式数据集RDD，其代表了分布在不同节点的数据。Spark的计算是在executor上分布式执行的，所以对象在执行中需要通过网络传输，或者持久化到本地磁盘的时候必须要经过序列化。</p>
-<h3 id="Spark支持的序列化"><a href="#Spark支持的序列化" class="headerlink" title="Spark支持的序列化"></a>Spark支持的序列化</h3><p>spark默认使用的是java序列化，java序列化的好处是非常灵活，开发起来很简单，缺点是速度较慢，在某些情况下序列化的结果也比较大<br>Spark也能使用Kryo（版本2）序列化对象。Kryo不但速度极快，而且产生的结果更为紧凑（通常能提高10倍）。Kryo的缺点是不支持所有类型，为了更好的性能，你需要提前注册程序中所使用的类（class）。</p>
-<h3 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h3><pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> SparkConf<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>setAppName<span class="token punctuation">(</span><span class="token string">"Test"</span><span class="token punctuation">)</span>
-      <span class="token punctuation">.</span>set<span class="token punctuation">(</span><span class="token string">"spark.serializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.spark.serializer.KryoSerializer"</span><span class="token punctuation">)</span>   <span class="token comment">//声明序列化器为KryoSerializer</span>
-      <span class="token punctuation">.</span>registerKryoClasses<span class="token punctuation">(</span>Array<span class="token punctuation">(</span>classOf<span class="token punctuation">[</span>MyClass1<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass2<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass3<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment">//注册要序列化的自定义类型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>参考：<a href="https://tech.meituan.com/2016/04/29/spark-tuning-basic.html">https://tech.meituan.com/2016/04/29/spark-tuning-basic.html</a><br>原则八</p>
-<h3 id="spark性能调优"><a href="#spark性能调优" class="headerlink" title="spark性能调优"></a>spark性能调优</h3><p>有篇文章写得很好，可以参考下<br><a href="https://www.cnblogs.com/stillcoolme/p/10576563.html">https://www.cnblogs.com/stillcoolme/p/10576563.html</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>sqoop从mysql导数据到hive报错</title>
-    <url>/2021/01/18/sqoop%E4%BB%8Emysql%E5%AF%BC%E6%95%B0%E6%8D%AE%E5%88%B0hive%E6%8A%A5%E9%94%99/</url>
-    <content><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>   使用sqoop从mysql导数据到hive，从本地服务器是可以访问mysql的（本地服务器是hadoop集群的一个datanode），但是sqoop导数据的时候依然连接不上mysql<br>报错如下：<br><img src="/uploads/20210118/sqoop-import-error.png" alt="sqoop-import-error"><br>从报错可以看出，是数据库连接失败，很常见的问题，但是从本地是可以直连mysql的。</p>
-<p>因为sqoop导数据的时候，默认会启动4个map task，这4个map task会随机启动在不动的datanode上，所以在想，是不是因为其他节点没有权限访问mysql导致。<br>但是需要先搞清楚，sqoop在抽取数据的时候，是不是会把4个map task随机启动在不动的datanode上</p>
-<p>在官网上有如下内容：<br><img src="/uploads/20210118/sqoop-official-website.png" alt="sqoop-official-website"><br>虽然讲的不是我们要找到，但是可以判断出，sqoop导数据就是会把maptask随机启动在不通的datanode上。<br>因此，sqoop在导数据到mysql的时候，要确认，hadoop集群的每个节点都要有mysql的读权限</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Sqoop</category>
-      </categories>
-      <tags>
-        <tag>Sqoop</tag>
       </tags>
   </entry>
   <entry>
