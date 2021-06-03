@@ -29,6 +29,120 @@
       </categories>
   </entry>
   <entry>
+    <title>Flink学习笔记（三）</title>
+    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink状态管理</li>
+</ul>
+<a id="more"></a>
+<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
+<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
+<ul>
+<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
+<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
+<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
+<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
+</ul>
+<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
+<p><img src="/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
+<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
+<ul>
+<li>数据的产出要保证实时性，延迟不能太高。</li>
+<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
+<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
+</ul>
+<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
+<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Managed State</th>
+<th>Raw State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态管理方式</td>
+<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
+<td>用户自己管理</td>
+</tr>
+<tr>
+<td>状态数据结构</td>
+<td>Flink提供的常用数据结构，如ListState、MapState等</td>
+<td>字节数组：byte[]</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>绝大多数Flink算子</td>
+<td>用户自定义算子</td>
+</tr>
+</tbody></table>
+<p>两者的具体区别有：</p>
+<ul>
+<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
+<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
+<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
+</ul>
+<p>下文将重点介绍Managed State。</p>
+<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
+<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
+<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Keyed State</th>
+<th>Operator State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用算子类型</td>
+<td>只适用于KeyedStream上的算子</td>
+<td>可以用于所有算子</td>
+</tr>
+<tr>
+<td>状态分配</td>
+<td>每个Key对应一个状态</td>
+<td>一个算子子任务对应一个状态</td>
+</tr>
+<tr>
+<td>创建和访问方式</td>
+<td>重写Rich Function，通过里面的RuntimeContext访问</td>
+<td>实现CheckpointedFunction等接口</td>
+</tr>
+<tr>
+<td>横向扩展</td>
+<td>状态随着Key自动在多个算子子任务上迁移</td>
+<td>有多种状态重新分配的方式</td>
+</tr>
+<tr>
+<td>支持的数据结构</td>
+<td>ValueState、ListState、MapState等</td>
+<td>ListState、BroadcastState等</td>
+</tr>
+</tbody></table>
+<p>上表总结了Keyed State和Operator State的区别。</p>
+<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
+<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
+<p>这几个状态的具体区别在于：</p>
+<ul>
+<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
+<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
+<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
+<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
+</ul>
+<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Flink学习笔记（二）</title>
     <url>/2021/01/29/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -146,120 +260,6 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
       <tags>
         <tag>Flink</tag>
         <tag>Kafka</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Flink学习笔记（三）</title>
-    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink状态管理</li>
-</ul>
-<a id="more"></a>
-<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
-<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
-<ul>
-<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
-<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
-<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
-<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
-</ul>
-<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
-<p><img src="/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
-<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
-<ul>
-<li>数据的产出要保证实时性，延迟不能太高。</li>
-<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
-<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
-</ul>
-<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
-<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Managed State</th>
-<th>Raw State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>状态管理方式</td>
-<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
-<td>用户自己管理</td>
-</tr>
-<tr>
-<td>状态数据结构</td>
-<td>Flink提供的常用数据结构，如ListState、MapState等</td>
-<td>字节数组：byte[]</td>
-</tr>
-<tr>
-<td>使用场景</td>
-<td>绝大多数Flink算子</td>
-<td>用户自定义算子</td>
-</tr>
-</tbody></table>
-<p>两者的具体区别有：</p>
-<ul>
-<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
-<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
-<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
-</ul>
-<p>下文将重点介绍Managed State。</p>
-<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
-<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
-<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Keyed State</th>
-<th>Operator State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>适用算子类型</td>
-<td>只适用于KeyedStream上的算子</td>
-<td>可以用于所有算子</td>
-</tr>
-<tr>
-<td>状态分配</td>
-<td>每个Key对应一个状态</td>
-<td>一个算子子任务对应一个状态</td>
-</tr>
-<tr>
-<td>创建和访问方式</td>
-<td>重写Rich Function，通过里面的RuntimeContext访问</td>
-<td>实现CheckpointedFunction等接口</td>
-</tr>
-<tr>
-<td>横向扩展</td>
-<td>状态随着Key自动在多个算子子任务上迁移</td>
-<td>有多种状态重新分配的方式</td>
-</tr>
-<tr>
-<td>支持的数据结构</td>
-<td>ValueState、ListState、MapState等</td>
-<td>ListState、BroadcastState等</td>
-</tr>
-</tbody></table>
-<p>上表总结了Keyed State和Operator State的区别。</p>
-<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
-<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
-<p>这几个状态的具体区别在于：</p>
-<ul>
-<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
-<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
-<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
-<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
-</ul>
-<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
       </tags>
   </entry>
   <entry>
@@ -524,7 +524,7 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 	<span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">&#125;</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="Mac常用快捷键"><a href="#Mac常用快捷键" class="headerlink" title="Mac常用快捷键"></a>Mac常用快捷键</h2><code>command + 左右方向键</code>： 到句首/尾（下一个/上一个标点符号）<br><code>option + 左右方向键</code>：跳到行首/行尾<br><code>ctrl + 左右方向键</code>：切换后台进程（窗口），是直接上一个/下一个窗口<br><code>ctrl + 上下方向键</code>:  呼出所有后台进程（窗口）<br><code>shift + 中/英</code>：切换大小写<br><code>command + tab</code>:切换后台进程，按住command会有所有后台，然后按tab可以切换（只是图标）</li>
+<h2 id="Mac常用快捷键"><a href="#Mac常用快捷键" class="headerlink" title="Mac常用快捷键"></a>Mac常用快捷键</h2><code>command + 左右方向键</code>： 到句首/尾（下一个/上一个标点符号）<br><code>option + 左右方向键</code>：跳到行首/行尾<br><code>ctrl + 左右方向键</code>：切换后台进程（窗口），是直接上一个/下一个窗口<br><code>ctrl + 上下方向键</code>:  呼出所有后台进程（窗口）<br><code>shift + 中/英</code>：切换大小写<br><code>command + tab</code>:切换后台进程，按住command会有所有后台，然后按tab可以切换（只是图标）<br><code>command + 上下方向键</code>：进入上层文件夹（在访达里使用）</li>
 </ul>
 </li>
 </ul>
@@ -1517,6 +1517,18 @@ java.lang.RuntimeException: serious problem
 	at org.apache.spark.sql.hive.orc.OrcFileOperator$$anonfun$readSchema$1.apply(OrcFileOperator.scala:95)
 	at scala.collection.immutable.Stream.flatMap(Stream.scala:489)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>需要再设置<code>set spark.sql.orc.impl=native</code><br>参考<a href="https://issues.apache.org/jira/browse/SPARK-19809">SPARK-19809</a> </p>
+<h2 id="两个大表关联，报OOM"><a href="#两个大表关联，报OOM" class="headerlink" title="两个大表关联，报OOM"></a>两个大表关联，报OOM</h2><p>主表数据量6000多万，从表1亿，关联后出现OOM的情况</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Container killed by YARN for exceeding memory limits. 6.3 GB of 6 GB physical memory used. 
+Consider boosting spark.yarn.executor.memoryOverhead.
+
+FetchFailed(null, shuffleId&#x3D;4, mapId&#x3D;-1, reduceId&#x3D;121, message&#x3D;
+org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output location for shuffle 4
+	at org.apache.spark.MapOutputTracker$$anonfun$convertMapStatuses$2.apply(MapOutputTracker.scala:867)
+	at org.apache.spark.MapOutputTracker$$anonfun$convertMapStatuses$2.apply(MapOutputTracker.scala:863)
+	at scala.collection.TraversableLike$WithFilter$$anonfun$foreach$1.apply(TraversableLike.scala:733)
+	at scala.collection.IndexedSeqOptimized$class.foreach(IndexedSeqOptimized.scala:33)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>分析了一下原因，在计算主表和从表的时候，都是使用spark-sql的默认并行度，<br>所以最终都是输出200个文件，最后关联完成还是写出200个文件</p>
+<p>这里设置spark-sql的默认并行度为1000，这样主表和从表的数据文件都会变成1000，每次关联的数据量就会小很多<br><code>set spark.sql.shuffle.partitions = 1000;</code><br>问题解决</p>
 ]]></content>
       <categories>
         <category>大数据</category>
@@ -1653,46 +1665,6 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       </categories>
       <tags>
         <tag>vim</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>日常工具软件问题</title>
-    <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>VMWare常见问题</li>
-<li>IDEA常见问题<a id="more"></a>
-<h2 id="VMWare常见问题"><a href="#VMWare常见问题" class="headerlink" title="VMWare常见问题"></a>VMWare常见问题</h2><h3 id="VMWare开启虚拟机黑屏"><a href="#VMWare开启虚拟机黑屏" class="headerlink" title="VMWare开启虚拟机黑屏"></a>VMWare开启虚拟机黑屏</h3>解决办法：</li>
-<li>在windows下搜索cmd，并以管理员身份打开，输入：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netsh winsock reset<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>重启电脑</li>
-</ul>
-<h2 id="IDEA常见问题"><a href="#IDEA常见问题" class="headerlink" title="IDEA常见问题"></a>IDEA常见问题</h2><h3 id="maven编译报错-source-1-5-中不支持-lambda-表达式"><a href="#maven编译报错-source-1-5-中不支持-lambda-表达式" class="headerlink" title="maven编译报错 -source 1.5 中不支持 lambda 表达式"></a>maven编译报错 -source 1.5 中不支持 lambda 表达式</h3><p><img src="/uploads/20210124/IDEA%E4%B8%AD%E7%BC%96%E8%AF%91Maven%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99.png" alt="IDEA中编译Maven项目报错"><br>解决办法：<br>在pom文件中添加:</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.7.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>source</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>encoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>encoding</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="Maven编译时报：编码GBK的不可映射字符"><a href="#Maven编译时报：编码GBK的不可映射字符" class="headerlink" title="Maven编译时报：编码GBK的不可映射字符"></a>Maven编译时报：编码GBK的不可映射字符</h3><p>解决办法：<br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_1.png" alt="编码GBK的不可映射字符_1"><br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_2.png" alt="编码GBK的不可映射字符_2"></p>
-<h3 id="IDEA常用快捷键"><a href="#IDEA常用快捷键" class="headerlink" title="IDEA常用快捷键"></a>IDEA常用快捷键</h3><ul>
-<li><code>Alt + 1</code> 项目视图，可以自动关闭左边侧边栏</li>
-<li><code>Crl + E</code> 最近文件列表</li>
-<li>快速按两下<code>Shift</code>，全局文件搜索</li>
-<li><code>Crl + Shift + N</code> 跳转到某个文件，可以直接搜索</li>
-<li><code>Alt+Insert</code> 可以生成构造器/Getter/Setter等</li>
-<li><code>Ctrl + W</code> 按一个word来进行选择操作，在IDEA里的这个快捷键功能是先选择光标所在字符处的单词，然后是选择源代码的扩展区域</li>
-<li><code>shift + F6</code>修改文件名</li>
-</ul>
-]]></content>
-      <categories>
-        <category>工具箱</category>
-      </categories>
-      <tags>
-        <tag>VMWare</tag>
       </tags>
   </entry>
   <entry>
@@ -1962,6 +1934,62 @@ search:
       </categories>
       <tags>
         <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>日常工具软件问题</title>
+    <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>VMWare常见问题</li>
+<li>IDEA常见问题<a id="more"></a>
+<h2 id="VMWare常见问题"><a href="#VMWare常见问题" class="headerlink" title="VMWare常见问题"></a>VMWare常见问题</h2><h3 id="VMWare开启虚拟机黑屏"><a href="#VMWare开启虚拟机黑屏" class="headerlink" title="VMWare开启虚拟机黑屏"></a>VMWare开启虚拟机黑屏</h3>解决办法：</li>
+<li>在windows下搜索cmd，并以管理员身份打开，输入：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netsh winsock reset<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>重启电脑</li>
+</ul>
+<h2 id="IDEA常见问题"><a href="#IDEA常见问题" class="headerlink" title="IDEA常见问题"></a>IDEA常见问题</h2><h3 id="maven编译报错-source-1-5-中不支持-lambda-表达式"><a href="#maven编译报错-source-1-5-中不支持-lambda-表达式" class="headerlink" title="maven编译报错 -source 1.5 中不支持 lambda 表达式"></a>maven编译报错 -source 1.5 中不支持 lambda 表达式</h3><p><img src="/uploads/20210124/IDEA%E4%B8%AD%E7%BC%96%E8%AF%91Maven%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99.png" alt="IDEA中编译Maven项目报错"><br>解决办法：<br>在pom文件中添加:</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.7.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>source</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>encoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>encoding</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="Maven编译时报：编码GBK的不可映射字符"><a href="#Maven编译时报：编码GBK的不可映射字符" class="headerlink" title="Maven编译时报：编码GBK的不可映射字符"></a>Maven编译时报：编码GBK的不可映射字符</h3><p>解决办法：<br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_1.png" alt="编码GBK的不可映射字符_1"><br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_2.png" alt="编码GBK的不可映射字符_2"></p>
+<h3 id="IDEA常用快捷键（windows）"><a href="#IDEA常用快捷键（windows）" class="headerlink" title="IDEA常用快捷键（windows）"></a>IDEA常用快捷键（windows）</h3><ul>
+<li><code>Alt + 1</code> 项目视图，可以自动关闭左边侧边栏</li>
+<li><code>Crl + E</code> 最近文件列表</li>
+<li>快速按两下<code>Shift</code>，全局文件搜索</li>
+<li><code>Crl + Shift + N</code> 跳转到某个文件，可以直接搜索</li>
+<li><code>Alt+Insert</code> 可以生成构造器/Getter/Setter等</li>
+<li><code>Ctrl + W</code> 按一个word来进行选择操作，在IDEA里的这个快捷键功能是先选择光标所在字符处的单词，然后是选择源代码的扩展区域</li>
+<li><code>shift + F6</code>修改文件名</li>
+</ul>
+<h2 id="IDEA常用快捷键（mac）"><a href="#IDEA常用快捷键（mac）" class="headerlink" title="IDEA常用快捷键（mac）"></a>IDEA常用快捷键（mac）</h2><ul>
+<li>当前行注释： ctrl+/</li>
+<li>撤销行注释： ctrl+/</li>
+<li>块状注释： ctrl+shift+/</li>
+<li>撤销块注释： ctrl+shift+/</li>
+<li>实现/重写方法：command + N</li>
+<li>全局查找： shift + command + f</li>
+<li>全局替换： shift + command + r</li>
+<li>当前文件查找： command + f</li>
+<li>当前文件替换： command + r</li>
+<li>最近查看过的文件： command + e</li>
+<li>打开类结构： command + 7</li>
+<li>前往父类/父类方法： command + u</li>
+<li>呼出文件列表： command + 上方向键</li>
+</ul>
+]]></content>
+      <categories>
+        <category>工具箱</category>
+      </categories>
+      <tags>
+        <tag>VMWare</tag>
+        <tag>IDEA</tag>
       </tags>
   </entry>
   <entry>
