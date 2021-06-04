@@ -29,6 +29,69 @@
       </categories>
   </entry>
   <entry>
+    <title>Kafka学习笔记（一）</title>
+    <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Kafka简介（后补）</li>
+<li>Kafka可以干什么？（后补）</li>
+<li>Kafka安装与启动</li>
+<li>Kafka常用操作<a id="more"></a>
+<h2 id="Kafka简介"><a href="#Kafka简介" class="headerlink" title="Kafka简介"></a>Kafka简介</h2></li>
+</ul>
+<h2 id="Kafka可以干什么？"><a href="#Kafka可以干什么？" class="headerlink" title="Kafka可以干什么？"></a>Kafka可以干什么？</h2><h2 id="Kafka安装与启动"><a href="#Kafka安装与启动" class="headerlink" title="Kafka安装与启动"></a>Kafka安装与启动</h2><h3 id="Kafka安装"><a href="#Kafka安装" class="headerlink" title="Kafka安装"></a>Kafka安装</h3><p>Kafka需要用到java，安装前需要安装java，这里省略<br>Kafka可以使用内置的zookeeper，也可以使用单独的zookeeper，一般生产环境都是使用单独的zookeeper集群<br>zookeeper安装可以参考<a href="https://gujincheng.github.io/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Zookeeper学习笔记（一）</a><br>官网下载Kafka安装包，并解压</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf kafka-2.11.0.tar.gz -C .
+cd kafka-2.11.0&#x2F;config
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>修改server.properties</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">host.name&#x3D;golden-02
+# 指定kafka日志文件的存储目录
+log.dirs&#x3D;&#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F;kafka-logs
+# 指定zookeeper的连接地址，多个地址用逗号分隔
+zookeeper.connect&#x3D;golden-02:2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里设置了kafka-logs，手动生成了这个文件夹</p>
+<p>最后，设置Kakfa的环境变量</p>
+<h3 id="Kafka启动等操作"><a href="#Kafka启动等操作" class="headerlink" title="Kafka启动等操作"></a>Kafka启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
+# 关闭
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-stop.sh <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Kafka操作样例"><a href="#Kafka操作样例" class="headerlink" title="Kafka操作样例"></a>Kafka操作样例</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看所有topic
+bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --list
+## 创建topic
+bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --create --replication-factor 3 --partitions 1 --topic first
+## 删除topic
+bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --delete --topic first
+## 发送消息
+ bin&#x2F;kafka-console-producer.sh --broker-list golden-02:9092 --topic first
+## 消费消息
+bin&#x2F;kafka-console-consumer.sh  --zookeeper golden-02:2181 --from-beginning --topic first
+## 查看某个Topic的详情
+bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181  --describe --topic first
+## 查看某个group_id的消费情况，offset
+bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe --group fink-test<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>选项说明：  </p>
+<ul>
+<li>–topic 定义topic名</li>
+<li>–replication-factor 定义副本数</li>
+<li>–partitions 定义分区数</li>
+</ul>
+<p>删除topic时删除不掉，日志提醒：<br><code>This will have no impact if delete.topic.enable is not set to true</code><br><img src="/uploads/20210121/kafka-delete-error.png" alt="kafka-delete-error"><br>到kafka的server.properties里设置<code>delete.topic.enable=true</code></p>
+<h2 id="Kafka常见问题"><a href="#Kafka常见问题" class="headerlink" title="Kafka常见问题"></a>Kafka常见问题</h2><ul>
+<li>auto.offset.reset设置无效<blockquote>
+<p>原因:<code>auto.offset.reset</code>只会在Kafka中没有初始偏移量，或者服务器上不再存在当前偏移量的时候才会生效。<br>换句话说，如果当前<code>group_id</code>已经消费过这个<code>topic</code>（可以查到offset），这个参数就没用了，要再想从头开始消费，就得换个group_id了<br>官网说明：<br><img src="/uploads/20210125/Kafka%E5%AE%98%E7%BD%91%E8%A7%A3%E9%87%8Aauto.offset.reset.png" alt="Kafka官网解释auto.offset.reset"></p>
+</blockquote>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Kafka</category>
+      </categories>
+      <tags>
+        <tag>Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Flink学习笔记（三）</title>
     <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -140,6 +203,20 @@
       </categories>
       <tags>
         <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MongoDB杂记（一）</title>
+    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>MongoDB</category>
+      </categories>
+      <tags>
+        <tag>MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -258,71 +335,8 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
         <category>Flink</category>
       </categories>
       <tags>
+        <tag>Kafka</tag>
         <tag>Flink</tag>
-        <tag>Kafka</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kafka学习笔记（一）</title>
-    <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Kafka简介（后补）</li>
-<li>Kafka可以干什么？（后补）</li>
-<li>Kafka安装与启动</li>
-<li>Kafka常用操作<a id="more"></a>
-<h2 id="Kafka简介"><a href="#Kafka简介" class="headerlink" title="Kafka简介"></a>Kafka简介</h2></li>
-</ul>
-<h2 id="Kafka可以干什么？"><a href="#Kafka可以干什么？" class="headerlink" title="Kafka可以干什么？"></a>Kafka可以干什么？</h2><h2 id="Kafka安装与启动"><a href="#Kafka安装与启动" class="headerlink" title="Kafka安装与启动"></a>Kafka安装与启动</h2><h3 id="Kafka安装"><a href="#Kafka安装" class="headerlink" title="Kafka安装"></a>Kafka安装</h3><p>Kafka需要用到java，安装前需要安装java，这里省略<br>Kafka可以使用内置的zookeeper，也可以使用单独的zookeeper，一般生产环境都是使用单独的zookeeper集群<br>zookeeper安装可以参考<a href="https://gujincheng.github.io/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Zookeeper学习笔记（一）</a><br>官网下载Kafka安装包，并解压</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf kafka-2.11.0.tar.gz -C .
-cd kafka-2.11.0&#x2F;config
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>修改server.properties</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">host.name&#x3D;golden-02
-# 指定kafka日志文件的存储目录
-log.dirs&#x3D;&#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F;kafka-logs
-# 指定zookeeper的连接地址，多个地址用逗号分隔
-zookeeper.connect&#x3D;golden-02:2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里设置了kafka-logs，手动生成了这个文件夹</p>
-<p>最后，设置Kakfa的环境变量</p>
-<h3 id="Kafka启动等操作"><a href="#Kafka启动等操作" class="headerlink" title="Kafka启动等操作"></a>Kafka启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
-cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
-# 关闭
-cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-stop.sh <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="Kafka操作样例"><a href="#Kafka操作样例" class="headerlink" title="Kafka操作样例"></a>Kafka操作样例</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看所有topic
-bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --list
-## 创建topic
-bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --create --replication-factor 3 --partitions 1 --topic first
-## 删除topic
-bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --delete --topic first
-## 发送消息
- bin&#x2F;kafka-console-producer.sh --broker-list golden-02:9092 --topic first
-## 消费消息
-bin&#x2F;kafka-console-consumer.sh  --zookeeper golden-02:2181 --from-beginning --topic first
-## 查看某个Topic的详情
-bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181  --describe --topic first
-## 查看某个group_id的消费情况，offset
-bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe --group fink-test<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>选项说明：  </p>
-<ul>
-<li>–topic 定义topic名</li>
-<li>–replication-factor 定义副本数</li>
-<li>–partitions 定义分区数</li>
-</ul>
-<p>删除topic时删除不掉，日志提醒：<br><code>This will have no impact if delete.topic.enable is not set to true</code><br><img src="/uploads/20210121/kafka-delete-error.png" alt="kafka-delete-error"><br>到kafka的server.properties里设置<code>delete.topic.enable=true</code></p>
-<h2 id="Kafka常见问题"><a href="#Kafka常见问题" class="headerlink" title="Kafka常见问题"></a>Kafka常见问题</h2><ul>
-<li>auto.offset.reset设置无效<blockquote>
-<p>原因:<code>auto.offset.reset</code>只会在Kafka中没有初始偏移量，或者服务器上不再存在当前偏移量的时候才会生效。<br>换句话说，如果当前<code>group_id</code>已经消费过这个<code>topic</code>（可以查到offset），这个参数就没用了，要再想从头开始消费，就得换个group_id了<br>官网说明：<br><img src="/uploads/20210125/Kafka%E5%AE%98%E7%BD%91%E8%A7%A3%E9%87%8Aauto.offset.reset.png" alt="Kafka官网解释auto.offset.reset"></p>
-</blockquote>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Kafka</category>
-      </categories>
-      <tags>
-        <tag>Kafka</tag>
       </tags>
   </entry>
   <entry>
@@ -536,20 +550,6 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
       <tags>
         <tag>Mac</tag>
         <tag>Sublime</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MongoDB杂记（一）</title>
-    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>MongoDB</category>
-      </categories>
-      <tags>
-        <tag>MongoDB</tag>
       </tags>
   </entry>
   <entry>
