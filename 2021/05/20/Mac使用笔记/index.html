@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210520/jdk%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF.png">
 <meta property="article:published_time" content="2021-05-20T07:04:35.000Z">
-<meta property="article:modified_time" content="2021-06-08T02:11:50.153Z">
+<meta property="article:modified_time" content="2021-06-08T07:12:52.196Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Mac">
 <meta property="article:tag" content="Sublime">
@@ -235,7 +235,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-08 10:11:50" itemprop="dateModified" datetime="2021-06-08T10:11:50+08:00">2021-06-08</time>
+                <time title="修改时间：2021-06-08 15:12:52" itemprop="dateModified" datetime="2021-06-08T15:12:52+08:00">2021-06-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -481,6 +481,34 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 </ul>
 <h2 id="Mac常用快捷键"><a href="#Mac常用快捷键" class="headerlink" title="Mac常用快捷键"></a>Mac常用快捷键</h2><p><code>command + 左右方向键</code>： 到句首/尾（下一个/上一个标点符号）<br><code>option + 左右方向键</code>：跳到行首/行尾<br><code>ctrl + 左右方向键</code>：切换后台进程（窗口），是直接上一个/下一个窗口<br><code>ctrl + 上下方向键</code>:  呼出所有后台进程（窗口）<br><code>shift + 中/英</code>：切换大小写<br><code>command + tab</code>:切换后台进程，按住command会有所有后台，然后按tab可以切换（只是图标）<br><code>command + 上下方向键</code>：进入上层文件夹（在访达里使用）</p>
 <h2 id="开启-HIDPI，让-2K-显示器更舒适"><a href="#开启-HIDPI，让-2K-显示器更舒适" class="headerlink" title="开启 HIDPI，让 2K 显示器更舒适"></a>开启 HIDPI，让 2K 显示器更舒适</h2><p>mac自带的屏幕太小了，自己买的外接显示器是2k的，mac不会自动启动hidpi，所以字特别小，不好看。这里强行让mac知道可以启用hidpi<br>具体可以参考:<br><a target="_blank" rel="noopener" href="https://sspai.com/post/57549">为 macOS 10.15 开启 HiDPI，让 2K 显示器更舒适</a></p>
+<h2 id="Mac安装Hadoop、hive遇到的问题"><a href="#Mac安装Hadoop、hive遇到的问题" class="headerlink" title="Mac安装Hadoop、hive遇到的问题"></a>Mac安装Hadoop、hive遇到的问题</h2><p>具体的配置，会放到github上，之后再换电脑，直接从git上clone即可</p>
+<ul>
+<li><p>运行start-all.sh,报异常<code>golden-02: ssh: connect to host golden-02 port 22: Connection refused</code></p>
+<blockquote>
+<p>原因: mac原本没有打开远程访问的权限，即ssh到本机不通。<br>解决方法：系统偏好设置-&gt;共享-&gt;远程登录</p>
+</blockquote>
+</li>
+<li><p><code>golden-02: gujincheng@golden-02: Permission denied (publickey,password,keyboard-interactive).</code></p>
+<blockquote>
+<p>原因：没有配置ssh免密钥<br>解决方法：cd ~/.ssh &amp;&amp; cat id_rsa.pub &gt;&gt; authorized_keys</p>
+</blockquote>
+</li>
+<li><p>在HDFS管理页面，查看/tmp目录出现没有权限访问</p>
+<blockquote>
+<p>原因：core-site.xml的默认配置<code>hadoop.http.staticuser.user=dr.who</code><br>解决方法：在core-site.xml添加如下内容：</p>
+</blockquote>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hadoop.http.staticuser.user<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>gujincheng<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>不需要重新初始化namenode（<code>hdfs namenode -format</code>）</p>
+</li>
+<li><p><code>HiveException java.lang.RuntimeException: Unable to instantiate org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient</code></p>
+<blockquote>
+<p>原因：安装包是直接复制过来的，mysql虽然重新安装了，但是hive的元数据没有重新初始化<br>解决方法：<code>schematool -dbType mysql -initSchema</code></p>
+</blockquote>
+</li>
+</ul>
 
     </div>
 
@@ -563,7 +591,7 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%B9%B6%E9%85%8D%E7%BD%AEoh-my-zsh"><span class="nav-number">1.</span> <span class="nav-text">安装并配置oh my zsh</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac%E4%BD%BF%E7%94%A8ssh-agent%E7%99%BB%E9%99%86%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">2.</span> <span class="nav-text">Mac使用ssh-agent登陆远程服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%B9%B6%E9%85%8D%E7%BD%AEjava"><span class="nav-number">3.</span> <span class="nav-text">安装并配置java</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mac%E7%8E%AF%E5%A2%83%E4%B8%8BSublime%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7"><span class="nav-number">4.</span> <span class="nav-text">mac环境下Sublime使用技巧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac%E5%AE%89%E8%A3%85mysql"><span class="nav-number">5.</span> <span class="nav-text">Mac安装mysql</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE"><span class="nav-number">6.</span> <span class="nav-text">Mac常用快捷键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%90%AF-HIDPI%EF%BC%8C%E8%AE%A9-2K-%E6%98%BE%E7%A4%BA%E5%99%A8%E6%9B%B4%E8%88%92%E9%80%82"><span class="nav-number">7.</span> <span class="nav-text">开启 HIDPI，让 2K 显示器更舒适</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%B9%B6%E9%85%8D%E7%BD%AEoh-my-zsh"><span class="nav-number">1.</span> <span class="nav-text">安装并配置oh my zsh</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac%E4%BD%BF%E7%94%A8ssh-agent%E7%99%BB%E9%99%86%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">2.</span> <span class="nav-text">Mac使用ssh-agent登陆远程服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%B9%B6%E9%85%8D%E7%BD%AEjava"><span class="nav-number">3.</span> <span class="nav-text">安装并配置java</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mac%E7%8E%AF%E5%A2%83%E4%B8%8BSublime%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7"><span class="nav-number">4.</span> <span class="nav-text">mac环境下Sublime使用技巧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac%E5%AE%89%E8%A3%85mysql"><span class="nav-number">5.</span> <span class="nav-text">Mac安装mysql</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE"><span class="nav-number">6.</span> <span class="nav-text">Mac常用快捷键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%90%AF-HIDPI%EF%BC%8C%E8%AE%A9-2K-%E6%98%BE%E7%A4%BA%E5%99%A8%E6%9B%B4%E8%88%92%E9%80%82"><span class="nav-number">7.</span> <span class="nav-text">开启 HIDPI，让 2K 显示器更舒适</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac%E5%AE%89%E8%A3%85Hadoop%E3%80%81hive%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">8.</span> <span class="nav-text">Mac安装Hadoop、hive遇到的问题</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
