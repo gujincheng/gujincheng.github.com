@@ -29,120 +29,6 @@
       </categories>
   </entry>
   <entry>
-    <title>Flink学习笔记（三）</title>
-    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink状态管理</li>
-</ul>
-<a id="more"></a>
-<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
-<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
-<ul>
-<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
-<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
-<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
-<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
-</ul>
-<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
-<p><img src="/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
-<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
-<ul>
-<li>数据的产出要保证实时性，延迟不能太高。</li>
-<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
-<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
-</ul>
-<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
-<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Managed State</th>
-<th>Raw State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>状态管理方式</td>
-<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
-<td>用户自己管理</td>
-</tr>
-<tr>
-<td>状态数据结构</td>
-<td>Flink提供的常用数据结构，如ListState、MapState等</td>
-<td>字节数组：byte[]</td>
-</tr>
-<tr>
-<td>使用场景</td>
-<td>绝大多数Flink算子</td>
-<td>用户自定义算子</td>
-</tr>
-</tbody></table>
-<p>两者的具体区别有：</p>
-<ul>
-<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
-<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
-<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
-</ul>
-<p>下文将重点介绍Managed State。</p>
-<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
-<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
-<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Keyed State</th>
-<th>Operator State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>适用算子类型</td>
-<td>只适用于KeyedStream上的算子</td>
-<td>可以用于所有算子</td>
-</tr>
-<tr>
-<td>状态分配</td>
-<td>每个Key对应一个状态</td>
-<td>一个算子子任务对应一个状态</td>
-</tr>
-<tr>
-<td>创建和访问方式</td>
-<td>重写Rich Function，通过里面的RuntimeContext访问</td>
-<td>实现CheckpointedFunction等接口</td>
-</tr>
-<tr>
-<td>横向扩展</td>
-<td>状态随着Key自动在多个算子子任务上迁移</td>
-<td>有多种状态重新分配的方式</td>
-</tr>
-<tr>
-<td>支持的数据结构</td>
-<td>ValueState、ListState、MapState等</td>
-<td>ListState、BroadcastState等</td>
-</tr>
-</tbody></table>
-<p>上表总结了Keyed State和Operator State的区别。</p>
-<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
-<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
-<p>这几个状态的具体区别在于：</p>
-<ul>
-<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
-<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
-<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
-<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
-</ul>
-<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Kafka学习笔记（一）</title>
     <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -321,8 +207,8 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
         <category>Flink</category>
       </categories>
       <tags>
-        <tag>Flink</tag>
         <tag>Kafka</tag>
+        <tag>Flink</tag>
       </tags>
   </entry>
   <entry>
@@ -524,6 +410,7 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 	<span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">&#125;</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="mac-安装homebrew"><a href="#mac-安装homebrew" class="headerlink" title="mac 安装homebrew"></a>mac 安装homebrew</h2><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">&#x2F;bin&#x2F;zsh -c &quot;$(curl -fsSL https:&#x2F;&#x2F;gitee.com&#x2F;cunkai&#x2F;HomebrewCN&#x2F;raw&#x2F;master&#x2F;Homebrew.sh)&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h2 id="Mac安装mysql"><a href="#Mac安装mysql" class="headerlink" title="Mac安装mysql"></a>Mac安装mysql</h2>具体参考<br><a href="https://zhuanlan.zhihu.com/p/257006114">mac 安装mysql详细教程</a></li>
 </ul>
 </li>
@@ -552,7 +439,8 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>不需要重新初始化namenode（<code>hdfs namenode -format</code>）</p>
 </li>
-<li><p><code>HiveException java.lang.RuntimeException: Unable to instantiate org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient</code></p>
+<li><p>hive报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">HiveException java.lang.RuntimeException: Unable to instantiate org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <blockquote>
 <p>原因：安装包是直接复制过来的，mysql虽然重新安装了，但是hive的元数据没有重新初始化<br>解决方法：<code>schematool -dbType mysql -initSchema</code></p>
 </blockquote>
@@ -565,6 +453,120 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
       <tags>
         <tag>Mac</tag>
         <tag>Sublime</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Flink学习笔记（三）</title>
+    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink状态管理</li>
+</ul>
+<a id="more"></a>
+<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
+<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
+<ul>
+<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
+<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
+<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
+<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
+</ul>
+<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
+<p><img src="/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
+<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
+<ul>
+<li>数据的产出要保证实时性，延迟不能太高。</li>
+<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
+<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
+</ul>
+<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
+<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Managed State</th>
+<th>Raw State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态管理方式</td>
+<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
+<td>用户自己管理</td>
+</tr>
+<tr>
+<td>状态数据结构</td>
+<td>Flink提供的常用数据结构，如ListState、MapState等</td>
+<td>字节数组：byte[]</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>绝大多数Flink算子</td>
+<td>用户自定义算子</td>
+</tr>
+</tbody></table>
+<p>两者的具体区别有：</p>
+<ul>
+<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
+<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
+<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
+</ul>
+<p>下文将重点介绍Managed State。</p>
+<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
+<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
+<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Keyed State</th>
+<th>Operator State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用算子类型</td>
+<td>只适用于KeyedStream上的算子</td>
+<td>可以用于所有算子</td>
+</tr>
+<tr>
+<td>状态分配</td>
+<td>每个Key对应一个状态</td>
+<td>一个算子子任务对应一个状态</td>
+</tr>
+<tr>
+<td>创建和访问方式</td>
+<td>重写Rich Function，通过里面的RuntimeContext访问</td>
+<td>实现CheckpointedFunction等接口</td>
+</tr>
+<tr>
+<td>横向扩展</td>
+<td>状态随着Key自动在多个算子子任务上迁移</td>
+<td>有多种状态重新分配的方式</td>
+</tr>
+<tr>
+<td>支持的数据结构</td>
+<td>ValueState、ListState、MapState等</td>
+<td>ListState、BroadcastState等</td>
+</tr>
+</tbody></table>
+<p>上表总结了Keyed State和Operator State的区别。</p>
+<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
+<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
+<p>这几个状态的具体区别在于：</p>
+<ul>
+<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
+<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
+<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
+<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
+</ul>
+<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
       </tags>
   </entry>
   <entry>
@@ -881,102 +883,6 @@ sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<spa
       </tags>
   </entry>
   <entry>
-    <title>linux杂记（一）</title>
-    <url>/2021/01/16/linux%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>shell常用语法</li>
-<li>shell实用命令<a id="more"></a>
-<h2 id="IF-条件判断"><a href="#IF-条件判断" class="headerlink" title="IF 条件判断"></a>IF 条件判断</h2><h3 id="判断-boot-分区可用容量小于-20MB-时报警，否则显示-OK"><a href="#判断-boot-分区可用容量小于-20MB-时报警，否则显示-OK" class="headerlink" title="判断 boot 分区可用容量小于 20MB 时报警，否则显示 OK"></a>判断 boot 分区可用容量小于 20MB 时报警，否则显示 OK</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">df | grep &quot;boot&quot; | awk &#39; &#123;if ($4&lt;20000)  print &quot;Alart&quot; ; else print &quot;OK&quot;&#125;&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="While-循环"><a href="#While-循环" class="headerlink" title="While 循环"></a>While 循环</h2><h3 id="指定范围内执行动作"><a href="#指定范围内执行动作" class="headerlink" title="指定范围内执行动作"></a>指定范围内执行动作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 语法一
-awk &#39;i&#x3D;1 &#123;&#125; BEGIN &#123;while (i&lt;3) &#123;++i;print i&#125;&#125;&#39; test.txt 
-# 语法二
-awk &#39;BEGIN &#123;do &#123;++i;print i&#125; while (i&lt;3)&#125;&#39; test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="For-循环"><a href="#For-循环" class="headerlink" title="For 循环"></a>For 循环</h2><h3 id="for-变量；条件；计数器"><a href="#for-变量；条件；计数器" class="headerlink" title="for (变量；条件；计数器)"></a>for (变量；条件；计数器)</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk &#39;BEGIN &#123;for (i&#x3D;1;i&lt;3;i++) print i&#125;&#39; test.txt
-awk &#39;BEGIN &#123;for (i&#x3D;3;i&gt;1;i--) print i&#125;&#39; test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-上述 While 和 For 循环语句使用的 awk 均使用 BEGIN 模式，即在未读取文档内容前就会将 BEGIN 代码执行完毕，所以输入文档可以是任意文档。<br>具体参考：<br><a href="https://blog.csdn.net/sunny_future/article/details/80287236">https://blog.csdn.net/sunny_future/article/details/80287236</a></li>
-</ul>
-<h2 id="查询文件下所有文件是否包含某个字符串"><a href="#查询文件下所有文件是否包含某个字符串" class="headerlink" title="查询文件下所有文件是否包含某个字符串"></a>查询文件下所有文件是否包含某个字符串</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名"><a href="#目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名" class="headerlink" title="目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名"></a>目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; -l <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="遍历指定文件夹下所有文件"><a href="#遍历指定文件夹下所有文件" class="headerlink" title="遍历指定文件夹下所有文件"></a>遍历指定文件夹下所有文件</h2><h3 id="采用递归的方式"><a href="#采用递归的方式" class="headerlink" title="采用递归的方式"></a>采用递归的方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">function scandir() &#123;
-    local cur_dir parent_dir workdir
-    workdir&#x3D;$1
-    cd $&#123;workdir&#125;
-    if [ $&#123;workdir&#125; &#x3D; &quot;&#x2F;&quot; ]
-    then
-        cur_dir&#x3D;&quot;&quot;
-    else
-        cur_dir&#x3D;$(pwd)
-    fi
-
-    for dirlist in $(ls $&#123;cur_dir&#125;)
-    do
-        if test -d $&#123;dirlist&#125;;then
-            cd $&#123;dirlist&#125;
-            scandir $&#123;cur_dir&#125;&#x2F;$&#123;dirlist&#125;
-            cd ..
-        else
-            echo $&#123;cur_dir&#125;&#x2F;$&#123;dirlist&#125;
-        fi
-    done                       
-&#125;
-
-if test -d $1                  
-then
-    scandir $1                 
-elif test -f $1                
-then
-    echo &quot;you input a file but not a directory,pls reinput and try again&quot;
-    exit 1
-else
-    echo &quot;the Directory isn&#39;t exist which you input,pls input a new one!!&quot;
-    exit 1
-fi
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="利用命令行："><a href="#利用命令行：" class="headerlink" title="利用命令行："></a>利用命令行：</h3><p>获取bigdata下所有的以.sh结尾的文件</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find &#x2F;home&#x2F;bigdata -name &quot;*.sh&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>参考：<br>    <a href="https://blog.csdn.net/u010801696/article/details/78913494">https://blog.csdn.net/u010801696/article/details/78913494</a></p>
-<h2 id="ftp在centos下如何登陆"><a href="#ftp在centos下如何登陆" class="headerlink" title="ftp在centos下如何登陆"></a>ftp在centos下如何登陆</h2><h3 id="ftp的登陆方式"><a href="#ftp的登陆方式" class="headerlink" title="ftp的登陆方式"></a>ftp的登陆方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ftp
-open ip port
-## 输入完host以后，会弹出让输入用户名和密码，之后就登陆进去了<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<h3 id="sftp的登陆方式"><a href="#sftp的登陆方式" class="headerlink" title="sftp的登陆方式"></a>sftp的登陆方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sftp -P port user@ip
-## 回车后提示输入密码<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<h3 id="lftp（不需要手动输入用户名密码，常用于自动化脚本中）"><a href="#lftp（不需要手动输入用户名密码，常用于自动化脚本中）" class="headerlink" title="lftp（不需要手动输入用户名密码，常用于自动化脚本中）"></a>lftp（不需要手动输入用户名密码，常用于自动化脚本中）</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lftp -u user,psw sftp:&#x2F;&#x2F;ip:host<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="ftp使用模糊查询下载所有匹配的文件"><a href="#ftp使用模糊查询下载所有匹配的文件" class="headerlink" title="ftp使用模糊查询下载所有匹配的文件"></a>ftp使用模糊查询下载所有匹配的文件</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">open 192.168.1.1 10021
-prompt   ##取消ftp的交互式，否则每次下载下一个文件都要回车一下，仅对当前窗口有效，ftp退出后，下次进入需要重新prompt
-mget 2020-05-12*   #下载正则匹配上的所有文件
-get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="ubuntu下替换apt-get的源"><a href="#ubuntu下替换apt-get的源" class="headerlink" title="ubuntu下替换apt-get的源"></a>ubuntu下替换apt-get的源</h3><p>参考<a href="https://www.cnblogs.com/gabin/p/6519352.html">https://www.cnblogs.com/gabin/p/6519352.html</a></p>
-<h3 id="解决出现-unable-to-resolve-host-问题"><a href="#解决出现-unable-to-resolve-host-问题" class="headerlink" title="解决出现 unable to resolve host 问题"></a>解决出现 unable to resolve host 问题</h3><p>ubuntu在sudo的时候，总是出现unable to resolve host，解决步骤：</p>
-<ul>
-<li>修改 /etc/hosts里的127.0.0.1 localhost 后面加上主机名称（127.0.0.1 localhost aaa）</li>
-<li>修改/etc/hostname，这里的名称和上面的主机名称保持一致(aaa)</li>
-</ul>
-<h3 id="ssh免秘钥"><a href="#ssh免秘钥" class="headerlink" title="ssh免秘钥"></a>ssh免秘钥</h3><p>用过好几次免秘钥，但是每次都会忘了应该把copy谁的公钥到另外用户的.ssh文件夹<br>这里专门记录一次</p>
-<blockquote>
-<p>A要使用ssh免密登录到B用户下（可以使远程服务器），就把A的用户下的.ssh文件的id_rsa.pub 内容 cat到远程服务器B 的.ssh的authorized_keys 文件里</p>
-</blockquote>
-<blockquote>
-<p>说明白点就是，A用户如果想免秘钥登录B用户，那么就需要把公钥先让B用户知道。这样就是自己人了。</p>
-</blockquote>
-<p>还有一个注意点：<br>如果希望ssh公钥生效需满足至少下面两个条件：</p>
-<ul>
-<li>.ssh目录的权限必须是700 </li>
-<li>.ssh/authorized_keys文件权限必须是600</li>
-</ul>
-<p>具体可以参考<br><a href="https://www.jb51.net/article/94599.htm">https://www.jb51.net/article/94599.htm</a></p>
-<h3 id="awk实现sql中group-by，count的功能"><a href="#awk实现sql中group-by，count的功能" class="headerlink" title="awk实现sql中group by，count的功能"></a>awk实现sql中group by，count的功能</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk -F &quot; &quot; &#39;&#123; w[$2]+&#x3D;1&#125; END&#123; for (a in w)  print a, w[a]&#125;&#39; detail.csv  &gt; aaa.txt<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>可以参考<br><a href="https://www.cnblogs.com/ginvip/p/6352157.html">https://www.cnblogs.com/ginvip/p/6352157.html</a><br><a href="http://www.blogjava.net/henry14/archive/2012/01/15/368560.html">http://www.blogjava.net/henry14/archive/2012/01/15/368560.html</a></p>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>hive杂记（一）</title>
     <url>/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1207,6 +1113,102 @@ LATERAL <span class="token keyword">VIEW</span>
       </tags>
   </entry>
   <entry>
+    <title>linux杂记（一）</title>
+    <url>/2021/01/16/linux%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>shell常用语法</li>
+<li>shell实用命令<a id="more"></a>
+<h2 id="IF-条件判断"><a href="#IF-条件判断" class="headerlink" title="IF 条件判断"></a>IF 条件判断</h2><h3 id="判断-boot-分区可用容量小于-20MB-时报警，否则显示-OK"><a href="#判断-boot-分区可用容量小于-20MB-时报警，否则显示-OK" class="headerlink" title="判断 boot 分区可用容量小于 20MB 时报警，否则显示 OK"></a>判断 boot 分区可用容量小于 20MB 时报警，否则显示 OK</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">df | grep &quot;boot&quot; | awk &#39; &#123;if ($4&lt;20000)  print &quot;Alart&quot; ; else print &quot;OK&quot;&#125;&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="While-循环"><a href="#While-循环" class="headerlink" title="While 循环"></a>While 循环</h2><h3 id="指定范围内执行动作"><a href="#指定范围内执行动作" class="headerlink" title="指定范围内执行动作"></a>指定范围内执行动作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 语法一
+awk &#39;i&#x3D;1 &#123;&#125; BEGIN &#123;while (i&lt;3) &#123;++i;print i&#125;&#125;&#39; test.txt 
+# 语法二
+awk &#39;BEGIN &#123;do &#123;++i;print i&#125; while (i&lt;3)&#125;&#39; test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="For-循环"><a href="#For-循环" class="headerlink" title="For 循环"></a>For 循环</h2><h3 id="for-变量；条件；计数器"><a href="#for-变量；条件；计数器" class="headerlink" title="for (变量；条件；计数器)"></a>for (变量；条件；计数器)</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk &#39;BEGIN &#123;for (i&#x3D;1;i&lt;3;i++) print i&#125;&#39; test.txt
+awk &#39;BEGIN &#123;for (i&#x3D;3;i&gt;1;i--) print i&#125;&#39; test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+上述 While 和 For 循环语句使用的 awk 均使用 BEGIN 模式，即在未读取文档内容前就会将 BEGIN 代码执行完毕，所以输入文档可以是任意文档。<br>具体参考：<br><a href="https://blog.csdn.net/sunny_future/article/details/80287236">https://blog.csdn.net/sunny_future/article/details/80287236</a></li>
+</ul>
+<h2 id="查询文件下所有文件是否包含某个字符串"><a href="#查询文件下所有文件是否包含某个字符串" class="headerlink" title="查询文件下所有文件是否包含某个字符串"></a>查询文件下所有文件是否包含某个字符串</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名"><a href="#目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名" class="headerlink" title="目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名"></a>目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; -l <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="遍历指定文件夹下所有文件"><a href="#遍历指定文件夹下所有文件" class="headerlink" title="遍历指定文件夹下所有文件"></a>遍历指定文件夹下所有文件</h2><h3 id="采用递归的方式"><a href="#采用递归的方式" class="headerlink" title="采用递归的方式"></a>采用递归的方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">function scandir() &#123;
+    local cur_dir parent_dir workdir
+    workdir&#x3D;$1
+    cd $&#123;workdir&#125;
+    if [ $&#123;workdir&#125; &#x3D; &quot;&#x2F;&quot; ]
+    then
+        cur_dir&#x3D;&quot;&quot;
+    else
+        cur_dir&#x3D;$(pwd)
+    fi
+
+    for dirlist in $(ls $&#123;cur_dir&#125;)
+    do
+        if test -d $&#123;dirlist&#125;;then
+            cd $&#123;dirlist&#125;
+            scandir $&#123;cur_dir&#125;&#x2F;$&#123;dirlist&#125;
+            cd ..
+        else
+            echo $&#123;cur_dir&#125;&#x2F;$&#123;dirlist&#125;
+        fi
+    done                       
+&#125;
+
+if test -d $1                  
+then
+    scandir $1                 
+elif test -f $1                
+then
+    echo &quot;you input a file but not a directory,pls reinput and try again&quot;
+    exit 1
+else
+    echo &quot;the Directory isn&#39;t exist which you input,pls input a new one!!&quot;
+    exit 1
+fi
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="利用命令行："><a href="#利用命令行：" class="headerlink" title="利用命令行："></a>利用命令行：</h3><p>获取bigdata下所有的以.sh结尾的文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find &#x2F;home&#x2F;bigdata -name &quot;*.sh&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>参考：<br>    <a href="https://blog.csdn.net/u010801696/article/details/78913494">https://blog.csdn.net/u010801696/article/details/78913494</a></p>
+<h2 id="ftp在centos下如何登陆"><a href="#ftp在centos下如何登陆" class="headerlink" title="ftp在centos下如何登陆"></a>ftp在centos下如何登陆</h2><h3 id="ftp的登陆方式"><a href="#ftp的登陆方式" class="headerlink" title="ftp的登陆方式"></a>ftp的登陆方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ftp
+open ip port
+## 输入完host以后，会弹出让输入用户名和密码，之后就登陆进去了<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h3 id="sftp的登陆方式"><a href="#sftp的登陆方式" class="headerlink" title="sftp的登陆方式"></a>sftp的登陆方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sftp -P port user@ip
+## 回车后提示输入密码<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="lftp（不需要手动输入用户名密码，常用于自动化脚本中）"><a href="#lftp（不需要手动输入用户名密码，常用于自动化脚本中）" class="headerlink" title="lftp（不需要手动输入用户名密码，常用于自动化脚本中）"></a>lftp（不需要手动输入用户名密码，常用于自动化脚本中）</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lftp -u user,psw sftp:&#x2F;&#x2F;ip:host<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="ftp使用模糊查询下载所有匹配的文件"><a href="#ftp使用模糊查询下载所有匹配的文件" class="headerlink" title="ftp使用模糊查询下载所有匹配的文件"></a>ftp使用模糊查询下载所有匹配的文件</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">open 192.168.1.1 10021
+prompt   ##取消ftp的交互式，否则每次下载下一个文件都要回车一下，仅对当前窗口有效，ftp退出后，下次进入需要重新prompt
+mget 2020-05-12*   #下载正则匹配上的所有文件
+get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="ubuntu下替换apt-get的源"><a href="#ubuntu下替换apt-get的源" class="headerlink" title="ubuntu下替换apt-get的源"></a>ubuntu下替换apt-get的源</h3><p>参考<a href="https://www.cnblogs.com/gabin/p/6519352.html">https://www.cnblogs.com/gabin/p/6519352.html</a></p>
+<h3 id="解决出现-unable-to-resolve-host-问题"><a href="#解决出现-unable-to-resolve-host-问题" class="headerlink" title="解决出现 unable to resolve host 问题"></a>解决出现 unable to resolve host 问题</h3><p>ubuntu在sudo的时候，总是出现unable to resolve host，解决步骤：</p>
+<ul>
+<li>修改 /etc/hosts里的127.0.0.1 localhost 后面加上主机名称（127.0.0.1 localhost aaa）</li>
+<li>修改/etc/hostname，这里的名称和上面的主机名称保持一致(aaa)</li>
+</ul>
+<h3 id="ssh免秘钥"><a href="#ssh免秘钥" class="headerlink" title="ssh免秘钥"></a>ssh免秘钥</h3><p>用过好几次免秘钥，但是每次都会忘了应该把copy谁的公钥到另外用户的.ssh文件夹<br>这里专门记录一次</p>
+<blockquote>
+<p>A要使用ssh免密登录到B用户下（可以使远程服务器），就把A的用户下的.ssh文件的id_rsa.pub 内容 cat到远程服务器B 的.ssh的authorized_keys 文件里</p>
+</blockquote>
+<blockquote>
+<p>说明白点就是，A用户如果想免秘钥登录B用户，那么就需要把公钥先让B用户知道。这样就是自己人了。</p>
+</blockquote>
+<p>还有一个注意点：<br>如果希望ssh公钥生效需满足至少下面两个条件：</p>
+<ul>
+<li>.ssh目录的权限必须是700 </li>
+<li>.ssh/authorized_keys文件权限必须是600</li>
+</ul>
+<p>具体可以参考<br><a href="https://www.jb51.net/article/94599.htm">https://www.jb51.net/article/94599.htm</a></p>
+<h3 id="awk实现sql中group-by，count的功能"><a href="#awk实现sql中group-by，count的功能" class="headerlink" title="awk实现sql中group by，count的功能"></a>awk实现sql中group by，count的功能</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk -F &quot; &quot; &#39;&#123; w[$2]+&#x3D;1&#125; END&#123; for (a in w)  print a, w[a]&#125;&#39; detail.csv  &gt; aaa.txt<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>可以参考<br><a href="https://www.cnblogs.com/ginvip/p/6352157.html">https://www.cnblogs.com/ginvip/p/6352157.html</a><br><a href="http://www.blogjava.net/henry14/archive/2012/01/15/368560.html">http://www.blogjava.net/henry14/archive/2012/01/15/368560.html</a></p>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3>]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
     <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1330,18 +1332,6 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       </tags>
   </entry>
   <entry>
-    <title>python杂记（一）</title>
-    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
     <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1379,6 +1369,18 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       </categories>
       <tags>
         <tag>Jenkins</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python杂记（一）</title>
+    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
