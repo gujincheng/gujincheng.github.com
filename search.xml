@@ -1209,6 +1209,47 @@ get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-
       </tags>
   </entry>
   <entry>
+    <title>python实现scp功能</title>
+    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
+    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
+<span class="token keyword">import</span> sys
+
+<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
+    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
+    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
+    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
+    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
+    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
+<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
+</ul>
+<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>scp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
     <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1288,47 +1329,6 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       <tags>
         <tag>Hive</tag>
         <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python实现scp功能</title>
-    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
-    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
-<span class="token keyword">import</span> sys
-
-<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
-    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
-    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
-    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-
-<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
-    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
-    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
-    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
-    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
-<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
-</ul>
-<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>scp</tag>
       </tags>
   </entry>
   <entry>
