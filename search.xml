@@ -1,6 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Elasticsearch学习笔记（一）</title>
+    <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Elasticsearch简介</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="Elasticsearch简介"><a href="#Elasticsearch简介" class="headerlink" title="Elasticsearch简介"></a>Elasticsearch简介</h2><p>Elasticsearch是一个高度可扩展的开源全文搜索和分析引擎，有以下几个特点：</p>
+<ul>
+<li>一个分布式的实时文档存储，每个字段都可被索引</li>
+<li>一个分布式实时搜索引擎</li>
+<li>强大的横向扩展能力，并支持大数据集的结构化/非结构化数据</li>
+<li>Elasticsearch是<code>面向文档</code>的，意味着它存储整个对象或文档(使用<code>JSON</code>作为文档的序列化格式)</li>
+</ul>
+<p>Elasticsearch的安装很简单，直接解压就行，访问使用restAPI，也可以使用kibana<br>kibana的安装也很简单，直接解压，配置以下ES的相关属性就可以<br>安装好后，访问<code>http://localhost:5601/</code>即可使用kibana操作ES</p>
+<h2 id="Elasticsearch使用"><a href="#Elasticsearch使用" class="headerlink" title="Elasticsearch使用"></a>Elasticsearch使用</h2><ul>
+<li>操作索引<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 创建一个名称为 alibaba 的 Index（索引库）
+curl -X PUT localhost:9200&#x2F;alibaba
+# 删除索引
+curl -X DELETE localhost:9200&#x2F;alibaba
+# 列出每个 Index 包含的 Type
+curl &quot;localhost:9200&#x2F;_mapping?pretty&#x3D;true&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>操作Document 文档</li>
+<li><ul>
+<li>新增文档<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 在 alibaba&#x2F;user 中，新增一条记录（文档），记录的 id 为 1
+curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;
+#  或者
+curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -H &quot;Content-Type: application&#x2F;json&quot; -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+上述示例中，alibaba 代表 Index，user 代表 Type，如果它们不存在，会自动创建。1 代表记录的 id。<br>新增记录时，也可以不指定 id，这时服务器会自动生成一个随机字符串作为该记录的 id。</li>
+</ul>
+</li>
+</ul>
+<p>** 查看记录</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">
+# 查看 alibaba&#x2F;user&#x2F;1 记录
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1
+# 查看 alibaba&#x2F;user&#x2F;1 记录（会对结果进行格式化）
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty
+# 查看 alibaba&#x2F;user 中的所有记录
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>?pretty 表示对返回结果进行格式化，以便更易于阅读。</p>
+<p>** 删除记录</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">curl -X DELETE localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Elasticsearch</category>
+      </categories>
+      <tags>
+        <tag>Elasticsearch</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
     <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
     <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
@@ -529,7 +583,7 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 </ul>
 </li>
 </ul>
-<h2 id="Mac常用快捷键"><a href="#Mac常用快捷键" class="headerlink" title="Mac常用快捷键"></a>Mac常用快捷键</h2><p>Mac系统快捷键设置：<br>系统偏好设置 -&gt; 键盘 -&gt; 快捷键<br><code>command + 左右方向键</code>： 到句首/尾（下一个/上一个标点符号）<br><code>option + 左右方向键</code>：跳到行首/行尾<br><code>ctrl + 左右方向键</code>：切换后台进程（窗口），是直接上一个/下一个窗口<br><code>ctrl + 上下方向键</code>:  呼出所有后台进程（窗口）<br><code>shift + 中/英</code>：切换大小写<br><code>command + tab</code>:切换后台进程，按住command会有所有后台，然后按tab可以切换（只是图标）<br><code>command + 上下方向键</code>：进入上层文件夹（在访达里使用）<br><code>ctrl + command + Q</code>: 锁屏<br><code>command + 空格</code>：聚焦搜索<br><code>option + command + 空格</code>：在访达里搜索<br><code>option + command + D</code>:显示/隐藏程序坞<br><code>shift + command + 2</code>:截图到剪切板</p>
+<h2 id="Mac常用快捷键"><a href="#Mac常用快捷键" class="headerlink" title="Mac常用快捷键"></a>Mac常用快捷键</h2><p>Mac系统快捷键设置：<br>系统偏好设置 -&gt; 键盘 -&gt; 快捷键<br><code>command + 左右方向键</code>： 到句首/尾（下一个/上一个标点符号）<br><code>option + 左右方向键</code>：跳到行首/行尾<br><code>ctrl + 左右方向键</code>：切换后台进程（窗口），是直接上一个/下一个窗口<br><code>ctrl + 上下方向键</code>:  呼出所有后台进程（窗口）<br><code>shift + 中/英</code>：切换大小写<br><code>command + tab</code>:切换后台进程，按住command会有所有后台，然后按tab可以切换（只是图标）<br><code>command + 上下方向键</code>：进入上层文件夹（在访达里使用）<br><code>ctrl + command + Q</code>: 锁屏<br><code>command + 空格</code>：聚焦搜索<br><code>option + command + 空格</code>：在访达里搜索<br><code>option + command + D</code>:显示/隐藏程序坞<br><code>shift + command + 2</code>:截图到剪切板<br><code>option + command + T</code>:自动生成try catch</p>
 <h2 id="开启-HIDPI，让-2K-显示器更舒适"><a href="#开启-HIDPI，让-2K-显示器更舒适" class="headerlink" title="开启 HIDPI，让 2K 显示器更舒适"></a>开启 HIDPI，让 2K 显示器更舒适</h2><p>mac自带的屏幕太小了，自己买的外接显示器是2k的，mac不会自动启动hidpi，所以字特别小，不好看。这里强行让mac知道可以启用hidpi<br>具体可以参考:<br><a href="https://sspai.com/post/57549">为 macOS 10.15 开启 HiDPI，让 2K 显示器更舒适</a></p>
 <h2 id="Mac安装Hadoop、hive遇到的问题"><a href="#Mac安装Hadoop、hive遇到的问题" class="headerlink" title="Mac安装Hadoop、hive遇到的问题"></a>Mac安装Hadoop、hive遇到的问题</h2><p>具体的配置，会放到github上，之后再换电脑，直接从git上clone即可</p>
 <ul>
@@ -570,76 +624,6 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
       </tags>
   </entry>
   <entry>
-    <title>Selenium与PhantomJS踩过的坑</title>
-    <url>/2021/01/16/Selenium%E4%B8%8EPhantomJS%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Selenium与PhantomJS踩过的坑<a id="more"></a>
-<h2 id="Selenium与PhantomJS踩过的坑"><a href="#Selenium与PhantomJS踩过的坑" class="headerlink" title="Selenium与PhantomJS踩过的坑"></a>Selenium与PhantomJS踩过的坑</h2><h3 id="Selenium"><a href="#Selenium" class="headerlink" title="Selenium"></a>Selenium</h3>Selenium是一个Web的自动化测试工具，最初是为网站自动化测试而开发的，类型像我们玩游戏用的按键精灵，可以按指定的命令自动化操作，不同是Selenium可以直接运行在浏览器上，它支持所有主流的浏览器(包括PhantomJS这些无界面的浏览器)。</li>
-</ul>
-<p>Selenium可以根据我们的指令，让浏览器自动加载页面，获取需要的页面，甚至页面截屏，或者判断网站上某些动作是否发生。</p>
-<p>Selenium自己不带浏览器，不支持浏览器的功能，它需要与第三方浏览器结合在一起才能使用。但是我们有时候需要让它内嵌在代码中运行，所有我们需要用一个叫PhantomJS的工具代替真实的浏览器。</p>
-<h4 id="Selenium的安装"><a href="#Selenium的安装" class="headerlink" title="Selenium的安装"></a>Selenium的安装</h4><p>直接通过pip安装即可，这里没什么坑</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">pip install selenium<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="PhantomJS"><a href="#PhantomJS" class="headerlink" title="PhantomJS"></a>PhantomJS</h3><p>PhantomJS是一个基于Webkit的”无界面”(headless)浏览器，它会把网站加载到内存并执行页面上的JavaScript，因为不会展示图形界面，所以运行起来比完整的浏览器更高效。</p>
-<p>如果我们把Selenium和PhantomJS结合在一起，就可以运行一个非常强大的网络爬虫了，这个爬虫可以处理JavaScript、Cookie、headers，以及任何我们真实用户需要做的事情。</p>
-<h4 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h4><ul>
-<li>PhantomJS只能从它的网站(<a href="http://phantomjs.org/download.html)%E4%B8%8B%E8%BD%BD%E3%80%82">http://phantomjs.org/download.html)下载。</a></li>
-<li>因为PhantomJS是一个功能完善(虽然无界面)的浏览器而非一个Python库，所以它不需要像Python的其它库一样安装，但我们可以通过Selenium调用PhantomJS来直接使用</li>
-<li>PhantomsJS官方才考文档：<a href="http://phantomjs.org/documention">http://phantomjs.org/documention</a></li>
-<li>这里不能通过pip、apt-get，yum等方式安装，一开始在自己虚拟机通过apt-get安装，但是一直报错。后来又全卸载，重新通过官网下载手动安装才行。</li>
-<li>在自己的远程服务器中运行代码，报错：<pre class="line-numbers language-python" data-language="python"><code class="language-python">TypeError<span class="token punctuation">:</span> urlopen<span class="token punctuation">(</span><span class="token punctuation">)</span> got multiple values <span class="token keyword">for</span> keyword argument <span class="token string">'body'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-原因是服务器的urllib3版本太低，卸载以后重装就好了<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get remove python-urllib3
-sudo pip install -U urllib3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-下面是代码：<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
-<span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
-<span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
-<span class="token keyword">import</span> time
-driver <span class="token operator">=</span> webdriver<span class="token punctuation">.</span>PhantomJS<span class="token punctuation">(</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"www.wangzhi.com"</span><span class="token punctuation">)</span>  <span class="token comment">#穿入你的网址</span>
-driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">"aaa@qq.com"</span><span class="token punctuation">)</span> <span class="token comment">#按F12，查看网页源代码中登录界面的name传参是什么</span>
-<span class="token comment"># 我的网页：&lt;input id="loginEmail" class='login_input' type="text" name="email" placeholder="请输入您的邮箱"></span>
-<span class="token comment"># 所以 find_element_by_name("email")里面穿的是email，pwd一样，find_element_by_id也一样</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"pwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">'111111'</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>find_element_by_id<span class="token punctuation">(</span><span class="token string">"loginButton"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>click<span class="token punctuation">(</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>save_screenshot<span class="token punctuation">(</span><span class="token string">'broad.png'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-</li>
-</ul>
-<h3 id="服务器没有中文字体"><a href="#服务器没有中文字体" class="headerlink" title="服务器没有中文字体"></a>服务器没有中文字体</h3><p>所有都准备好了，原本以为万事大吉，但是发现截图的内容，不能显示中文。<br>在网上查了原因是系统没有装中文字体。<br>安装字体可以参考<a href="https://www.jianshu.com/p/e7f12b8c8602">https://www.jianshu.com/p/e7f12b8c8602</a></p>
-<h3 id="中文字体解决以后，又出现了截图页面不完整"><a href="#中文字体解决以后，又出现了截图页面不完整" class="headerlink" title="中文字体解决以后，又出现了截图页面不完整"></a>中文字体解决以后，又出现了截图页面不完整</h3><p>最后在网上查了原因 ，是因为分辨率的原因<br>在代码上添加</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python">driver<span class="token punctuation">.</span>set_window_size<span class="token punctuation">(</span><span class="token number">1366</span><span class="token punctuation">,</span> <span class="token number">768</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>完整代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
-<span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
-<span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
-<span class="token keyword">import</span> time
-driver <span class="token operator">=</span> webdriver<span class="token punctuation">.</span>PhantomJS<span class="token punctuation">(</span>service_args<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">'--ignore-ssl-errors=true'</span><span class="token punctuation">,</span> <span class="token string">'--ssl-protocol=any'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yourwebsite"</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>set_window_size<span class="token punctuation">(</span><span class="token number">1366</span><span class="token punctuation">,</span> <span class="token number">768</span><span class="token punctuation">)</span> <span class="token comment">#这里必须加在get网页的后面，加在它之前没用</span>
-driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">"你的用户名"</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"pwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">'你的密码'</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>find_element_by_id<span class="token punctuation">(</span><span class="token string">"loginButton"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>click<span class="token punctuation">(</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>save_screenshot<span class="token punctuation">(</span><span class="token string">'/data/jenkins/broadcastPicture/broad.png'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>因为截图涉及公司数据，就不粘贴到这里了。</p>
-<p>实践过程中，通过参考 <a href="https://www.cnblogs.com/miqi1992/p/8093958.html">Python爬虫(二十一)_Selenium与PhantomJS</a>实现了自动截图，<br>参考<a href="https://www.cnblogs.com/miqi1992/p/8120185.html">Python爬虫(二十二)_selenium案例：模拟登陆豆瓣</a>实现了自动登录  </p>
-]]></content>
-      <categories>
-        <category>爬虫</category>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Selenium</tag>
-        <tag>PhantomJS</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MongoDB杂记（一）</title>
     <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
@@ -651,55 +635,6 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       </categories>
       <tags>
         <tag>MongoDB</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Zookeeper学习笔记（一）</title>
-    <url>/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Zookeeper简介</li>
-<li>Zookeeper可以干什么？</li>
-<li>Zookeeper安装与启动</li>
-<li>Zookeeper常用操作<a id="more"></a>
-<h2 id="Zookeeper简介"><a href="#Zookeeper简介" class="headerlink" title="Zookeeper简介"></a>Zookeeper简介</h2></li>
-</ul>
-<h2 id="Zookeeper可以干什么？"><a href="#Zookeeper可以干什么？" class="headerlink" title="Zookeeper可以干什么？"></a>Zookeeper可以干什么？</h2><h2 id="Zookeeper安装与启动"><a href="#Zookeeper安装与启动" class="headerlink" title="Zookeeper安装与启动"></a>Zookeeper安装与启动</h2><h3 id="Zookeeper安装"><a href="#Zookeeper安装" class="headerlink" title="Zookeeper安装"></a>Zookeeper安装</h3><p>Zookeeper需要用到java，安装前需要安装java，这里省略<br>官网下载Zookeeper安装包，并解压</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf zookeeper-3.4.6.tar.gz -C .
-cd zookeeper-3.4.6&#x2F;conf
-cp zoo_sample.cfg zoo.cfg <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>修改zoo.cfg</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># The number of milliseconds of each tick
-tickTime&#x3D;2000
-# The number of ticks that the initial 
-# synchronization phase can take
-initLimit&#x3D;10
-# The number of ticks that can pass between 
-# sending a request and getting an acknowledgement
-syncLimit&#x3D;5
-# the directory where the snapshot is stored.
-# do not use &#x2F;tmp for storage, &#x2F;tmp here is just 
-# example sakes.
-dataDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkData
-dataLogDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkDataLog
-# the port at which the clients will connect
-clientPort&#x3D;2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里设置了dataDir和dataLogDir，手动生成了这两个文件，不知道会不会自动生成<br>最后，设置Zookeeper的环境变量</p>
-<h3 id="Zookeeper启动等操作"><a href="#Zookeeper启动等操作" class="headerlink" title="Zookeeper启动等操作"></a>Zookeeper启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh start
-# 关闭
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh stop
-# 查看ZK服务状态
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh status
-#  重启ZK服务
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh restart<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="Zookeeper操作样例"><a href="#Zookeeper操作样例" class="headerlink" title="Zookeeper操作样例"></a>Zookeeper操作样例</h2>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Zookeeper</category>
-      </categories>
-      <tags>
-        <tag>Zookeeper</tag>
       </tags>
   </entry>
   <entry>
@@ -786,6 +721,125 @@ compact<span class="token punctuation">(</span>render<span class="token punctuat
       </categories>
       <tags>
         <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Selenium与PhantomJS踩过的坑</title>
+    <url>/2021/01/16/Selenium%E4%B8%8EPhantomJS%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Selenium与PhantomJS踩过的坑<a id="more"></a>
+<h2 id="Selenium与PhantomJS踩过的坑"><a href="#Selenium与PhantomJS踩过的坑" class="headerlink" title="Selenium与PhantomJS踩过的坑"></a>Selenium与PhantomJS踩过的坑</h2><h3 id="Selenium"><a href="#Selenium" class="headerlink" title="Selenium"></a>Selenium</h3>Selenium是一个Web的自动化测试工具，最初是为网站自动化测试而开发的，类型像我们玩游戏用的按键精灵，可以按指定的命令自动化操作，不同是Selenium可以直接运行在浏览器上，它支持所有主流的浏览器(包括PhantomJS这些无界面的浏览器)。</li>
+</ul>
+<p>Selenium可以根据我们的指令，让浏览器自动加载页面，获取需要的页面，甚至页面截屏，或者判断网站上某些动作是否发生。</p>
+<p>Selenium自己不带浏览器，不支持浏览器的功能，它需要与第三方浏览器结合在一起才能使用。但是我们有时候需要让它内嵌在代码中运行，所有我们需要用一个叫PhantomJS的工具代替真实的浏览器。</p>
+<h4 id="Selenium的安装"><a href="#Selenium的安装" class="headerlink" title="Selenium的安装"></a>Selenium的安装</h4><p>直接通过pip安装即可，这里没什么坑</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">pip install selenium<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="PhantomJS"><a href="#PhantomJS" class="headerlink" title="PhantomJS"></a>PhantomJS</h3><p>PhantomJS是一个基于Webkit的”无界面”(headless)浏览器，它会把网站加载到内存并执行页面上的JavaScript，因为不会展示图形界面，所以运行起来比完整的浏览器更高效。</p>
+<p>如果我们把Selenium和PhantomJS结合在一起，就可以运行一个非常强大的网络爬虫了，这个爬虫可以处理JavaScript、Cookie、headers，以及任何我们真实用户需要做的事情。</p>
+<h4 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h4><ul>
+<li>PhantomJS只能从它的网站(<a href="http://phantomjs.org/download.html)%E4%B8%8B%E8%BD%BD%E3%80%82">http://phantomjs.org/download.html)下载。</a></li>
+<li>因为PhantomJS是一个功能完善(虽然无界面)的浏览器而非一个Python库，所以它不需要像Python的其它库一样安装，但我们可以通过Selenium调用PhantomJS来直接使用</li>
+<li>PhantomsJS官方才考文档：<a href="http://phantomjs.org/documention">http://phantomjs.org/documention</a></li>
+<li>这里不能通过pip、apt-get，yum等方式安装，一开始在自己虚拟机通过apt-get安装，但是一直报错。后来又全卸载，重新通过官网下载手动安装才行。</li>
+<li>在自己的远程服务器中运行代码，报错：<pre class="line-numbers language-python" data-language="python"><code class="language-python">TypeError<span class="token punctuation">:</span> urlopen<span class="token punctuation">(</span><span class="token punctuation">)</span> got multiple values <span class="token keyword">for</span> keyword argument <span class="token string">'body'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+原因是服务器的urllib3版本太低，卸载以后重装就好了<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get remove python-urllib3
+sudo pip install -U urllib3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+下面是代码：<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
+<span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
+<span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
+<span class="token keyword">import</span> time
+driver <span class="token operator">=</span> webdriver<span class="token punctuation">.</span>PhantomJS<span class="token punctuation">(</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"www.wangzhi.com"</span><span class="token punctuation">)</span>  <span class="token comment">#穿入你的网址</span>
+driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">"aaa@qq.com"</span><span class="token punctuation">)</span> <span class="token comment">#按F12，查看网页源代码中登录界面的name传参是什么</span>
+<span class="token comment"># 我的网页：&lt;input id="loginEmail" class='login_input' type="text" name="email" placeholder="请输入您的邮箱"></span>
+<span class="token comment"># 所以 find_element_by_name("email")里面穿的是email，pwd一样，find_element_by_id也一样</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"pwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">'111111'</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>find_element_by_id<span class="token punctuation">(</span><span class="token string">"loginButton"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>click<span class="token punctuation">(</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>save_screenshot<span class="token punctuation">(</span><span class="token string">'broad.png'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+</li>
+</ul>
+<h3 id="服务器没有中文字体"><a href="#服务器没有中文字体" class="headerlink" title="服务器没有中文字体"></a>服务器没有中文字体</h3><p>所有都准备好了，原本以为万事大吉，但是发现截图的内容，不能显示中文。<br>在网上查了原因是系统没有装中文字体。<br>安装字体可以参考<a href="https://www.jianshu.com/p/e7f12b8c8602">https://www.jianshu.com/p/e7f12b8c8602</a></p>
+<h3 id="中文字体解决以后，又出现了截图页面不完整"><a href="#中文字体解决以后，又出现了截图页面不完整" class="headerlink" title="中文字体解决以后，又出现了截图页面不完整"></a>中文字体解决以后，又出现了截图页面不完整</h3><p>最后在网上查了原因 ，是因为分辨率的原因<br>在代码上添加</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">driver<span class="token punctuation">.</span>set_window_size<span class="token punctuation">(</span><span class="token number">1366</span><span class="token punctuation">,</span> <span class="token number">768</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>完整代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
+<span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
+<span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
+<span class="token keyword">import</span> time
+driver <span class="token operator">=</span> webdriver<span class="token punctuation">.</span>PhantomJS<span class="token punctuation">(</span>service_args<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">'--ignore-ssl-errors=true'</span><span class="token punctuation">,</span> <span class="token string">'--ssl-protocol=any'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yourwebsite"</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>set_window_size<span class="token punctuation">(</span><span class="token number">1366</span><span class="token punctuation">,</span> <span class="token number">768</span><span class="token punctuation">)</span> <span class="token comment">#这里必须加在get网页的后面，加在它之前没用</span>
+driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">"你的用户名"</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"pwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">'你的密码'</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>find_element_by_id<span class="token punctuation">(</span><span class="token string">"loginButton"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>click<span class="token punctuation">(</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>save_screenshot<span class="token punctuation">(</span><span class="token string">'/data/jenkins/broadcastPicture/broad.png'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>因为截图涉及公司数据，就不粘贴到这里了。</p>
+<p>实践过程中，通过参考 <a href="https://www.cnblogs.com/miqi1992/p/8093958.html">Python爬虫(二十一)_Selenium与PhantomJS</a>实现了自动截图，<br>参考<a href="https://www.cnblogs.com/miqi1992/p/8120185.html">Python爬虫(二十二)_selenium案例：模拟登陆豆瓣</a>实现了自动登录  </p>
+]]></content>
+      <categories>
+        <category>爬虫</category>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Selenium</tag>
+        <tag>PhantomJS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Zookeeper学习笔记（一）</title>
+    <url>/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Zookeeper简介</li>
+<li>Zookeeper可以干什么？</li>
+<li>Zookeeper安装与启动</li>
+<li>Zookeeper常用操作<a id="more"></a>
+<h2 id="Zookeeper简介"><a href="#Zookeeper简介" class="headerlink" title="Zookeeper简介"></a>Zookeeper简介</h2></li>
+</ul>
+<h2 id="Zookeeper可以干什么？"><a href="#Zookeeper可以干什么？" class="headerlink" title="Zookeeper可以干什么？"></a>Zookeeper可以干什么？</h2><h2 id="Zookeeper安装与启动"><a href="#Zookeeper安装与启动" class="headerlink" title="Zookeeper安装与启动"></a>Zookeeper安装与启动</h2><h3 id="Zookeeper安装"><a href="#Zookeeper安装" class="headerlink" title="Zookeeper安装"></a>Zookeeper安装</h3><p>Zookeeper需要用到java，安装前需要安装java，这里省略<br>官网下载Zookeeper安装包，并解压</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf zookeeper-3.4.6.tar.gz -C .
+cd zookeeper-3.4.6&#x2F;conf
+cp zoo_sample.cfg zoo.cfg <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>修改zoo.cfg</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># The number of milliseconds of each tick
+tickTime&#x3D;2000
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit&#x3D;10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit&#x3D;5
+# the directory where the snapshot is stored.
+# do not use &#x2F;tmp for storage, &#x2F;tmp here is just 
+# example sakes.
+dataDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkData
+dataLogDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkDataLog
+# the port at which the clients will connect
+clientPort&#x3D;2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里设置了dataDir和dataLogDir，手动生成了这两个文件，不知道会不会自动生成<br>最后，设置Zookeeper的环境变量</p>
+<h3 id="Zookeeper启动等操作"><a href="#Zookeeper启动等操作" class="headerlink" title="Zookeeper启动等操作"></a>Zookeeper启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
+cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh start
+# 关闭
+cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh stop
+# 查看ZK服务状态
+cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh status
+#  重启ZK服务
+cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh restart<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Zookeeper操作样例"><a href="#Zookeeper操作样例" class="headerlink" title="Zookeeper操作样例"></a>Zookeeper操作样例</h2>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Zookeeper</category>
+      </categories>
+      <tags>
+        <tag>Zookeeper</tag>
       </tags>
   </entry>
   <entry>
@@ -1209,87 +1263,6 @@ get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-
       </tags>
   </entry>
   <entry>
-    <title>python实现scp功能</title>
-    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
-    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
-<span class="token keyword">import</span> sys
-
-<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
-    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
-    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
-    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-
-<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
-    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
-    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
-    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
-    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
-<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
-</ul>
-<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>scp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
-    <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>安装jenkins</li>
-<li>通过pythonAPI实现参数化jenkins构建</li>
-</ul>
-<a id="more"></a>
-<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
-<ul>
-<li>在官网下载rpm包，手动安装，最费事</li>
-<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
-<li>直接下载官网上的war包：wget <a href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
-</ul>
-<p>我这里直接用的下载war包</p>
-<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
-<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
-<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
-<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
-<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
-<p><img src="/uploads/20210116/jenkins-param.png" alt="hive-import-data"></p>
-<p>需要几个参数，就添加几个参数</p>
-<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
-server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>里面的执行shell：<br><img src="/uploads/20210116/jenkins-build.png" alt="hive-import-data"></p>
-<p>最终的效果：<br><img src="/uploads/20210116/jenkins-console.png" alt="hive-import-data"></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Jenkins</category>
-      </categories>
-      <tags>
-        <tag>Jenkins</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
     <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1369,6 +1342,172 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       <tags>
         <tag>Hive</tag>
         <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python实现scp功能</title>
+    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
+    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
+<span class="token keyword">import</span> sys
+
+<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
+    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
+    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
+    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
+    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
+    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
+<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
+</ul>
+<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>scp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python杂记（一）</title>
+    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
+    <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>安装jenkins</li>
+<li>通过pythonAPI实现参数化jenkins构建</li>
+</ul>
+<a id="more"></a>
+<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
+<ul>
+<li>在官网下载rpm包，手动安装，最费事</li>
+<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
+<li>直接下载官网上的war包：wget <a href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
+</ul>
+<p>我这里直接用的下载war包</p>
+<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
+<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
+<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
+<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
+<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
+<p><img src="/uploads/20210116/jenkins-param.png" alt="hive-import-data"></p>
+<p>需要几个参数，就添加几个参数</p>
+<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
+server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>里面的执行shell：<br><img src="/uploads/20210116/jenkins-build.png" alt="hive-import-data"></p>
+<p>最终的效果：<br><img src="/uploads/20210116/jenkins-console.png" alt="hive-import-data"></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Jenkins</category>
+      </categories>
+      <tags>
+        <tag>Jenkins</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark on yarn遇到的问题（一）</title>
+    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
+<li>spark on yarn任务提交缓慢解决</li>
+</ul>
+<a id="more"></a>
+<h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
+<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
+<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
+        --master yarn \
+        --deploy-mode client \
+        --num-executors 2 \
+        --executor-memory 1G \
+        --executor-cores 1 \
+        --conf spark.driver.host&#x3D;192.168.72.129\
+         dmp_broadcast_data_day.py
+ &#96;&#96;&#96;   
+   2、在集群其他节点上都把driver服务器的IP加上去。
+
+# spark on yarn任务提交缓慢解决
+## 问题背景
+   在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
+   在提交任务的时候，有一个WARN的日志：
+&#96;&#96;&#96;shell
+    WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
+<li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
+<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
+org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
+    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
+    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
+    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
+    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
+    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
+    at scala.Option.getOrElse(Option.scala:121)
+    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
+    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
+<li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
+<li>yarn的虚拟内存超限，contrainer被干杀死</li>
+</ul>
+<p>这里查了一下，我的是spark-end.sh配置没问题，问题出现在第二点<br>我的<code>yarn-site.xml</code>的<code>yarn.nodemanager.vmem-pmem-ratio=2.1</code>，虚拟内存最大是2.1，查看yarn上的日志，发现实际内存是2.2，所以，这里把它设置成了3.1</p>
+<pre class="line-numbers language-none"><code class="language-none">&lt;!--2个配置只用配置一个即可解决问题，当然都配置也没问题--&gt;
+&lt;!--虚拟内存设置是否生效,若实际虚拟内存大于设置值 &quot;--&gt;
+&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;&#x2F;name&gt;
+    &lt;value&gt;false&lt;&#x2F;value&gt;
+    &lt;description&gt;Whether virtual memory limits will be enforced for containers&lt;&#x2F;description&gt;
+&lt;&#x2F;property&gt;
+&lt;!--配置虚拟内存&#x2F;物理内存的值，默认为2.1,物理内存默认应该是1g，所以虚拟内存是2.1g--&gt;
+&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.vmem-pmem-ratio&lt;&#x2F;name&gt;
+    &lt;value&gt;3.1&lt;&#x2F;value&gt;
+    &lt;description&gt;Ratio between virtual memory to physical memory when setting memory limits for containers&lt;&#x2F;description&gt;
+&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Yarn</tag>
       </tags>
   </entry>
   <entry>
@@ -1507,91 +1646,6 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </categories>
       <tags>
         <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>spark on yarn遇到的问题（一）</title>
-    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
-<li>spark on yarn任务提交缓慢解决</li>
-</ul>
-<a id="more"></a>
-<h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
-<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
-<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
-        --master yarn \
-        --deploy-mode client \
-        --num-executors 2 \
-        --executor-memory 1G \
-        --executor-cores 1 \
-        --conf spark.driver.host&#x3D;192.168.72.129\
-         dmp_broadcast_data_day.py
- &#96;&#96;&#96;   
-   2、在集群其他节点上都把driver服务器的IP加上去。
-
-# spark on yarn任务提交缓慢解决
-## 问题背景
-   在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
-   在提交任务的时候，有一个WARN的日志：
-&#96;&#96;&#96;shell
-    WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
-<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
-<li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
-<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
-org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
-    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
-    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
-    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
-    at scala.Option.getOrElse(Option.scala:121)
-    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
-    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
-<li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
-<li>yarn的虚拟内存超限，contrainer被干杀死</li>
-</ul>
-<p>这里查了一下，我的是spark-end.sh配置没问题，问题出现在第二点<br>我的<code>yarn-site.xml</code>的<code>yarn.nodemanager.vmem-pmem-ratio=2.1</code>，虚拟内存最大是2.1，查看yarn上的日志，发现实际内存是2.2，所以，这里把它设置成了3.1</p>
-<pre class="line-numbers language-none"><code class="language-none">&lt;!--2个配置只用配置一个即可解决问题，当然都配置也没问题--&gt;
-&lt;!--虚拟内存设置是否生效,若实际虚拟内存大于设置值 &quot;--&gt;
-&lt;property&gt;
-    &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;&#x2F;name&gt;
-    &lt;value&gt;false&lt;&#x2F;value&gt;
-    &lt;description&gt;Whether virtual memory limits will be enforced for containers&lt;&#x2F;description&gt;
-&lt;&#x2F;property&gt;
-&lt;!--配置虚拟内存&#x2F;物理内存的值，默认为2.1,物理内存默认应该是1g，所以虚拟内存是2.1g--&gt;
-&lt;property&gt;
-    &lt;name&gt;yarn.nodemanager.vmem-pmem-ratio&lt;&#x2F;name&gt;
-    &lt;value&gt;3.1&lt;&#x2F;value&gt;
-    &lt;description&gt;Ratio between virtual memory to physical memory when setting memory limits for containers&lt;&#x2F;description&gt;
-&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Yarn</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python杂记（一）</title>
-    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
