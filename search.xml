@@ -614,6 +614,24 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 </blockquote>
 </li>
 </ul>
+<h2 id="Mac终端设置ls颜色"><a href="#Mac终端设置ls颜色" class="headerlink" title="Mac终端设置ls颜色"></a>Mac终端设置ls颜色</h2><p>这种方式设置的颜色，会随着终端的颜色变化而变化，很实用。<br>具体步骤如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 1.下载安装 coreutils
+brew install coreutils
+# 2.创建颜色配置文件
+gdircolors --print-database &gt; ~&#x2F;.dir_colors<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>编辑.zshrc</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">if brew list | grep coreutils &gt; &#x2F;dev&#x2F;null ; then
+    PATH&#x3D;&quot;$(brew --prefix coreutils)&#x2F;libexec&#x2F;gnubin:$PATH&quot; 
+    alias ls&#x3D;&#39;ls -F --show-control-chars --color&#x3D;auto&#39; 
+    eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96; 
+fi
+
+## 可以省略if条件，直接执行条件语句的内容
+PATH&#x3D;&quot;$(brew --prefix coreutils)&#x2F;libexec&#x2F;gnubin:$PATH&quot; 
+alias ls&#x3D;&#39;ls -F --show-control-chars --color&#x3D;auto&#39; 
+eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96; 
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>最后<code>source .zshrc</code></p>
 ]]></content>
       <categories>
         <category>工具箱</category>
@@ -710,10 +728,12 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>在第二个方法中SerializerFeature… features 是一个可变长参数，带有变长参数的方法重载使得scala在调用方法时感到“模糊”，就无法匹配参数的类型</p>
 <p>所以在array或者map转json对象的时候，使用json4s比较好<br>使用案例：</p>
-<pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span></span>JsonDSL<span class="token punctuation">.</span>_
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span>jackson<span class="token punctuation">.</span></span>JsonMethods<span class="token punctuation">.</span>_
-compact<span class="token punctuation">(</span>render<span class="token punctuation">(</span>typeTageArr<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span></span><span class="token class-name">JsonDSL</span><span class="token punctuation">.</span>_
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span>jackson<span class="token punctuation">.</span></span><span class="token class-name">JsonMethods</span><span class="token punctuation">.</span>_
+<span class="token function">compact</span><span class="token punctuation">(</span><span class="token function">render</span><span class="token punctuation">(</span>typeTageArr<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>使用起来很方便</p>
+<h2 id="Scala中调用方法和函数"><a href="#Scala中调用方法和函数" class="headerlink" title="Scala中调用方法和函数"></a>Scala中调用方法和函数</h2><p>Scala中的+ - * / %等操作符的作用与Java一样，位操作符 &amp; | ^ &gt;&gt; &lt;&lt;也一样。只是有一点特别的：这些操作符实际上是方法。例如：<br><code>a + b</code>是<code>a.+(b)</code>的简写<br><code>a 方法 b</code>可以写成 <code>a.方法(b)</code></p>
+<h2 id="Scala-方法和函数的区别"><a href="#Scala-方法和函数的区别" class="headerlink" title="Scala 方法和函数的区别"></a>Scala 方法和函数的区别</h2><p>可以参考<a href="https://www.huaweicloud.com/articles/da048fd844830f817cc39b6cf484cc16.html">Scala 方法与函数</a><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
 ]]></content>
       <categories>
         <category>大数据</category>
