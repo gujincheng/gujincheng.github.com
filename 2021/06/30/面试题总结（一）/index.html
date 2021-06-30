@@ -22,24 +22,20 @@
     var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="本文主要包括：  安装jenkins 通过pythonAPI实现参数化jenkins构建">
+  <meta name="description" content="本文主要包括：  spark面试题 hbase面试题 kafka面试题 flume面试题 hive面试题 kudu面试题 presto面试题 flink面试题 redis面试题 mongodb面试题 es面试题 数据仓库面试题 java面试题 scala面试题  Spark面试题总结 对于 Spark 中的数据倾斜问题你有什么好的方案？数据倾斜是因为数据中的key分布的不均匀导致的。1、可以把小表">
 <meta property="og:type" content="article">
-<meta property="og:title" content="python调用jenkinsAPI构建jenkins，并传递参数">
-<meta property="og:url" content="https://gujincheng.github.io/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/index.html">
+<meta property="og:title" content="面试题总结（一）">
+<meta property="og:url" content="https://gujincheng.github.io/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
 <meta property="og:site_name" content="Golden Blog">
-<meta property="og:description" content="本文主要包括：  安装jenkins 通过pythonAPI实现参数化jenkins构建">
+<meta property="og:description" content="本文主要包括：  spark面试题 hbase面试题 kafka面试题 flume面试题 hive面试题 kudu面试题 presto面试题 flink面试题 redis面试题 mongodb面试题 es面试题 数据仓库面试题 java面试题 scala面试题  Spark面试题总结 对于 Spark 中的数据倾斜问题你有什么好的方案？数据倾斜是因为数据中的key分布的不均匀导致的。1、可以把小表">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://gujincheng.github.io/uploads/20210116/jenkins-param.png">
-<meta property="og:image" content="https://gujincheng.github.io/uploads/20210116/jenkins-build.png">
-<meta property="og:image" content="https://gujincheng.github.io/uploads/20210116/jenkins-console.png">
-<meta property="article:published_time" content="2021-01-16T02:21:02.000Z">
-<meta property="article:modified_time" content="2021-04-29T09:48:42.000Z">
+<meta property="article:published_time" content="2021-06-30T03:12:41.000Z">
+<meta property="article:modified_time" content="2021-06-30T10:04:45.862Z">
 <meta property="article:author" content="Golden">
-<meta property="article:tag" content="Jenkins">
+<meta property="article:tag" content="面试题">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://gujincheng.github.io/uploads/20210116/jenkins-param.png">
 
-<link rel="canonical" href="https://gujincheng.github.io/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/">
+<link rel="canonical" href="https://gujincheng.github.io/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/">
 
 
 <script id="page-configurations">
@@ -52,7 +48,7 @@
   };
 </script>
 
-  <title>python调用jenkinsAPI构建jenkins，并传递参数 | Golden Blog</title>
+  <title>面试题总结（一） | Golden Blog</title>
   
 
 
@@ -206,7 +202,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.jpg">
@@ -219,7 +215,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          python调用jenkinsAPI构建jenkins，并传递参数
+          面试题总结（一）
         </h1>
 
         <div class="post-meta">
@@ -228,16 +224,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-01-16 10:21:02" itemprop="dateCreated datePublished" datetime="2021-01-16T10:21:02+08:00">2021-01-16</time>
+              <time title="创建时间：2021-06-30 11:12:41 / 修改时间：18:04:45" itemprop="dateCreated datePublished" datetime="2021-06-30T11:12:41+08:00">2021-06-30</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -248,12 +238,12 @@
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Jenkins/" itemprop="url" rel="index"><span itemprop="name">Jenkins</span></a>
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/%E9%9D%A2%E8%AF%95%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">面试题</span></a>
                 </span>
             </span>
 
           
-            <span id="/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/" class="post-meta-item leancloud_visitors" data-flag-title="python调用jenkinsAPI构建jenkins，并传递参数" title="阅读次数">
+            <span id="/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-meta-item leancloud_visitors" data-flag-title="面试题总结（一）" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -268,8 +258,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/" itemprop="commentCount"></span>
+    <a title="valine" href="/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -286,32 +276,55 @@
       
         <p>本文主要包括：</p>
 <ul>
-<li>安装jenkins</li>
-<li>通过pythonAPI实现参数化jenkins构建</li>
+<li>spark面试题</li>
+<li>hbase面试题</li>
+<li>kafka面试题</li>
+<li>flume面试题</li>
+<li>hive面试题</li>
+<li>kudu面试题</li>
+<li>presto面试题</li>
+<li>flink面试题</li>
+<li>redis面试题</li>
+<li>mongodb面试题</li>
+<li>es面试题</li>
+<li>数据仓库面试题</li>
+<li>java面试题</li>
+<li>scala面试题</li>
 </ul>
-<a id="more"></a>
-<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
+<h2 id="Spark面试题总结"><a href="#Spark面试题总结" class="headerlink" title="Spark面试题总结"></a>Spark面试题总结</h2><ul>
+<li><p>对于 Spark 中的数据倾斜问题你有什么好的方案？<br>数据倾斜是因为数据中的key分布的不均匀导致的。<br>1、可以把小表广播出去或者使用<code>map join</code><br>2、采样倾斜key并分拆join操作，对倾斜key做添加随机数处理。<br>3、如果其中一个表存在多个key倾斜，把主表的所有key都添加1-n随机数，把从表每条数据都复制n次，并添加1-n的随机数，然后再join<br>4、自定义Partitioner：原始的spark使用的是hashPartition，可以自定义一个paritioner，把key拆分到多个task里去<br>5、提高shuffle操作的并行度，使用reduceByKey(1000)，sparkSQL里设置<code>spark.sql.shuffle.partitions=1000</code></p>
+</li>
+<li><p>描述一下RDD,DataFrame,DataSet,DataStream的区别？</p>
+</li>
+<li><p>简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数?<br>窄依赖：子RDD的一个分区只会依赖父RDD的一个分区，父子分区一对一<br>宽依赖：子RDD的一个分区会依赖父RDD的多个分区，父子分区多对多（会涉及到shuffle）<br>spark根据RDD的依赖关系划分stage，遇到一个宽依赖，就划分一个stage</p>
+</li>
+<li><p>列举Spark常用的transformation和action算子，有哪些算子会导致Shuffle?<br>transformation算子：map、flatMap、reduceByKey、groupByKey、filter等<br>action算子：take、ccollect、count、reduce等<br>reduceByKey、groupByKey等会产生Shuffle<br>注意：<br>reduceByKey和groupByKey只是会产生shuffle，但是不是action算子</p>
+</li>
+<li><p>简述下Spark中的缓存(cache和persist)与checkpoint机制，并指出两者的区别和联系<br>cache缓存到内存中<br>persist可以缓存到磁盘和内存里<br>checkpoint只能缓存到hdfs上（磁盘上）</p>
+</li>
+</ul>
+<p>Persist 和 Cache，不会丢掉RDD间的依赖链/依赖关系，CheckPoint会斩断依赖链</p>
 <ul>
-<li>在官网下载rpm包，手动安装，最费事</li>
-<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
-<li>直接下载官网上的war包：wget <a target="_blank" rel="noopener" href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
+<li>Spark开发调优总结<br>1、避免创建重复的RDD<br>2、尽可能复用同一个RDD<br>3、对多次使用的RDD进行持久化<br>4、尽量避免使用shuffle类算子<br>5、使用map-side预聚合的shuffle操作<br>6、使用高性能的算子<br>6.1 使用reduceByKey/aggregateByKey替代groupByKey<br>6.2 使用mapPartitions替代普通map<br>6.3 使用foreachPartitions替代foreach<br>6.4 使用filter之后进行coalesce操作<br>6.4 使用repartitionAndSortWithinPartitions替代repartition与sort类操作</li>
 </ul>
-<p>我这里直接用的下载war包</p>
-<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
-<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
-<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
-<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
-<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
-<p><img src="/uploads/20210116/jenkins-param.png" alt="hive-import-data"></p>
-<p>需要几个参数，就添加几个参数</p>
-<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
-server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>里面的执行shell：<br><img src="/uploads/20210116/jenkins-build.png" alt="hive-import-data"></p>
-<p>最终的效果：<br><img src="/uploads/20210116/jenkins-console.png" alt="hive-import-data"></p>
+<p>7、广播大变量，减少大量的变量副本在网络中传输的性能开销，以及在各个节点的Executor中占用过多内存导致的频繁GC(垃圾回收)<br>8、使用Kryo优化序列化性能</p>
+<h2 id="Kafka面试题总结"><a href="#Kafka面试题总结" class="headerlink" title="Kafka面试题总结"></a>Kafka面试题总结</h2><ul>
+<li>Kafka 分布式的情况下，如何保证消息的顺序?<br>Kakfa不保证数据的整体有序，但是可以设置分区内消息有序，可以设置相同的key到同一个partition，这样就可以保证同一个key的消息，肯定是有序的</li>
+</ul>
+<h2 id="数据仓库面试题总结"><a href="#数据仓库面试题总结" class="headerlink" title="数据仓库面试题总结"></a>数据仓库面试题总结</h2><ul>
+<li><p>数据采集框架选择，datax / sqoop</p>
+</li>
+<li><p>全量表(df),增量表(di),追加表(da)，拉链表(dz)的区别及使用场景</p>
+</li>
+<li><p>星型模型和雪花模型</p>
+</li>
+<li><p>缓慢变化维如何处理，几种方式</p>
+</li>
+<li><p>说说你从0-1搭建数仓都做了什么？你觉得最有挑战的是什么？</p>
+</li>
+<li><p>参考<br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/0mgy07WAMBYNBP6er8_hDA">(终极版)2021大数据面试真题(务必进来看一下)</a></p>
+</li>
+</ul>
 
     </div>
 
@@ -321,7 +334,7 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Jenkins/" rel="tag"># Jenkins</a>
+              <a href="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/" rel="tag"># 面试题</a>
           </div>
 
         
@@ -330,13 +343,10 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/" rel="prev" title="python实现scp功能">
-      <i class="fa fa-chevron-left"></i> python实现scp功能
+    <a href="/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" rel="prev" title="Elasticsearch学习笔记（一）">
+      <i class="fa fa-chevron-left"></i> Elasticsearch学习笔记（一）
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2021/01/16/Selenium%E4%B8%8EPhantomJS%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/" rel="next" title="Selenium与PhantomJS踩过的坑">
-      Selenium与PhantomJS踩过的坑 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -396,7 +406,7 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85jenkins"><span class="nav-number">1.</span> <span class="nav-text">安装jenkins</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91"><span class="nav-number">2.</span> <span class="nav-text">遇到的坑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87pythonAPI%E5%AE%9E%E7%8E%B0%E5%8F%82%E6%95%B0%E5%8C%96jenkins%E6%9E%84%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">通过pythonAPI实现参数化jenkins构建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BAjenkins%E9%A1%B9%E7%9B%AE"><span class="nav-number">4.</span> <span class="nav-text">创建jenkins项目</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85python-jenkins"><span class="nav-number">4.1.</span> <span class="nav-text">安装python-jenkins</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">Spark面试题总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93"><span class="nav-number">2.</span> <span class="nav-text">Kafka面试题总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">数据仓库面试题总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
