@@ -1358,6 +1358,59 @@ get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-
       </tags>
   </entry>
   <entry>
+    <title>python实现scp功能</title>
+    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
+    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
+<span class="token keyword">import</span> sys
+
+<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
+    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
+    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
+    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
+    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
+    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
+<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
+</ul>
+<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>scp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python杂记（一）</title>
+    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
     <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1437,59 +1490,6 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       <tags>
         <tag>Hive</tag>
         <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python实现scp功能</title>
-    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
-    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
-<span class="token keyword">import</span> sys
-
-<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
-    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
-    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
-    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-
-<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
-    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
-    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
-    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
-    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
-<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
-</ul>
-<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>scp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python杂记（一）</title>
-    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
@@ -2196,44 +2196,57 @@ search:
 <li>scala面试题</li>
 </ul>
 <h2 id="Spark面试题总结"><a href="#Spark面试题总结" class="headerlink" title="Spark面试题总结"></a>Spark面试题总结</h2><ul>
-<li><strong>对于 Spark 中的数据倾斜问题你有什么好的方案?</strong><br>数据倾斜是因为数据中的key分布的不均匀导致的。</li>
-</ul>
-<ol>
-<li>可以把小表广播出去或者使用<code>map join</code></li>
-<li>采样倾斜key并分拆join操作，对倾斜key做添加随机数处理。</li>
-<li>如果其中一个表存在多个key倾斜，把主表的所有key都添加1-n随机数，把从表每条数据都复制n次，并添加1-n的随机数，然后再join</li>
-<li>自定义Partitioner：原始的spark使用的是hashPartition，可以自定义一个paritioner，把key拆分到多个task里去</li>
-<li>提高shuffle操作的并行度，使用reduceByKey(1000)，sparkSQL里设置<code>spark.sql.shuffle.partitions=1000</code></li>
-</ol>
-<ul>
+<li><p><strong>对于 Spark 中的数据倾斜问题你有什么好的方案?</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">数据倾斜是因为数据中的key分布的不均匀导致的。
+1. 可以把小表广播出去或者使用&#96;map join&#96;
+2. 采样倾斜key并分拆join操作，对倾斜key做添加随机数处理。
+3. 如果其中一个表存在多个key倾斜，把主表的所有key都添加1-n随机数，把从表每条数据都复制n次，并添加1-n的随机数，然后再join
+4. 自定义Partitioner：原始的spark使用的是hashPartition，可以自定义一个paritioner，把key拆分到多个task里去
+5. 提高shuffle操作的并行度，使用reduceByKey(1000)，sparkSQL里设置&#96;spark.sql.shuffle.partitions&#x3D;1000&#96;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
 <li><p><strong>描述一下RDD,DataFrame,DataSet,DataStream的区别？</strong></p>
 </li>
-<li><p>简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数?<br>窄依赖：子RDD的一个分区只会依赖父RDD的一个分区，父子分区一对一<br>宽依赖：子RDD的一个分区会依赖父RDD的多个分区，父子分区多对多（会涉及到shuffle）<br>spark根据RDD的依赖关系划分stage，遇到一个宽依赖，就划分一个stage</p>
+<li><p>简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数?</p>
+<pre class="line-numbers language-none"><code class="language-none">窄依赖：子RDD的一个分区只会依赖父RDD的一个分区，父子分区一对一
+宽依赖：子RDD的一个分区会依赖父RDD的多个分区，父子分区多对多（会涉及到shuffle）
+spark根据RDD的依赖关系划分stage，遇到一个宽依赖，就划分一个stage<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 </li>
-<li><p><strong>列举Spark常用的transformation和action算子，有哪些算子会导致Shuffle?</strong><br>transformation算子：map、flatMap、reduceByKey、groupByKey、filter等<br>action算子：take、ccollect、count、reduce等<br>reduceByKey、groupByKey等会产生Shuffle<br>注意：<br>reduceByKey和groupByKey只是会产生shuffle，但是不是action算子</p>
+<li><p><strong>列举Spark常用的transformation和action算子，有哪些算子会导致Shuffle?</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">transformation算子：map、flatMap、reduceByKey、groupByKey、filter等
+action算子：take、ccollect、count、reduce等
+reduceByKey、groupByKey等会产生Shuffle
+注意：
+reduceByKey和groupByKey只是会产生shuffle，但是不是action算子<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 </li>
-<li><p><strong>简述下Spark中的缓存(cache和persist)与checkpoint机制，并指出两者的区别和联系</strong><br>cache缓存到内存中<br>persist可以缓存到磁盘和内存里<br>checkpoint只能缓存到hdfs上（磁盘上）<br>Persist 和 Cache，不会丢掉RDD间的依赖链/依赖关系，CheckPoint会斩断依赖链</p>
-</li>
+<li><p><strong>简述下Spark中的缓存(cache和persist)与checkpoint机制，并指出两者的区别和联系</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">cache缓存到内存中
+persist可以缓存到磁盘和内存里
+checkpoint只能缓存到hdfs上（磁盘上）
+Persist 和 Cache，不会丢掉RDD间的依赖链&#x2F;依赖关系，CheckPoint会斩断依赖链<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li><p><strong>Spark开发调优总结</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">1. 避免创建重复的RDD
+2. 尽可能复用同一个RDD
+3. 对多次使用的RDD进行持久化
+4. 尽量避免使用shuffle类算子
+5. 使用map-side预聚合的shuffle操作
+6. 使用高性能的算子  
+    6.1 使用reduceByKey&#x2F;aggregateByKey替代groupByKey  
+    6.2 使用mapPartitions替代普通map  
+    6.3 使用foreachPartitions替代foreach   
+    6.4 使用filter之后进行coalesce操作  
+    6.4 使用repartitionAndSortWithinPartitions替代repartition与sort类操作  
+7. 广播大变量，减少大量的变量副本在网络中传输的性能开销，以及在各个节点的Executor中占用过多内存导致的频繁GC(垃圾回收)
+8. 使用Kryo优化序列化性能
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
 </li>
 </ul>
-<ol>
-<li>避免创建重复的RDD</li>
-<li>尽可能复用同一个RDD</li>
-<li>对多次使用的RDD进行持久化</li>
-<li>尽量避免使用shuffle类算子</li>
-<li>使用map-side预聚合的shuffle操作</li>
-<li>使用高性能的算子  </li>
-<li>1 使用reduceByKey/aggregateByKey替代groupByKey  </li>
-<li>2 使用mapPartitions替代普通map  </li>
-<li>3 使用foreachPartitions替代foreach   </li>
-<li>4 使用filter之后进行coalesce操作  </li>
-<li>4 使用repartitionAndSortWithinPartitions替代repartition与sort类操作  </li>
-<li>广播大变量，减少大量的变量副本在网络中传输的性能开销，以及在各个节点的Executor中占用过多内存导致的频繁GC(垃圾回收)</li>
-<li>使用Kryo优化序列化性能</li>
-</ol>
 <h2 id="Kafka面试题总结"><a href="#Kafka面试题总结" class="headerlink" title="Kafka面试题总结"></a>Kafka面试题总结</h2><ul>
-<li><strong>Kafka 分布式的情况下，如何保证消息的顺序?</strong><br>Kakfa不保证数据的整体有序，但是可以设置分区内消息有序，可以设置相同的key到同一个partition，这样就可以保证同一个key的消息，肯定是有序的</li>
+<li><strong>Kafka 分布式的情况下，如何保证消息的顺序?</strong><pre class="line-numbers language-none"><code class="language-none">Kakfa不保证数据的整体有序，但是可以设置分区内消息有序，可以设置相同的key到同一个partition，这样就可以保证同一个key的消息，肯定是有序的<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+</li>
 </ul>
 <h2 id="数据仓库面试题总结"><a href="#数据仓库面试题总结" class="headerlink" title="数据仓库面试题总结"></a>数据仓库面试题总结</h2><ul>
 <li><p><strong>数据采集框架选择，datax / sqoop</strong></p>
