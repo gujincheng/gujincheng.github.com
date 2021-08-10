@@ -1,34 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
-    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
-<li>确认键盘的电源接通。 </li>
-<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
-<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
-</ol>
-<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
-<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
-<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
-<li>此时先在本机键盘上输入任意六位PIN</li>
-<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
-</ol>
-<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
-<ol>
-<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
-<li>键盘背面的清除键，拿笔点住2秒。</li>
-<li>再按数字键1-4的任意一个想清除配置的数字。</li>
-<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
-<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
-</ol>
-<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
-]]></content>
-      <categories>
-        <category>工具箱</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Elasticsearch学习笔记（一）</title>
     <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -81,6 +53,34 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       <tags>
         <tag>Elasticsearch</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
+    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
+<li>确认键盘的电源接通。 </li>
+<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
+<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
+</ol>
+<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
+<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
+<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
+<li>此时先在本机键盘上输入任意六位PIN</li>
+<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
+</ol>
+<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
+<ol>
+<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
+<li>键盘背面的清除键，拿笔点住2秒。</li>
+<li>再按数字键1-4的任意一个想清除配置的数字。</li>
+<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
+<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
+</ol>
+<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
+]]></content>
+      <categories>
+        <category>工具箱</category>
+      </categories>
   </entry>
   <entry>
     <title>Flink学习笔记（三）</title>
@@ -317,6 +317,69 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
       </tags>
   </entry>
   <entry>
+    <title>Kafka学习笔记（一）</title>
+    <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Kafka简介（后补）</li>
+<li>Kafka可以干什么？（后补）</li>
+<li>Kafka安装与启动</li>
+<li>Kafka常用操作<a id="more"></a>
+<h2 id="Kafka简介"><a href="#Kafka简介" class="headerlink" title="Kafka简介"></a>Kafka简介</h2></li>
+</ul>
+<h2 id="Kafka可以干什么？"><a href="#Kafka可以干什么？" class="headerlink" title="Kafka可以干什么？"></a>Kafka可以干什么？</h2><h2 id="Kafka安装与启动"><a href="#Kafka安装与启动" class="headerlink" title="Kafka安装与启动"></a>Kafka安装与启动</h2><h3 id="Kafka安装"><a href="#Kafka安装" class="headerlink" title="Kafka安装"></a>Kafka安装</h3><p>Kafka需要用到java，安装前需要安装java，这里省略<br>Kafka可以使用内置的zookeeper，也可以使用单独的zookeeper，一般生产环境都是使用单独的zookeeper集群<br>zookeeper安装可以参考<a href="https://gujincheng.github.io/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Zookeeper学习笔记（一）</a><br>官网下载Kafka安装包，并解压</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf kafka-2.11.0.tar.gz -C .
+cd kafka-2.11.0&#x2F;config
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>修改server.properties</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">host.name&#x3D;golden-02
+# 指定kafka日志文件的存储目录
+log.dirs&#x3D;&#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F;kafka-logs
+# 指定zookeeper的连接地址，多个地址用逗号分隔
+zookeeper.connect&#x3D;golden-02:2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里设置了kafka-logs，手动生成了这个文件夹</p>
+<p>最后，设置Kakfa的环境变量</p>
+<h3 id="Kafka启动等操作"><a href="#Kafka启动等操作" class="headerlink" title="Kafka启动等操作"></a>Kafka启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
+# 关闭
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-stop.sh <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Kafka操作样例"><a href="#Kafka操作样例" class="headerlink" title="Kafka操作样例"></a>Kafka操作样例</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看所有topic
+bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --list
+## 创建topic
+bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --create --replication-factor 3 --partitions 1 --topic first
+## 删除topic
+bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --delete --topic first
+## 发送消息
+ bin&#x2F;kafka-console-producer.sh --broker-list golden-02:9092 --topic first
+## 消费消息
+bin&#x2F;kafka-console-consumer.sh  --bootstrap-server golden-02:9092  --from-beginning --topic first
+## 查看某个Topic的详情
+bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181  --describe --topic first
+## 查看某个group_id的消费情况，offset
+bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe --group fink-test<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>选项说明：  </p>
+<ul>
+<li>–topic 定义topic名</li>
+<li>–replication-factor 定义副本数</li>
+<li>–partitions 定义分区数</li>
+</ul>
+<p>删除topic时删除不掉，日志提醒：<br><code>This will have no impact if delete.topic.enable is not set to true</code><br><img src="/uploads/20210121/kafka-delete-error.png" alt="kafka-delete-error"><br>到kafka的server.properties里设置<code>delete.topic.enable=true</code></p>
+<h2 id="Kafka常见问题"><a href="#Kafka常见问题" class="headerlink" title="Kafka常见问题"></a>Kafka常见问题</h2><ul>
+<li>auto.offset.reset设置无效<blockquote>
+<p>原因:<code>auto.offset.reset</code>只会在Kafka中没有初始偏移量，或者服务器上不再存在当前偏移量的时候才会生效。<br>换句话说，如果当前<code>group_id</code>已经消费过这个<code>topic</code>（可以查到offset），这个参数就没用了，要再想从头开始消费，就得换个group_id了<br>官网说明：<br><img src="/uploads/20210125/Kafka%E5%AE%98%E7%BD%91%E8%A7%A3%E9%87%8Aauto.offset.reset.png" alt="Kafka官网解释auto.offset.reset"></p>
+</blockquote>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Kafka</category>
+      </categories>
+      <tags>
+        <tag>Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mac使用笔记（一）</title>
     <url>/2021/05/20/Mac%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -329,6 +392,16 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
 <a id="more"></a>
 
 <p>最近新买了MacBook，但是刚从Windows切换到Mac OS系统感觉很不适应，记录一下适应的过程</p>
+<h2 id="Mac下必备软件"><a href="#Mac下必备软件" class="headerlink" title="Mac下必备软件"></a>Mac下必备软件</h2><ul>
+<li>the unarchiver: 无感解压</li>
+<li>有道云笔记</li>
+<li>IDEA</li>
+<li>大数据相关软件</li>
+<li>Iterm2  &amp;&amp; oh my zsh</li>
+<li>sublime</li>
+<li>百度云网盘</li>
+<li>WPS</li>
+</ul>
 <h2 id="安装并配置oh-my-zsh"><a href="#安装并配置oh-my-zsh" class="headerlink" title="安装并配置oh my zsh"></a>安装并配置<code>oh my zsh</code></h2><p>Mac自带的终端界面体验实在不敢恭维。这里记录一下安装<code>oh my zsh</code>的过程</p>
 <ul>
 <li>首先确保当前shell是zsh，如果不是，使用<code>chsh -s /bin/zsh</code></li>
@@ -572,6 +645,7 @@ alias ls&#x3D;&#39;ls -F --show-control-chars --color&#x3D;auto&#39;
 eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96; 
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>最后<code>source .zshrc</code></p>
+<h2 id="Mac下使用netcat发送消息"><a href="#Mac下使用netcat发送消息" class="headerlink" title="Mac下使用netcat发送消息"></a>Mac下使用netcat发送消息</h2><p>直接使用nc命令，不知道为啥不行。<br>需要使用brew安装一下<code>brew install netcat</code><br><code>netcat -l -p 9999</code>:发送消息<br><code>netcat golden-02 9999</code>:接受消息<br>9999是端口号，默认是localhost</p>
 ]]></content>
       <categories>
         <category>工具箱</category>
@@ -751,69 +825,6 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       <tags>
         <tag>Selenium</tag>
         <tag>PhantomJS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kafka学习笔记（一）</title>
-    <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Kafka简介（后补）</li>
-<li>Kafka可以干什么？（后补）</li>
-<li>Kafka安装与启动</li>
-<li>Kafka常用操作<a id="more"></a>
-<h2 id="Kafka简介"><a href="#Kafka简介" class="headerlink" title="Kafka简介"></a>Kafka简介</h2></li>
-</ul>
-<h2 id="Kafka可以干什么？"><a href="#Kafka可以干什么？" class="headerlink" title="Kafka可以干什么？"></a>Kafka可以干什么？</h2><h2 id="Kafka安装与启动"><a href="#Kafka安装与启动" class="headerlink" title="Kafka安装与启动"></a>Kafka安装与启动</h2><h3 id="Kafka安装"><a href="#Kafka安装" class="headerlink" title="Kafka安装"></a>Kafka安装</h3><p>Kafka需要用到java，安装前需要安装java，这里省略<br>Kafka可以使用内置的zookeeper，也可以使用单独的zookeeper，一般生产环境都是使用单独的zookeeper集群<br>zookeeper安装可以参考<a href="https://gujincheng.github.io/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Zookeeper学习笔记（一）</a><br>官网下载Kafka安装包，并解压</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf kafka-2.11.0.tar.gz -C .
-cd kafka-2.11.0&#x2F;config
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>修改server.properties</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">host.name&#x3D;golden-02
-# 指定kafka日志文件的存储目录
-log.dirs&#x3D;&#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F;kafka-logs
-# 指定zookeeper的连接地址，多个地址用逗号分隔
-zookeeper.connect&#x3D;golden-02:2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里设置了kafka-logs，手动生成了这个文件夹</p>
-<p>最后，设置Kakfa的环境变量</p>
-<h3 id="Kafka启动等操作"><a href="#Kafka启动等操作" class="headerlink" title="Kafka启动等操作"></a>Kafka启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
-cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
-# 关闭
-cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-stop.sh <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="Kafka操作样例"><a href="#Kafka操作样例" class="headerlink" title="Kafka操作样例"></a>Kafka操作样例</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看所有topic
-bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --list
-## 创建topic
-bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --create --replication-factor 3 --partitions 1 --topic first
-## 删除topic
-bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181 --delete --topic first
-## 发送消息
- bin&#x2F;kafka-console-producer.sh --broker-list golden-02:9092 --topic first
-## 消费消息
-bin&#x2F;kafka-console-consumer.sh  --zookeeper golden-02:2181 --from-beginning --topic first
-## 查看某个Topic的详情
-bin&#x2F;kafka-topics.sh --zookeeper golden-02:2181  --describe --topic first
-## 查看某个group_id的消费情况，offset
-bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe --group fink-test<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>选项说明：  </p>
-<ul>
-<li>–topic 定义topic名</li>
-<li>–replication-factor 定义副本数</li>
-<li>–partitions 定义分区数</li>
-</ul>
-<p>删除topic时删除不掉，日志提醒：<br><code>This will have no impact if delete.topic.enable is not set to true</code><br><img src="/uploads/20210121/kafka-delete-error.png" alt="kafka-delete-error"><br>到kafka的server.properties里设置<code>delete.topic.enable=true</code></p>
-<h2 id="Kafka常见问题"><a href="#Kafka常见问题" class="headerlink" title="Kafka常见问题"></a>Kafka常见问题</h2><ul>
-<li>auto.offset.reset设置无效<blockquote>
-<p>原因:<code>auto.offset.reset</code>只会在Kafka中没有初始偏移量，或者服务器上不再存在当前偏移量的时候才会生效。<br>换句话说，如果当前<code>group_id</code>已经消费过这个<code>topic</code>（可以查到offset），这个参数就没用了，要再想从头开始消费，就得换个group_id了<br>官网说明：<br><img src="/uploads/20210125/Kafka%E5%AE%98%E7%BD%91%E8%A7%A3%E9%87%8Aauto.offset.reset.png" alt="Kafka官网解释auto.offset.reset"></p>
-</blockquote>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Kafka</category>
-      </categories>
-      <tags>
-        <tag>Kafka</tag>
       </tags>
   </entry>
   <entry>
@@ -2126,6 +2137,44 @@ search:
       </tags>
   </entry>
   <entry>
+    <title>数据仓库-数据质量</title>
+    <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>数据质量基本概念</li>
+<li>影响因素</li>
+<li>评估维度</li>
+<li>实施流程</li>
+</ul>
+<h2 id="数据质量基本概念"><a href="#数据质量基本概念" class="headerlink" title="数据质量基本概念"></a>数据质量基本概念</h2><ul>
+<li>数据质量管理（Data Quality Management），是指对数据从计划、获取、存储、共享、维护、应用、消亡生命周期的每个阶段里可能引发的各类数据质量问题，进行识别、度量、监控、预警等一系列管理活动，并通过改善和提高组织的管理水平使得数据质量获得进一步提高</li>
+<li>数据质量管理不是一时的数据治理手段，而是循环的管理过程。其终极目标是通过可靠的数据，提升数据在使用中的价值，并最终为企业赢得经济效益</li>
+</ul>
+<h2 id="影响因素"><a href="#影响因素" class="headerlink" title="影响因素"></a>影响因素</h2><p>数据问题的来源可能产生于从数据源头到数据存储介质的各个环节。在数据采集阶段，数据的真实性、准确性、完整性、时效性都会影响数据质量。除此之外，数据的加工、存储过程都有可能涉及对原始数据的修改，从而引发数据的质量问题。所以，技术、流程、管理等多方面的因素都有可能会影响到数据质量。</p>
+<h2 id="评估维度"><a href="#评估维度" class="headerlink" title="评估维度"></a>评估维度</h2><ul>
+<li>完整性<br>数据完整性问题包含数据条目不完整，数据属性不完整等</li>
+<li>一致性<br>多源数据的数据模型不一致，如命名不一致，数据编码不一致，含义不一致，生命周期不一致等</li>
+<li>准确性<br>准确性也叫可靠性，不可靠的数据可能会导致严重的问题，会造成有缺陷的方法和糟糕的决策</li>
+<li>唯一性<br>用于识别和度量重复数据，冗余数据，重复数据是导致业务无法协同，流程无法追溯的重要因素，也是数据治理需要解 决的最基本的数据问题</li>
+<li>关联性<br>数据关联性问题是指存在数据关联的数据关系缺失或错误，例如：函数关系、相关系数、主外键关系、索引关系等。存在数据关联性问题，会直接影响数据分析的结果，进而影响管理决策。</li>
+<li>真实性<br>数据必须真实准确的反映客观的实体存在或真实的业务，真实可靠的原始统计数据是企业统计工作的灵魂</li>
+<li>及时性<br>数据的及时性(In-time)是指能否在需要的时候获到数据，数据的及时性与企业的数据处理速度及效率有直接的关系，是影响业务处理和管理效率的关键指标。</li>
+<li>逻辑检查<br>不同表字段之间可能会有逻辑关联，需要稽核</li>
+<li>离群值检查<br>部分数据可能会偏离其他数据，比如同一个商品金额大家都是100元，而有一条数据是1W</li>
+<li>自定义规则<br>由需求方自定义相关规则</li>
+<li>波动稽核<br>与上周环比稽核波动情况 </li>
+<li>强弱规则<br>每个规则的权重应该是不一样的，需要配置优先级，这对后续的告警方式是有帮助的</li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+        <category>数据质量</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>日常工具软件问题</title>
     <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2203,6 +2252,9 @@ search:
 <li>数据仓库面试题</li>
 <li>java面试题</li>
 <li>scala面试题</li>
+<li>sqoop与datax面试题<a id="more"></a>
+
+</li>
 </ul>
 <h2 id="Spark面试题总结"><a href="#Spark面试题总结" class="headerlink" title="Spark面试题总结"></a>Spark面试题总结</h2><ul>
 <li><p><strong>对于 Spark 中的数据倾斜问题你有什么好的方案?</strong></p>
@@ -2289,6 +2341,69 @@ Spark SQL 不一定比Hive快，例如没有shuffle的或者只有一次shuffle�
 <li><p><strong>说说你从0-1搭建数仓都做了什么？你觉得最有挑战的是什么？</strong></p>
 </li>
 <li><p>参考<br><a href="https://mp.weixin.qq.com/s/0mgy07WAMBYNBP6er8_hDA">(终极版)2021大数据面试真题(务必进来看一下)</a></p>
+</li>
+</ul>
+<h2 id="Hbase面试题"><a href="#Hbase面试题" class="headerlink" title="Hbase面试题"></a>Hbase面试题</h2><ul>
+<li><strong>Hbase是写快还是读快？为什么？</strong><pre class="line-numbers language-none"><code class="language-none">Hbase是写快读慢。
+Hbase写入速度比读取速度要快，根本原因LSM存储引擎
+LSM核心思想的核心就是放弃部分读能力，换取写入的最大化能力
+LSM核心思路就是假定内存足够大，因此不需要每次有数据更新就必须将数据写入到磁盘中，而可以先将最新的数据驻留在内存中，等到积累到最后多之后，再使用归并排序的方式将内存内的数据合并追加到磁盘队尾
+将对数据的修改增量保持在内存中，达到指定的大小限制后将这些修改操作批量写入磁盘，不过读取的时候稍微麻烦，需要合并磁盘中历史数据和内存中最近修改操作，所以写入性能大大提升，读取时可能需要先看是否命中内存，否则需要访问较多的磁盘文件
+LSM树原理把一棵大树拆分成N棵小树，它首先写入内存中，随着小树越来越大，内存中的小树会flush到磁盘中，磁盘中的树定期可以做merge操作，合并成一棵大树，以优化读性能<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+
+
+</li>
+</ul>
+<h2 id="Sqoop与DataX面试题"><a href="#Sqoop与DataX面试题" class="headerlink" title="Sqoop与DataX面试题"></a>Sqoop与DataX面试题</h2><ul>
+<li><strong>Sqoop与DataX优缺点比较？</strong>  <table>
+<thead>
+<tr>
+<th align="center">功能</th>
+<th align="center">DataX</th>
+<th align="center">Sqoop</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">运行模型</td>
+<td align="center">单进程多线程</td>
+<td align="center">MapReduce</td>
+</tr>
+<tr>
+<td align="center">Mysql读写</td>
+<td align="center">单机压力大；读写粒度容易控制</td>
+<td align="center">mr模式重，写出错处理麻烦</td>
+</tr>
+<tr>
+<td align="center">hive读写</td>
+<td align="center">单机压力大</td>
+<td align="center">很好</td>
+</tr>
+<tr>
+<td align="center">分布式</td>
+<td align="center">不支持，可以通过调度系统规避</td>
+<td align="center">支持</td>
+</tr>
+<tr>
+<td align="center">流控</td>
+<td align="center">有流控功能</td>
+<td align="center">需要定制</td>
+</tr>
+<tr>
+<td align="center">DataX是单机的，不是分布式的，但是可以通过在多台脚本机上启动任务来规避。但是DataX比较灵活，Sqoop重一点。</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">DataX虽然是单机的，但是，它的客户端是与namenode通信，走的是hdfs写数据流程，写数据的过程是并行执行的</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody></table>
 </li>
 </ul>
 ]]></content>
