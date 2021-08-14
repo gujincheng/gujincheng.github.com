@@ -22,23 +22,20 @@
     var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="本文主要包括：  vim使用手册">
+  <meta name="description" content="本文主要包括：  Flink时间语义与窗口">
 <meta property="og:type" content="article">
-<meta property="og:title" content="vim使用手册（一）">
-<meta property="og:url" content="https://gujincheng.github.io/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:title" content="Flink学习笔记（四）">
+<meta property="og:url" content="https://gujincheng.github.io/2021/08/12/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E5%9B%9B%EF%BC%89/index.html">
 <meta property="og:site_name" content="Golden Blog">
-<meta property="og:description" content="本文主要包括：  vim使用手册">
+<meta property="og:description" content="本文主要包括：  Flink时间语义与窗口">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://gujincheng.github.io/uploads/20210116/vim-select.png">
-<meta property="og:image" content="https://gujincheng.github.io/uploads/20210116/vim-dn.png">
-<meta property="article:published_time" content="2021-01-16T02:34:07.000Z">
-<meta property="article:modified_time" content="2021-04-29T09:48:42.000Z">
+<meta property="article:published_time" content="2021-08-12T10:06:02.000Z">
+<meta property="article:modified_time" content="2021-08-14T07:08:56.119Z">
 <meta property="article:author" content="Golden">
-<meta property="article:tag" content="vim">
+<meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://gujincheng.github.io/uploads/20210116/vim-select.png">
 
-<link rel="canonical" href="https://gujincheng.github.io/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/">
+<link rel="canonical" href="https://gujincheng.github.io/2021/08/12/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E5%9B%9B%EF%BC%89/">
 
 
 <script id="page-configurations">
@@ -51,7 +48,7 @@
   };
 </script>
 
-  <title>vim使用手册（一） | Golden Blog</title>
+  <title>Flink学习笔记（四） | Golden Blog</title>
   
 
 
@@ -205,7 +202,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/08/12/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E5%9B%9B%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.jpg">
@@ -218,7 +215,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          vim使用手册（一）
+          Flink学习笔记（四）
         </h1>
 
         <div class="post-meta">
@@ -228,14 +225,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2021-01-16 10:34:07" itemprop="dateCreated datePublished" datetime="2021-01-16T10:34:07+08:00">2021-01-16</time>
+              <time title="创建时间：2021-08-12 18:06:02" itemprop="dateCreated datePublished" datetime="2021-08-12T18:06:02+08:00">2021-08-12</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
+                <time title="修改时间：2021-08-14 15:08:56" itemprop="dateModified" datetime="2021-08-14T15:08:56+08:00">2021-08-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -243,16 +240,16 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/vim/" itemprop="url" rel="index"><span itemprop="name">vim</span></a>
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Flink/" itemprop="url" rel="index"><span itemprop="name">Flink</span></a>
                 </span>
             </span>
 
           
-            <span id="/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-meta-item leancloud_visitors" data-flag-title="vim使用手册（一）" title="阅读次数">
+            <span id="/2021/08/12/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E5%9B%9B%EF%BC%89/" class="post-meta-item leancloud_visitors" data-flag-title="Flink学习笔记（四）" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -267,8 +264,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/" itemprop="commentCount"></span>
+    <a title="valine" href="/2021/08/12/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E5%9B%9B%EF%BC%89/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/08/12/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E5%9B%9B%EF%BC%89/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -285,81 +282,53 @@
       
         <p>本文主要包括：</p>
 <ul>
-<li>vim使用手册<a id="more"></a>
-个人感觉，vim用熟了，比任何编辑器都好用，VIM的许多特性节省了时间和击键次数，并可以完成一些其他编辑器无法完成的功能，这里在网上找了几个经典案例，记录一下。</li>
+<li>Flink时间语义与窗口<a id="more"></a>
+
+
+</li>
 </ul>
-<p>与大部分其它编辑器不同，进入 Vim 后，缺省状态下键入的字符并不会插入到所编辑的文件之中。Vim 的模式（mode，可以简单地理解为“状态”）概念非常重要。需要知道，Vim 有以下几个模式：</p>
+<h2 id="Flink时间语义与Watermark"><a href="#Flink时间语义与Watermark" class="headerlink" title="Flink时间语义与Watermark"></a>Flink时间语义与Watermark</h2><p>Event Time：事件创建的时间<br>Ingestion Time：数据进入Flink的时间<br>Processing Time：执行操作算子的本地系统时间，与机器相关</p>
+<p>WaterMark是用来处理乱序数据的</p>
 <ul>
-<li>正常（normal）模式，缺省的编辑模式；下面如果不加特殊说明，提到的命令都直接在正常模式下输入；任何其它模式中都可以通过键盘上的 Esc 键回到正常模式。</li>
-<li>命令（command）模式，用于执行较长、较复杂的命令；在正常模式下输入“:”（一般命令）、“/”（正向搜索）或“?”（反向搜索）即可进入该模式；命令模式下的命令要输入回车键（Enter）才算完成。</li>
-<li>插入（insert）模式，输入文本时使用；在正常模式下键入“i”（insert）或“a”（append）即可进入插入模式（也有另外一些命令，如“c”，也可以进入插入模式，但这些命令有其它的作用）。</li>
-<li>可视（visual）模式，用于选定文本块；可以在正常模式下输入“v”（小写）来按字符选定，输入“V”（大写）来按行选定，或输入“Ctrl-V”来按方块选定。</li>
+<li>Watermark是一种衡量Event Time进展的机制们可以设定延迟触发</li>
+<li>Watermark是用于处理乱序事件的吗，而正确的处理乱序事件，通常用Watermark机制集合window来实现</li>
+<li>数据流重的Watermark用于表示timesamp小于Watermark的数据，都已经到达了，因此，window的执行也是由Watermark触发的</li>
+<li>Watermark用来让程序自己平衡延迟和结果正确性</li>
 </ul>
-<p>一般的发布版中还常常带有一个简单的 30 分钟的 Vim 教程，新手在操作系统的命令行上输入<code>vimtutor</code>命令即可开始学习。除上面的简单说明外，本文并不介绍最基本的 Vim 命令，Vim 的新手应该先通过教程熟悉一下 Vim，再继续往下阅读。</p>
-<h2 id="常用的指令序列"><a href="#常用的指令序列" class="headerlink" title="常用的指令序列"></a>常用的指令序列</h2><ul>
-<li><p>左右交换光标处两字符的位置：xp<br>命令拆分：</p>
+<h3 id="Watermark的特点："><a href="#Watermark的特点：" class="headerlink" title="Watermark的特点："></a>Watermark的特点：</h3><ul>
+<li>Watermark是一条特殊的数据记录</li>
+<li>Watermark必须单调递增，以确保任务的事件事件始终在向前推进，而不是在后退</li>
+<li>Watermark与数据的时间戳相关</li>
+</ul>
+<blockquote>
+<p>每条数据都会计算出一个watermark，每个watermark都会和之前的数据的watermark做比较，取更大的一个，确保watermark是向前推进的<br>多个分区的watermark，会取当前window下，所有分区重最小的一个，为了防止数据丢失<br>每个watermark都会和window的结束时间（window.getEnd()）做比较，如果时间大于等于window结束时间，window就会被触发，处理的数据会小于window结束时间的，等于window结束时间的会放到下一个window<br>程序运行以后，会一直获取Watermark（执行getCurrentWatermark()函数），不管有没有数据进来</p>
+</blockquote>
+<p>具体的可以看之前写的demo<br><a target="_blank" rel="noopener" href="https://github.com/gujincheng/FlinkStudy/blob/main/src/main/java/com/hzw/bigdata/flinkstudy/WaterMarkDemo.java">WaterMarkDemo</a></p>
+<p>当Flink 用来跟踪事件时间进度的水印已经超过了元素所属窗口的结束时间戳时，<br>即数据延迟的时候，默认情况下，数据会丢失，为了防止这种情况可以使用以下两种方式来避免：</p>
 <ul>
-<li>x剪切当前字符</li>
-<li>p粘贴剪切的字符到光标后面</li>
-</ul>
+<li>可以通过设置allowedLateness来避免<blockquote>
+<p>当数据晚于Watermark后，为了防止数据丢失，可以通过设置allowedLateness来避免，<br>Allowed lateness 指定元素在被丢弃之前可以延迟多长时间，其默认值为 0。</p>
+</blockquote>
 </li>
-<li><p>上下交换光标处两行的位置： ddp<br>命令拆分：</p>
+<li>获取延迟数据作为副输出（把延迟的数据放到另外一个流单独处理）<br>具体可以参考<br><a target="_blank" rel="noopener" href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/zh/docs/dev/datastream/operators/windows/#allowed-lateness">Flink官网-Allowed Lateness</a></li>
+</ul>
+<h2 id="Flink窗口"><a href="#Flink窗口" class="headerlink" title="Flink窗口"></a>Flink窗口</h2><p>一般真实的数据流都是无界的，但是window可以吧无限的数据流切分，得到有限的数据集进行处理<br>window就是将无限流切割为有限流的一种方式，它会将流数据分发到有限大小的桶重进行分析<br>window的类型：</p>
 <ul>
-<li>dd 剪切当前行</li>
-<li>p 粘贴剪切的内容到光标的下一行</li>
+<li>时间窗口（Time Window）<br>  ** 滚动时间窗口<br>  ** 活动时间窗口<br>  ** 会话窗口</li>
+<li>计数窗口（Count Window）<br>  ** 滚动计数窗口<br>  ** 滑动计数窗口<h3 id="滚动窗口（Tumbling-Windows）"><a href="#滚动窗口（Tumbling-Windows）" class="headerlink" title="滚动窗口（Tumbling Windows）"></a>滚动窗口（Tumbling Windows）</h3></li>
+<li>将数据依据固定的窗口长度对数据进行切分</li>
+<li>时间对其，窗口长度固定，没有重叠         <blockquote>
+<p>TumblingEventTimeWindows,这个WindowAssigner必须要结合watermark使用，否则，window不会触发<br>TumblingProcessingTimeWindows，这个WindowAssigner不需要watermark</p>
+</blockquote>
+<h3 id="滑动窗口（Sliding-Windows）"><a href="#滑动窗口（Sliding-Windows）" class="headerlink" title="滑动窗口（Sliding Windows）"></a>滑动窗口（Sliding Windows）</h3></li>
+<li>滑动窗口是固定窗口的更广义的一种形式，滑动窗口由固定的窗口长度和滑动间隔组成</li>
+<li>窗口长度固定，可以有重叠</li>
 </ul>
-</li>
-<li><p>行转列：</p>
-<ul>
-<li><p>第一种, 多行合并成一行,即:<br>AAAAA<br>BBBBB<br>CCCCC<br>合并为:<br>AAAAA BBBBB CCCCC<br>方法1: normal状态下 3J 其中的3是范围,可以是书签或者搜索位置等方式实现,J为合并<br>注: 如果改为3gJ的话,则合并时各行没有空白AAAAABBBBBCCCCC, 下面方法类似,不再重复这两种合并方式的区别.</p>
-<p>方法2: 命令状态下 :1,3 join   或 :1,3 j    （注意j前面是空格）</p>
-<p>方法3: 传统一点的,替换换行符的方式,为避免最后一行也被换掉,范围缩小了,命令状态下  :1,2s/\n/ /</p>
-</li>
-<li><p>第二种,隔行合并,即:</p>
-<p>AAAAA<br>BBBBB<br>CCCCC<br>DDDDD</p>
-<p>合并为:</p>
-<p>AAAAA BBBBB<br>CCCCC DDDDD</p>
-<p>方法1: 借用一下宏录制功能, normal状态下 qaJjq 实现录制, 然后在合适的区域重复执行n遍,这里2遍即可,normal状态下2@a</p>
-<p>方法2: 命令状态下 :1,4g/^/ join  增加了g过滤后,合并变成了隔行处理</p>
-</li>
+<h3 id="会话窗口（Session-Windows）"><a href="#会话窗口（Session-Windows）" class="headerlink" title="会话窗口（Session Windows）"></a>会话窗口（Session Windows）</h3><ul>
+<li>由一系列事件组合一个指定时间长度的timeout间隙组成，也就是一段时间没有接收到新数据就会生成新的窗口</li>
+<li>特点：时间无对齐</li>
 </ul>
-</li>
-<li><p>在每行行首添加相同的内容<br>  :%s/^/要添加的内容</p>
-</li>
-<li><p>在每行行尾添加相同的内容<br>  :%s/$/要添加的内容</p>
-</li>
-<li><p>利用正则表达式删除代码段每行的行号<br>  :%s/^\s*[0-9]<em>\s</em>//gc</p>
-</li>
-<li><p>删除某一行之前的所有内容</p>
-<ul>
-<li>先找到这一行，复制这一行的内容，然后全文查找这一行的内容，这时候这一行是高亮的<br><img src="/uploads/20210116/vim-select.png" alt="vim-select"></li>
-<li>然后gg回到第一行</li>
-<li>dn<br><img src="/uploads/20210116/vim-dn.png" alt="vim-dn"></li>
-</ul>
-</li>
-</ul>
-<h2 id="在vim里使用类似Emacs里的orgmode"><a href="#在vim里使用类似Emacs里的orgmode" class="headerlink" title="在vim里使用类似Emacs里的orgmode"></a>在vim里使用类似Emacs里的orgmode</h2><ul>
-<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin &#39;jceb&#x2F;vim-orgmode&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>在vim命令行模式运行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">:PluginInstall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-之后就能直接用vim编辑.org文件，目前vim-orgmode有如下功能：<br>当前 vim orgmode不支持所有orgmode功能，但它非常有用。 已经支持的功能的简短列表：</li>
-<li>语法高亮显示</li>
-<li>标题的循环可见性( 折叠)</li>
-<li>在标题之间导航</li>
-<li>编辑文档的结构： 添加，移动，提升，表示标题和更多</li>
-<li>vim orgmode和外部( 文件，网页，等等 ) 中的超链接</li>
-<li>待办事项列表管理</li>
-<li>标题标记</li>
-<li>列表中的字母符号和项目符号符号和复选框支持</li>
-<li>基本日期处理</li>
-<li>导出到其他格式( 通过 Emacs’org模式</li>
-</ul>
-<h2 id="vim设置leader键"><a href="#vim设置leader键" class="headerlink" title="vim设置leader键"></a>vim设置leader键</h2><p>leader 键简单的说就是一个前缀键，可以自由设定<br>例如，绑定leader键为‘，’</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&quot; 设置 leader 键，例子为,键，也可以设置为其他的 默认为&quot;&#x2F;&quot;
-let mapleader&#x3D;&quot;,&quot;
- 
-&quot; 设置快捷键，关闭一个窗口
-map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这个例子中，在 vim 的<code>normal-mode</code>下，按空格键+w+q 就可以保存文件退出窗口<br>在这个leader的前提下，就不会有键冲突的的情况了</p>
+<h3 id="window的生命周期"><a href="#window的生命周期" class="headerlink" title="window的生命周期"></a>window的生命周期</h3><p>当第一个应该属于该窗口的元素到达时，就会创建一个窗口，当时间（事件或处理时间）超过其结束时间戳加上用户指定的时间时，该窗口将被完全删除，</p>
 
     </div>
 
@@ -369,7 +338,7 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/vim/" rel="tag"># vim</a>
+              <a href="/tags/Flink/" rel="tag"># Flink</a>
           </div>
 
         
@@ -378,13 +347,10 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/01/16/linux%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" rel="prev" title="linux杂记（一）">
-      <i class="fa fa-chevron-left"></i> linux杂记（一）
+    <a href="/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/" rel="prev" title="数据仓库-数据质量">
+      <i class="fa fa-chevron-left"></i> 数据仓库-数据质量
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/" rel="next" title="emacs手动安装、解决不能使用中文输入法">
-      emacs手动安装、解决不能使用中文输入法 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -444,7 +410,7 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E6%8C%87%E4%BB%A4%E5%BA%8F%E5%88%97"><span class="nav-number">1.</span> <span class="nav-text">常用的指令序列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8vim%E9%87%8C%E4%BD%BF%E7%94%A8%E7%B1%BB%E4%BC%BCEmacs%E9%87%8C%E7%9A%84orgmode"><span class="nav-number">2.</span> <span class="nav-text">在vim里使用类似Emacs里的orgmode</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vim%E8%AE%BE%E7%BD%AEleader%E9%94%AE"><span class="nav-number">3.</span> <span class="nav-text">vim设置leader键</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E6%97%B6%E9%97%B4%E8%AF%AD%E4%B9%89%E4%B8%8EWatermark"><span class="nav-number">1.</span> <span class="nav-text">Flink时间语义与Watermark</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Watermark%E7%9A%84%E7%89%B9%E7%82%B9%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">Watermark的特点：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%AA%97%E5%8F%A3"><span class="nav-number">2.</span> <span class="nav-text">Flink窗口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BB%9A%E5%8A%A8%E7%AA%97%E5%8F%A3%EF%BC%88Tumbling-Windows%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">滚动窗口（Tumbling Windows）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%EF%BC%88Sliding-Windows%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">滑动窗口（Sliding Windows）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%9A%E8%AF%9D%E7%AA%97%E5%8F%A3%EF%BC%88Session-Windows%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">会话窗口（Session Windows）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#window%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">2.4.</span> <span class="nav-text">window的生命周期</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
