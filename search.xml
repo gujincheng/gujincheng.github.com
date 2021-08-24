@@ -1,6 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
+    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
+<li>确认键盘的电源接通。 </li>
+<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
+<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
+</ol>
+<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
+<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
+<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
+<li>此时先在本机键盘上输入任意六位PIN</li>
+<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
+</ol>
+<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
+<ol>
+<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
+<li>键盘背面的清除键，拿笔点住2秒。</li>
+<li>再按数字键1-4的任意一个想清除配置的数字。</li>
+<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
+<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
+</ol>
+<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
+]]></content>
+      <categories>
+        <category>工具箱</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Elasticsearch学习笔记（一）</title>
     <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -53,34 +81,6 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       <tags>
         <tag>Elasticsearch</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
-    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
-<li>确认键盘的电源接通。 </li>
-<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
-<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
-</ol>
-<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
-<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
-<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
-<li>此时先在本机键盘上输入任意六位PIN</li>
-<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
-</ol>
-<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
-<ol>
-<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
-<li>键盘背面的清除键，拿笔点住2秒。</li>
-<li>再按数字键1-4的任意一个想清除配置的数字。</li>
-<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
-<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
-</ol>
-<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
-]]></content>
-      <categories>
-        <category>工具箱</category>
-      </categories>
   </entry>
   <entry>
     <title>Flink学习笔记（三）</title>
@@ -375,6 +375,74 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
       </categories>
       <tags>
         <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java杂记</title>
+    <url>/2021/08/18/Java%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Java范型<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Java范型"><a href="#Java范型" class="headerlink" title="Java范型"></a>Java范型</h2><h3 id="什么是范型？"><a href="#什么是范型？" class="headerlink" title="什么是范型？"></a>什么是范型？</h3><p>泛型（generic）是指参数化类型的能力。可以定义带泛型类型的类或方法，随后编译器会用具体的类型来代替它。</p>
+<h3 id="为什么要用范型？"><a href="#为什么要用范型？" class="headerlink" title="为什么要用范型？"></a>为什么要用范型？</h3><p>Java语言引入泛型的好处是安全简单。泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，提高代码的重用率。</p>
+<ul>
+<li>类型安全。 泛型的主要目标是提高 Java 程序的类型安全。通过知道使用泛型定义的变量的类型限制，编译器可以在一个高得多的程度上验证类型假设。没有泛型，这些假设就只存在于程序员的头脑中（或者如果幸运的话，还存在于代码注释中）。</li>
+<li>消除强制类型转换。泛型的一个附带好处是，消除源代码中的许多强制类型转换。这使得代码更加可读，并且减少了出错机会。</li>
+<li>潜在的性能收益。 泛型为较大的优化带来可能。在泛型的初始实现中，编译器将强制类型转换（没有泛型的话，程序员会指定这些强制类型转换）插入生成的字节码中。但是更多类型信息可用于编译器这一事实，为未来版本的 JVM 的优化带来可能。由于泛型的实现方式，支持泛型（几乎）不需要 JVM 或类文件更改。所有工作都在编译器中完成，编译器生成类似于没有泛型（和强制类型转换）时所写的代码，只是更能确保类型安全而已。</li>
+</ul>
+<p>注意：<br>Point<T>,这个T表示派生自Object类的任何类，但是使用哪个字母是没有特定意义的！只是为了提高可读性！！！！</p>
+<p>遇到一个静态方法，使用如下范型：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">></span></span> <span class="token class-name">WatermarkStrategy</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">></span></span> <span class="token function">forBoundedOutOfOrderness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span> maxOutOfOrderness<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token punctuation">(</span>ctx<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token keyword">new</span> <span class="token class-name">BoundedOutOfOrdernessWatermarks</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>maxOutOfOrderness<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>这个方法的返回值是<code>WatermarkStrategy&lt;T&gt;</code>,前面那个T，不知道是什么意思，在用的时候，使用如下方法：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">stream<span class="token punctuation">.</span><span class="token function">assignTimestampsAndWatermarks</span><span class="token punctuation">(</span><span class="token class-name">WatermarkStrategy</span>
+                <span class="token punctuation">.</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span><span class="token function">forBoundedOutOfOrderness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span><span class="token punctuation">.</span><span class="token function">ofSeconds</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withIdleness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span><span class="token punctuation">.</span><span class="token function">ofSeconds</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withTimestampAssigner</span><span class="token punctuation">(</span><span class="token punctuation">(</span>event<span class="token punctuation">,</span>timestamp<span class="token punctuation">)</span> <span class="token operator">-></span> event<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>x <span class="token operator">-></span> x<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token class-name">TumblingEventTimeWindows</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token class-name">Time</span><span class="token punctuation">.</span><span class="token function">seconds</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">WindowFunctionTest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>WatermarkStrategy.&lt;Tuple2&lt;String, Long&gt;&gt;</code>：因为这个方法是静态方法，所以可以直接类名.方法，后面的<code>.&lt;Tuple2&lt;String, Long&gt;&gt;</code>就是方法里前面那个<T></p>
+<h2 id="Java的多太"><a href="#Java的多太" class="headerlink" title="Java的多太"></a>Java的多太</h2><p>传统的多太概念就记录了，这里记录一个常用的多太使用方式：<br>在订单方法的时候，入参类型标记为接口，等到真正传参的时候，传入实现这个接口的实现类的对象</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Test</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">testDuo</span><span class="token punctuation">(</span><span class="token class-name">Test1</span> t<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"aa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Test2</span> t1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Test2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        t1<span class="token punctuation">.</span><span class="token function">test</span><span class="token punctuation">(</span><span class="token string">"bb"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">testDuo</span><span class="token punctuation">(</span>t1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">Test1</span><span class="token punctuation">&#123;</span>
+
+    <span class="token punctuation">&#125;</span>
+   <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Test2</span> <span class="token keyword">implements</span> <span class="token class-name">Test1</span><span class="token punctuation">&#123;</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">test</span><span class="token punctuation">(</span><span class="token class-name">String</span> str<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这样做的好处是：</p>
+<ol>
+<li>消除类型之间的耦合关系</li>
+<li>可替换性</li>
+<li>可扩充性</li>
+<li>接口性</li>
+<li>灵活性</li>
+<li>简化性</li>
+</ol>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -717,17 +785,23 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
-    <title>MongoDB杂记（一）</title>
-    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+    <title>Redis杂记（一）</title>
+    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
+<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
+<p>这里记录一下两个命令：</p>
+<h2 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h2><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h2><p>在生产环境下，尽量使用scan</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>MongoDB</category>
+        <category>Redis</category>
       </categories>
       <tags>
-        <tag>MongoDB</tag>
+        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -799,23 +873,17 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </tags>
   </entry>
   <entry>
-    <title>Redis杂记（一）</title>
-    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
-<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
-<p>这里记录一下两个命令：</p>
-<h2 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h2><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h2><p>在生产环境下，尽量使用scan</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
+    <title>MongoDB杂记（一）</title>
+    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>Redis</category>
+        <category>MongoDB</category>
       </categories>
       <tags>
-        <tag>Redis</tag>
+        <tag>MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -1515,18 +1583,6 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       </tags>
   </entry>
   <entry>
-    <title>python杂记（一）</title>
-    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>python实现scp功能</title>
     <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
     <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
@@ -1565,6 +1621,18 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       </categories>
       <tags>
         <tag>scp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python杂记（一）</title>
+    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
@@ -1840,6 +1908,95 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </tags>
   </entry>
   <entry>
+    <title>vim使用手册（一）</title>
+    <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>vim使用手册<a id="more"></a>
+个人感觉，vim用熟了，比任何编辑器都好用，VIM的许多特性节省了时间和击键次数，并可以完成一些其他编辑器无法完成的功能，这里在网上找了几个经典案例，记录一下。</li>
+</ul>
+<p>与大部分其它编辑器不同，进入 Vim 后，缺省状态下键入的字符并不会插入到所编辑的文件之中。Vim 的模式（mode，可以简单地理解为“状态”）概念非常重要。需要知道，Vim 有以下几个模式：</p>
+<ul>
+<li>正常（normal）模式，缺省的编辑模式；下面如果不加特殊说明，提到的命令都直接在正常模式下输入；任何其它模式中都可以通过键盘上的 Esc 键回到正常模式。</li>
+<li>命令（command）模式，用于执行较长、较复杂的命令；在正常模式下输入“:”（一般命令）、“/”（正向搜索）或“?”（反向搜索）即可进入该模式；命令模式下的命令要输入回车键（Enter）才算完成。</li>
+<li>插入（insert）模式，输入文本时使用；在正常模式下键入“i”（insert）或“a”（append）即可进入插入模式（也有另外一些命令，如“c”，也可以进入插入模式，但这些命令有其它的作用）。</li>
+<li>可视（visual）模式，用于选定文本块；可以在正常模式下输入“v”（小写）来按字符选定，输入“V”（大写）来按行选定，或输入“Ctrl-V”来按方块选定。</li>
+</ul>
+<p>一般的发布版中还常常带有一个简单的 30 分钟的 Vim 教程，新手在操作系统的命令行上输入<code>vimtutor</code>命令即可开始学习。除上面的简单说明外，本文并不介绍最基本的 Vim 命令，Vim 的新手应该先通过教程熟悉一下 Vim，再继续往下阅读。</p>
+<h2 id="常用的指令序列"><a href="#常用的指令序列" class="headerlink" title="常用的指令序列"></a>常用的指令序列</h2><ul>
+<li><p>左右交换光标处两字符的位置：xp<br>命令拆分：</p>
+<ul>
+<li>x剪切当前字符</li>
+<li>p粘贴剪切的字符到光标后面</li>
+</ul>
+</li>
+<li><p>上下交换光标处两行的位置： ddp<br>命令拆分：</p>
+<ul>
+<li>dd 剪切当前行</li>
+<li>p 粘贴剪切的内容到光标的下一行</li>
+</ul>
+</li>
+<li><p>行转列：</p>
+<ul>
+<li><p>第一种, 多行合并成一行,即:<br>AAAAA<br>BBBBB<br>CCCCC<br>合并为:<br>AAAAA BBBBB CCCCC<br>方法1: normal状态下 3J 其中的3是范围,可以是书签或者搜索位置等方式实现,J为合并<br>注: 如果改为3gJ的话,则合并时各行没有空白AAAAABBBBBCCCCC, 下面方法类似,不再重复这两种合并方式的区别.</p>
+<p>方法2: 命令状态下 :1,3 join   或 :1,3 j    （注意j前面是空格）</p>
+<p>方法3: 传统一点的,替换换行符的方式,为避免最后一行也被换掉,范围缩小了,命令状态下  :1,2s/\n/ /</p>
+</li>
+<li><p>第二种,隔行合并,即:</p>
+<p>AAAAA<br>BBBBB<br>CCCCC<br>DDDDD</p>
+<p>合并为:</p>
+<p>AAAAA BBBBB<br>CCCCC DDDDD</p>
+<p>方法1: 借用一下宏录制功能, normal状态下 qaJjq 实现录制, 然后在合适的区域重复执行n遍,这里2遍即可,normal状态下2@a</p>
+<p>方法2: 命令状态下 :1,4g/^/ join  增加了g过滤后,合并变成了隔行处理</p>
+</li>
+</ul>
+</li>
+<li><p>在每行行首添加相同的内容<br>  :%s/^/要添加的内容</p>
+</li>
+<li><p>在每行行尾添加相同的内容<br>  :%s/$/要添加的内容</p>
+</li>
+<li><p>利用正则表达式删除代码段每行的行号<br>  :%s/^\s*[0-9]<em>\s</em>//gc</p>
+</li>
+<li><p>删除某一行之前的所有内容</p>
+<ul>
+<li>先找到这一行，复制这一行的内容，然后全文查找这一行的内容，这时候这一行是高亮的<br><img src="/uploads/20210116/vim-select.png" alt="vim-select"></li>
+<li>然后gg回到第一行</li>
+<li>dn<br><img src="/uploads/20210116/vim-dn.png" alt="vim-dn"></li>
+</ul>
+</li>
+</ul>
+<h2 id="在vim里使用类似Emacs里的orgmode"><a href="#在vim里使用类似Emacs里的orgmode" class="headerlink" title="在vim里使用类似Emacs里的orgmode"></a>在vim里使用类似Emacs里的orgmode</h2><ul>
+<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin &#39;jceb&#x2F;vim-orgmode&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在vim命令行模式运行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">:PluginInstall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+之后就能直接用vim编辑.org文件，目前vim-orgmode有如下功能：<br>当前 vim orgmode不支持所有orgmode功能，但它非常有用。 已经支持的功能的简短列表：</li>
+<li>语法高亮显示</li>
+<li>标题的循环可见性( 折叠)</li>
+<li>在标题之间导航</li>
+<li>编辑文档的结构： 添加，移动，提升，表示标题和更多</li>
+<li>vim orgmode和外部( 文件，网页，等等 ) 中的超链接</li>
+<li>待办事项列表管理</li>
+<li>标题标记</li>
+<li>列表中的字母符号和项目符号符号和复选框支持</li>
+<li>基本日期处理</li>
+<li>导出到其他格式( 通过 Emacs’org模式</li>
+</ul>
+<h2 id="vim设置leader键"><a href="#vim设置leader键" class="headerlink" title="vim设置leader键"></a>vim设置leader键</h2><p>leader 键简单的说就是一个前缀键，可以自由设定<br>例如，绑定leader键为‘，’</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&quot; 设置 leader 键，例子为,键，也可以设置为其他的 默认为&quot;&#x2F;&quot;
+let mapleader&#x3D;&quot;,&quot;
+ 
+&quot; 设置快捷键，关闭一个窗口
+map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这个例子中，在 vim 的<code>normal-mode</code>下，按空格键+w+q 就可以保存文件退出窗口<br>在这个leader的前提下，就不会有键冲突的的情况了</p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>vim</category>
+      </categories>
+      <tags>
+        <tag>vim</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>基于githup搭建个人博客网站</title>
     <url>/2021/01/14/%E5%9F%BA%E4%BA%8Egithup%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E7%BD%91%E7%AB%99/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2109,95 +2266,6 @@ search:
       </tags>
   </entry>
   <entry>
-    <title>vim使用手册（一）</title>
-    <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>vim使用手册<a id="more"></a>
-个人感觉，vim用熟了，比任何编辑器都好用，VIM的许多特性节省了时间和击键次数，并可以完成一些其他编辑器无法完成的功能，这里在网上找了几个经典案例，记录一下。</li>
-</ul>
-<p>与大部分其它编辑器不同，进入 Vim 后，缺省状态下键入的字符并不会插入到所编辑的文件之中。Vim 的模式（mode，可以简单地理解为“状态”）概念非常重要。需要知道，Vim 有以下几个模式：</p>
-<ul>
-<li>正常（normal）模式，缺省的编辑模式；下面如果不加特殊说明，提到的命令都直接在正常模式下输入；任何其它模式中都可以通过键盘上的 Esc 键回到正常模式。</li>
-<li>命令（command）模式，用于执行较长、较复杂的命令；在正常模式下输入“:”（一般命令）、“/”（正向搜索）或“?”（反向搜索）即可进入该模式；命令模式下的命令要输入回车键（Enter）才算完成。</li>
-<li>插入（insert）模式，输入文本时使用；在正常模式下键入“i”（insert）或“a”（append）即可进入插入模式（也有另外一些命令，如“c”，也可以进入插入模式，但这些命令有其它的作用）。</li>
-<li>可视（visual）模式，用于选定文本块；可以在正常模式下输入“v”（小写）来按字符选定，输入“V”（大写）来按行选定，或输入“Ctrl-V”来按方块选定。</li>
-</ul>
-<p>一般的发布版中还常常带有一个简单的 30 分钟的 Vim 教程，新手在操作系统的命令行上输入<code>vimtutor</code>命令即可开始学习。除上面的简单说明外，本文并不介绍最基本的 Vim 命令，Vim 的新手应该先通过教程熟悉一下 Vim，再继续往下阅读。</p>
-<h2 id="常用的指令序列"><a href="#常用的指令序列" class="headerlink" title="常用的指令序列"></a>常用的指令序列</h2><ul>
-<li><p>左右交换光标处两字符的位置：xp<br>命令拆分：</p>
-<ul>
-<li>x剪切当前字符</li>
-<li>p粘贴剪切的字符到光标后面</li>
-</ul>
-</li>
-<li><p>上下交换光标处两行的位置： ddp<br>命令拆分：</p>
-<ul>
-<li>dd 剪切当前行</li>
-<li>p 粘贴剪切的内容到光标的下一行</li>
-</ul>
-</li>
-<li><p>行转列：</p>
-<ul>
-<li><p>第一种, 多行合并成一行,即:<br>AAAAA<br>BBBBB<br>CCCCC<br>合并为:<br>AAAAA BBBBB CCCCC<br>方法1: normal状态下 3J 其中的3是范围,可以是书签或者搜索位置等方式实现,J为合并<br>注: 如果改为3gJ的话,则合并时各行没有空白AAAAABBBBBCCCCC, 下面方法类似,不再重复这两种合并方式的区别.</p>
-<p>方法2: 命令状态下 :1,3 join   或 :1,3 j    （注意j前面是空格）</p>
-<p>方法3: 传统一点的,替换换行符的方式,为避免最后一行也被换掉,范围缩小了,命令状态下  :1,2s/\n/ /</p>
-</li>
-<li><p>第二种,隔行合并,即:</p>
-<p>AAAAA<br>BBBBB<br>CCCCC<br>DDDDD</p>
-<p>合并为:</p>
-<p>AAAAA BBBBB<br>CCCCC DDDDD</p>
-<p>方法1: 借用一下宏录制功能, normal状态下 qaJjq 实现录制, 然后在合适的区域重复执行n遍,这里2遍即可,normal状态下2@a</p>
-<p>方法2: 命令状态下 :1,4g/^/ join  增加了g过滤后,合并变成了隔行处理</p>
-</li>
-</ul>
-</li>
-<li><p>在每行行首添加相同的内容<br>  :%s/^/要添加的内容</p>
-</li>
-<li><p>在每行行尾添加相同的内容<br>  :%s/$/要添加的内容</p>
-</li>
-<li><p>利用正则表达式删除代码段每行的行号<br>  :%s/^\s*[0-9]<em>\s</em>//gc</p>
-</li>
-<li><p>删除某一行之前的所有内容</p>
-<ul>
-<li>先找到这一行，复制这一行的内容，然后全文查找这一行的内容，这时候这一行是高亮的<br><img src="/uploads/20210116/vim-select.png" alt="vim-select"></li>
-<li>然后gg回到第一行</li>
-<li>dn<br><img src="/uploads/20210116/vim-dn.png" alt="vim-dn"></li>
-</ul>
-</li>
-</ul>
-<h2 id="在vim里使用类似Emacs里的orgmode"><a href="#在vim里使用类似Emacs里的orgmode" class="headerlink" title="在vim里使用类似Emacs里的orgmode"></a>在vim里使用类似Emacs里的orgmode</h2><ul>
-<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin &#39;jceb&#x2F;vim-orgmode&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>在vim命令行模式运行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">:PluginInstall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-之后就能直接用vim编辑.org文件，目前vim-orgmode有如下功能：<br>当前 vim orgmode不支持所有orgmode功能，但它非常有用。 已经支持的功能的简短列表：</li>
-<li>语法高亮显示</li>
-<li>标题的循环可见性( 折叠)</li>
-<li>在标题之间导航</li>
-<li>编辑文档的结构： 添加，移动，提升，表示标题和更多</li>
-<li>vim orgmode和外部( 文件，网页，等等 ) 中的超链接</li>
-<li>待办事项列表管理</li>
-<li>标题标记</li>
-<li>列表中的字母符号和项目符号符号和复选框支持</li>
-<li>基本日期处理</li>
-<li>导出到其他格式( 通过 Emacs’org模式</li>
-</ul>
-<h2 id="vim设置leader键"><a href="#vim设置leader键" class="headerlink" title="vim设置leader键"></a>vim设置leader键</h2><p>leader 键简单的说就是一个前缀键，可以自由设定<br>例如，绑定leader键为‘，’</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&quot; 设置 leader 键，例子为,键，也可以设置为其他的 默认为&quot;&#x2F;&quot;
-let mapleader&#x3D;&quot;,&quot;
- 
-&quot; 设置快捷键，关闭一个窗口
-map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这个例子中，在 vim 的<code>normal-mode</code>下，按空格键+w+q 就可以保存文件退出窗口<br>在这个leader的前提下，就不会有键冲突的的情况了</p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>vim</category>
-      </categories>
-      <tags>
-        <tag>vim</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>数据仓库-数据质量</title>
     <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2282,6 +2350,7 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
 <li>前往父类/父类方法： command + u</li>
 <li>呼出文件列表： command + 上方向键</li>
 </ul>
+<p>当用IDEA写java的时候，写匿名函数的时候，如果不知道new什么，可以在方法()里使用<code>option + /</code>会自动提示创建什么对象<br><img src="/uploads/20210520/IDEA%E7%BC%96%E5%86%99JAVA.png" alt="IDEA编写JAVA"><br>鼠标悬浮在提醒的对象名上，会提醒这个对象是什么类的，直接new就可以</p>
 <h2 id="github网页可以访问，但是ping不通"><a href="#github网页可以访问，但是ping不通" class="headerlink" title="github网页可以访问，但是ping不通"></a>github网页可以访问，但是ping不通</h2><p>最近从github上拉取代码，总是报超时，ping github.com后连不通<br>一开始以为是国外ip访问不了，翻墙试了一下，还是不行<br>最后解决方法，修改hosts文件<br>原因是直接ping github.com返回的服务器ip ping不通，但是github本身是有很多ip的，我们挑一个可以ping的通的ip</p>
 <pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>问题解决</p>
