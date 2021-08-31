@@ -22,20 +22,22 @@
     var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="本文主要包括：  如何下载Azkaban稳定版代码 如何构建Azkaban源码 如何配置Azkaban 启动Azkaban注意点">
+  <meta name="description" content="本文主要包括：  Iceberg简介 Iceberg架构 Iceberg简单使用案例 Iceberg压力测试">
 <meta property="og:type" content="article">
-<meta property="og:title" content="azkban从编译开始安装">
-<meta property="og:url" content="https://gujincheng.github.io/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/index.html">
+<meta property="og:title" content="Iceberg学习笔记">
+<meta property="og:url" content="https://gujincheng.github.io/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
 <meta property="og:site_name" content="Golden Blog">
-<meta property="og:description" content="本文主要包括：  如何下载Azkaban稳定版代码 如何构建Azkaban源码 如何配置Azkaban 启动Azkaban注意点">
+<meta property="og:description" content="本文主要包括：  Iceberg简介 Iceberg架构 Iceberg简单使用案例 Iceberg压力测试">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-01-16T11:52:31.000Z">
-<meta property="article:modified_time" content="2021-04-29T09:48:42.000Z">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png">
+<meta property="article:published_time" content="2021-08-27T08:25:41.000Z">
+<meta property="article:modified_time" content="2021-08-27T09:13:52.338Z">
 <meta property="article:author" content="Golden">
-<meta property="article:tag" content="Azkaban">
+<meta property="article:tag" content="Iceberg">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png">
 
-<link rel="canonical" href="https://gujincheng.github.io/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/">
+<link rel="canonical" href="https://gujincheng.github.io/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
 
 
 <script id="page-configurations">
@@ -48,7 +50,7 @@
   };
 </script>
 
-  <title>azkban从编译开始安装 | Golden Blog</title>
+  <title>Iceberg学习笔记 | Golden Blog</title>
   
 
 
@@ -202,7 +204,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.jpg">
@@ -215,7 +217,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          azkban从编译开始安装
+          Iceberg学习笔记
         </h1>
 
         <div class="post-meta">
@@ -224,16 +226,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-01-16 19:52:31" itemprop="dateCreated datePublished" datetime="2021-01-16T19:52:31+08:00">2021-01-16</time>
+              <time title="创建时间：2021-08-27 16:25:41 / 修改时间：17:13:52" itemprop="dateCreated datePublished" datetime="2021-08-27T16:25:41+08:00">2021-08-27</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -244,12 +240,12 @@
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Azkaban/" itemprop="url" rel="index"><span itemprop="name">Azkaban</span></a>
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Iceberg/" itemprop="url" rel="index"><span itemprop="name">Iceberg</span></a>
                 </span>
             </span>
 
           
-            <span id="/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/" class="post-meta-item leancloud_visitors" data-flag-title="azkban从编译开始安装" title="阅读次数">
+            <span id="/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Iceberg学习笔记" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -264,8 +260,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/" itemprop="commentCount"></span>
+    <a title="valine" href="/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -282,32 +278,28 @@
       
         <p>本文主要包括：</p>
 <ul>
-<li>如何下载Azkaban稳定版代码</li>
-<li>如何构建Azkaban源码</li>
-<li>如何配置Azkaban</li>
-<li>启动Azkaban注意点<a id="more"></a>
-<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a target="_blank" rel="noopener" href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
-</ul>
-<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
-<p>后来还是直接clone官网上的代码来构建</p>
-<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
-<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
-<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
-<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
-2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
-2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
-<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+<li>Iceberg简介</li>
+<li>Iceberg架构</li>
+<li>Iceberg简单使用案例</li>
+<li>Iceberg压力测试<a id="more"></a>
 
+</li>
+</ul>
+<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。</p>
+<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
+<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
+<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
+<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
+<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
+</ul>
+<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
+<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如[图4]这样的一个文件组织模式。</p>
+<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O1复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
+<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
+<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
+<h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2><h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>
     </div>
 
     
@@ -316,7 +308,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Azkaban/" rel="tag"># Azkaban</a>
+              <a href="/tags/Iceberg/" rel="tag"># Iceberg</a>
           </div>
 
         
@@ -325,13 +317,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/" rel="prev" title="emacs手动安装、解决不能使用中文输入法">
-      <i class="fa fa-chevron-left"></i> emacs手动安装、解决不能使用中文输入法
+    <a href="/2021/08/18/Java%E6%9D%82%E8%AE%B0/" rel="prev" title="Java杂记">
+      <i class="fa fa-chevron-left"></i> Java杂记
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/" rel="next" title="org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查">
-      org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -391,7 +380,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8Egit%E4%B8%8A%E4%B8%8B%E8%BD%BD%E6%9C%80%E6%96%B0%E7%9A%84azkban%E7%A8%B3%E5%AE%9A%E7%89%88%E4%BB%A3%E7%A0%81"><span class="nav-number">1.</span> <span class="nav-text">从git上下载最新的azkban稳定版代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E5%BB%BAAzkaban"><span class="nav-number">2.</span> <span class="nav-text">构建Azkaban</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEmysql"><span class="nav-number">3.</span> <span class="nav-text">配置mysql</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8azkaban-web-server"><span class="nav-number">4.</span> <span class="nav-text">启动azkaban-web-server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F"><span class="nav-number">5.</span> <span class="nav-text">注意</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Iceberg%E7%AE%80%E4%BB%8B%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">Iceberg简介：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8A%BF"><span class="nav-number">1.1.</span> <span class="nav-text">优势</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Iceberg%E6%9E%B6%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">Iceberg架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Iceberg%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B"><span class="nav-number">2.1.</span> <span class="nav-text">Iceberg写数据流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Iceberg%E8%AF%BB%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B"><span class="nav-number">2.2.</span> <span class="nav-text">Iceberg读数据流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Iceberg%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="nav-number">3.</span> <span class="nav-text">Iceberg简单使用案例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Iceberg%E5%8E%8B%E5%8A%9B%E6%B5%8B%E8%AF%95"><span class="nav-number">4.</span> <span class="nav-text">Iceberg压力测试</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

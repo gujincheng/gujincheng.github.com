@@ -22,12 +22,12 @@
     var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="本文主要包括：  Flink状态管理">
+  <meta name="description" content="本文主要包括：  Flink状态管理 Flink Checkpoint机制 Flink精准一次探究">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Flink学习笔记（三）">
 <meta property="og:url" content="https://gujincheng.github.io/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/index.html">
 <meta property="og:site_name" content="Golden Blog">
-<meta property="og:description" content="本文主要包括：  Flink状态管理">
+<meta property="og:description" content="本文主要包括：  Flink状态管理 Flink Checkpoint机制 Flink精准一次探究">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png">
@@ -35,7 +35,7 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png">
 <meta property="article:published_time" content="2021-02-07T09:43:04.000Z">
-<meta property="article:modified_time" content="2021-04-29T09:48:42.000Z">
+<meta property="article:modified_time" content="2021-08-25T06:43:55.797Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -238,7 +238,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
+                <time title="修改时间：2021-08-25 14:43:55" itemprop="dateModified" datetime="2021-08-25T14:43:55+08:00">2021-08-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -289,6 +289,8 @@
         <p>本文主要包括：</p>
 <ul>
 <li>Flink状态管理</li>
+<li>Flink Checkpoint机制</li>
+<li>Flink精准一次探究</li>
 </ul>
 <a id="more"></a>
 <h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
@@ -388,6 +390,8 @@
 <li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
 </ul>
 <p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
+<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h2 id="Flink精准一次探究"><a href="#Flink精准一次探究" class="headerlink" title="Flink精准一次探究"></a>Flink精准一次探究</h2><p>Flink貌似本身是不支持端到端的精准一次的，需要自己去实现<br>举个例子，Flink读取kafak数据，然后Sink写入Hbase，如果中间程序失败，Flink可以从checkpoint读取上次消费的地方重新消费<br>但是这里就有一个问题，flink checkpoint貌似记录的是写入sink成功以后的offset，就有可能重新启动程序的时候，会有一部分消息是重复消费了。如果期间有第三方缓存的话，可能会有影响<br>这里后期写个代码测试一下</p>
+<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作</p>
 
     </div>
 
@@ -472,7 +476,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">Flink状态管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%AE%A1%E7%90%86%E7%8A%B6%E6%80%81"><span class="nav-number">1.1.</span> <span class="nav-text">为什么要管理状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E7%9A%84%E5%87%A0%E7%A7%8D%E7%8A%B6%E6%80%81%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.</span> <span class="nav-text">Flink的几种状态类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Managed-State%E5%92%8CRaw-State"><span class="nav-number">1.2.1.</span> <span class="nav-text">Managed State和Raw State</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keyed-State%E5%92%8COperator-State"><span class="nav-number">1.2.2.</span> <span class="nav-text">Keyed State和Operator State</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.3.</span> <span class="nav-text">横向扩展问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keyed-State%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.4.</span> <span class="nav-text">Keyed State的使用方法</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">Flink状态管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%AE%A1%E7%90%86%E7%8A%B6%E6%80%81"><span class="nav-number">1.1.</span> <span class="nav-text">为什么要管理状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E7%9A%84%E5%87%A0%E7%A7%8D%E7%8A%B6%E6%80%81%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.</span> <span class="nav-text">Flink的几种状态类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Managed-State%E5%92%8CRaw-State"><span class="nav-number">1.2.1.</span> <span class="nav-text">Managed State和Raw State</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keyed-State%E5%92%8COperator-State"><span class="nav-number">1.2.2.</span> <span class="nav-text">Keyed State和Operator State</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.3.</span> <span class="nav-text">横向扩展问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keyed-State%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.4.</span> <span class="nav-text">Keyed State的使用方法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink-Checkpoint%E6%9C%BA%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">Flink Checkpoint机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%B2%BE%E5%87%86%E4%B8%80%E6%AC%A1%E6%8E%A2%E7%A9%B6"><span class="nav-number">3.</span> <span class="nav-text">Flink精准一次探究</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E5%AE%9E%E7%8E%B0%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E7%B2%BE%E5%87%86%E4%B8%80%E6%AC%A1"><span class="nav-number">3.1.</span> <span class="nav-text">Flink实现端到端的精准一次</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -488,20 +492,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-count">33</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

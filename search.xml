@@ -1,34 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
-    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
-<li>确认键盘的电源接通。 </li>
-<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
-<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
-</ol>
-<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
-<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
-<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
-<li>此时先在本机键盘上输入任意六位PIN</li>
-<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
-</ol>
-<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
-<ol>
-<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
-<li>键盘背面的清除键，拿笔点住2秒。</li>
-<li>再按数字键1-4的任意一个想清除配置的数字。</li>
-<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
-<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
-</ol>
-<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
-]]></content>
-      <categories>
-        <category>工具箱</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Elasticsearch学习笔记（一）</title>
     <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -83,11 +55,41 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       </tags>
   </entry>
   <entry>
+    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
+    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
+<li>确认键盘的电源接通。 </li>
+<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
+<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
+</ol>
+<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
+<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
+<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
+<li>此时先在本机键盘上输入任意六位PIN</li>
+<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
+</ol>
+<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
+<ol>
+<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
+<li>键盘背面的清除键，拿笔点住2秒。</li>
+<li>再按数字键1-4的任意一个想清除配置的数字。</li>
+<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
+<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
+</ol>
+<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
+]]></content>
+      <categories>
+        <category>工具箱</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Flink学习笔记（三）</title>
     <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>Flink状态管理</li>
+<li>Flink Checkpoint机制</li>
+<li>Flink精准一次探究</li>
 </ul>
 <a id="more"></a>
 <h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
@@ -187,6 +189,8 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
 <li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
 </ul>
 <p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
+<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h2 id="Flink精准一次探究"><a href="#Flink精准一次探究" class="headerlink" title="Flink精准一次探究"></a>Flink精准一次探究</h2><p>Flink貌似本身是不支持端到端的精准一次的，需要自己去实现<br>举个例子，Flink读取kafak数据，然后Sink写入Hbase，如果中间程序失败，Flink可以从checkpoint读取上次消费的地方重新消费<br>但是这里就有一个问题，flink checkpoint貌似记录的是写入sink成功以后的offset，就有可能重新启动程序的时候，会有一部分消息是重复消费了。如果期间有第三方缓存的话，可能会有影响<br>这里后期写个代码测试一下</p>
+<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作</p>
 ]]></content>
       <categories>
         <category>大数据</category>
@@ -202,10 +206,8 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>Flink任务案例</li>
-</ul>
-<a id="more"></a>
-<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><h3 id="Flink消费Kafka-自定义KafkaDeserializationSchema"><a href="#Flink消费Kafka-自定义KafkaDeserializationSchema" class="headerlink" title="Flink消费Kafka:自定义KafkaDeserializationSchema"></a>Flink消费Kafka:自定义KafkaDeserializationSchema</h3><p>Flink已经定义好的反序列化shema:</p>
-<ul>
+<li>Flink的slot和并行度理解<a id="more"></a>
+<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><h3 id="Flink消费Kafka-自定义KafkaDeserializationSchema"><a href="#Flink消费Kafka-自定义KafkaDeserializationSchema" class="headerlink" title="Flink消费Kafka:自定义KafkaDeserializationSchema"></a>Flink消费Kafka:自定义KafkaDeserializationSchema</h3>Flink已经定义好的反序列化shema:</li>
 <li>SimpleStringSchema：返回的结果只有Kafka的value，没有其它信息：</li>
 <li>TypeInformationKeyValueSerializationSchema：返回的结果只有Kafka的key,value，没有其它信息</li>
 </ul>
@@ -306,7 +308,8 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 具体的可以参考<br><a href="https://my.oschina.net/u/2380815/blog/4453531">Flink实战：自定义KafkaDeserializationSchema(Java/Scala)</a></li>
 </ul>
-]]></content>
+<h2 id="Flink的slot和并行度理解"><a href="#Flink的slot和并行度理解" class="headerlink" title="Flink的slot和并行度理解"></a>Flink的slot和并行度理解</h2><h3 id="Flink的Slot是什么？和Spark的Excutor有什么区别？"><a href="#Flink的Slot是什么？和Spark的Excutor有什么区别？" class="headerlink" title="Flink的Slot是什么？和Spark的Excutor有什么区别？"></a>Flink的Slot是什么？和Spark的Excutor有什么区别？</h3><h3 id="Slot和并行度之间有什么关系？"><a href="#Slot和并行度之间有什么关系？" class="headerlink" title="Slot和并行度之间有什么关系？"></a>Slot和并行度之间有什么关系？</h3><p>是每个slot都有几个并行度，还是说，并行度是整体任务的并行度，和每个slot没什么关系？</p>
+<h3 id="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"><a href="#假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据" class="headerlink" title="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"></a>假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据</h3>]]></content>
       <categories>
         <category>大数据</category>
         <category>Flink</category>
@@ -351,23 +354,127 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
 </li>
 <li>获取延迟数据作为副输出（把延迟的数据放到另外一个流单独处理）<br>具体可以参考<br><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/zh/docs/dev/datastream/operators/windows/#allowed-lateness">Flink官网-Allowed Lateness</a></li>
 </ul>
-<h2 id="Flink窗口"><a href="#Flink窗口" class="headerlink" title="Flink窗口"></a>Flink窗口</h2><p>一般真实的数据流都是无界的，但是window可以吧无限的数据流切分，得到有限的数据集进行处理<br>window就是将无限流切割为有限流的一种方式，它会将流数据分发到有限大小的桶重进行分析<br>window的类型：</p>
-<ul>
-<li>时间窗口（Time Window）<br>  ** 滚动时间窗口<br>  ** 活动时间窗口<br>  ** 会话窗口</li>
-<li>计数窗口（Count Window）<br>  ** 滚动计数窗口<br>  ** 滑动计数窗口<h3 id="滚动窗口（Tumbling-Windows）"><a href="#滚动窗口（Tumbling-Windows）" class="headerlink" title="滚动窗口（Tumbling Windows）"></a>滚动窗口（Tumbling Windows）</h3></li>
+<h2 id="Flink窗口"><a href="#Flink窗口" class="headerlink" title="Flink窗口"></a>Flink窗口</h2><p>一般真实的数据流都是无界的，但是window可以把无限的数据流切分，得到有限的数据集进行处理<br>window就是将无限流切割为有限流的一种方式，它会将流数据分发到有限大小的桶重进行分析</p>
+<p>窗口化的Flink程序的一般结构如下，第一个代码段中是分组的流，而第二段是非分组的流。正如我们所见，唯一的区别是分组的<code>stream</code>调用<code>keyBy(…)</code>和<code>window(…)</code>，而非分组的<code>stream</code>中<code>window()</code>换成了<code>windowAll(…)</code>，这些也将贯穿都这一页的其他部分中。</p>
+<h3 id="Keyed-Windows"><a href="#Keyed-Windows" class="headerlink" title="Keyed Windows"></a>Keyed Windows</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java">stream
+       <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span>               <span class="token operator">&lt;</span><span class="token operator">-</span>  keyed versus non<span class="token operator">-</span>keyed windows
+       <span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span>              <span class="token operator">&lt;</span><span class="token operator">-</span>  required<span class="token operator">:</span> <span class="token string">"assigner"</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">trigger</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span>            <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"trigger"</span> <span class="token punctuation">(</span><span class="token keyword">else</span> <span class="token keyword">default</span> trigger<span class="token punctuation">)</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">evictor</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span>            <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"evictor"</span> <span class="token punctuation">(</span><span class="token keyword">else</span> no evictor<span class="token punctuation">)</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">allowedLateness</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span>    <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"lateness"</span> <span class="token punctuation">(</span><span class="token keyword">else</span> zero<span class="token punctuation">)</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">sideOutputLateData</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"output tag"</span> <span class="token punctuation">(</span><span class="token keyword">else</span> no side output <span class="token keyword">for</span> late data<span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>reduce<span class="token operator">/</span>aggregate<span class="token operator">/</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token punctuation">)</span>      <span class="token operator">&lt;</span><span class="token operator">-</span>  required<span class="token operator">:</span> <span class="token string">"function"</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">getSideOutput</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span>      <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"output tag"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="Non-Keyed-Windows"><a href="#Non-Keyed-Windows" class="headerlink" title="Non-Keyed Windows"></a>Non-Keyed Windows</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java">stream
+       <span class="token punctuation">.</span><span class="token function">windowAll</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span>           <span class="token operator">&lt;</span><span class="token operator">-</span>  required<span class="token operator">:</span> <span class="token string">"assigner"</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">trigger</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span>            <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"trigger"</span> <span class="token punctuation">(</span><span class="token keyword">else</span> <span class="token keyword">default</span> trigger<span class="token punctuation">)</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">evictor</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span>            <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"evictor"</span> <span class="token punctuation">(</span><span class="token keyword">else</span> no evictor<span class="token punctuation">)</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">allowedLateness</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span>    <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"lateness"</span> <span class="token punctuation">(</span><span class="token keyword">else</span> zero<span class="token punctuation">)</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">sideOutputLateData</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"output tag"</span> <span class="token punctuation">(</span><span class="token keyword">else</span> no side output <span class="token keyword">for</span> late data<span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>reduce<span class="token operator">/</span>aggregate<span class="token operator">/</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token punctuation">)</span>      <span class="token operator">&lt;</span><span class="token operator">-</span>  required<span class="token operator">:</span> <span class="token string">"function"</span>
+      <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token function">getSideOutput</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">]</span>      <span class="token operator">&lt;</span><span class="token operator">-</span>  optional<span class="token operator">:</span> <span class="token string">"output tag"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>方括号[]内的命令是可选的</p>
+<h3 id="WindowAssigner"><a href="#WindowAssigner" class="headerlink" title="WindowAssigner"></a>WindowAssigner</h3><p>WindowAssigner是负责将每一个到来的元素分配给一个或者多个窗口(window),Flink 提供了一些常用的预定义窗口分配器，即:滚动窗口、滑动窗口、会话窗口和全局窗口。<br>你也可以通过继承WindowAssigner类来自定义自己的窗口。所有的内置窗口分配器(除了全局窗口 global window)都是通过时间来分配元素到窗口中的，这个时间要么是处理的时间，要么是事件发生的时间</p>
+<h3 id="window分类："><a href="#window分类：" class="headerlink" title="window分类："></a>window分类：</h3><ul>
+<li>时间窗口（Time Window）<br>  ** 滚动时间窗口<br>  ** 滑动时间窗口<br>  ** 会话窗口</li>
+<li>计数窗口（Count Window）<br>  ** 滚动计数窗口<br>  ** 滑动计数窗口<br>窗口是滚动还是滑动，是根据<code>WindowAssigner</code>来区分的<h4 id="滚动窗口（Tumbling-Windows）"><a href="#滚动窗口（Tumbling-Windows）" class="headerlink" title="滚动窗口（Tumbling Windows）"></a>滚动窗口（Tumbling Windows）</h4></li>
 <li>将数据依据固定的窗口长度对数据进行切分</li>
 <li>时间对其，窗口长度固定，没有重叠         <blockquote>
 <p>TumblingEventTimeWindows,这个WindowAssigner必须要结合watermark使用，否则，window不会触发<br>TumblingProcessingTimeWindows，这个WindowAssigner不需要watermark</p>
 </blockquote>
-<h3 id="滑动窗口（Sliding-Windows）"><a href="#滑动窗口（Sliding-Windows）" class="headerlink" title="滑动窗口（Sliding Windows）"></a>滑动窗口（Sliding Windows）</h3></li>
+<h4 id="滑动窗口（Sliding-Windows）"><a href="#滑动窗口（Sliding-Windows）" class="headerlink" title="滑动窗口（Sliding Windows）"></a>滑动窗口（Sliding Windows）</h4></li>
 <li>滑动窗口是固定窗口的更广义的一种形式，滑动窗口由固定的窗口长度和滑动间隔组成</li>
 <li>窗口长度固定，可以有重叠</li>
 </ul>
-<h3 id="会话窗口（Session-Windows）"><a href="#会话窗口（Session-Windows）" class="headerlink" title="会话窗口（Session Windows）"></a>会话窗口（Session Windows）</h3><ul>
+<h4 id="会话窗口（Session-Windows）"><a href="#会话窗口（Session-Windows）" class="headerlink" title="会话窗口（Session Windows）"></a>会话窗口（Session Windows）</h4><ul>
 <li>由一系列事件组合一个指定时间长度的timeout间隙组成，也就是一段时间没有接收到新数据就会生成新的窗口</li>
 <li>特点：时间无对齐</li>
 </ul>
-<h3 id="window的生命周期"><a href="#window的生命周期" class="headerlink" title="window的生命周期"></a>window的生命周期</h3><p>当第一个应该属于该窗口的元素到达时，就会创建一个窗口，当时间（事件或处理时间）超过其结束时间戳加上用户指定的时间时，该窗口将被完全删除，</p>
+<h3 id="window的生命周期"><a href="#window的生命周期" class="headerlink" title="window的生命周期"></a>window的生命周期</h3><p>当第一个应该属于该窗口的元素到达时，就会创建一个窗口，当时间（事件或处理时间）超过其结束时间戳加上用户指定的时间时，该窗口将被完全删除，<br>Flink 确保了只清除基于时间的window，其他类型的window不清除</p>
+<p>此外，每个窗口都有一个触发器（请参阅<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/zh/docs/dev/datastream/operators/windows/#triggers">触发器</a>）和一个函数（ProcessWindowFunction、ReduceFunction 或 AggregateFunction）（请参阅<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/zh/docs/dev/datastream/operators/windows/#window-functions">窗口函数</a>）。<br>该函数将包含要应用于窗口内容的计算，而触发器指定窗口被认为准备好应用该函数的条件。触发策略可能类似于“当窗口中的元素数量超过 4 时”，或“当水印通过窗口末尾时”。<br>触发器还可以决定在创建和删除窗口之间的任何时间清除窗口的内容。在这种情况下，清除仅指窗口中的元素，而不是窗口元数据。这意味着新数据仍然可以添加到该窗口。<br>除了上述之外，您还可以指定一个 Evictor（参见 <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/zh/docs/dev/datastream/operators/windows/#evictors">Evictors</a>），它能够在触发器触发之后和之前从窗口中删除元素</p>
+<h3 id="Window-Functions"><a href="#Window-Functions" class="headerlink" title="Window Functions"></a>Window Functions</h3><p>在定义了窗口分配器之后，我们需要指定我们想要在这些窗口中的每一个上执行的计算。这是窗口函数的职责，<br>它用于在系统确定窗口已准备好处理时处理每个（可能是键控的）窗口的元素。窗口函数可以是<code>ReduceFunction</code>、<code>AggregateFunction</code>或<code>ProcessWindowFunction</code>之一。<br>前两个可以更有效地执行（参见<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/zh/docs/dev/datastream/operators/windows/#useful-state-size-considerations">状态大小</a>部分），因为 Flink 可以在每个窗口的元素到达时增量聚合它们。<br><code>ProcessWindowFunction</code>获取包含在窗口中的所有元素的<code>Iterable</code>以及有关元素所属窗口的附加元信息。<br>带有<code>ProcessWindowFunction</code>的窗口转换不能像其他情况一样有效地执行，因为 Flink 在调用函数之前必须在内部缓冲窗口的所有元素。<br>这可以通过将 <code>ProcessWindowFunction</code> 与 <code>ReduceFunction</code> 或 <code>AggregateFunction</code> 结合来获得窗口元素的增量聚合和 <code>ProcessWindowFunction</code> 接收的附加窗口元数据来缓解。</p>
+<h4 id="ReduceFunction"><a href="#ReduceFunction" class="headerlink" title="ReduceFunction"></a>ReduceFunction</h4><p>ReduceFunction 指定如何组合来自输入的两个元素以生成相同类型的输出元素。 Flink 使用 ReduceFunction 来增量聚合窗口的元素。<br>ReduceFunction 有多种实现方式<br>第一种是直接窗口内聚合，不能对窗口外的数据做聚合，这个是最基本的reduce<br>第二种，先执行窗口内的聚合，然后，可以执行窗口外的，代码如下：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">R</span><span class="token punctuation">></span></span> <span class="token class-name">SingleOutputStreamOperator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">R</span><span class="token punctuation">></span></span> <span class="token function">reduce</span><span class="token punctuation">(</span>
+            <span class="token class-name">ReduceFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">></span></span> reduceFunction<span class="token punctuation">,</span> <span class="token class-name">ProcessWindowFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">,</span> <span class="token class-name">R</span><span class="token punctuation">,</span> <span class="token class-name">K</span><span class="token punctuation">,</span> <span class="token class-name">W</span><span class="token punctuation">></span></span> function<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">TypeInformation</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">R</span><span class="token punctuation">></span></span> resultType <span class="token operator">=</span>
+                <span class="token function">getProcessWindowFunctionReturnType</span><span class="token punctuation">(</span>function<span class="token punctuation">,</span> input<span class="token punctuation">.</span><span class="token function">getType</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">return</span> <span class="token function">reduce</span><span class="token punctuation">(</span>reduceFunction<span class="token punctuation">,</span> function<span class="token punctuation">,</span> resultType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>ReduceFunction 处理玩的结果，会当成输入写入到ProcessWindowFunction<br>这种适合处理，先用reduce预聚合，然后再通过ProcessWindowFunction整体聚合<br>AggregateFunction同样有这种功能，可能传入ProcessWindowFunction</p>
+<h4 id="AggregateFunction"><a href="#AggregateFunction" class="headerlink" title="AggregateFunction"></a>AggregateFunction</h4><p>AggregateFunction 是 ReduceFunction 的通用版本，它具有三种类型：输入类型 (IN)、累加器类型 (ACC) 和输出类型 (OUT)。<br>输入类型是输入流中元素的类型，AggregateFunction 有一种方法可以将一个输入元素添加到累加器中。<br>该接口还具有用于创建初始累加器、将两个累加器合并为一个累加器以及从累加器中提取输出（OUT 类型）的方法。 我们将在下面的示例中看到它是如何工作的。<br>与 ReduceFunction 相同，Flink 将在窗口的输入元素到达时增量地聚合它们。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * The accumulator is used to keep a running sum and a count. The &#123;@code getResult&#125; method
+ * computes the average.
+ */</span>
+<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">AverageAggregate</span>
+    <span class="token keyword">implements</span> <span class="token class-name">AggregateFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">,</span> <span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">,</span> <span class="token class-name">Double</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+  <span class="token annotation punctuation">@Override</span>
+  <span class="token keyword">public</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> <span class="token function">createAccumulator</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token number">0L</span><span class="token punctuation">,</span> <span class="token number">0L</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token annotation punctuation">@Override</span>
+  <span class="token keyword">public</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> <span class="token function">add</span><span class="token punctuation">(</span><span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> value<span class="token punctuation">,</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> accumulator<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>accumulator<span class="token punctuation">.</span>f0 <span class="token operator">+</span> value<span class="token punctuation">.</span>f1<span class="token punctuation">,</span> accumulator<span class="token punctuation">.</span>f1 <span class="token operator">+</span> <span class="token number">1L</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token annotation punctuation">@Override</span>
+  <span class="token keyword">public</span> <span class="token class-name">Double</span> <span class="token function">getResult</span><span class="token punctuation">(</span><span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> accumulator<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">double</span><span class="token punctuation">)</span> accumulator<span class="token punctuation">.</span>f0<span class="token punctuation">)</span> <span class="token operator">/</span> accumulator<span class="token punctuation">.</span>f1<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token annotation punctuation">@Override</span>
+  <span class="token keyword">public</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> <span class="token function">merge</span><span class="token punctuation">(</span><span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> a<span class="token punctuation">,</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Long</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> b<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>a<span class="token punctuation">.</span>f0 <span class="token operator">+</span> b<span class="token punctuation">.</span>f0<span class="token punctuation">,</span> a<span class="token punctuation">.</span>f1 <span class="token operator">+</span> b<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span> input <span class="token operator">=</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">;</span>
+
+input
+    <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span><span class="token generics"><span class="token punctuation">&lt;</span>key selector<span class="token punctuation">></span></span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token generics"><span class="token punctuation">&lt;</span>window assigner<span class="token punctuation">></span></span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">aggregate</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">AverageAggregate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上面的示例计算窗口中元素的第二个字段的平均值。</p>
+<h4 id="ProcessWindowFunction"><a href="#ProcessWindowFunction" class="headerlink" title="ProcessWindowFunction"></a>ProcessWindowFunction</h4><p>ProcessWindowFunction 获得一个包含窗口所有元素的 Iterable 和一个可以访问时间和状态信息的 Context 对象，这使其能够提供比其他窗口函数更大的灵活性。<br>这是以性能和资源消耗为代价的，因为元素不能增量聚合，而是需要在内部缓冲，直到窗口被认为准备好进行处理。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span> input <span class="token operator">=</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">;</span>
+
+input
+  <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>t <span class="token operator">-></span> t<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token class-name">TumblingEventTimeWindows</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token class-name">Time</span><span class="token punctuation">.</span><span class="token function">minutes</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">process</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">MyProcessWindowFunction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">/* ... */</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MyProcessWindowFunction</span> 
+    <span class="token keyword">extends</span> <span class="token class-name">ProcessWindowFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">TimeWindow</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+
+  <span class="token annotation punctuation">@Override</span>
+  <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">process</span><span class="token punctuation">(</span><span class="token class-name">String</span> key<span class="token punctuation">,</span> <span class="token class-name">Context</span> context<span class="token punctuation">,</span> <span class="token class-name">Iterable</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span> input<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> out<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">long</span> count <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> in<span class="token operator">:</span> input<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      count<span class="token operator">++</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    out<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token string">"Window: "</span> <span class="token operator">+</span> context<span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"count: "</span> <span class="token operator">+</span> count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>该示例显示了一个 ProcessWindowFunction，它对窗口中的元素进行计数。此外，窗口函数将有关窗口的信息添加到输出中。</p>
+<blockquote>
+<p>请注意，将 ProcessWindowFunction 用于简单的聚合（例如 count）是非常低效的<br>增量窗口聚合使用 AggregateFunction 或者 ReduceFunction同样可以达到相同的想过，并且，效率很高</p>
+</blockquote>
+<h4 id="WindowFunction-Legacy-：apply"><a href="#WindowFunction-Legacy-：apply" class="headerlink" title="WindowFunction (Legacy)：apply"></a>WindowFunction (Legacy)：apply</h4><p>在某些可以使用 ProcessWindowFunction 的地方，您也可以使用 WindowFunction。这是 ProcessWindowFunction 的旧版本，提供较少的上下文信息并且没有一些高级功能，例如每个窗口的键控状态。<br>此接口将在某些时候被弃用。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span> input <span class="token operator">=</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">;</span>
+
+input
+    <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span><span class="token generics"><span class="token punctuation">&lt;</span>key selector<span class="token punctuation">></span></span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token generics"><span class="token punctuation">&lt;</span>window assigner<span class="token punctuation">></span></span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">MyWindowFunction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="在-ProcessWindowFunction-中使用每个窗口状态"><a href="#在-ProcessWindowFunction-中使用每个窗口状态" class="headerlink" title="在 ProcessWindowFunction 中使用每个窗口状态"></a>在 ProcessWindowFunction 中使用每个窗口状态</h4><p>除了访问键控状态之外，ProcessWindowFunction 还可以使用键控状态，该键控状态的范围限定为函数当前正在处理的窗口。 在这种情况下，了解每个窗口状态所指的窗口是什么很重要。 涉及不同的“窗口”：</p>
+<blockquote>
+<p>这地方没看懂</p>
+</blockquote>
+<p>flink window相关内容，具体可以参考<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/zh/docs/dev/datastream/operators/windows/">Flink Window</a></p>
 ]]></content>
       <categories>
         <category>大数据</category>
@@ -375,6 +482,41 @@ Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of 
       </categories>
       <tags>
         <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Iceberg学习笔记</title>
+    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Iceberg简介</li>
+<li>Iceberg架构</li>
+<li>Iceberg简单使用案例</li>
+<li>Iceberg压力测试<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。</p>
+<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
+<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
+<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
+<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
+<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
+</ul>
+<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
+<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如[图4]这样的一个文件组织模式。</p>
+<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O1复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
+<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
+<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
+<h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2><h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Iceberg</category>
+      </categories>
+      <tags>
+        <tag>Iceberg</tag>
       </tags>
   </entry>
   <entry>
@@ -785,23 +927,17 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
-    <title>Redis杂记（一）</title>
-    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
-<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
-<p>这里记录一下两个命令：</p>
-<h2 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h2><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h2><p>在生产环境下，尽量使用scan</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
+    <title>MongoDB杂记（一）</title>
+    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>Redis</category>
+        <category>MongoDB</category>
       </categories>
       <tags>
-        <tag>Redis</tag>
+        <tag>MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -873,17 +1009,23 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </tags>
   </entry>
   <entry>
-    <title>MongoDB杂记（一）</title>
-    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+    <title>Redis杂记（一）</title>
+    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
+<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
+<p>这里记录一下两个命令：</p>
+<h2 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h2><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h2><p>在生产环境下，尽量使用scan</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>MongoDB</category>
+        <category>Redis</category>
       </categories>
       <tags>
-        <tag>MongoDB</tag>
+        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -2351,6 +2493,7 @@ search:
 <li>呼出文件列表： command + 上方向键</li>
 </ul>
 <p>当用IDEA写java的时候，写匿名函数的时候，如果不知道new什么，可以在方法()里使用<code>option + /</code>会自动提示创建什么对象<br><img src="/uploads/20210520/IDEA%E7%BC%96%E5%86%99JAVA.png" alt="IDEA编写JAVA"><br>鼠标悬浮在提醒的对象名上，会提醒这个对象是什么类的，直接new就可以</p>
+<p>在IDEA写java的时候，如果不知道是什么类型，可以使用<code>option + shift + enter</code>来自动补全<br>例如：<br><code>map = mapState.iterator().next();</code><br>把鼠标悬浮在map变量上，然后可以点击<code>create local variable &#39;map&#39;</code>,或者<code>option + shift + enter</code>来自动补全</p>
 <h2 id="github网页可以访问，但是ping不通"><a href="#github网页可以访问，但是ping不通" class="headerlink" title="github网页可以访问，但是ping不通"></a>github网页可以访问，但是ping不通</h2><p>最近从github上拉取代码，总是报超时，ping github.com后连不通<br>一开始以为是国外ip访问不了，翻墙试了一下，还是不行<br>最后解决方法，修改hosts文件<br>原因是直接ping github.com返回的服务器ip ping不通，但是github本身是有很多ip的，我们挑一个可以ping的通的ip</p>
 <pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>问题解决</p>
