@@ -486,6 +486,48 @@ input
       </tags>
   </entry>
   <entry>
+    <title>Iceberg学习笔记</title>
+    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Iceberg简介</li>
+<li>Iceberg架构</li>
+<li>Iceberg简单使用案例</li>
+<li>Iceberg压力测试<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
+<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
+<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
+<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
+<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
+<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
+<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
+</ul>
+<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
+<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
+<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/20210520/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
+<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
+<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
+<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
+<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
+<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
+<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
+</ul>
+<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Iceberg</category>
+      </categories>
+      <tags>
+        <tag>Iceberg</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java杂记</title>
     <url>/2021/08/18/Java%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -551,48 +593,6 @@ input
       </categories>
       <tags>
         <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Iceberg学习笔记</title>
-    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Iceberg简介</li>
-<li>Iceberg架构</li>
-<li>Iceberg简单使用案例</li>
-<li>Iceberg压力测试<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
-<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
-<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
-<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
-<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
-<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
-<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
-<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
-<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
-</ul>
-<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
-<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
-<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/20210520/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
-<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
-<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
-<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
-<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
-<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
-<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
-<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
-</ul>
-<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Iceberg</category>
-      </categories>
-      <tags>
-        <tag>Iceberg</tag>
       </tags>
   </entry>
   <entry>
@@ -1899,6 +1899,46 @@ org.apache.spark.SparkException: Yarn application has already ended! It might ha
       </tags>
   </entry>
   <entry>
+    <title>spark性能优化之序列化</title>
+    <url>/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/</url>
+    <content><![CDATA[<h3 id="序列化是干什么的？"><a href="#序列化是干什么的？" class="headerlink" title="序列化是干什么的？"></a>序列化是干什么的？</h3><p>序列化简单来说就保存对象在内存中的状态也可以说是实例化变量。这是Java提供的用来保存 Object state，一种保存对象状态的机制。只有实现了serializable接口的类的对象才能被实例化<br>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
+<h3 id="什么情况下会用到序列化？"><a href="#什么情况下会用到序列化？" class="headerlink" title="什么情况下会用到序列化？"></a>什么情况下会用到序列化？</h3><ul>
+<li>当你想把内存中的对象写入到硬盘时</li>
+<li>当你想用套接字在网络上传输对象时</li>
+<li>当你想通过RMI调用对象时(RMI总结来说就是远程调用对象，在一个jvm上调用另一个jvm的对象)</li>
+</ul>
+<h3 id="Spark为什么需要序列化？"><a href="#Spark为什么需要序列化？" class="headerlink" title="Spark为什么需要序列化？"></a>Spark为什么需要序列化？</h3><p>Spark是分布式执行引擎，其核心抽象是弹性分布式数据集RDD，其代表了分布在不同节点的数据。Spark的计算是在executor上分布式执行的，所以对象在执行中需要通过网络传输，或者持久化到本地磁盘的时候必须要经过序列化。</p>
+<h3 id="Spark支持的序列化"><a href="#Spark支持的序列化" class="headerlink" title="Spark支持的序列化"></a>Spark支持的序列化</h3><p>spark默认使用的是java序列化，java序列化的好处是非常灵活，开发起来很简单，缺点是速度较慢，在某些情况下序列化的结果也比较大<br>Spark也能使用Kryo（版本2）序列化对象。Kryo不但速度极快，而且产生的结果更为紧凑（通常能提高10倍）。Kryo的缺点是不支持所有类型，为了更好的性能，你需要提前注册程序中所使用的类（class）。</p>
+<h3 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h3><pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> SparkConf<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>setAppName<span class="token punctuation">(</span><span class="token string">"Test"</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span>set<span class="token punctuation">(</span><span class="token string">"spark.serializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.spark.serializer.KryoSerializer"</span><span class="token punctuation">)</span>   <span class="token comment">//声明序列化器为KryoSerializer</span>
+      <span class="token punctuation">.</span>registerKryoClasses<span class="token punctuation">(</span>Array<span class="token punctuation">(</span>classOf<span class="token punctuation">[</span>MyClass1<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass2<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass3<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment">//注册要序列化的自定义类型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>参考：<a href="https://tech.meituan.com/2016/04/29/spark-tuning-basic.html">https://tech.meituan.com/2016/04/29/spark-tuning-basic.html</a><br>原则八</p>
+<h3 id="spark性能调优"><a href="#spark性能调优" class="headerlink" title="spark性能调优"></a>spark性能调优</h3><p>有篇文章写得很好，可以参考下<br><a href="https://www.cnblogs.com/stillcoolme/p/10576563.html">https://www.cnblogs.com/stillcoolme/p/10576563.html</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>sqoop从mysql导数据到hive报错</title>
+    <url>/2021/01/18/sqoop%E4%BB%8Emysql%E5%AF%BC%E6%95%B0%E6%8D%AE%E5%88%B0hive%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>   使用sqoop从mysql导数据到hive，从本地服务器是可以访问mysql的（本地服务器是hadoop集群的一个datanode），但是sqoop导数据的时候依然连接不上mysql<br>报错如下：<br><img src="/uploads/20210118/sqoop-import-error.png" alt="sqoop-import-error"><br>从报错可以看出，是数据库连接失败，很常见的问题，但是从本地是可以直连mysql的。</p>
+<p>因为sqoop导数据的时候，默认会启动4个map task，这4个map task会随机启动在不动的datanode上，所以在想，是不是因为其他节点没有权限访问mysql导致。<br>但是需要先搞清楚，sqoop在抽取数据的时候，是不是会把4个map task随机启动在不动的datanode上</p>
+<p>在官网上有如下内容：<br><img src="/uploads/20210118/sqoop-official-website.png" alt="sqoop-official-website"><br>虽然讲的不是我们要找到，但是可以判断出，sqoop导数据就是会把maptask随机启动在不通的datanode上。<br>因此，sqoop在导数据到mysql的时候，要确认，hadoop集群的每个节点都要有mysql的读权限</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Sqoop</category>
+      </categories>
+      <tags>
+        <tag>Sqoop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spark-sql使用笔记</title>
     <url>/2021/01/18/spark-sql%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2018,46 +2058,6 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </tags>
   </entry>
   <entry>
-    <title>spark性能优化之序列化</title>
-    <url>/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/</url>
-    <content><![CDATA[<h3 id="序列化是干什么的？"><a href="#序列化是干什么的？" class="headerlink" title="序列化是干什么的？"></a>序列化是干什么的？</h3><p>序列化简单来说就保存对象在内存中的状态也可以说是实例化变量。这是Java提供的用来保存 Object state，一种保存对象状态的机制。只有实现了serializable接口的类的对象才能被实例化<br>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
-<h3 id="什么情况下会用到序列化？"><a href="#什么情况下会用到序列化？" class="headerlink" title="什么情况下会用到序列化？"></a>什么情况下会用到序列化？</h3><ul>
-<li>当你想把内存中的对象写入到硬盘时</li>
-<li>当你想用套接字在网络上传输对象时</li>
-<li>当你想通过RMI调用对象时(RMI总结来说就是远程调用对象，在一个jvm上调用另一个jvm的对象)</li>
-</ul>
-<h3 id="Spark为什么需要序列化？"><a href="#Spark为什么需要序列化？" class="headerlink" title="Spark为什么需要序列化？"></a>Spark为什么需要序列化？</h3><p>Spark是分布式执行引擎，其核心抽象是弹性分布式数据集RDD，其代表了分布在不同节点的数据。Spark的计算是在executor上分布式执行的，所以对象在执行中需要通过网络传输，或者持久化到本地磁盘的时候必须要经过序列化。</p>
-<h3 id="Spark支持的序列化"><a href="#Spark支持的序列化" class="headerlink" title="Spark支持的序列化"></a>Spark支持的序列化</h3><p>spark默认使用的是java序列化，java序列化的好处是非常灵活，开发起来很简单，缺点是速度较慢，在某些情况下序列化的结果也比较大<br>Spark也能使用Kryo（版本2）序列化对象。Kryo不但速度极快，而且产生的结果更为紧凑（通常能提高10倍）。Kryo的缺点是不支持所有类型，为了更好的性能，你需要提前注册程序中所使用的类（class）。</p>
-<h3 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h3><pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> SparkConf<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>setAppName<span class="token punctuation">(</span><span class="token string">"Test"</span><span class="token punctuation">)</span>
-      <span class="token punctuation">.</span>set<span class="token punctuation">(</span><span class="token string">"spark.serializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.spark.serializer.KryoSerializer"</span><span class="token punctuation">)</span>   <span class="token comment">//声明序列化器为KryoSerializer</span>
-      <span class="token punctuation">.</span>registerKryoClasses<span class="token punctuation">(</span>Array<span class="token punctuation">(</span>classOf<span class="token punctuation">[</span>MyClass1<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass2<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass3<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment">//注册要序列化的自定义类型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>参考：<a href="https://tech.meituan.com/2016/04/29/spark-tuning-basic.html">https://tech.meituan.com/2016/04/29/spark-tuning-basic.html</a><br>原则八</p>
-<h3 id="spark性能调优"><a href="#spark性能调优" class="headerlink" title="spark性能调优"></a>spark性能调优</h3><p>有篇文章写得很好，可以参考下<br><a href="https://www.cnblogs.com/stillcoolme/p/10576563.html">https://www.cnblogs.com/stillcoolme/p/10576563.html</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>sqoop从mysql导数据到hive报错</title>
-    <url>/2021/01/18/sqoop%E4%BB%8Emysql%E5%AF%BC%E6%95%B0%E6%8D%AE%E5%88%B0hive%E6%8A%A5%E9%94%99/</url>
-    <content><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>   使用sqoop从mysql导数据到hive，从本地服务器是可以访问mysql的（本地服务器是hadoop集群的一个datanode），但是sqoop导数据的时候依然连接不上mysql<br>报错如下：<br><img src="/uploads/20210118/sqoop-import-error.png" alt="sqoop-import-error"><br>从报错可以看出，是数据库连接失败，很常见的问题，但是从本地是可以直连mysql的。</p>
-<p>因为sqoop导数据的时候，默认会启动4个map task，这4个map task会随机启动在不动的datanode上，所以在想，是不是因为其他节点没有权限访问mysql导致。<br>但是需要先搞清楚，sqoop在抽取数据的时候，是不是会把4个map task随机启动在不动的datanode上</p>
-<p>在官网上有如下内容：<br><img src="/uploads/20210118/sqoop-official-website.png" alt="sqoop-official-website"><br>虽然讲的不是我们要找到，但是可以判断出，sqoop导数据就是会把maptask随机启动在不通的datanode上。<br>因此，sqoop在导数据到mysql的时候，要确认，hadoop集群的每个节点都要有mysql的读权限</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Sqoop</category>
-      </categories>
-      <tags>
-        <tag>Sqoop</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>vim使用手册（一）</title>
     <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2144,6 +2144,46 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       </categories>
       <tags>
         <tag>vim</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据仓库-数据质量</title>
+    <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>数据质量基本概念</li>
+<li>影响因素</li>
+<li>评估维度</li>
+<li>实施流程<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="数据质量基本概念"><a href="#数据质量基本概念" class="headerlink" title="数据质量基本概念"></a>数据质量基本概念</h2><ul>
+<li>数据质量管理（Data Quality Management），是指对数据从计划、获取、存储、共享、维护、应用、消亡生命周期的每个阶段里可能引发的各类数据质量问题，进行识别、度量、监控、预警等一系列管理活动，并通过改善和提高组织的管理水平使得数据质量获得进一步提高</li>
+<li>数据质量管理不是一时的数据治理手段，而是循环的管理过程。其终极目标是通过可靠的数据，提升数据在使用中的价值，并最终为企业赢得经济效益</li>
+</ul>
+<h2 id="影响因素"><a href="#影响因素" class="headerlink" title="影响因素"></a>影响因素</h2><p>数据问题的来源可能产生于从数据源头到数据存储介质的各个环节。在数据采集阶段，数据的真实性、准确性、完整性、时效性都会影响数据质量。除此之外，数据的加工、存储过程都有可能涉及对原始数据的修改，从而引发数据的质量问题。所以，技术、流程、管理等多方面的因素都有可能会影响到数据质量。</p>
+<h2 id="评估维度"><a href="#评估维度" class="headerlink" title="评估维度"></a>评估维度</h2><ul>
+<li>完整性<br>数据完整性问题包含数据条目不完整，数据属性不完整等</li>
+<li>一致性<br>多源数据的数据模型不一致，如命名不一致，数据编码不一致，含义不一致，生命周期不一致等</li>
+<li>准确性<br>准确性也叫可靠性，不可靠的数据可能会导致严重的问题，会造成有缺陷的方法和糟糕的决策</li>
+<li>唯一性<br>用于识别和度量重复数据，冗余数据，重复数据是导致业务无法协同，流程无法追溯的重要因素，也是数据治理需要解 决的最基本的数据问题</li>
+<li>关联性<br>数据关联性问题是指存在数据关联的数据关系缺失或错误，例如：函数关系、相关系数、主外键关系、索引关系等。存在数据关联性问题，会直接影响数据分析的结果，进而影响管理决策。</li>
+<li>真实性<br>数据必须真实准确的反映客观的实体存在或真实的业务，真实可靠的原始统计数据是企业统计工作的灵魂</li>
+<li>及时性<br>数据的及时性(In-time)是指能否在需要的时候获到数据，数据的及时性与企业的数据处理速度及效率有直接的关系，是影响业务处理和管理效率的关键指标。</li>
+<li>逻辑检查<br>不同表字段之间可能会有逻辑关联，需要稽核</li>
+<li>离群值检查<br>部分数据可能会偏离其他数据，比如同一个商品金额大家都是100元，而有一条数据是1W</li>
+<li>自定义规则<br>由需求方自定义相关规则</li>
+<li>波动稽核<br>与上周环比稽核波动情况 </li>
+<li>强弱规则<br>每个规则的权重应该是不一样的，需要配置优先级，这对后续的告警方式是有帮助的</li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+        <category>数据质量</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
       </tags>
   </entry>
   <entry>
@@ -2416,44 +2456,6 @@ search:
       </tags>
   </entry>
   <entry>
-    <title>数据仓库-数据质量</title>
-    <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>数据质量基本概念</li>
-<li>影响因素</li>
-<li>评估维度</li>
-<li>实施流程</li>
-</ul>
-<h2 id="数据质量基本概念"><a href="#数据质量基本概念" class="headerlink" title="数据质量基本概念"></a>数据质量基本概念</h2><ul>
-<li>数据质量管理（Data Quality Management），是指对数据从计划、获取、存储、共享、维护、应用、消亡生命周期的每个阶段里可能引发的各类数据质量问题，进行识别、度量、监控、预警等一系列管理活动，并通过改善和提高组织的管理水平使得数据质量获得进一步提高</li>
-<li>数据质量管理不是一时的数据治理手段，而是循环的管理过程。其终极目标是通过可靠的数据，提升数据在使用中的价值，并最终为企业赢得经济效益</li>
-</ul>
-<h2 id="影响因素"><a href="#影响因素" class="headerlink" title="影响因素"></a>影响因素</h2><p>数据问题的来源可能产生于从数据源头到数据存储介质的各个环节。在数据采集阶段，数据的真实性、准确性、完整性、时效性都会影响数据质量。除此之外，数据的加工、存储过程都有可能涉及对原始数据的修改，从而引发数据的质量问题。所以，技术、流程、管理等多方面的因素都有可能会影响到数据质量。</p>
-<h2 id="评估维度"><a href="#评估维度" class="headerlink" title="评估维度"></a>评估维度</h2><ul>
-<li>完整性<br>数据完整性问题包含数据条目不完整，数据属性不完整等</li>
-<li>一致性<br>多源数据的数据模型不一致，如命名不一致，数据编码不一致，含义不一致，生命周期不一致等</li>
-<li>准确性<br>准确性也叫可靠性，不可靠的数据可能会导致严重的问题，会造成有缺陷的方法和糟糕的决策</li>
-<li>唯一性<br>用于识别和度量重复数据，冗余数据，重复数据是导致业务无法协同，流程无法追溯的重要因素，也是数据治理需要解 决的最基本的数据问题</li>
-<li>关联性<br>数据关联性问题是指存在数据关联的数据关系缺失或错误，例如：函数关系、相关系数、主外键关系、索引关系等。存在数据关联性问题，会直接影响数据分析的结果，进而影响管理决策。</li>
-<li>真实性<br>数据必须真实准确的反映客观的实体存在或真实的业务，真实可靠的原始统计数据是企业统计工作的灵魂</li>
-<li>及时性<br>数据的及时性(In-time)是指能否在需要的时候获到数据，数据的及时性与企业的数据处理速度及效率有直接的关系，是影响业务处理和管理效率的关键指标。</li>
-<li>逻辑检查<br>不同表字段之间可能会有逻辑关联，需要稽核</li>
-<li>离群值检查<br>部分数据可能会偏离其他数据，比如同一个商品金额大家都是100元，而有一条数据是1W</li>
-<li>自定义规则<br>由需求方自定义相关规则</li>
-<li>波动稽核<br>与上周环比稽核波动情况 </li>
-<li>强弱规则<br>每个规则的权重应该是不一样的，需要配置优先级，这对后续的告警方式是有帮助的</li>
-</ul>
-]]></content>
-      <categories>
-        <category>数据仓库</category>
-        <category>数据质量</category>
-      </categories>
-      <tags>
-        <tag>数据仓库</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>日常工具软件问题</title>
     <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2558,7 +2560,7 @@ Dataset和DataFrame的区别与联系：
 Dataset和RDD的区别与联系：
 首先，Dataset的底层不是RDD，但是它可以和RDD互相转化，DS的一些算子例如filter等都是自己实现的，并没有调用RDD的算子
 DStream：离散化流（DStream），SparkStreaming中的基本抽象，DSream 代表了一系列连续的RDD，DStream中每个RDD包含特定时间间隔的数据，一个DStream 对应了时间维度上的多个RDD。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><p>简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数?</p>
+<li><p><strong>简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数?</strong></p>
 <pre class="line-numbers language-none"><code class="language-none">窄依赖：子RDD的一个分区只会依赖父RDD的一个分区，父子分区一对一
 宽依赖：子RDD的多个分区会依赖同一个父RDD的一个分区（会涉及到shuffle）
 spark根据RDD的依赖关系划分stage，遇到一个宽依赖，就划分一个stage
@@ -2603,7 +2605,7 @@ Spark SQL 不一定比Hive快，例如没有shuffle的或者只有一次shuffle�
 3、单独起一个定时任务来合并小文件<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
 <li><p><strong>Checkpoint和持久化有什么区别？</strong></p>
 <pre class="line-numbers language-none"><code class="language-none">1、持久化只是将数据保存在BlockManager中，而RDD的lineage是不变的，但是checkpoint执行完后，RDD已经没有之前所谓的依赖RDD了，而只有一个强行为其设置的checkpointRDD，RDD的lineage（血缘关系，依赖关系）改变了
-2、2.持久化的数据丢失可能性更大，磁盘、内存都可能会存在数据丢失的情况。但是checkpoint的数据通常是存储在如HDFS等容错、高可用的文件系统，数据丢失可能性较小。
+2、持久化的数据丢失可能性更大，磁盘、内存都可能会存在数据丢失的情况。但是checkpoint的数据通常是存储在如HDFS等容错、高可用的文件系统，数据丢失可能性较小。
 注：默认情况下，如果某个RDD没有持久化，但是设置了checkpoint，会存在问题，本来这个job都执行结束了，但是由于中间RDD没有持久化，checkpoint job想要将RDD的数据写入外部文件系统的话，需要全部重新计算一次，
 再将计算出来的RDD数据checkpoint到外部文件系统。所以，建议对checkpoint()的RDD使用persist(StorageLevel.DISK_ONLY)，该RDD计算之后，就直接持久化到磁盘上。后面进行checkpoint操作时就可以直接从磁盘上读取RDD的数据，并checkpoint到外部文件系统。
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
