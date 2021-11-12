@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210520/jdk%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF.png">
 <meta property="article:published_time" content="2021-05-20T07:04:35.000Z">
-<meta property="article:modified_time" content="2021-08-06T09:47:25.022Z">
+<meta property="article:modified_time" content="2021-11-09T02:40:02.335Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Mac">
 <meta property="article:tag" content="Sublime">
@@ -235,7 +235,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-08-06 17:47:25" itemprop="dateModified" datetime="2021-08-06T17:47:25+08:00">2021-08-06</time>
+                <time title="修改时间：2021-11-09 10:40:02" itemprop="dateModified" datetime="2021-11-09T10:40:02+08:00">2021-11-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -297,7 +297,7 @@
 <li>Iterm2  &amp;&amp; oh my zsh</li>
 <li>sublime</li>
 <li>百度云网盘</li>
-<li>WPS</li>
+<li>Snipaste：截图神器</li>
 </ul>
 <h2 id="安装并配置oh-my-zsh"><a href="#安装并配置oh-my-zsh" class="headerlink" title="安装并配置oh my zsh"></a>安装并配置<code>oh my zsh</code></h2><p>Mac自带的终端界面体验实在不敢恭维。这里记录一下安装<code>oh my zsh</code>的过程</p>
 <ul>
@@ -440,12 +440,19 @@ alias emacs&#x3D;&quot;&#x2F;Applications&#x2F;Emacs.app&#x2F;Contents&#x2F;MacO
 # Example aliases
 # alias zshconfig&#x3D;&quot;mate ~&#x2F;.zshrc&quot;
 # alias ohmyzsh&#x3D;&quot;mate ~&#x2F;.oh-my-zsh&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="Mac使用ssh-agent登陆远程服务器"><a href="#Mac使用ssh-agent登陆远程服务器" class="headerlink" title="Mac使用ssh-agent登陆远程服务器"></a>Mac使用ssh-agent登陆远程服务器</h2>该功能类似SecureCRT里的<code>Tools-Manage Agent Keys</code><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">eval &#96;ssh-agent&#96;
+Iterm2快捷键：</li>
+<li>Command + N ： 新建tab页</li>
+<li>Command + Enter ： 全屏/退出全屏</li>
+</ul>
+<h2 id="Mac使用ssh-agent登陆远程服务器"><a href="#Mac使用ssh-agent登陆远程服务器" class="headerlink" title="Mac使用ssh-agent登陆远程服务器"></a>Mac使用ssh-agent登陆远程服务器</h2><p>该功能类似SecureCRT里的<code>Tools-Manage Agent Keys</code></p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">eval &#96;ssh-agent&#96;
 ## id_rsa_work为之前保存的私钥文件
 ssh-add ~&#x2F;.ssh&#x2F;id_rsa_work<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-但是，这种方式有一个缺点，每次打开终端都要执行一次，这里把它加载到环境变量里<br>在.zshrc里添加一下内容：<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">eval &#96;ssh-agent&#96; &gt; &#x2F;dev&#x2F;null
+<p>但是，这种方式有一个缺点，每次打开终端都要执行一次，这里把它加载到环境变量里<br>在.zshrc里添加一下内容：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">eval &#96;ssh-agent&#96; &gt; &#x2F;dev&#x2F;null
 ssh-add ~&#x2F;.ssh&#x2F;id_rsa_work &gt; &#x2F;dev&#x2F;null<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<h2 id="安装并配置java"><a href="#安装并配置java" class="headerlink" title="安装并配置java"></a>安装并配置java</h2>mac下安装java很简单，但是配置java的环境变量，被恶心到了，找不到java的安装路径</li>
+<h2 id="安装并配置java"><a href="#安装并配置java" class="headerlink" title="安装并配置java"></a>安装并配置java</h2><p>mac下安装java很简单，但是配置java的环境变量，被恶心到了，找不到java的安装路径</p>
+<ul>
 <li>首先到官网上下载java安装包，注意，下载那个大的，也就是200多M的文件，下载小的，不包含jdk</li>
 <li>查找JDK安装目录<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">## 执行如下命令
 &#x2F;usr&#x2F;libexec&#x2F;java_home -V
@@ -644,7 +651,7 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">34</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
