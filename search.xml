@@ -486,48 +486,6 @@ input
       </tags>
   </entry>
   <entry>
-    <title>Iceberg学习笔记</title>
-    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Iceberg简介</li>
-<li>Iceberg架构</li>
-<li>Iceberg简单使用案例</li>
-<li>Iceberg压力测试<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
-<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
-<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
-<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
-<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
-<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
-<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
-<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
-<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
-</ul>
-<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
-<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
-<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/20210520/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
-<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
-<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
-<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
-<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
-<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
-<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
-<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
-</ul>
-<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Iceberg</category>
-      </categories>
-      <tags>
-        <tag>Iceberg</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java杂记</title>
     <url>/2021/08/18/Java%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -593,6 +551,48 @@ input
       </categories>
       <tags>
         <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Iceberg学习笔记</title>
+    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Iceberg简介</li>
+<li>Iceberg架构</li>
+<li>Iceberg简单使用案例</li>
+<li>Iceberg压力测试<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
+<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
+<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
+<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
+<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
+<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
+<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
+</ul>
+<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
+<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
+<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/20210520/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
+<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
+<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
+<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
+<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
+<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
+<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
+</ul>
+<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Iceberg</category>
+      </categories>
+      <tags>
+        <tag>Iceberg</tag>
       </tags>
   </entry>
   <entry>
@@ -1127,45 +1127,6 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       </tags>
   </entry>
   <entry>
-    <title>azkban从编译开始安装</title>
-    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>如何下载Azkaban稳定版代码</li>
-<li>如何构建Azkaban源码</li>
-<li>如何配置Azkaban</li>
-<li>启动Azkaban注意点<a id="more"></a>
-<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
-</ul>
-<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
-<p>后来还是直接clone官网上的代码来构建</p>
-<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
-<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
-<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
-<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
-2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
-2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
-<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Azkaban</category>
-      </categories>
-      <tags>
-        <tag>Azkaban</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Zookeeper学习笔记（一）</title>
     <url>/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1267,6 +1228,45 @@ sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<spa
       </categories>
       <tags>
         <tag>emacs</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>azkban从编译开始安装</title>
+    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>如何下载Azkaban稳定版代码</li>
+<li>如何构建Azkaban源码</li>
+<li>如何配置Azkaban</li>
+<li>启动Azkaban注意点<a id="more"></a>
+<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
+</ul>
+<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
+<p>后来还是直接clone官网上的代码来构建</p>
+<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
+<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
+<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
+<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
+2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
+2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
+<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Azkaban</category>
+      </categories>
+      <tags>
+        <tag>Azkaban</tag>
       </tags>
   </entry>
   <entry>
@@ -1846,6 +1846,79 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       </tags>
   </entry>
   <entry>
+    <title>spark on yarn遇到的问题（一）</title>
+    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
+<li>spark on yarn任务提交缓慢解决</li>
+</ul>
+<a id="more"></a>
+<h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
+<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
+<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
+        --master yarn \
+        --deploy-mode client \
+        --num-executors 2 \
+        --executor-memory 1G \
+        --executor-cores 1 \
+        --conf spark.driver.host&#x3D;192.168.72.129\
+         dmp_broadcast_data_day.py
+ &#96;&#96;&#96;   
+   2、在集群其他节点上都把driver服务器的IP加上去。
+
+# spark on yarn任务提交缓慢解决
+## 问题背景
+   在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
+   在提交任务的时候，有一个WARN的日志：
+&#96;&#96;&#96;shell
+    WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
+<li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
+<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
+org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
+    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
+    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
+    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
+    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
+    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
+    at scala.Option.getOrElse(Option.scala:121)
+    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
+    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
+<li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
+<li>yarn的虚拟内存超限，contrainer被干杀死</li>
+</ul>
+<p>这里查了一下，我的是spark-end.sh配置没问题，问题出现在第二点<br>我的<code>yarn-site.xml</code>的<code>yarn.nodemanager.vmem-pmem-ratio=2.1</code>，虚拟内存最大是2.1，查看yarn上的日志，发现实际内存是2.2，所以，这里把它设置成了3.1</p>
+<pre class="line-numbers language-none"><code class="language-none">&lt;!--2个配置只用配置一个即可解决问题，当然都配置也没问题--&gt;
+&lt;!--虚拟内存设置是否生效,若实际虚拟内存大于设置值 &quot;--&gt;
+&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;&#x2F;name&gt;
+    &lt;value&gt;false&lt;&#x2F;value&gt;
+    &lt;description&gt;Whether virtual memory limits will be enforced for containers&lt;&#x2F;description&gt;
+&lt;&#x2F;property&gt;
+&lt;!--配置虚拟内存&#x2F;物理内存的值，默认为2.1,物理内存默认应该是1g，所以虚拟内存是2.1g--&gt;
+&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.vmem-pmem-ratio&lt;&#x2F;name&gt;
+    &lt;value&gt;3.1&lt;&#x2F;value&gt;
+    &lt;description&gt;Ratio between virtual memory to physical memory when setting memory limits for containers&lt;&#x2F;description&gt;
+&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Yarn</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spark-sql使用笔记</title>
     <url>/2021/01/18/spark-sql%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1963,79 +2036,6 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </categories>
       <tags>
         <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>spark on yarn遇到的问题（一）</title>
-    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
-<li>spark on yarn任务提交缓慢解决</li>
-</ul>
-<a id="more"></a>
-<h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
-<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
-<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
-        --master yarn \
-        --deploy-mode client \
-        --num-executors 2 \
-        --executor-memory 1G \
-        --executor-cores 1 \
-        --conf spark.driver.host&#x3D;192.168.72.129\
-         dmp_broadcast_data_day.py
- &#96;&#96;&#96;   
-   2、在集群其他节点上都把driver服务器的IP加上去。
-
-# spark on yarn任务提交缓慢解决
-## 问题背景
-   在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
-   在提交任务的时候，有一个WARN的日志：
-&#96;&#96;&#96;shell
-    WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
-<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
-<li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
-<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
-org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
-    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
-    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
-    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
-    at scala.Option.getOrElse(Option.scala:121)
-    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
-    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
-<li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
-<li>yarn的虚拟内存超限，contrainer被干杀死</li>
-</ul>
-<p>这里查了一下，我的是spark-end.sh配置没问题，问题出现在第二点<br>我的<code>yarn-site.xml</code>的<code>yarn.nodemanager.vmem-pmem-ratio=2.1</code>，虚拟内存最大是2.1，查看yarn上的日志，发现实际内存是2.2，所以，这里把它设置成了3.1</p>
-<pre class="line-numbers language-none"><code class="language-none">&lt;!--2个配置只用配置一个即可解决问题，当然都配置也没问题--&gt;
-&lt;!--虚拟内存设置是否生效,若实际虚拟内存大于设置值 &quot;--&gt;
-&lt;property&gt;
-    &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;&#x2F;name&gt;
-    &lt;value&gt;false&lt;&#x2F;value&gt;
-    &lt;description&gt;Whether virtual memory limits will be enforced for containers&lt;&#x2F;description&gt;
-&lt;&#x2F;property&gt;
-&lt;!--配置虚拟内存&#x2F;物理内存的值，默认为2.1,物理内存默认应该是1g，所以虚拟内存是2.1g--&gt;
-&lt;property&gt;
-    &lt;name&gt;yarn.nodemanager.vmem-pmem-ratio&lt;&#x2F;name&gt;
-    &lt;value&gt;3.1&lt;&#x2F;value&gt;
-    &lt;description&gt;Ratio between virtual memory to physical memory when setting memory limits for containers&lt;&#x2F;description&gt;
-&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Yarn</tag>
       </tags>
   </entry>
   <entry>
@@ -3377,112 +3377,40 @@ Caused by: java.lang.ClassCastException: cannot assign instance of org.apache.co
     <url>/2021/11/11/Flink%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
-<li>Flink面试题总结<a id="more"></a>
+<li>Flink面试题总结</li>
+</ul>
+<a id="more"></a>
 
 
 
-</li>
-</ul>
-<ul>
-<li><strong>Flink是如何支持批流一体的？</strong><br>Flink的开发者认为批处理是流处理的一种特殊情况。批处理是有限的流处理。Flink 使用一个引擎支持了DataSet API 和 DataStream API<br>在1.12.x以后，DataSet API会逐渐废弃，DataStream API已经既可以处理流也可以处理批了<br>具体可以参考<a href="https://www.cnblogs.com/binbingg/p/14330354.html">Apache Flink 1.12.0 正式发布，DataSet API 将被弃用，真正的流批一体</a></li>
-</ul>
-<ul>
-<li><strong>Flink 相比传统的 Spark Streaming 有什么区别?</strong><br>Flink 是标准的实时处理引擎，基于事件驱动。而 Spark Streaming 是微批（Micro-Batch）的模型</li>
-</ul>
-<ol>
-<li>架构模型Spark Streaming 在运行时的主要角色包括：Master、Worker、Driver、Executor;<br>Flink 在运行时主要包含：Jobmanager、Taskmanager和Slot。</li>
-<li>任务调度Spark Streaming 连续不断的生成微小的数据批次，构建有向无环图DAG，Spark Streaming 会依次创建 DStreamGraph、JobGenerator、JobScheduler。<br>Flink 根据用户提交的代码生成 StreamGraph，经过优化生成 JobGraph，然后提交给 JobManager进行处理，JobManager 会根据 JobGraph 生成 ExecutionGraph，ExecutionGraph 是 Flink 调度最核心的数据结构，JobManager 根据 ExecutionGraph 对 Job 进行调度。</li>
-<li>时间机制Spark Streaming 支持的时间机制有限，只支持处理时间。<br>Flink 支持了流处理程序在时间上的三个定义：处理时间、事件时间、注入时间。同时也支持 watermark 机制来处理滞后数据。</li>
-<li>容错机制对于 Spark Streaming 任务，我们可以设置 checkpoint，然后假如发生故障并重启，我们可以从上次 checkpoint 之处恢复，但是这个行为只能使得数据不丢失，可能会重复处理，不能做到恰好一次处理语义。<br>Flink 则使用两阶段提交协议来解决这个问题</li>
-</ol>
-<ul>
-<li><strong>Flink集群有哪些角色？各自有什么作用？</strong><br>Flink 程序在运行时主要有 TaskManager，JobManager，Client三种角色。</li>
-</ul>
-<ol>
-<li>其中JobManager扮演着集群中的管理者Master的角色，它是整个集群的协调者，负责接收Flink Job，协调检查点，Failover 故障恢复等，同时管理Flink集群中从节点TaskManager。</li>
-<li>TaskManager是实际负责执行计算的Worker，在其上执行Flink Job的一组Task，每个TaskManager负责管理其所在节点上的资源信息，如内存、磁盘、网络，在启动的时候将资源的状态向JobManager汇报。</li>
-<li>Client是Flink程序提交的客户端，当用户提交一个Flink程序时，会首先创建一个Client，该Client首先会对用户提交的Flink程序进行预处理，并提交到Flink集群中处理，所以Client需要从用户提交的Flink程序配置中获取JobManager的地址，并建立到JobManager的连接，将Flink Job提交给JobManager</li>
-</ol>
-<ul>
-<li><strong>说说 Flink 资源管理中 Task Slot 的概念</strong><br>在Flink架构角色中我们提到，TaskManager是实际负责执行计算的Worker，TaskManager 是一个 JVM 进程，并会以独立的线程来执行一个task或多个subtask。<br>为了控制一个 TaskManager 能接受多少个 task，Flink 提出了 Task Slot 的概念。简单的说，TaskManager会将自己节点上管理的资源分为不同的Slot：固定大小的资源子集。<br>这样就避免了不同Job的Task互相竞争内存资源，但是需要主要的是，Slot只会做内存的隔离。没有做CPU的隔离。</li>
-</ul>
-<ul>
-<li><strong>说说你知道的Flink分区策略？</strong></li>
-</ul>
-<ol>
-<li>GlobalPartitioner 数据会被分发到下游算子的第一个实例中进行处理。</li>
-<li>ShufflePartitioner 数据会被随机分发到下游算子的每一个实例中进行处理。</li>
-<li>RebalancePartitioner 数据会被循环发送到下游的每一个实例中进行处理。</li>
-<li>RescalePartitioner 这种分区器会根据上下游算子的并行度，循环的方式输出到下游算子的每个实例。<br> 这里有点难以理解，假设上游并行度为2，编号为A和B。下游并行度为4，编号为1，2，3，4。那么A则把数据循环发送给1和2，B则把数据循环发送给3和4。假设上游并行度为4，编号为A，B，C，D。下游并行度为2，编号为1，2。那么A和B则把数据发送给1，C和D则把数据发送给2。</li>
-<li>BroadcastPartitioner 广播分区会将上游数据输出到下游算子的每个实例中。适合于大数据集和小数据集做Jion的场景。</li>
-<li>ForwardPartitioner 用于将记录输出到下游本地的算子实例。它要求上下游算子并行度一样。简单的说，ForwardPartitioner用来做数据的控制台打印。</li>
-<li>KeyGroupStreamPartitioner Hash分区器。会将数据按 Key 的 Hash 值输出到下游算子实例中。</li>
-<li>CustomPartitionerWrapper 用户自定义分区器。需要用户自己实现Partitioner接口，来定义自己的分区逻辑</li>
-</ol>
-<ul>
-<li><p><strong>Flink的并行度了解吗？Flink的并行度设置是怎样的？</strong><br>Flink中的任务被分为多个并行任务来执行，其中每个并行的实例处理一部分数据。这些并行实例的数量被称为并行度。我们在实际生产环境中可以从四个不同层面设置并行度：<br>操作算子层面(Operator Level)<br>执行环境层面(Execution Environment Level)<br>客户端层面(Client Level)<br>系统层面(System Level)<br>需要注意的优先级：算子层面&gt;环境层面&gt;客户端层面&gt;系统层面</p>
-</li>
-<li><p><strong>Flink的Slot和parallelism有什么区别？</strong><br>slot是指taskmanager的并发执行能力，假设我们将 taskmanager.numberOfTaskSlots 配置为3 那么每一个 taskmanager 中分配3个 TaskSlot, 3个 taskmanager 一共有9个TaskSlot。<br>parallelism是指taskmanager实际使用的并发能力。假设我们把 parallelism.default 设置为1，那么9个 TaskSlot 只能用1个，有8个空闲。</p>
-</li>
-</ul>
-<ul>
-<li><p><strong>Flink有没有重启策略？说说有哪几种？</strong><br>Flink 实现了多种重启策略。<br>固定延迟重启策略（Fixed Delay Restart Strategy）<br>故障率重启策略（Failure Rate Restart Strategy）<br>没有重启策略（No Restart Strategy）<br>Fallback重启策略（Fallback Restart Strategy）</p>
-</li>
-<li><p><strong>用过Flink中的分布式缓存吗？如何使用？</strong><br>Flink实现的分布式缓存和Hadoop有异曲同工之妙。目的是在本地读取文件，并把他放在 taskmanager 节点中，防止task重复拉取。</p>
-</li>
-<li><p><strong>说说Flink中的广播变量，使用时需要注意什么？</strong><br>我们知道Flink是并行的，计算过程可能不在一个 Slot 中进行，那么有一种情况即：当我们需要访问同一份数据。那么Flink中的广播变量就是为了解决这种情况。<br>我们可以把广播变量理解为是一个公共的共享变量，我们可以把一个dataset 数据集广播出去，然后不同的task在节点上都能够获取到，这个数据在每个节点上只会存在一份</p>
-</li>
-<li><p><strong>说说Flink中的窗口？</strong><br>Flink的窗口可以分为Keyed Windows和Non-Keyed Windows，键控窗口会按照key划分逻辑键控流，拥有键控流将允许窗口计算由多个任务并行执行，非键控流的并行度为1<br>窗口的生命周期：当应该属于该窗口的第一个元素到达时，就会创建一个窗口，并且当时间（事件或处理时间）超过其结束时间戳加上用户指定的允许延迟时，该窗口将被完全删除<br>窗口分配器可以分为<br>tumbling windows：无重叠<br>sliding windows：有重叠<br>session windows：当会话窗口在一段时间内没有接收到元素时，即发生不活动间隙时，它会关闭<br>global windows：全局窗口分配器将具有相同键的所有元素分配给同一个全局窗口。仅在指定自定义触发器时才有用。 否则，不会执行任何计算</p>
-</li>
-<li><p><strong>说说Flink中的状态存储？</strong><br>Flink在做计算的过程中经常需要存储中间状态，来避免数据丢失和状态恢复。选择的状态存储策略不同，会影响状态持久化如何和 checkpoint 交互。<br>Flink提供了三种状态存储方式：MemoryStateBackend、FsStateBackend、RocksDBStateBackend</p>
-</li>
-</ul>
-<ul>
-<li><p><strong>Flink 中的时间有哪几类？</strong><br>Flink 中的时间和其他流式计算系统的时间一样分为三类：事件时间，摄入时间，处理时间三种。<br>如果以 EventTime 为基准来定义时间窗口将形成EventTimeWindow,要求消息本身就应该携带EventTime。<br>如果以 IngesingtTime 为基准来定义时间窗口将形成 IngestingTimeWindow,以 source 的systemTime为准。<br>如果以 ProcessingTime 基准来定义时间窗口将形成 ProcessingTimeWindow，以 operator 的systemTime 为准。</p>
-</li>
-<li><p><strong>Flink 中水印是什么概念，起到什么作用？</strong><br>Watermark 是 Apache Flink 为了处理 EventTime 窗口计算提出的一种机制, 本质上是一种时间戳。 一般来讲Watermark经常和Window一起被用来处理乱序事件。</p>
-</li>
-</ul>
-<ul>
-<li><p><strong>Flink是如何做到高效的数据交换的？</strong><br>在一个Flink Job中，数据需要在不同的task中进行交换，整个数据交换是有 TaskManager 负责的，TaskManager 的网络组件首先从缓冲buffer中收集records，然后再发送。<br>Records 并不是一个一个被发送的，二是积累一个批次再发送，batch 技术可以更加高效的利用网络资源</p>
-</li>
-<li><p><strong>Flink是如何做容错的？</strong><br>Flink 实现容错主要靠强大的CheckPoint机制和State机制。Checkpoint 负责定时制作分布式快照、对程序中的状态进行备份；State 用来存储计算过程中的中间状态。</p>
-</li>
-<li><p><strong>Flink 分布式快照的原理是什么？</strong><br>Flink的分布式快照是根据Chandy-Lamport算法量身定做的。简单来说就是持续创建分布式数据流及其状态的一致快照。<br>核心思想是在 input source 端插入 barrier，控制 barrier 的同步来实现 snapshot 的备份和 exactly-once 语义。</p>
-</li>
-</ul>
-<ul>
-<li><strong>Flink 是如何保证Exactly-once语义的？</strong><br>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义。 分为以下几个步骤：<br>开始事务（beginTransaction）创建一个临时文件夹，来写把数据写入到这个文件夹里面<br>预提交（preCommit）将内存中缓存的数据写入文件并关闭<br>正式提交（commit）将之前写完的临时文件放入目标目录下。这代表着最终的数据会有一些延迟<br>丢弃（abort）丢弃临时文件<br>若失败发生在预提交成功后，正式提交前。可以根据状态来提交预提交的数据，也可删除预提交的数据。</li>
-</ul>
-<ul>
-<li><p><strong>说说 Flink的内存管理是如何做的?</strong><br>Flink 并不是将大量对象存在堆上，而是将对象都序列化到一个预分配的内存块上。此外，Flink大量的使用了堆外内存。如果需要处理的数据超出了内存限制，则会将部分数据存储到硬盘上。<br>Flink 为了直接操作二进制数据实现了自己的序列化框架。理论上Flink的内存管理分为三部分：<br>Network Buffers：这个是在TaskManager启动的时候分配的，这是一组用于缓存网络数据的内存，每个块是32K，默认分配2048个，可以通过“taskmanager.network.numberOfBuffers”修改<br>Memory Manage pool：大量的Memory Segment块，用于运行时的算法（Sort/Join/Shuffle等），这部分启动的时候就会分配。，内存的分配支持预分配和lazy load，默认懒加载的方式。<br>User Code，这部分是除了Memory Manager之外的内存用于User code和TaskManager本身的数据结构。</p>
-</li>
-<li><p><strong>Flink中的Window出现了数据倾斜，你有什么解决办法？</strong><br>window产生数据倾斜指的是数据在不同的窗口内堆积的数据量相差过多。本质上产生这种情况的原因是数据源头发送的数据量速度不同导致的。出现这种情况一般通过两种方式来解决：<br>在数据进入窗口前做预聚合<br>重新设计窗口聚合的key</p>
-</li>
-<li><p><strong>Flink任务延迟高，想解决这个问题，你会如何入手？</strong><br>在Flink的后台任务管理中，我们可以看到Flink的哪个算子和task出现了反压。最主要的手段是资源调优和算子调优。资源调优即是对作业中的Operator的并发数（parallelism）、CPU（core）、堆内存（heap_memory）等参数进行调优。作业参数调优包括：并行度的设置，State的设置，checkpoint的设置</p>
-</li>
-</ul>
-<ul>
-<li><p><strong>Flink是如何处理反压的？</strong><br>Flink 内部是基于 producer-consumer 模型来进行消息传递的，Flink的反压设计也是基于这个模型。Flink 使用了高效有界的分布式阻塞队列，就像 Java 通用的阻塞队列（BlockingQueue）一样。下游消费者消费变慢，上游就会受到阻塞</p>
-</li>
-<li><p><strong>Operator Chains（算子链）这个概念你了解吗？</strong><br>为了更高效地分布式执行，Flink会尽可能地将operator的subtask链接（chain）在一起形成task。每个task在一个线程中执行。<br>将operators链接成task是非常有效的优化：<br>它能减少线程之间的切换，<br>减少消息的序列化/反序列化，<br>减少数据在缓冲区的交换，<br>减少了延迟的同时提高整体的吞吐量。<br>这就是我们所说的算子链</p>
-</li>
-</ul>
-<ul>
-<li><p><strong>Flink什么情况下才会把Operator chain在一起形成算子链？</strong><br>两个operator chain在一起的的条件：<br>上下游的并行度一致<br>下游节点的入度为1 （也就是说下游节点没有来自其他节点的输入）<br>上下游节点都在同一个 slot group 中（下面会解释 slot group）<br>下游节点的 chain 策略为 ALWAYS（可以与上下游链接，map、flatmap、filter等默认是ALWAYS）<br>上游节点的 chain 策略为 ALWAYS 或 HEAD（只能与下游链接，不能与上游链接，Source默认是HEAD）<br>两个节点间数据分区方式是 forward（参考理解数据流的分区）<br>用户没有禁用 chain</p>
-</li>
-<li><p><strong>Flink Job的提交流程</strong><br>用户提交的Flink Job会被转化成一个DAG任务运行，分别是：StreamGraph、JobGraph、ExecutionGraph，<br>Flink中JobManager与TaskManager，JobManager与Client的交互是基于Akka工具包的，是通过消息驱动。<br>整个Flink Job的提交还包含着ActorSystem的创建，JobManager的启动，TaskManager的启动和注册。</p>
-</li>
-</ul>
-<ul>
-<li><p><strong>Flink 计算资源的调度是如何实现的？</strong><br>TaskManager中最细粒度的资源是Task slot，代表了一个固定大小的资源子集，每个TaskManager会将其所占有的资源平分给它的slot。<br>通过调整 task slot 的数量，用户可以定义task之间是如何相互隔离的。每个 TaskManager 有一个slot，也就意味着每个task运行在独立的 JVM 中。<br>每个 TaskManager 有多个slot的话，也就是说多个task运行在同一个JVM中。而在同一个JVM进程中的task，可以共享TCP连接（基于多路复用）和心跳消息，<br>可以减少数据的网络传输，也能共享一些数据结构，一定程度上减少了每个task的消耗。 每个slot可以接受单个task，也可以接受多个连续task组成的pipeline</p>
-</li>
-<li><p><strong>简述Flink的数据抽象及数据交换过程？</strong><br>Flink 为了避免JVM的固有缺陷例如java对象存储密度低，FGC影响吞吐和响应等，实现了自主管理内存。MemorySegment就是Flink的内存抽象。<br>默认情况下，一个MemorySegment可以被看做是一个32kb大的内存块的抽象。这块内存既可以是JVM里的一个byte[]，也可以是堆外内存（DirectByteBuffer）。<br>在MemorySegment这个抽象之上，Flink在数据从operator内的数据对象在向TaskManager上转移，预备被发给下个节点的过程中，使用的抽象或者说内存对象是Buffer。<br>对接从Java对象转为Buffer的中间对象是另一个抽象StreamRecord。</p>
-</li>
-</ul>
-<ul>
-<li><strong>Flink 中的分布式快照机制是如何实现的？</strong><br>Flink的容错机制的核心部分是制作分布式数据流和操作算子状态的一致性快照。 这些快照充当一致性checkpoint，系统可以在发生故障时回滚。 Flink用于制作这些快照的机制在“分布式数据流的轻量级异步快照”中进行了描述。<br>它受到分布式快照的标准Chandy-Lamport算法的启发，专门针对Flink的执行模型而定制。<br>barriers在数据流源处被注入并行数据流中。快照n的barriers被插入的位置（我们称之为Sn）是快照所包含的数据在数据源中最大位置。<br>例如，在Apache Kafka中，此位置将是分区中最后一条记录的偏移量。 将该位置Sn报告给checkpoint协调器（Flink的JobManager）。<br>然后barriers向下游流动。当一个中间操作算子从其所有输入流中收到快照n的barriers时，它会为快照n发出barriers进入其所有输出流中。<br>一旦sink操作算子（流式DAG的末端）从其所有输入流接收到barriers n，它就向checkpoint协调器确认快照n完成。在所有sink确认快照后，意味快照着已完成。<br>一旦完成快照n，job将永远不再向数据源请求Sn之前的记录，因为此时这些记录（及其后续记录）将已经通过整个数据流拓扑，也即是已经被处理结束。</li>
-</ul>
+<p><strong><font size = 5>1. Flink是如何支持批流一体的？</font></strong><br>    Flink的开发者认为批处理是流处理的一种特殊情况。批处理是有限的流处理。Flink 使用一个引擎支持了DataSet API 和 DataStream API<br>    在1.12.x以后，DataSet API会逐渐废弃，DataStream API已经既可以处理流也可以处理批了<br>    具体可以参考<a href="https://www.cnblogs.com/binbingg/p/14330354.html">Apache Flink 1.12.0 正式发布，DataSet API 将被弃用，真正的流批一体</a></p>
+<p><strong><font size = 5>2. Flink 相比传统的 Spark Streaming 有什么区别?</font></strong><br>    Flink 是标准的实时处理引擎，基于事件驱动。而 Spark Streaming 是微批（Micro-Batch）的模型<br>    1. 架构模型Spark Streaming 在运行时的主要角色包括：Master、Worker、Driver、Executor;<br>       Flink 在运行时主要包含：Jobmanager、Taskmanager和Slot。<br>    2. 任务调度Spark Streaming 连续不断的生成微小的数据批次，构建有向无环图DAG，Spark Streaming 会依次创建 DStreamGraph、JobGenerator、JobScheduler。<br>       Flink 根据用户提交的代码生成 StreamGraph，经过优化生成 JobGraph，然后提交给 JobManager进行处理，JobManager 会根据 JobGraph 生成 ExecutionGraph，ExecutionGraph 是 Flink 调度最核心的数据结构，JobManager 根据 ExecutionGraph 对 Job 进行调度。<br>    3. 时间机制Spark Streaming 支持的时间机制有限，只支持处理时间。<br>       Flink 支持了流处理程序在时间上的三个定义：处理时间、事件时间、注入时间。同时也支持 watermark 机制来处理滞后数据。<br>    4. 容错机制对于 Spark Streaming 任务，我们可以设置 checkpoint，然后假如发生故障并重启，我们可以从上次 checkpoint 之处恢复，但是这个行为只能使得数据不丢失，可能会重复处理，不能做到恰好一次处理语义。<br>       Flink 则使用两阶段提交协议来解决这个问题</p>
+<p><strong><font size = 5>3. Flink集群有哪些角色？各自有什么作用？</font></strong><br>    Flink 程序在运行时主要有 TaskManager，JobManager，Client三种角色。<br>    1. 其中JobManager扮演着集群中的管理者Master的角色，它是整个集群的协调者，负责接收Flink Job，协调检查点，Failover 故障恢复等，同时管理Flink集群中从节点TaskManager。<br>    2. TaskManager是实际负责执行计算的Worker，在其上执行Flink Job的一组Task，每个TaskManager负责管理其所在节点上的资源信息，如内存、磁盘、网络，在启动的时候将资源的状态向JobManager汇报。<br>    3. Client是Flink程序提交的客户端，当用户提交一个Flink程序时，会首先创建一个Client，该Client首先会对用户提交的Flink程序进行预处理，并提交到Flink集群中处理，所以Client需要从用户提交的Flink程序配置中获取JobManager的地址，并建立到JobManager的连接，将Flink Job提交给JobManager</p>
+<p><strong><font size = 5>4. 说说 Flink 资源管理中 Task Slot 的概念</font></strong><br>    在Flink架构角色中我们提到，TaskManager是实际负责执行计算的Worker，TaskManager 是一个 JVM 进程，并会以独立的线程来执行一个task或多个subtask。<br>    为了控制一个 TaskManager 能接受多少个 task，Flink 提出了 Task Slot 的概念。简单的说，TaskManager会将自己节点上管理的资源分为不同的Slot：固定大小的资源子集。<br>    这样就避免了不同Job的Task互相竞争内存资源，但是需要主要的是，Slot只会做内存的隔离。没有做CPU的隔离。</p>
+<p><strong><font size = 5>5. 说说你知道的Flink分区策略？</font></strong><br>    1. GlobalPartitioner 数据会被分发到下游算子的第一个实例中进行处理。<br>    2. ShufflePartitioner 数据会被随机分发到下游算子的每一个实例中进行处理。<br>    3. RebalancePartitioner 数据会被循环发送到下游的每一个实例中进行处理。<br>    4. RescalePartitioner 这种分区器会根据上下游算子的并行度，循环的方式输出到下游算子的每个实例。<br>        这里有点难以理解，假设上游并行度为2，编号为A和B。下游并行度为4，编号为1，2，3，4。那么A则把数据循环发送给1和2，B则把数据循环发送给3和4。假设上游并行度为4，编号为A，B，C，D。下游并行度为2，编号为1，2。那么A和B则把数据发送给1，C和D则把数据发送给2。<br>    5. BroadcastPartitioner 广播分区会将上游数据输出到下游算子的每个实例中。适合于大数据集和小数据集做Jion的场景。<br>    6. ForwardPartitioner 用于将记录输出到下游本地的算子实例。它要求上下游算子并行度一样。简单的说，ForwardPartitioner用来做数据的控制台打印。<br>    7. KeyGroupStreamPartitioner Hash分区器。会将数据按 Key 的 Hash 值输出到下游算子实例中。<br>    8. CustomPartitionerWrapper 用户自定义分区器。需要用户自己实现Partitioner接口，来定义自己的分区逻辑</p>
+<p><strong><font size = 5>6. Flink的并行度了解吗？Flink的并行度设置是怎样的？</font></strong><br>    Flink中的任务被分为多个并行任务来执行，其中每个并行的实例处理一部分数据。这些并行实例的数量被称为并行度。我们在实际生产环境中可以从四个不同层面设置并行度：<br>    操作算子层面(Operator Level)<br>    执行环境层面(Execution Environment Level)<br>    客户端层面(Client Level)<br>    系统层面(System Level)<br>    需要注意的优先级：算子层面&gt;环境层面&gt;客户端层面&gt;系统层面</p>
+<p><strong><font size = 5>7. Flink的Slot和parallelism有什么区别？</font></strong><br>    slot是指taskmanager的并发执行能力，假设我们将 taskmanager.numberOfTaskSlots 配置为3 那么每一个 taskmanager 中分配3个 TaskSlot, 3个 taskmanager 一共有9个TaskSlot。<br>    parallelism是指taskmanager实际使用的并发能力。假设我们把 parallelism.default 设置为1，那么9个 TaskSlot 只能用1个，有8个空闲。</p>
+<p><strong><font size = 5>8. Flink有没有重启策略？说说有哪几种？</font></strong><br>    Flink 实现了多种重启策略。<br>    固定延迟重启策略（Fixed Delay Restart Strategy）<br>    故障率重启策略（Failure Rate Restart Strategy）<br>    没有重启策略（No Restart Strategy）<br>    Fallback重启策略（Fallback Restart Strategy）</p>
+<p><strong><font size = 5>9. 用过Flink中的分布式缓存吗？如何使用？</font></strong><br>    Flink实现的分布式缓存和Hadoop有异曲同工之妙。目的是在本地读取文件，并把他放在 taskmanager 节点中，防止task重复拉取。</p>
+<p><strong><font size = 5>10. 说说Flink中的广播变量，使用时需要注意什么？</font></strong><br>    我们知道Flink是并行的，计算过程可能不在一个 Slot 中进行，那么有一种情况即：当我们需要访问同一份数据。那么Flink中的广播变量就是为了解决这种情况。<br>    我们可以把广播变量理解为是一个公共的共享变量，我们可以把一个dataset 数据集广播出去，然后不同的task在节点上都能够获取到，这个数据在每个节点上只会存在一份</p>
+<p><strong><font size = 5>11. 说说Flink中的窗口？</font></strong><br>    Flink的窗口可以分为Keyed Windows和Non-Keyed Windows，键控窗口会按照key划分逻辑键控流，拥有键控流将允许窗口计算由多个任务并行执行，非键控流的并行度为1<br>    窗口的生命周期：当应该属于该窗口的第一个元素到达时，就会创建一个窗口，并且当时间（事件或处理时间）超过其结束时间戳加上用户指定的允许延迟时，该窗口将被完全删除<br>    窗口分配器可以分为<br>    tumbling windows：无重叠<br>    sliding windows：有重叠<br>    session windows：当会话窗口在一段时间内没有接收到元素时，即发生不活动间隙时，它会关闭<br>    global windows：全局窗口分配器将具有相同键的所有元素分配给同一个全局窗口。仅在指定自定义触发器时才有用。 否则，不会执行任何计算</p>
+<p><strong><font size = 5>12. 说说Flink中的状态存储？</font></strong><br>    Flink在做计算的过程中经常需要存储中间状态，来避免数据丢失和状态恢复。选择的状态存储策略不同，会影响状态持久化如何和 checkpoint 交互。<br>    Flink提供了三种状态存储方式：MemoryStateBackend、FsStateBackend、RocksDBStateBackend</p>
+<p><strong><font size = 5>13. Flink 中的时间有哪几类？</font></strong><br>    Flink 中的时间和其他流式计算系统的时间一样分为三类：事件时间，摄入时间，处理时间三种。<br>    如果以 EventTime 为基准来定义时间窗口将形成EventTimeWindow,要求消息本身就应该携带EventTime。<br>    如果以 IngesingtTime 为基准来定义时间窗口将形成 IngestingTimeWindow,以 source 的systemTime为准。<br>    如果以 ProcessingTime 基准来定义时间窗口将形成 ProcessingTimeWindow，以 operator 的systemTime 为准。</p>
+<p><strong><font size = 5>14. Flink 中水印是什么概念，起到什么作用？</font></strong><br>    Watermark 是 Apache Flink 为了处理 EventTime 窗口计算提出的一种机制, 本质上是一种时间戳。 一般来讲Watermark经常和Window一起被用来处理乱序事件。</p>
+<p><strong><font size = 5>15. Flink是如何做到高效的数据交换的？</font></strong><br>    在一个Flink Job中，数据需要在不同的task中进行交换，整个数据交换是有 TaskManager 负责的，TaskManager 的网络组件首先从缓冲buffer中收集records，然后再发送。<br>    Records 并不是一个一个被发送的，二是积累一个批次再发送，batch 技术可以更加高效的利用网络资源</p>
+<p><strong><font size = 5>16. Flink是如何做容错的？</font></strong><br>    Flink 实现容错主要靠强大的CheckPoint机制和State机制。Checkpoint 负责定时制作分布式快照、对程序中的状态进行备份；State 用来存储计算过程中的中间状态。</p>
+<p><strong><font size = 5>17. Flink 分布式快照的原理是什么？</font></strong><br>    Flink的分布式快照是根据Chandy-Lamport算法量身定做的。简单来说就是持续创建分布式数据流及其状态的一致快照。<br>    核心思想是在 input source 端插入 barrier，控制 barrier 的同步来实现 snapshot 的备份和 exactly-once 语义。</p>
+<p><strong><font size = 5>18. Flink 是如何保证Exactly-once语义的？</font></strong><br>    Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义。 分为以下几个步骤：<br>    开始事务（beginTransaction）创建一个临时文件夹，来写把数据写入到这个文件夹里面<br>    预提交（preCommit）将内存中缓存的数据写入文件并关闭<br>    正式提交（commit）将之前写完的临时文件放入目标目录下。这代表着最终的数据会有一些延迟<br>    丢弃（abort）丢弃临时文件<br>    若失败发生在预提交成功后，正式提交前。可以根据状态来提交预提交的数据，也可删除预提交的数据。</p>
+<p><strong><font size = 5>19. 说说 Flink的内存管理是如何做的?</font></strong><br>    Flink 并不是将大量对象存在堆上，而是将对象都序列化到一个预分配的内存块上。此外，Flink大量的使用了堆外内存。如果需要处理的数据超出了内存限制，则会将部分数据存储到硬盘上。<br>    Flink 为了直接操作二进制数据实现了自己的序列化框架。理论上Flink的内存管理分为三部分：<br>    Network Buffers：这个是在TaskManager启动的时候分配的，这是一组用于缓存网络数据的内存，每个块是32K，默认分配2048个，可以通过“taskmanager.network.numberOfBuffers”修改<br>    Memory Manage pool：大量的Memory Segment块，用于运行时的算法（Sort/Join/Shuffle等），这部分启动的时候就会分配。，内存的分配支持预分配和lazy load，默认懒加载的方式。<br>    User Code，这部分是除了Memory Manager之外的内存用于User code和TaskManager本身的数据结构。</p>
+<p><strong><font size = 5>20. Flink中的Window出现了数据倾斜，你有什么解决办法？</font></strong><br>    window产生数据倾斜指的是数据在不同的窗口内堆积的数据量相差过多。本质上产生这种情况的原因是数据源头发送的数据量速度不同导致的。出现这种情况一般通过两种方式来解决：<br>    在数据进入窗口前做预聚合<br>    重新设计窗口聚合的key</p>
+<p><strong><font size = 5>21. Flink任务延迟高，想解决这个问题，你会如何入手？</font></strong><br>    在Flink的后台任务管理中，我们可以看到Flink的哪个算子和task出现了反压。最主要的手段是资源调优和算子调优。资源调优即是对作业中的Operator的并发数（parallelism）、CPU（core）、堆内存（heap_memory）等参数进行调优。作业参数调优包括：并行度的设置，State的设置，checkpoint的设置</p>
+<p><strong><font size = 5>22. Flink是如何处理反压的？</font></strong><br>    Flink 内部是基于 producer-consumer 模型来进行消息传递的，Flink的反压设计也是基于这个模型。Flink 使用了高效有界的分布式阻塞队列，就像 Java 通用的阻塞队列（BlockingQueue）一样。下游消费者消费变慢，上游就会受到阻塞</p>
+<p><strong><font size = 5>23. Operator Chains（算子链）这个概念你了解吗？</font></strong><br>    为了更高效地分布式执行，Flink会尽可能地将operator的subtask链接（chain）在一起形成task。每个task在一个线程中执行。<br>    将operators链接成task是非常有效的优化：<br>    它能减少线程之间的切换，<br>    减少消息的序列化/反序列化，<br>    减少数据在缓冲区的交换，<br>    减少了延迟的同时提高整体的吞吐量。<br>    这就是我们所说的算子链</p>
+<p><strong><font size = 5>24. Flink什么情况下才会把Operator chain在一起形成算子链？</font></strong><br>    两个operator chain在一起的的条件：<br>    上下游的并行度一致<br>    下游节点的入度为1 （也就是说下游节点没有来自其他节点的输入）<br>    上下游节点都在同一个 slot group 中（下面会解释 slot group）<br>    下游节点的 chain 策略为 ALWAYS（可以与上下游链接，map、flatmap、filter等默认是ALWAYS）<br>    上游节点的 chain 策略为 ALWAYS 或 HEAD（只能与下游链接，不能与上游链接，Source默认是HEAD）<br>    两个节点间数据分区方式是 forward（参考理解数据流的分区）<br>    用户没有禁用 chain</p>
+<p><strong><font size = 5>25. Flink Job的提交流程</font></strong><br>    用户提交的Flink Job会被转化成一个DAG任务运行，分别是：StreamGraph、JobGraph、ExecutionGraph，<br>    Flink中JobManager与TaskManager，JobManager与Client的交互是基于Akka工具包的，是通过消息驱动。<br>    整个Flink Job的提交还包含着ActorSystem的创建，JobManager的启动，TaskManager的启动和注册。</p>
+<p><strong><font size = 5>26. Flink 计算资源的调度是如何实现的？</font></strong><br>    TaskManager中最细粒度的资源是Task slot，代表了一个固定大小的资源子集，每个TaskManager会将其所占有的资源平分给它的slot。<br>    通过调整 task slot 的数量，用户可以定义task之间是如何相互隔离的。每个 TaskManager 有一个slot，也就意味着每个task运行在独立的 JVM 中。<br>    每个 TaskManager 有多个slot的话，也就是说多个task运行在同一个JVM中。而在同一个JVM进程中的task，可以共享TCP连接（基于多路复用）和心跳消息，<br>    可以减少数据的网络传输，也能共享一些数据结构，一定程度上减少了每个task的消耗。 每个slot可以接受单个task，也可以接受多个连续task组成的pipeline</p>
+<p><strong><font size = 5>27. 简述Flink的数据抽象及数据交换过程？</font></strong><br>    Flink 为了避免JVM的固有缺陷例如java对象存储密度低，FGC影响吞吐和响应等，实现了自主管理内存。MemorySegment就是Flink的内存抽象。<br>    默认情况下，一个MemorySegment可以被看做是一个32kb大的内存块的抽象。这块内存既可以是JVM里的一个byte[]，也可以是堆外内存（DirectByteBuffer）。<br>    在MemorySegment这个抽象之上，Flink在数据从operator内的数据对象在向TaskManager上转移，预备被发给下个节点的过程中，使用的抽象或者说内存对象是Buffer。<br>    对接从Java对象转为Buffer的中间对象是另一个抽象StreamRecord。</p>
+<p><strong><font size = 5>28. Flink 中的分布式快照机制是如何实现的？</font></strong><br>    Flink的容错机制的核心部分是制作分布式数据流和操作算子状态的一致性快照。 这些快照充当一致性checkpoint，系统可以在发生故障时回滚。 Flink用于制作这些快照的机制在“分布式数据流的轻量级异步快照”中进行了描述。<br>    它受到分布式快照的标准Chandy-Lamport算法的启发，专门针对Flink的执行模型而定制。<br>    barriers在数据流源处被注入并行数据流中。快照n的barriers被插入的位置（我们称之为Sn）是快照所包含的数据在数据源中最大位置。<br>    例如，在Apache Kafka中，此位置将是分区中最后一条记录的偏移量。 将该位置Sn报告给checkpoint协调器（Flink的JobManager）。<br>    然后barriers向下游流动。当一个中间操作算子从其所有输入流中收到快照n的barriers时，它会为快照n发出barriers进入其所有输出流中。<br>    一旦sink操作算子（流式DAG的末端）从其所有输入流接收到barriers n，它就向checkpoint协调器确认快照n完成。在所有sink确认快照后，意味快照着已完成。<br>    一旦完成快照n，job将永远不再向数据源请求Sn之前的记录，因为此时这些记录（及其后续记录）将已经通过整个数据流拓扑，也即是已经被处理结束。</p>
 ]]></content>
       <categories>
         <category>大数据</category>
