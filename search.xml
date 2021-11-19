@@ -55,34 +55,6 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       </tags>
   </entry>
   <entry>
-    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
-    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
-<li>确认键盘的电源接通。 </li>
-<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
-<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
-</ol>
-<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
-<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
-<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
-<li>此时先在本机键盘上输入任意六位PIN</li>
-<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
-</ol>
-<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
-<ol>
-<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
-<li>键盘背面的清除键，拿笔点住2秒。</li>
-<li>再按数字键1-4的任意一个想清除配置的数字。</li>
-<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
-<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
-</ol>
-<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
-]]></content>
-      <categories>
-        <category>工具箱</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Flink学习笔记（三）</title>
     <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -200,6 +172,34 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       <tags>
         <tag>Flink</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
+    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
+<li>确认键盘的电源接通。 </li>
+<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
+<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
+</ol>
+<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
+<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
+<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
+<li>此时先在本机键盘上输入任意六位PIN</li>
+<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
+</ol>
+<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
+<ol>
+<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
+<li>键盘背面的清除键，拿笔点住2秒。</li>
+<li>再按数字键1-4的任意一个想清除配置的数字。</li>
+<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
+<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
+</ol>
+<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
+]]></content>
+      <categories>
+        <category>工具箱</category>
+      </categories>
   </entry>
   <entry>
     <title>Flink学习笔记（二）</title>
@@ -486,74 +486,6 @@ input
       </tags>
   </entry>
   <entry>
-    <title>Java杂记</title>
-    <url>/2021/08/18/Java%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Java范型<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="Java范型"><a href="#Java范型" class="headerlink" title="Java范型"></a>Java范型</h2><h3 id="什么是范型？"><a href="#什么是范型？" class="headerlink" title="什么是范型？"></a>什么是范型？</h3><p>泛型（generic）是指参数化类型的能力。可以定义带泛型类型的类或方法，随后编译器会用具体的类型来代替它。</p>
-<h3 id="为什么要用范型？"><a href="#为什么要用范型？" class="headerlink" title="为什么要用范型？"></a>为什么要用范型？</h3><p>Java语言引入泛型的好处是安全简单。泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，提高代码的重用率。</p>
-<ul>
-<li>类型安全。 泛型的主要目标是提高 Java 程序的类型安全。通过知道使用泛型定义的变量的类型限制，编译器可以在一个高得多的程度上验证类型假设。没有泛型，这些假设就只存在于程序员的头脑中（或者如果幸运的话，还存在于代码注释中）。</li>
-<li>消除强制类型转换。泛型的一个附带好处是，消除源代码中的许多强制类型转换。这使得代码更加可读，并且减少了出错机会。</li>
-<li>潜在的性能收益。 泛型为较大的优化带来可能。在泛型的初始实现中，编译器将强制类型转换（没有泛型的话，程序员会指定这些强制类型转换）插入生成的字节码中。但是更多类型信息可用于编译器这一事实，为未来版本的 JVM 的优化带来可能。由于泛型的实现方式，支持泛型（几乎）不需要 JVM 或类文件更改。所有工作都在编译器中完成，编译器生成类似于没有泛型（和强制类型转换）时所写的代码，只是更能确保类型安全而已。</li>
-</ul>
-<p>注意：<br>Point<T>,这个T表示派生自Object类的任何类，但是使用哪个字母是没有特定意义的！只是为了提高可读性！！！！</p>
-<p>遇到一个静态方法，使用如下范型：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">></span></span> <span class="token class-name">WatermarkStrategy</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">></span></span> <span class="token function">forBoundedOutOfOrderness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span> maxOutOfOrderness<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token punctuation">(</span>ctx<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token keyword">new</span> <span class="token class-name">BoundedOutOfOrdernessWatermarks</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>maxOutOfOrderness<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>这个方法的返回值是<code>WatermarkStrategy&lt;T&gt;</code>,前面那个T，不知道是什么意思，在用的时候，使用如下方法：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java">stream<span class="token punctuation">.</span><span class="token function">assignTimestampsAndWatermarks</span><span class="token punctuation">(</span><span class="token class-name">WatermarkStrategy</span>
-                <span class="token punctuation">.</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span><span class="token function">forBoundedOutOfOrderness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span><span class="token punctuation">.</span><span class="token function">ofSeconds</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">withIdleness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span><span class="token punctuation">.</span><span class="token function">ofSeconds</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">withTimestampAssigner</span><span class="token punctuation">(</span><span class="token punctuation">(</span>event<span class="token punctuation">,</span>timestamp<span class="token punctuation">)</span> <span class="token operator">-></span> event<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>x <span class="token operator">-></span> x<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token class-name">TumblingEventTimeWindows</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token class-name">Time</span><span class="token punctuation">.</span><span class="token function">seconds</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">WindowFunctionTest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p><code>WatermarkStrategy.&lt;Tuple2&lt;String, Long&gt;&gt;</code>：因为这个方法是静态方法，所以可以直接类名.方法，后面的<code>.&lt;Tuple2&lt;String, Long&gt;&gt;</code>就是方法里前面那个<T></p>
-<h2 id="Java的多太"><a href="#Java的多太" class="headerlink" title="Java的多太"></a>Java的多太</h2><p>传统的多太概念就记录了，这里记录一个常用的多太使用方式：<br>在订单方法的时候，入参类型标记为接口，等到真正传参的时候，传入实现这个接口的实现类的对象</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Test</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">testDuo</span><span class="token punctuation">(</span><span class="token class-name">Test1</span> t<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"aa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token class-name">Test2</span> t1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Test2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        t1<span class="token punctuation">.</span><span class="token function">test</span><span class="token punctuation">(</span><span class="token string">"bb"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">testDuo</span><span class="token punctuation">(</span>t1<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-    <span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">Test1</span><span class="token punctuation">&#123;</span>
-
-    <span class="token punctuation">&#125;</span>
-   <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Test2</span> <span class="token keyword">implements</span> <span class="token class-name">Test1</span><span class="token punctuation">&#123;</span>
-        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">test</span><span class="token punctuation">(</span><span class="token class-name">String</span> str<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这样做的好处是：</p>
-<ol>
-<li>消除类型之间的耦合关系</li>
-<li>可替换性</li>
-<li>可扩充性</li>
-<li>接口性</li>
-<li>灵活性</li>
-<li>简化性</li>
-</ol>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Java</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Iceberg学习笔记</title>
     <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -593,6 +525,164 @@ input
       </categories>
       <tags>
         <tag>Iceberg</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java杂记</title>
+    <url>/2021/08/18/Java%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Java范型<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Java范型"><a href="#Java范型" class="headerlink" title="Java范型"></a>Java范型</h2><h3 id="什么是范型？"><a href="#什么是范型？" class="headerlink" title="什么是范型？"></a>什么是范型？</h3><p>泛型（generic）是指参数化类型的能力。可以定义带泛型类型的类或方法，随后编译器会用具体的类型来代替它。</p>
+<h3 id="为什么要用范型？"><a href="#为什么要用范型？" class="headerlink" title="为什么要用范型？"></a>为什么要用范型？</h3><p>Java语言引入泛型的好处是安全简单。泛型的好处是在编译的时候检查类型安全，并且所有的强制转换都是自动和隐式的，提高代码的重用率。</p>
+<ul>
+<li>类型安全。 泛型的主要目标是提高 Java 程序的类型安全。通过知道使用泛型定义的变量的类型限制，编译器可以在一个高得多的程度上验证类型假设。没有泛型，这些假设就只存在于程序员的头脑中（或者如果幸运的话，还存在于代码注释中）。</li>
+<li>消除强制类型转换。泛型的一个附带好处是，消除源代码中的许多强制类型转换。这使得代码更加可读，并且减少了出错机会。</li>
+<li>潜在的性能收益。 泛型为较大的优化带来可能。在泛型的初始实现中，编译器将强制类型转换（没有泛型的话，程序员会指定这些强制类型转换）插入生成的字节码中。但是更多类型信息可用于编译器这一事实，为未来版本的 JVM 的优化带来可能。由于泛型的实现方式，支持泛型（几乎）不需要 JVM 或类文件更改。所有工作都在编译器中完成，编译器生成类似于没有泛型（和强制类型转换）时所写的代码，只是更能确保类型安全而已。</li>
+</ul>
+<p>注意：<br>Point<T>,这个T表示派生自Object类的任何类，但是使用哪个字母是没有特定意义的！只是为了提高可读性！！！！</p>
+<p>遇到一个静态方法，使用如下范型：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">></span></span> <span class="token class-name">WatermarkStrategy</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">T</span><span class="token punctuation">></span></span> <span class="token function">forBoundedOutOfOrderness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span> maxOutOfOrderness<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token punctuation">(</span>ctx<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token keyword">new</span> <span class="token class-name">BoundedOutOfOrdernessWatermarks</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>maxOutOfOrderness<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>这个方法的返回值是<code>WatermarkStrategy&lt;T&gt;</code>,前面那个T，不知道是什么意思，在用的时候，使用如下方法：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">stream<span class="token punctuation">.</span><span class="token function">assignTimestampsAndWatermarks</span><span class="token punctuation">(</span><span class="token class-name">WatermarkStrategy</span>
+                <span class="token punctuation">.</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span><span class="token function">forBoundedOutOfOrderness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span><span class="token punctuation">.</span><span class="token function">ofSeconds</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withIdleness</span><span class="token punctuation">(</span><span class="token class-name">Duration</span><span class="token punctuation">.</span><span class="token function">ofSeconds</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withTimestampAssigner</span><span class="token punctuation">(</span><span class="token punctuation">(</span>event<span class="token punctuation">,</span>timestamp<span class="token punctuation">)</span> <span class="token operator">-></span> event<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>x <span class="token operator">-></span> x<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">window</span><span class="token punctuation">(</span><span class="token class-name">TumblingEventTimeWindows</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token class-name">Time</span><span class="token punctuation">.</span><span class="token function">seconds</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">WindowFunctionTest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>WatermarkStrategy.&lt;Tuple2&lt;String, Long&gt;&gt;</code>：因为这个方法是静态方法，所以可以直接类名.方法，后面的<code>.&lt;Tuple2&lt;String, Long&gt;&gt;</code>就是方法里前面那个<T></p>
+<h2 id="Java的多态"><a href="#Java的多态" class="headerlink" title="Java的多态"></a>Java的多态</h2><p>多态是指，针对某个类型的方法调用，其真正执行的方法取决于运行时期实际类型的方法<br>多态体现为父类引用变量可以指向子类对象。<br>前提条件：必须有子父类关系。</p>
+<blockquote>
+<p>注意：在使用多态后的父类引用变量调用方法时，会调用子类重写后的方法。</p>
+</blockquote>
+<ul>
+<li><p>多态的定义与使用格式<br>  定义格式：父类类型 变量名=new 子类类型();</p>
+</li>
+<li><p>多态是同一个行为具有多个不同表现形式或形态的能力。多态就是同一个接口，使用不同的实例而执行不同操作。</p>
+</li>
+<li><p>多态成员变量：编译运行看左边</p>
+</li>
+<li><p>多态成员方法：编译看左边，运行看右边</p>
+<h3 id="多态的转型"><a href="#多态的转型" class="headerlink" title="多态的转型"></a>多态的转型</h3><p>多态的转型分为向上转型和向下转型两种<br>向上转型：多态本身就是向上转型过的过程<br>使用格式：父类类型 变量名=new 子类类型();<br>适用场景：当不需要面对子类类型时，通过提高扩展性，或者使用父类的功能就能完成相应的操作。  </p>
+</li>
+</ul>
+<p>向下转型：一个已经向上转型的子类对象可以使用强制类型转换的格式，将父类引用类型转为子类引用各类型<br>使用格式：子类类型 变量名=（子类类型） 父类类型的变量；<br>适用场景：当要使用子类特有功能时。  </p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 给一个有普通收入、工资收入和享受国务院特殊津贴的小伙伴算税:</span>
+        <span class="token class-name">Income</span><span class="token punctuation">[</span><span class="token punctuation">]</span> incomes <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Income</span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">new</span> <span class="token class-name">Income</span><span class="token punctuation">(</span><span class="token number">3000</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token keyword">new</span> <span class="token class-name">Salary</span><span class="token punctuation">(</span><span class="token number">7500</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token keyword">new</span> <span class="token class-name">StateCouncilSpecialAllowance</span><span class="token punctuation">(</span><span class="token number">15000</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token function">totalTax</span><span class="token punctuation">(</span>incomes<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">double</span> <span class="token function">totalTax</span><span class="token punctuation">(</span><span class="token class-name">Income</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> incomes<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">double</span> total <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Income</span> income<span class="token operator">:</span> incomes<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            total <span class="token operator">=</span> total <span class="token operator">+</span> income<span class="token punctuation">.</span><span class="token function">getTax</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> total<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Income</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">protected</span> <span class="token keyword">double</span> income<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">Income</span><span class="token punctuation">(</span><span class="token keyword">double</span> income<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>income <span class="token operator">=</span> income<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">double</span> <span class="token function">getTax</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> income <span class="token operator">*</span> <span class="token number">0.1</span><span class="token punctuation">;</span> <span class="token comment">// 税率10%</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Salary</span> <span class="token keyword">extends</span> <span class="token class-name">Income</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token class-name">Salary</span><span class="token punctuation">(</span><span class="token keyword">double</span> income<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span>income<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">double</span> <span class="token function">getTax</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>income <span class="token operator">&lt;=</span> <span class="token number">5000</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> <span class="token punctuation">(</span>income <span class="token operator">-</span> <span class="token number">5000</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">0.2</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> <span class="token class-name">StateCouncilSpecialAllowance</span> <span class="token keyword">extends</span> <span class="token class-name">Income</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token class-name">StateCouncilSpecialAllowance</span><span class="token punctuation">(</span><span class="token keyword">double</span> income<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span>income<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">double</span> <span class="token function">getTax</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>样例2：     </p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Test</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">testDuo</span><span class="token punctuation">(</span><span class="token class-name">Test1</span> t<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"aa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Test2</span> t1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Test2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        t1<span class="token punctuation">.</span><span class="token function">test</span><span class="token punctuation">(</span><span class="token string">"bb"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">testDuo</span><span class="token punctuation">(</span>t1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">Test1</span><span class="token punctuation">&#123;</span>
+
+    <span class="token punctuation">&#125;</span>
+   <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Test2</span> <span class="token keyword">implements</span> <span class="token class-name">Test1</span><span class="token punctuation">&#123;</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">test</span><span class="token punctuation">(</span><span class="token class-name">String</span> str<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这样做的好处是：</p>
+<ol>
+<li>消除类型之间的耦合关系</li>
+<li>可替换性</li>
+<li>可扩充性</li>
+<li>接口性</li>
+<li>灵活性</li>
+<li>简化性</li>
+</ol>
+<h2 id="抽象类与接口"><a href="#抽象类与接口" class="headerlink" title="抽象类与接口"></a>抽象类与接口</h2><h3 id="抽象类"><a href="#抽象类" class="headerlink" title="抽象类"></a>抽象类</h3><p>在Java中被abstract关键字修饰的类称为抽象类，被abstract关键字修饰的方法称为抽象方法，抽象方法只有方法的声明，没有方法体。抽象类的特点：</p>
+<ol>
+<li>抽象类不能被实例化只能被继承；<br> 1.1 抽象类不能被实例化，所以抽象类必须被继承，才能被使用<br> 1.2 抽象类可以和类一样，实现接口，但抽象类<font color=#FF0000 >不需要实现接口下的所有方法</font><br> 1.3 抽象类被子类继承以后，就会强迫子类充血抽象类中定义的抽象方法，除非子类也是抽象类</li>
+<li>包含抽象方法的一定是抽象类，但是抽象类不一定含有抽象方法</li>
+<li>抽象类中的抽象方法的修饰符只能是public或者protected，默认为default</li>
+<li>抽象类可以包含属性、方法、构造方法，但是构造方法不能用于实例化，并且子类实例化以后，<font color=#FF0000 >抽象类的构造方法一定会被调用</font></li>
+</ol>
+<h3 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h3><p>Java中接口用interface关键字修饰，特点为:</p>
+<ol>
+<li>接口可以包含变量、方法；变量被隐式的指定为 public stastic final，方法被隐式指定为public abstract</li>
+<li>接口支持多继承，即一个接口可以extends多个接口，间接的解决了java中类的单继承问题</li>
+<li>一个类可以实现多个接口</li>
+<li>JDK1.8中对接口增加了新的特性：<br> 4.1 默认方法（default method）：JDK 1.8允许给接口添加非抽象的方法实现，但必须使用default关键字修饰；定义了default的方法可以不被实现子类所实现，但只能被实现子类的对象调用；如果子类实现了多个接口，并且这些接口包含一样的默认方法，则子类必须重写默认方法；<br> 4.2 静态方法（static method）：JDK 1.8中允许使用static关键字修饰一个方法，<font color=#FF0000 >并可以提供实现</font>，称为接口静态方法。接口静态方法只能通过接口调用（接口名.静态方法名）。</li>
+</ol>
+<blockquote>
+<p>总结：继承是一个 “是不是”的关系，而 接口 实现则是 “有没有”的关系。如果一个类继承了某个抽象类，则子类必定是抽象类的种类，而接口实现则是有没有、具备不具备的关系，比如狗是否能钻火圈，能则可以实现这个接口，不能就不实现这个接口。</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -656,6 +746,23 @@ bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe -
       </categories>
       <tags>
         <tag>Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java面试题</title>
+    <url>/2021/11/18/Java%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Java面试题总结</li>
+</ul>
+<p><strong><font size = 5>1. 抽象类和接口的区别？</font></strong></p>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -956,39 +1063,6 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
-    <title>Redis杂记（一）</title>
-    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>什么是Redis</li>
-<li>Redis有哪些优缺点</li>
-<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
-<li>Redis为什么这么快</li>
-<li>Redis的应用场景</li>
-<li>Redis持久化</li>
-<li>Redis踩的坑</li>
-</ul>
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/20211109/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
-<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
-<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
-<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
-<p>这里记录一下两个命令：</p>
-<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Scala杂记（一）</title>
     <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1054,6 +1128,39 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </categories>
       <tags>
         <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Redis杂记（一）</title>
+    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>什么是Redis</li>
+<li>Redis有哪些优缺点</li>
+<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
+<li>Redis为什么这么快</li>
+<li>Redis的应用场景</li>
+<li>Redis持久化</li>
+<li>Redis踩的坑</li>
+</ul>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/20211109/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
+<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
+<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
+<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
+<p>这里记录一下两个命令：</p>
+<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -1127,6 +1234,53 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       </tags>
   </entry>
   <entry>
+    <title>Spark面试题</title>
+    <url>/2021/11/18/Spark%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Spark面试题总结</li>
+</ul>
+<p><strong><font size = 5>1. 对于 Spark 中的数据倾斜问题你有什么好的方案?</font></strong><br>数据倾斜是因为数据中的key分布的不均匀导致的。</p>
+<ol>
+<li>可以把小表广播出去或者使用<code>map join</code></li>
+<li>采样倾斜key并分拆join操作，对倾斜key做添加随机数处理。</li>
+<li>如果其中一个表存在多个key倾斜，把主表的所有key都添加1-n随机数，把从表每条数据都复制n次，并添加1-n的随机数，然后再join</li>
+<li>自定义Partitioner：原始的spark使用的是hashPartition，可以自定义一个paritioner，把key拆分到多个task里去</li>
+<li>提高shuffle操作的并行度，使用reduceByKey(1000)，sparkSQL里设置<code>spark.sql.shuffle.partitions=1000</code></li>
+</ol>
+<p><strong><font size = 5>2. 描述一下RDD,DataFrame,DataSet,DataStream的区别和联系？</font></strong><br>RDD：弹性分布式数据集，RDD是SparkCore的基本数据结构<br>DataFrame: 从源码上看，DataFrame其实就是指定row的DataSet，<code>type DataFrame = Dataset[Row]</code><br>DataSet：Dataset是一个由特定领域的对象组成强类型集合，可以使用函数（DSL）或关系运算（SQL）进行并行的转换操作。 每个Dataset 还有一个称为“DataFrame”的无类型（untypedrel）视图，它是[[Row]]的数据集。<br>Dataset和DataFrame的区别与联系：<br>1、Dataset是强类型，会在编译的时候进行类型检测；而DataFrame是弱类型的，在执行的时候进行类型检测；<br>2、序列化方式不通，Dataset是通过Encoder进行序列化，支持动态的生成代码，直接在bytes的层面进行排序，过滤等的操作；而DataFrame是采用可选的java的标准序列化或是kyro进行序列化<br>3、DataFrame和Dataset实质上都是一个逻辑计划，并且是懒加载的，都包含着scahema信息，只有到数据要读取的时候，才会将逻辑计划进行分析和优化，并最终转化为RDD<br>4、二者由于api是统一的，所以都可以采用DSL和SQL方式进行开发，都可以通过sparksession对象进行创建或者是通过transform转化操作得到<br>Dataset和RDD的区别与联系：<br>首先，Dataset的底层不是RDD，但是它可以和RDD互相转化，DS的一些算子例如filter等都是自己实现的，并没有调用RDD的算子<br>DStream：离散化流（DStream），SparkStreaming中的基本抽象，DSream 代表了一系列连续的RDD，DStream中每个RDD包含特定时间间隔的数据，一个DStream 对应了时间维度上的多个RDD。</p>
+<p><strong><font size = 5>3. 简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数? </font></strong><br>窄依赖：子RDD的一个分区只会依赖父RDD的一个分区，父子分区一对一<br>宽依赖：子RDD的多个分区会依赖同一个父RDD的一个分区（会涉及到shuffle）<br>spark根据RDD的依赖关系划分stage，遇到一个宽依赖，就划分一个stage<br>stage中task数目由stage末端的RDD分区个数来决定</p>
+<p><strong><font size = 5>4. 列举Spark常用的transformation和action算子，有哪些算子会导致Shuffle?</font></strong><br>transformation算子：map、flatMap、reduceByKey、groupByKey、filter等<br>action算子：take、ccollect、count、reduce等<br>reduceByKey、groupByKey等会产生Shuffle<br>注意：<br>reduceByKey和groupByKey只是会产生shuffle，但是不是action算子</p>
+<p><strong><font size = 5>5. 简述下Spark中的缓存(cache和persist)与checkpoint机制，并指出两者的区别和联系</font></strong><br>cache缓存到内存中<br>persist可以缓存到磁盘和内存里<br>checkpoint只能缓存到hdfs上（磁盘上）<br>Persist 和 Cache，不会丢掉RDD间的依赖链/依赖关系，CheckPoint会斩断依赖链</p>
+<p><strong><font size = 5>6. Spark开发调优总结</font></strong></p>
+<ol>
+<li>避免创建重复的RDD</li>
+<li>尽可能复用同一个RDD</li>
+<li>对多次使用的RDD进行持久化</li>
+<li>尽量避免使用shuffle类算子</li>
+<li>使用map-side预聚合的shuffle操作</li>
+<li>使用高性能的算子<br> 6.1 使用reduceByKey/aggregateByKey替代groupByKey<br> 6.2 使用mapPartitions替代普通map<br> 6.3 使用foreachPartitions替代foreach<br> 6.4 使用filter之后进行coalesce操作<br> 6.4 使用repartitionAndSortWithinPartitions替代repartition与sort类操作  </li>
+<li>广播大变量，减少大量的变量副本在网络中传输的性能开销，以及在各个节点的Executor中占用过多内存导致的频繁GC(垃圾回收)</li>
+<li>使用Kryo优化序列化性能</li>
+<li>优化数据结构</li>
+</ol>
+<p><strong><font size = 5>7. Spark为什么快，Spark SQL 一定比 Hive 快吗</font></strong><br>1、Spark 计算比 MapReduce 快的根本原因在于 DAG 计算模型，消除了冗余的 HDFS 读写，Spark不需要将计算的中间结果写入磁盘<br>    如果计算不涉及与其他节点进行数据交换，Spark 可以在内存中一次性完成这些操作，也就是中间结果无须落盘，减少了磁盘 IO 的操作<br>2、Spark 是基于内存的计算并不是spark快的根本原因<br>3、MapReduce每启动一个Task便会启动一次JVM，基于进程的操作。而Spark每次MapReduce操作是基于线程的，只在启动Executor时启动一次JVM，内存的Task操作是在线程复用的<br>总结：Spark比Mapreduce运行更快，主要得益于其对mapreduce操作的优化以及对JVM使用的优化<br>Spark SQL 不一定比Hive快，例如没有shuffle的或者只有一次shuffle的，有可能hive的速度不会低于spark-sql</p>
+<p><strong><font size = 5>8. Spark Streaming小文件问题</font></strong><br>1、增加 batch 大小<br>2、在输出到hdfs的时候，Coalesce一下<br>3、单独起一个定时任务来合并小文件</p>
+<p><strong><font size = 5>9. Checkpoint和持久化有什么区别？</font></strong><br>1、持久化只是将数据保存在BlockManager中，而RDD的lineage是不变的，但是checkpoint执行完后，RDD已经没有之前所谓的依赖RDD了，而只有一个强行为其设置的checkpointRDD，RDD的lineage（血缘关系，依赖关系）改变了<br>2、持久化的数据丢失可能性更大，磁盘、内存都可能会存在数据丢失的情况。但是checkpoint的数据通常是存储在如HDFS等容错、高可用的文件系统，数据丢失可能性较小。<br>注：默认情况下，如果某个RDD没有持久化，但是设置了checkpoint，会存在问题，本来这个job都执行结束了，但是由于中间RDD没有持久化，checkpoint job想要将RDD的数据写入外部文件系统的话，需要全部重新计算一次，<br>再将计算出来的RDD数据checkpoint到外部文件系统。所以，建议对checkpoint()的RDD使用persist(StorageLevel.DISK_ONLY)，该RDD计算之后，就直接持久化到磁盘上。后面进行checkpoint操作时就可以直接从磁盘上读取RDD的数据，并checkpoint到外部文件系统。</p>
+<p><strong><font size = 5>10. SparkStreaming读取Kafka数据的两种方式，有什么区别？</font></strong><br>SparkStreaming读取Kafka数据有两种方式，分别为基于Receiver方式和基于Direct(No Receiver)方式<br>1、基于Receiver方式：<br>    1.1 需要使用单独的Receiver线程来异步获取Kafka数据。<br>    1.2 Receiver底层实现中使用了Kafka高级消费者API,因此,不需要自己管理Offset,只需指定Zookeeper和消费者组GroupID,系统便会自行管理。<br>    1.3 执行过程: Spark Streaming启动时，会在Executor中同时启动Receiver异步线程用于从Kafka持续获取数据，获取的数据先存储在Receiver中(存储方式由StorageLevel决定)，后续，当Batch Job触发后，这些数据会被转移到剩下的Executor中被处理。处理完毕后，Receiver会自动更新Zookeeper中的Offset。<br>    1.4 默认情况下,程序失败或Executor宕掉后可能会丢失数据，为避免数据丢失，可启用预写日志(Write Ahead Log,WAL)。将Receiver收到的数据再备份一份到更可靠的系统如HDFS分布式文件中，以冗余的数据来换取数据不丢失。<br>    1.5 生产下，为保证数据完全不丢失，一般需要启用WAL。启用WAL，在数据量较大，网络不好情况下，会严重降低性能<br>2、基于Direct(No Receiver)方式<br>    2.1 不需要使用单独的Receiver线程从Kafka获取数据。<br>    2.2 使用Kafka简单消费者API,不需要ZooKeeper参与，直接从Kafka Broker获取数据。<br>    2.3 执行过程:Spark Streaming Batch Job触发时，Driver端确定要读取的Topic-Partition的OffsetRange，然后由Executor并行从Kafka各Partition读取数据并计算。<br>    2.4 为保证整个应用EOS， Offset管理一般需要借助外部存储实现。如Mysql、HBase等。<br>    2.5 由于不需要WAL，且Spark Streaming会创建和Kafka Topic Partition一样多的RDD Partition,且一一对应，这样,就可以并行读取，大大提高了性能。<br>    2.6 Spark Streaming应用启动后，自己通过内部currentOffsets变量跟踪Offset，避免了基于Receiver的方式中Spark Streaming和Zookeeper中的Offset不一致问题。</p>
+<p><strong><font size = 5>11. 如何使用Spark实现TopN的获取（描述思路或使用伪代码）？</font></strong><br>最简单的就是，直接reduceByKey计算key的个数，然后按照value排序<br>但是，这样会有一个问题，就是当数据量很大的时候，有可能会导致OOM，或者数据倾斜<br>可以使用map算子，把每个key添加一个随机数，然后再reduceByKey,最后再把key拆出来，再做一次reduceByKey</p>
+<p>可以参考[Spark面试题(一)][2]</p>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Zookeeper学习笔记（一）</title>
     <url>/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1173,6 +1327,45 @@ cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServe
       </categories>
       <tags>
         <tag>Zookeeper</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>azkban从编译开始安装</title>
+    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>如何下载Azkaban稳定版代码</li>
+<li>如何构建Azkaban源码</li>
+<li>如何配置Azkaban</li>
+<li>启动Azkaban注意点<a id="more"></a>
+<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
+</ul>
+<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
+<p>后来还是直接clone官网上的代码来构建</p>
+<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
+<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
+<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
+<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
+2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
+2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
+<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Azkaban</category>
+      </categories>
+      <tags>
+        <tag>Azkaban</tag>
       </tags>
   </entry>
   <entry>
@@ -1231,42 +1424,181 @@ sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<spa
       </tags>
   </entry>
   <entry>
-    <title>azkban从编译开始安装</title>
-    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
+    <title>linux杂记（一）</title>
+    <url>/2021/01/16/linux%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
-<li>如何下载Azkaban稳定版代码</li>
-<li>如何构建Azkaban源码</li>
-<li>如何配置Azkaban</li>
-<li>启动Azkaban注意点<a id="more"></a>
-<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
+<li>shell常用语法</li>
+<li>shell实用命令<a id="more"></a>
+<h2 id="IF-条件判断"><a href="#IF-条件判断" class="headerlink" title="IF 条件判断"></a>IF 条件判断</h2><h3 id="判断-boot-分区可用容量小于-20MB-时报警，否则显示-OK"><a href="#判断-boot-分区可用容量小于-20MB-时报警，否则显示-OK" class="headerlink" title="判断 boot 分区可用容量小于 20MB 时报警，否则显示 OK"></a>判断 boot 分区可用容量小于 20MB 时报警，否则显示 OK</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">df | grep &quot;boot&quot; | awk &#39; &#123;if ($4&lt;20000)  print &quot;Alart&quot; ; else print &quot;OK&quot;&#125;&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="While-循环"><a href="#While-循环" class="headerlink" title="While 循环"></a>While 循环</h2><h3 id="指定范围内执行动作"><a href="#指定范围内执行动作" class="headerlink" title="指定范围内执行动作"></a>指定范围内执行动作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 语法一
+awk &#39;i&#x3D;1 &#123;&#125; BEGIN &#123;while (i&lt;3) &#123;++i;print i&#125;&#125;&#39; test.txt 
+# 语法二
+awk &#39;BEGIN &#123;do &#123;++i;print i&#125; while (i&lt;3)&#125;&#39; test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="For-循环"><a href="#For-循环" class="headerlink" title="For 循环"></a>For 循环</h2><h3 id="for-变量；条件；计数器"><a href="#for-变量；条件；计数器" class="headerlink" title="for (变量；条件；计数器)"></a>for (变量；条件；计数器)</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk &#39;BEGIN &#123;for (i&#x3D;1;i&lt;3;i++) print i&#125;&#39; test.txt
+awk &#39;BEGIN &#123;for (i&#x3D;3;i&gt;1;i--) print i&#125;&#39; test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+上述 While 和 For 循环语句使用的 awk 均使用 BEGIN 模式，即在未读取文档内容前就会将 BEGIN 代码执行完毕，所以输入文档可以是任意文档。<br>具体参考：<br><a href="https://blog.csdn.net/sunny_future/article/details/80287236">https://blog.csdn.net/sunny_future/article/details/80287236</a></li>
 </ul>
-<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
-<p>后来还是直接clone官网上的代码来构建</p>
-<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
-<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
-<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
-<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
-2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
-2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
-<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+<h2 id="查询文件下所有文件是否包含某个字符串"><a href="#查询文件下所有文件是否包含某个字符串" class="headerlink" title="查询文件下所有文件是否包含某个字符串"></a>查询文件下所有文件是否包含某个字符串</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名"><a href="#目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名" class="headerlink" title="目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名"></a>目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; -l <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="遍历指定文件夹下所有文件"><a href="#遍历指定文件夹下所有文件" class="headerlink" title="遍历指定文件夹下所有文件"></a>遍历指定文件夹下所有文件</h2><h3 id="采用递归的方式"><a href="#采用递归的方式" class="headerlink" title="采用递归的方式"></a>采用递归的方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">function scandir() &#123;
+    local cur_dir parent_dir workdir
+    workdir&#x3D;$1
+    cd $&#123;workdir&#125;
+    if [ $&#123;workdir&#125; &#x3D; &quot;&#x2F;&quot; ]
+    then
+        cur_dir&#x3D;&quot;&quot;
+    else
+        cur_dir&#x3D;$(pwd)
+    fi
+
+    for dirlist in $(ls $&#123;cur_dir&#125;)
+    do
+        if test -d $&#123;dirlist&#125;;then
+            cd $&#123;dirlist&#125;
+            scandir $&#123;cur_dir&#125;&#x2F;$&#123;dirlist&#125;
+            cd ..
+        else
+            echo $&#123;cur_dir&#125;&#x2F;$&#123;dirlist&#125;
+        fi
+    done                       
+&#125;
+
+if test -d $1                  
+then
+    scandir $1                 
+elif test -f $1                
+then
+    echo &quot;you input a file but not a directory,pls reinput and try again&quot;
+    exit 1
+else
+    echo &quot;the Directory isn&#39;t exist which you input,pls input a new one!!&quot;
+    exit 1
+fi
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="利用命令行："><a href="#利用命令行：" class="headerlink" title="利用命令行："></a>利用命令行：</h3><p>获取bigdata下所有的以.sh结尾的文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find &#x2F;home&#x2F;bigdata -name &quot;*.sh&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>参考：<br>    <a href="https://blog.csdn.net/u010801696/article/details/78913494">https://blog.csdn.net/u010801696/article/details/78913494</a></p>
+<h2 id="ftp在centos下如何登陆"><a href="#ftp在centos下如何登陆" class="headerlink" title="ftp在centos下如何登陆"></a>ftp在centos下如何登陆</h2><h3 id="ftp的登陆方式"><a href="#ftp的登陆方式" class="headerlink" title="ftp的登陆方式"></a>ftp的登陆方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ftp
+open ip port
+## 输入完host以后，会弹出让输入用户名和密码，之后就登陆进去了<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h3 id="sftp的登陆方式"><a href="#sftp的登陆方式" class="headerlink" title="sftp的登陆方式"></a>sftp的登陆方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sftp -P port user@ip
+## 回车后提示输入密码<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="lftp（不需要手动输入用户名密码，常用于自动化脚本中）"><a href="#lftp（不需要手动输入用户名密码，常用于自动化脚本中）" class="headerlink" title="lftp（不需要手动输入用户名密码，常用于自动化脚本中）"></a>lftp（不需要手动输入用户名密码，常用于自动化脚本中）</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lftp -u user,psw sftp:&#x2F;&#x2F;ip:host<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="ftp使用模糊查询下载所有匹配的文件"><a href="#ftp使用模糊查询下载所有匹配的文件" class="headerlink" title="ftp使用模糊查询下载所有匹配的文件"></a>ftp使用模糊查询下载所有匹配的文件</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">open 192.168.1.1 10021
+prompt   ##取消ftp的交互式，否则每次下载下一个文件都要回车一下，仅对当前窗口有效，ftp退出后，下次进入需要重新prompt
+mget 2020-05-12*   #下载正则匹配上的所有文件
+get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="ubuntu下替换apt-get的源"><a href="#ubuntu下替换apt-get的源" class="headerlink" title="ubuntu下替换apt-get的源"></a>ubuntu下替换apt-get的源</h3><p>参考<a href="https://www.cnblogs.com/gabin/p/6519352.html">https://www.cnblogs.com/gabin/p/6519352.html</a></p>
+<h3 id="解决出现-unable-to-resolve-host-问题"><a href="#解决出现-unable-to-resolve-host-问题" class="headerlink" title="解决出现 unable to resolve host 问题"></a>解决出现 unable to resolve host 问题</h3><p>ubuntu在sudo的时候，总是出现unable to resolve host，解决步骤：</p>
+<ul>
+<li>修改 /etc/hosts里的127.0.0.1 localhost 后面加上主机名称（127.0.0.1 localhost aaa）</li>
+<li>修改/etc/hostname，这里的名称和上面的主机名称保持一致(aaa)</li>
+</ul>
+<h3 id="ssh免秘钥"><a href="#ssh免秘钥" class="headerlink" title="ssh免秘钥"></a>ssh免秘钥</h3><p>用过好几次免秘钥，但是每次都会忘了应该把copy谁的公钥到另外用户的.ssh文件夹<br>这里专门记录一次</p>
+<blockquote>
+<p>A要使用ssh免密登录到B用户下（可以使远程服务器），就把A的用户下的.ssh文件的id_rsa.pub 内容 cat到远程服务器B 的.ssh的authorized_keys 文件里</p>
+</blockquote>
+<blockquote>
+<p>说明白点就是，A用户如果想免秘钥登录B用户，那么就需要把公钥先让B用户知道。这样就是自己人了。</p>
+</blockquote>
+<p>还有一个注意点：<br>如果希望ssh公钥生效需满足至少下面两个条件：</p>
+<ul>
+<li>.ssh目录的权限必须是700 </li>
+<li>.ssh/authorized_keys文件权限必须是600</li>
+</ul>
+<p>具体可以参考<br><a href="https://www.jb51.net/article/94599.htm">https://www.jb51.net/article/94599.htm</a></p>
+<h3 id="awk实现sql中group-by，count的功能"><a href="#awk实现sql中group-by，count的功能" class="headerlink" title="awk实现sql中group by，count的功能"></a>awk实现sql中group by，count的功能</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk -F &quot; &quot; &#39;&#123; w[$2]+&#x3D;1&#125; END&#123; for (a in w)  print a, w[a]&#125;&#39; detail.csv  &gt; aaa.txt<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>可以参考<br><a href="https://www.cnblogs.com/ginvip/p/6352157.html">https://www.cnblogs.com/ginvip/p/6352157.html</a><br><a href="http://www.blogjava.net/henry14/archive/2012/01/15/368560.html">http://www.blogjava.net/henry14/archive/2012/01/15/368560.html</a></p>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3>]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
+    <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2>最近在整合pyspark与hive，新安装spark-2.3.3以客户端的方式访问hive数据，运行方式使用spark on yarn，但是在配置spark读取hive数据的时候，这里直接把hive下的hive-site.xml复制到spark目录下，启动了一次spark，上面的问题就出现了。</li>
+</ul>
+<h2 id="网上的说法："><a href="#网上的说法：" class="headerlink" title="网上的说法："></a>网上的说法：</h2><p>hive元数据问题，需要重新初始化hive的元数据<br>但是这个方法肯定不适合我，因为仓库里的表不能受影响，上千张表呢，如果初始化了，所有表都要重新创建。</p>
+<h2 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h2><ul>
+<li><p>首先查看服务器上/tmp/${user}/hive.log文件，这个是公司服务器当时配置的详细的hive执行日志。<br>在日志中，有一段报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019-07-06T10:01:53,737 ERROR [370c0a81-c922-4c61-8315-264c39b372c3 main] metastore.RetryingHMSHandler: MetaException(message:Hive Schema version 3.1.0 does not match metastore&#39;s schema version 1.2.0 Metastore is not upgraded or corrupt)
+        at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:9063)
+        at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:9027)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里的意思是，hive的版本是3.1.0，但是元数据中的版本信息是1.2.0，因此报错。</p>
+</li>
+<li><p>到hive的元数据库里查了下version表里的数据，确实版本是1.2.0</p>
+<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>这里猜测，spark在读取hive元数据的时候，因为spark是直接从官网上下载的，可能官网上的spark是用hive1.2.0版本编译的，所以，它默认使用的1.2.0，导致在启动的时候，修改了hive的元数据<br>但是具体的原因还不知道<br>下面会拿官网上的spark源码手动编译测试一下</p>
+<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2></li>
+</ul>
+<ol>
+<li>直接修改version表的数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> version<span class="token punctuation">;</span>
+<span class="token keyword">update</span> VERSION <span class="token keyword">set</span> SCHEMA_VERSION<span class="token operator">=</span><span class="token string">'2.1.1'</span> <span class="token keyword">where</span>  VER_ID<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+2、在hvie-site.xml中关闭版本验证<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<img src="/uploads/20210116/ive-metadata.png" alt="hive-metadata"></li>
+</ol>
+<h2 id="深入研究"><a href="#深入研究" class="headerlink" title="深入研究"></a>深入研究</h2><p>   在spark官网上查看了相关的资料，发现，在官网上下载的spark安装包，默认编译的hive版本是1.2.1的，所以每次启动spark的时候，会检查hive的版本。如果采用hive的默认配置，如果不一样，<br>就会修改version<br>    <img src="/uploads/20210116/hive-version-official-website.png" alt="hive-version-official-website"><br>一开始尝试着下载spark源码重新编译spark安装包，编译执行hive的版本为3.1.1，但是，发现每次指定hive的版本，maven下载依赖的时候，都会报错。<br>报错信息如下：</p>
+<p>后来想了个折中的办法，spark还是使用原始版本，但是修改一下hive-site.xml文件。<br>    注意：这里修改的是spark的conf下的hive-site.xml，原始的hive里的不需要修改</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
+    Enforce metastore schema version consistency.
+    True: Verify that version information stored in metastore matches with one from Hive jars.  Also disable automatic
+          schema migration attempt. Users are required to manually migrate schema after Hive upgrade which ensures
+          proper metastore schema migration. (Default)
+    False: Warn if the version information stored in metastore doesn't match with one from in Hive jars.
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification.record.version<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
+    When true the current MS version is recorded in the VERSION table. If this is disabled and verification is
+     enabled the MS will be unusable.
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这两个配置的具体含义：</p>
+<ul>
+<li><code>hive.metastore.schema.verification</code> 如果设置为true，那么每次启动hive或者spark的时候，都会检查hive的版本。如果为false，则会告警  </li>
+<li><code>hive.metastore.schema.verification.record.version</code> 如果设置为true，每次启动spark的时候，如果检查了hive的版本和spark编译的版本不一致，那么就会修改hive的元数据</li>
+</ul>
+<p>这里的修改需要设置</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hive.metastore.schema.verification&#x3D;false   
+hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>以下有3个反例：</p>
+<ul>
+<li>如过这两个都为true，那么spark会修改hive元数据</li>
+<li>如果<code>hive.metastore.schema.verification=true</code>，<br>并且<code>hive.metastore.schema.verification.record.version=false</code>，这时候启动spark就会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: MetaException(message:Hive Schema version 1.2.0 does not match metastore&#39;s schema version 3.1.0 Metastore is not upgraded or corrupt)
+	at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:6679)
+	at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:6645)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>如果设置<code>hive.metastore.schema.verification=false</code><br>且<code>hive.metastore.schema.verification.record.version=true</code>，spark还是会修改hive的元数据</li>
+</ul>
+<p><img src="/uploads/20210116/hive-metastore-schema-verification.png" alt="hive-metastore-schema-verification"><br><img src="/uploads/20210116/hive-metastore-latest-effect.png" alt="hive-metastore-latest-effect"></p>
+<p>所以，只要设置<code>hive.metastore.schema.verification.record.version=false</code>就可以了，但是为了保险起见，我两个都设置成false了</p>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>Azkaban</category>
+        <category>Spark</category>
       </categories>
       <tags>
-        <tag>Azkaban</tag>
+        <tag>Spark</tag>
+        <tag>Hive</tag>
       </tags>
   </entry>
   <entry>
@@ -1575,184 +1907,6 @@ stored <span class="token keyword">as</span> orc
       </tags>
   </entry>
   <entry>
-    <title>linux杂记（一）</title>
-    <url>/2021/01/16/linux%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>shell常用语法</li>
-<li>shell实用命令<a id="more"></a>
-<h2 id="IF-条件判断"><a href="#IF-条件判断" class="headerlink" title="IF 条件判断"></a>IF 条件判断</h2><h3 id="判断-boot-分区可用容量小于-20MB-时报警，否则显示-OK"><a href="#判断-boot-分区可用容量小于-20MB-时报警，否则显示-OK" class="headerlink" title="判断 boot 分区可用容量小于 20MB 时报警，否则显示 OK"></a>判断 boot 分区可用容量小于 20MB 时报警，否则显示 OK</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">df | grep &quot;boot&quot; | awk &#39; &#123;if ($4&lt;20000)  print &quot;Alart&quot; ; else print &quot;OK&quot;&#125;&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="While-循环"><a href="#While-循环" class="headerlink" title="While 循环"></a>While 循环</h2><h3 id="指定范围内执行动作"><a href="#指定范围内执行动作" class="headerlink" title="指定范围内执行动作"></a>指定范围内执行动作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 语法一
-awk &#39;i&#x3D;1 &#123;&#125; BEGIN &#123;while (i&lt;3) &#123;++i;print i&#125;&#125;&#39; test.txt 
-# 语法二
-awk &#39;BEGIN &#123;do &#123;++i;print i&#125; while (i&lt;3)&#125;&#39; test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="For-循环"><a href="#For-循环" class="headerlink" title="For 循环"></a>For 循环</h2><h3 id="for-变量；条件；计数器"><a href="#for-变量；条件；计数器" class="headerlink" title="for (变量；条件；计数器)"></a>for (变量；条件；计数器)</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk &#39;BEGIN &#123;for (i&#x3D;1;i&lt;3;i++) print i&#125;&#39; test.txt
-awk &#39;BEGIN &#123;for (i&#x3D;3;i&gt;1;i--) print i&#125;&#39; test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-上述 While 和 For 循环语句使用的 awk 均使用 BEGIN 模式，即在未读取文档内容前就会将 BEGIN 代码执行完毕，所以输入文档可以是任意文档。<br>具体参考：<br><a href="https://blog.csdn.net/sunny_future/article/details/80287236">https://blog.csdn.net/sunny_future/article/details/80287236</a></li>
-</ul>
-<h2 id="查询文件下所有文件是否包含某个字符串"><a href="#查询文件下所有文件是否包含某个字符串" class="headerlink" title="查询文件下所有文件是否包含某个字符串"></a>查询文件下所有文件是否包含某个字符串</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名"><a href="#目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名" class="headerlink" title="目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名"></a>目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; -l <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="遍历指定文件夹下所有文件"><a href="#遍历指定文件夹下所有文件" class="headerlink" title="遍历指定文件夹下所有文件"></a>遍历指定文件夹下所有文件</h2><h3 id="采用递归的方式"><a href="#采用递归的方式" class="headerlink" title="采用递归的方式"></a>采用递归的方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">function scandir() &#123;
-    local cur_dir parent_dir workdir
-    workdir&#x3D;$1
-    cd $&#123;workdir&#125;
-    if [ $&#123;workdir&#125; &#x3D; &quot;&#x2F;&quot; ]
-    then
-        cur_dir&#x3D;&quot;&quot;
-    else
-        cur_dir&#x3D;$(pwd)
-    fi
-
-    for dirlist in $(ls $&#123;cur_dir&#125;)
-    do
-        if test -d $&#123;dirlist&#125;;then
-            cd $&#123;dirlist&#125;
-            scandir $&#123;cur_dir&#125;&#x2F;$&#123;dirlist&#125;
-            cd ..
-        else
-            echo $&#123;cur_dir&#125;&#x2F;$&#123;dirlist&#125;
-        fi
-    done                       
-&#125;
-
-if test -d $1                  
-then
-    scandir $1                 
-elif test -f $1                
-then
-    echo &quot;you input a file but not a directory,pls reinput and try again&quot;
-    exit 1
-else
-    echo &quot;the Directory isn&#39;t exist which you input,pls input a new one!!&quot;
-    exit 1
-fi
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="利用命令行："><a href="#利用命令行：" class="headerlink" title="利用命令行："></a>利用命令行：</h3><p>获取bigdata下所有的以.sh结尾的文件</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find &#x2F;home&#x2F;bigdata -name &quot;*.sh&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>参考：<br>    <a href="https://blog.csdn.net/u010801696/article/details/78913494">https://blog.csdn.net/u010801696/article/details/78913494</a></p>
-<h2 id="ftp在centos下如何登陆"><a href="#ftp在centos下如何登陆" class="headerlink" title="ftp在centos下如何登陆"></a>ftp在centos下如何登陆</h2><h3 id="ftp的登陆方式"><a href="#ftp的登陆方式" class="headerlink" title="ftp的登陆方式"></a>ftp的登陆方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ftp
-open ip port
-## 输入完host以后，会弹出让输入用户名和密码，之后就登陆进去了<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<h3 id="sftp的登陆方式"><a href="#sftp的登陆方式" class="headerlink" title="sftp的登陆方式"></a>sftp的登陆方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sftp -P port user@ip
-## 回车后提示输入密码<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<h3 id="lftp（不需要手动输入用户名密码，常用于自动化脚本中）"><a href="#lftp（不需要手动输入用户名密码，常用于自动化脚本中）" class="headerlink" title="lftp（不需要手动输入用户名密码，常用于自动化脚本中）"></a>lftp（不需要手动输入用户名密码，常用于自动化脚本中）</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lftp -u user,psw sftp:&#x2F;&#x2F;ip:host<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="ftp使用模糊查询下载所有匹配的文件"><a href="#ftp使用模糊查询下载所有匹配的文件" class="headerlink" title="ftp使用模糊查询下载所有匹配的文件"></a>ftp使用模糊查询下载所有匹配的文件</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">open 192.168.1.1 10021
-prompt   ##取消ftp的交互式，否则每次下载下一个文件都要回车一下，仅对当前窗口有效，ftp退出后，下次进入需要重新prompt
-mget 2020-05-12*   #下载正则匹配上的所有文件
-get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="ubuntu下替换apt-get的源"><a href="#ubuntu下替换apt-get的源" class="headerlink" title="ubuntu下替换apt-get的源"></a>ubuntu下替换apt-get的源</h3><p>参考<a href="https://www.cnblogs.com/gabin/p/6519352.html">https://www.cnblogs.com/gabin/p/6519352.html</a></p>
-<h3 id="解决出现-unable-to-resolve-host-问题"><a href="#解决出现-unable-to-resolve-host-问题" class="headerlink" title="解决出现 unable to resolve host 问题"></a>解决出现 unable to resolve host 问题</h3><p>ubuntu在sudo的时候，总是出现unable to resolve host，解决步骤：</p>
-<ul>
-<li>修改 /etc/hosts里的127.0.0.1 localhost 后面加上主机名称（127.0.0.1 localhost aaa）</li>
-<li>修改/etc/hostname，这里的名称和上面的主机名称保持一致(aaa)</li>
-</ul>
-<h3 id="ssh免秘钥"><a href="#ssh免秘钥" class="headerlink" title="ssh免秘钥"></a>ssh免秘钥</h3><p>用过好几次免秘钥，但是每次都会忘了应该把copy谁的公钥到另外用户的.ssh文件夹<br>这里专门记录一次</p>
-<blockquote>
-<p>A要使用ssh免密登录到B用户下（可以使远程服务器），就把A的用户下的.ssh文件的id_rsa.pub 内容 cat到远程服务器B 的.ssh的authorized_keys 文件里</p>
-</blockquote>
-<blockquote>
-<p>说明白点就是，A用户如果想免秘钥登录B用户，那么就需要把公钥先让B用户知道。这样就是自己人了。</p>
-</blockquote>
-<p>还有一个注意点：<br>如果希望ssh公钥生效需满足至少下面两个条件：</p>
-<ul>
-<li>.ssh目录的权限必须是700 </li>
-<li>.ssh/authorized_keys文件权限必须是600</li>
-</ul>
-<p>具体可以参考<br><a href="https://www.jb51.net/article/94599.htm">https://www.jb51.net/article/94599.htm</a></p>
-<h3 id="awk实现sql中group-by，count的功能"><a href="#awk实现sql中group-by，count的功能" class="headerlink" title="awk实现sql中group by，count的功能"></a>awk实现sql中group by，count的功能</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk -F &quot; &quot; &#39;&#123; w[$2]+&#x3D;1&#125; END&#123; for (a in w)  print a, w[a]&#125;&#39; detail.csv  &gt; aaa.txt<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>可以参考<br><a href="https://www.cnblogs.com/ginvip/p/6352157.html">https://www.cnblogs.com/ginvip/p/6352157.html</a><br><a href="http://www.blogjava.net/henry14/archive/2012/01/15/368560.html">http://www.blogjava.net/henry14/archive/2012/01/15/368560.html</a></p>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
-    <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查<a id="more"></a>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2>最近在整合pyspark与hive，新安装spark-2.3.3以客户端的方式访问hive数据，运行方式使用spark on yarn，但是在配置spark读取hive数据的时候，这里直接把hive下的hive-site.xml复制到spark目录下，启动了一次spark，上面的问题就出现了。</li>
-</ul>
-<h2 id="网上的说法："><a href="#网上的说法：" class="headerlink" title="网上的说法："></a>网上的说法：</h2><p>hive元数据问题，需要重新初始化hive的元数据<br>但是这个方法肯定不适合我，因为仓库里的表不能受影响，上千张表呢，如果初始化了，所有表都要重新创建。</p>
-<h2 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h2><ul>
-<li><p>首先查看服务器上/tmp/${user}/hive.log文件，这个是公司服务器当时配置的详细的hive执行日志。<br>在日志中，有一段报错：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019-07-06T10:01:53,737 ERROR [370c0a81-c922-4c61-8315-264c39b372c3 main] metastore.RetryingHMSHandler: MetaException(message:Hive Schema version 3.1.0 does not match metastore&#39;s schema version 1.2.0 Metastore is not upgraded or corrupt)
-        at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:9063)
-        at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:9027)
-        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里的意思是，hive的版本是3.1.0，但是元数据中的版本信息是1.2.0，因此报错。</p>
-</li>
-<li><p>到hive的元数据库里查了下version表里的数据，确实版本是1.2.0</p>
-<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>这里猜测，spark在读取hive元数据的时候，因为spark是直接从官网上下载的，可能官网上的spark是用hive1.2.0版本编译的，所以，它默认使用的1.2.0，导致在启动的时候，修改了hive的元数据<br>但是具体的原因还不知道<br>下面会拿官网上的spark源码手动编译测试一下</p>
-<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2></li>
-</ul>
-<ol>
-<li>直接修改version表的数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> version<span class="token punctuation">;</span>
-<span class="token keyword">update</span> VERSION <span class="token keyword">set</span> SCHEMA_VERSION<span class="token operator">=</span><span class="token string">'2.1.1'</span> <span class="token keyword">where</span>  VER_ID<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-2、在hvie-site.xml中关闭版本验证<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<img src="/uploads/20210116/ive-metadata.png" alt="hive-metadata"></li>
-</ol>
-<h2 id="深入研究"><a href="#深入研究" class="headerlink" title="深入研究"></a>深入研究</h2><p>   在spark官网上查看了相关的资料，发现，在官网上下载的spark安装包，默认编译的hive版本是1.2.1的，所以每次启动spark的时候，会检查hive的版本。如果采用hive的默认配置，如果不一样，<br>就会修改version<br>    <img src="/uploads/20210116/hive-version-official-website.png" alt="hive-version-official-website"><br>一开始尝试着下载spark源码重新编译spark安装包，编译执行hive的版本为3.1.1，但是，发现每次指定hive的版本，maven下载依赖的时候，都会报错。<br>报错信息如下：</p>
-<p>后来想了个折中的办法，spark还是使用原始版本，但是修改一下hive-site.xml文件。<br>    注意：这里修改的是spark的conf下的hive-site.xml，原始的hive里的不需要修改</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
-    Enforce metastore schema version consistency.
-    True: Verify that version information stored in metastore matches with one from Hive jars.  Also disable automatic
-          schema migration attempt. Users are required to manually migrate schema after Hive upgrade which ensures
-          proper metastore schema migration. (Default)
-    False: Warn if the version information stored in metastore doesn't match with one from in Hive jars.
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification.record.version<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
-    When true the current MS version is recorded in the VERSION table. If this is disabled and verification is
-     enabled the MS will be unusable.
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这两个配置的具体含义：</p>
-<ul>
-<li><code>hive.metastore.schema.verification</code> 如果设置为true，那么每次启动hive或者spark的时候，都会检查hive的版本。如果为false，则会告警  </li>
-<li><code>hive.metastore.schema.verification.record.version</code> 如果设置为true，每次启动spark的时候，如果检查了hive的版本和spark编译的版本不一致，那么就会修改hive的元数据</li>
-</ul>
-<p>这里的修改需要设置</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hive.metastore.schema.verification&#x3D;false   
-hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>以下有3个反例：</p>
-<ul>
-<li>如过这两个都为true，那么spark会修改hive元数据</li>
-<li>如果<code>hive.metastore.schema.verification=true</code>，<br>并且<code>hive.metastore.schema.verification.record.version=false</code>，这时候启动spark就会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: MetaException(message:Hive Schema version 1.2.0 does not match metastore&#39;s schema version 3.1.0 Metastore is not upgraded or corrupt)
-	at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:6679)
-	at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:6645)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>如果设置<code>hive.metastore.schema.verification=false</code><br>且<code>hive.metastore.schema.verification.record.version=true</code>，spark还是会修改hive的元数据</li>
-</ul>
-<p><img src="/uploads/20210116/hive-metastore-schema-verification.png" alt="hive-metastore-schema-verification"><br><img src="/uploads/20210116/hive-metastore-latest-effect.png" alt="hive-metastore-latest-effect"></p>
-<p>所以，只要设置<code>hive.metastore.schema.verification.record.version=false</code>就可以了，但是为了保险起见，我两个都设置成false了</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Hive</tag>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>python实现scp功能</title>
     <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
     <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
@@ -1803,46 +1957,6 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       </categories>
       <tags>
         <tag>Python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
-    <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>安装jenkins</li>
-<li>通过pythonAPI实现参数化jenkins构建</li>
-</ul>
-<a id="more"></a>
-<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
-<ul>
-<li>在官网下载rpm包，手动安装，最费事</li>
-<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
-<li>直接下载官网上的war包：wget <a href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
-</ul>
-<p>我这里直接用的下载war包</p>
-<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
-<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
-<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
-<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
-<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
-<p><img src="/uploads/20210116/jenkins-param.png" alt="hive-import-data"></p>
-<p>需要几个参数，就添加几个参数</p>
-<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
-server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>里面的执行shell：<br><img src="/uploads/20210116/jenkins-build.png" alt="hive-import-data"></p>
-<p>最终的效果：<br><img src="/uploads/20210116/jenkins-console.png" alt="hive-import-data"></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Jenkins</category>
-      </categories>
-      <tags>
-        <tag>Jenkins</tag>
       </tags>
   </entry>
   <entry>
@@ -1916,6 +2030,46 @@ org.apache.spark.SparkException: Yarn application has already ended! It might ha
       <tags>
         <tag>Spark</tag>
         <tag>Yarn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
+    <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>安装jenkins</li>
+<li>通过pythonAPI实现参数化jenkins构建</li>
+</ul>
+<a id="more"></a>
+<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
+<ul>
+<li>在官网下载rpm包，手动安装，最费事</li>
+<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
+<li>直接下载官网上的war包：wget <a href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
+</ul>
+<p>我这里直接用的下载war包</p>
+<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
+<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
+<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
+<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
+<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
+<p><img src="/uploads/20210116/jenkins-param.png" alt="hive-import-data"></p>
+<p>需要几个参数，就添加几个参数</p>
+<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
+server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>里面的执行shell：<br><img src="/uploads/20210116/jenkins-build.png" alt="hive-import-data"></p>
+<p>最终的效果：<br><img src="/uploads/20210116/jenkins-console.png" alt="hive-import-data"></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Jenkins</category>
+      </categories>
+      <tags>
+        <tag>Jenkins</tag>
       </tags>
   </entry>
   <entry>
@@ -2477,6 +2631,36 @@ search:
       </tags>
   </entry>
   <entry>
+    <title>数据仓库面试题</title>
+    <url>/2021/11/18/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>数据仓库面试题总结</li>
+</ul>
+<ul>
+<li><p><strong>全量表(df),增量表(di),追加表(da)，拉链表(dz)的区别及使用场景</strong></p>
+</li>
+<li><p><strong>星型模型和雪花模型</strong></p>
+</li>
+<li><p><strong>缓慢变化维如何处理，几种方式</strong></p>
+</li>
+<li><p><strong>说说你从0-1搭建数仓都做了什么？你觉得最有挑战的是什么？</strong></p>
+</li>
+<li><p><strong>流批一体有什么好处？为什么要搞流批一体？</strong><br>传统数仓Lambda架构，数据分析需求基于流、批两套计算引擎产出，这种分离的架构不仅会带来两套开发成本，也导致数据逻辑和口径难以对齐<br>[为什么阿里云要做流批一体？][4]<br>流批一体首先是架构上的流批一体，不仅仅是计算引擎流批一体，存储引擎也需要流批一体，计算引擎可以使用flink，存储引擎，现在常用的可以使用Hudi，Iceberg</p>
+</li>
+</ul>
+<p>参考<br>[(终极版)2021大数据面试真题(务必进来看一下)][1]</p>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>大数据</category>
+        <category>数据仓库</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>日常工具软件问题</title>
     <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2535,6 +2719,159 @@ search:
       <tags>
         <tag>VMWare</tag>
         <tag>IDEA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>面试题总结（一）</title>
+    <url>/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>spark面试题</li>
+<li>hbase面试题</li>
+<li>kafka面试题</li>
+<li>flume面试题</li>
+<li>hive面试题</li>
+<li>kudu面试题</li>
+<li>presto面试题</li>
+<li>flink面试题</li>
+<li>redis面试题</li>
+<li>mongodb面试题</li>
+<li>es面试题</li>
+<li>数据仓库面试题</li>
+<li>java面试题</li>
+<li>scala面试题</li>
+<li>sqoop与datax面试题<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Spark面试题总结"><a href="#Spark面试题总结" class="headerlink" title="Spark面试题总结"></a>Spark面试题总结</h2><h2 id="Kafka面试题总结"><a href="#Kafka面试题总结" class="headerlink" title="Kafka面试题总结"></a>Kafka面试题总结</h2><ul>
+<li><strong>Kafka 分布式的情况下，如何保证消息的顺序?</strong><pre class="line-numbers language-none"><code class="language-none">Kakfa不保证数据的整体有序，但是可以设置分区内消息有序，可以设置相同的key到同一个partition，这样就可以保证同一个key的消息，肯定是有序的<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+</li>
+</ul>
+<h2 id="数据仓库面试题总结"><a href="#数据仓库面试题总结" class="headerlink" title="数据仓库面试题总结"></a>数据仓库面试题总结</h2><h2 id="Hbase面试题"><a href="#Hbase面试题" class="headerlink" title="Hbase面试题"></a>Hbase面试题</h2><ul>
+<li><strong>Hbase是写快还是读快？为什么？</strong><pre class="line-numbers language-none"><code class="language-none">Hbase是写快读慢。
+Hbase写入速度比读取速度要快，根本原因LSM存储引擎
+LSM核心思想的核心就是放弃部分读能力，换取写入的最大化能力
+LSM核心思路就是假定内存足够大，因此不需要每次有数据更新就必须将数据写入到磁盘中，而可以先将最新的数据驻留在内存中，等到积累到最后多之后，再使用归并排序的方式将内存内的数据合并追加到磁盘队尾
+将对数据的修改增量保持在内存中，达到指定的大小限制后将这些修改操作批量写入磁盘，不过读取的时候稍微麻烦，需要合并磁盘中历史数据和内存中最近修改操作，所以写入性能大大提升，读取时可能需要先看是否命中内存，否则需要访问较多的磁盘文件
+LSM树原理把一棵大树拆分成N棵小树，它首先写入内存中，随着小树越来越大，内存中的小树会flush到磁盘中，磁盘中的树定期可以做merge操作，合并成一棵大树，以优化读性能<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+
+
+</li>
+</ul>
+<h2 id="Sqoop与DataX面试题"><a href="#Sqoop与DataX面试题" class="headerlink" title="Sqoop与DataX面试题"></a>Sqoop与DataX面试题</h2><ul>
+<li><strong>Sqoop与DataX优缺点比较？</strong>  <table>
+<thead>
+<tr>
+<th align="center">功能</th>
+<th align="center">DataX</th>
+<th align="center">Sqoop</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">运行模型</td>
+<td align="center">单进程多线程</td>
+<td align="center">MapReduce</td>
+</tr>
+<tr>
+<td align="center">Mysql读写</td>
+<td align="center">单机压力大；读写粒度容易控制</td>
+<td align="center">mr模式重，写出错处理麻烦</td>
+</tr>
+<tr>
+<td align="center">hive读写</td>
+<td align="center">单机压力大</td>
+<td align="center">很好</td>
+</tr>
+<tr>
+<td align="center">分布式</td>
+<td align="center">不支持，可以通过调度系统规避</td>
+<td align="center">支持</td>
+</tr>
+<tr>
+<td align="center">流控</td>
+<td align="center">有流控功能</td>
+<td align="center">需要定制</td>
+</tr>
+<tr>
+<td align="center">DataX是单机的，不是分布式的，但是可以通过在多台脚本机上启动任务来规避。但是DataX比较灵活，Sqoop重一点。</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">DataX虽然是单机的，但是，它的客户端是与namenode通信，走的是hdfs写数据流程，写数据的过程是并行执行的</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<p>Canel 是实时的，可以采集mysql的Binlog数据</p>
+<h2 id="Redis面试题"><a href="#Redis面试题" class="headerlink" title="Redis面试题"></a>Redis面试题</h2><ul>
+<li><strong>Redis有哪些优缺点</strong></li>
+<li>*优点**</li>
+<li>读写性能优异， Redis能读的速度是110000次/s，写的速度是81000次/s。</li>
+<li>支持数据持久化，支持AOF和RDB两种持久化方式。</li>
+<li>支持事务，Redis的所有操作都是原子性的，同时Redis还支持对几个操作合并后的原子性执行。</li>
+<li>数据结构丰富，除了支持string类型的value外还支持hash、set、zset、list等数据结构。</li>
+<li>支持主从复制，主机会自动将数据同步到从机，可以进行读写分离。</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li><p>数据库容量受到物理内存的限制，不能用作海量数据的高性能读写，因此Redis适合的场景主要局限在较小数据量的高性能操作和运算上。</p>
+</li>
+<li><p>Redis 不具备自动容错和恢复功能，主机从机的宕机都会导致前端部分读写请求失败，需要等待机器重启或者手动切换前端的IP才能恢复。</p>
+</li>
+<li><p>主机宕机，宕机前有部分数据未能及时同步到从机，切换IP后还会引入数据不一致的问题，降低了系统的可用性。</p>
+</li>
+<li><p>Redis 较难支持在线扩容，在集群容量达到上限时在线扩容会变得很复杂。为避免这一问题，运维人员在系统上线时必须确保有足够的空间，这对资源造成了很大的浪费。</p>
+</li>
+<li><p><strong>为什么要用 Redis 而不用 map/guava 做缓存?</strong><br>缓存分为本地缓存和分布式缓存。以 Java 为例，使用自带的 map 或者 guava 实现的是本地缓存，最主要的特点是轻量以及快速，生命周期随着 jvm 的销毁而结束，并且在多实例的情况下，每个实例都需要各自保存一份缓存，缓存不具有一致性。<br>使用 redis 或 memcached 之类的称为分布式缓存，在多实例的情况下，各实例共用一份缓存数据，缓存具有一致性。缺点是需要保持 redis 或 memcached服务的高可用，整个程序架构上较为复杂。</p>
+</li>
+</ul>
+<ul>
+<li><strong>Redis 的持久化机制是什么？各自的优缺点？</strong><br>Redis 提供两种持久化机制 <code>RDB（默认）</code> 和 <code>AOF 机制</code><br>RDB：是Redis DataBase缩写快照<blockquote>
+<p>RDB是Redis默认的持久化方式。按照一定的时间将内存的数据以快照的形式保存到硬盘中，对应产生的数据文件为dump.rdb。通过配置文件中的save参数来定义快照的周期。</p>
+</blockquote>
+</li>
+</ul>
+<p>优点：<br>1、只有一个文件 dump.rdb，方便持久化。<br>2、容灾性好，一个文件可以保存到安全的磁盘。<br>3、性能最大化，fork 子进程来完成写操作，让主进程继续处理命令，所以是 IO 最大化。使用单独子进程来进行持久化，主进程不会进行任何 IO 操作，保证了 redis 的高性能<br>4.相对于数据集大时，比 AOF 的启动效率更高。</p>
+<p>缺点：<br>1、数据安全性低。RDB 是间隔一段时间进行持久化，如果持久化之间 redis 发生故障，会发生数据丢失。所以这种方式更适合数据要求不严谨的时候)</p>
+<blockquote>
+<p>AOF持久化(即Append Only File持久化)，则是将Redis执行的每次写命令记录到单独的日志文件中，当重启Redis会重新将持久化的日志中文件恢复数据。<br>当两种方式同时开启时，数据恢复Redis会优先选择AOF恢复。</p>
+</blockquote>
+<p>优点：<br>1、数据安全，aof 持久化可以配置 appendfsync 属性，有 always，每进行一次 命令操作就记录到 aof 文件中一次。<br>2、通过 append 模式写文件，即使中途服务器宕机，可以通过 redis-check-aof 工具解决数据一致性问题。<br>3、AOF 机制的 rewrite 模式。AOF 文件没被 rewrite 之前（文件过大时会对命令 进行合并重写），可以删除其中的某些命令（比如误操作的 flushall）)</p>
+<p>缺点：<br>1、AOF 文件比 RDB 文件大，且恢复速度慢。<br>2、数据集大的时候，比 rdb 启动效率低。</p>
+<blockquote>
+<p><code>RDB（默认）</code> 和 <code>AOF 机制</code>优缺点是什么？ </p>
+</blockquote>
+<p>AOF文件比RDB更新频率高，优先使用AOF还原数据。<br>AOF比RDB更安全也更大<br>RDB性能比AOF好<br>如果两个都配了优先加载AOF</p>
+<ul>
+<li><strong>Redis的过期键的删除策略</strong><blockquote>
+<p>MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据</p>
+</blockquote>
+</li>
+</ul>
+<p>redis内存数据集大小上升到一定大小的时候，就会施行数据淘汰策略。</p>
+<ul>
+<li>全局的键空间选择性移除<br>noeviction：当内存不足以容纳新写入数据时，新写入操作会报错。<br>allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key。（这个是最常用的）<br>allkeys-random：当内存不足以容纳新写入数据时，在键空间中，随机移除某个key。</li>
+<li>设置过期时间的键空间选择性移除<br>volatile-lru：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，移除最近最少使用的key。<br>volatile-random：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，随机移除某个key。<br>volatile-ttl：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，有更早过期时间的key优先移除。</li>
+</ul>
+<h2 id="flink面试题"><a href="#flink面试题" class="headerlink" title="flink面试题"></a>flink面试题</h2><p>移步<a href="https://gujincheng.github.io/">Flink面试题总结</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>面试题</category>
+      </categories>
+      <tags>
+        <tag>面试题</tag>
       </tags>
   </entry>
   <entry>
@@ -3010,6 +3347,55 @@ search:
       </tags>
   </entry>
   <entry>
+    <title>Flink面试题总结</title>
+    <url>/2021/11/11/Flink%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink面试题总结</li>
+</ul>
+<a id="more"></a>
+
+
+
+<p><strong><font size = 5>1. Flink是如何支持批流一体的？</font></strong><br>    Flink的开发者认为批处理是流处理的一种特殊情况。批处理是有限的流处理。Flink 使用一个引擎支持了DataSet API 和 DataStream API<br>    在1.12.x以后，DataSet API会逐渐废弃，DataStream API已经既可以处理流也可以处理批了<br>    具体可以参考<a href="https://www.cnblogs.com/binbingg/p/14330354.html">Apache Flink 1.12.0 正式发布，DataSet API 将被弃用，真正的流批一体</a></p>
+<p><strong><font size = 5>2. Flink 相比传统的 Spark Streaming 有什么区别?</font></strong><br>    Flink 是标准的实时处理引擎，基于事件驱动。而 Spark Streaming 是微批（Micro-Batch）的模型<br>    1. 架构模型Spark Streaming 在运行时的主要角色包括：Master、Worker、Driver、Executor;<br>       Flink 在运行时主要包含：Jobmanager、Taskmanager和Slot。<br>    2. 任务调度Spark Streaming 连续不断的生成微小的数据批次，构建有向无环图DAG，Spark Streaming 会依次创建 DStreamGraph、JobGenerator、JobScheduler。<br>       Flink 根据用户提交的代码生成 StreamGraph，经过优化生成 JobGraph，然后提交给 JobManager进行处理，JobManager 会根据 JobGraph 生成 ExecutionGraph，ExecutionGraph 是 Flink 调度最核心的数据结构，JobManager 根据 ExecutionGraph 对 Job 进行调度。<br>    3. 时间机制Spark Streaming 支持的时间机制有限，只支持处理时间。<br>       Flink 支持了流处理程序在时间上的三个定义：处理时间、事件时间、注入时间。同时也支持 watermark 机制来处理滞后数据。<br>    4. 容错机制对于 Spark Streaming 任务，我们可以设置 checkpoint，然后假如发生故障并重启，我们可以从上次 checkpoint 之处恢复，但是这个行为只能使得数据不丢失，可能会重复处理，不能做到恰好一次处理语义。<br>       Flink 则使用两阶段提交协议来解决这个问题</p>
+<p><strong><font size = 5>3. Flink集群有哪些角色？各自有什么作用？</font></strong><br>    Flink 程序在运行时主要有 TaskManager，JobManager，Client三种角色。<br>    1. JobManager是一个进程，主要负责申请资源，协调以及控制整个job的执行过程，具体包括，调度任务、处理checkpoint、容错等等，在接收到JobClient提交的执行计划之后，针对收到的执行计划，继续解析，因为JobClient只是形成一个operaor层面的执行计划，所以JobManager继续解析执行计划（根据算子的并发度，划分task），形成一个可以被实际调度的由task组成的拓扑图，如上图被解析之后形成下图的执行计划，最后向集群申请资源，一旦资源就绪，就调度task到TaskManager。<br>    2. TaskManager是一个进程，及一个JVM（Flink用java实现）。主要作用是接收并执行JobManager发送的task，并且与JobManager通信，反馈任务状态信息，比如任务分执行中，执行完等状态，上文提到的checkpoint的部分信息也是TaskManager反馈给JobManager的。如果说JobManager是master的话，那么TaskManager就是worker主要用来执行任务。在TaskManager内可以运行多个task。多个task运行在一个JVM内有几个好处，首先task可以通过多路复用的方式TCP连接，其次task可以共享节点之间的心跳信息，减少了网络传输。<br>    3. Client是Flink程序提交的客户端，当用户提交一个Flink程序时，会首先创建一个Client，该Client首先会对用户提交的Flink程序进行预处理，并提交到Flink集群中处理，所以Client需要从用户提交的Flink程序配置中获取JobManager的地址，并建立到JobManager的连接，将Flink Job提交给JobManager<br>    Spark中每个Stage中的Task会被分配到一个Worker中的 -&gt; Executor容器里面的 -&gt; 一个线程池中被执行，Flink称每个Executor为一个TaskManager，每个TaskManager中会有多个slot作为内存隔离：<br>    Spark：Worker  ——&gt;   Executor  ——&gt;  线程池  ——&gt;  线程<br>    Flink：  Worker  ——&gt;   TaskManager  ——&gt;  Slot  ——&gt;  线程 </p>
+<p><strong><font size = 5>4. 说说 Flink 资源管理中 Task Slot 的概念</font></strong><br>    Slot是TaskManager资源粒度的划分，每个Slot都有自己独立的内存。所有Slot平均分配TaskManger的内存，比如TaskManager分配给Solt的内存为8G，两个Slot，每个Slot的内存为4G，四个Slot，每个Slot的内存为2G，值得注意的是，Slot仅划分内存，不涉及cpu的划分。同时Slot是Flink中的任务执行器（类似Storm中Executor），每个Slot可以运行多个task，而且一个task会以单独的线程来运行。Slot主要的好处有以下几点：<br>    可以起到隔离内存的作用，防止多个不同job的task竞争内存。<br>    Slot的个数就代表了一个Flink程序的最高并行度，简化了性能调优的过程<br>    允许多个Task共享Slot，提升了资源利用率，举一个实际的例子，kafka有3个partition，对应flink的source有3个task，而keyBy我们设置的并行度为20，这个时候如果Slot不能共享的话，需要占用23个Slot，如果允许共享的话，那么只需要20个Slot即可（Slot的默认共享规则计算为20个）。</p>
+<p><strong><font size = 5>5. 说说你知道的Flink分区策略？</font></strong><br>    1. GlobalPartitioner 数据会被分发到下游算子的第一个实例中进行处理。<br>    2. ShufflePartitioner 数据会被随机分发到下游算子的每一个实例中进行处理。<br>    3. RebalancePartitioner 数据会被循环发送到下游的每一个实例中进行处理。<br>    4. RescalePartitioner 这种分区器会根据上下游算子的并行度，循环的方式输出到下游算子的每个实例。<br>        这里有点难以理解，假设上游并行度为2，编号为A和B。下游并行度为4，编号为1，2，3，4。那么A则把数据循环发送给1和2，B则把数据循环发送给3和4。假设上游并行度为4，编号为A，B，C，D。下游并行度为2，编号为1，2。那么A和B则把数据发送给1，C和D则把数据发送给2。<br>    5. BroadcastPartitioner 广播分区会将上游数据输出到下游算子的每个实例中。适合于大数据集和小数据集做Jion的场景。<br>    6. ForwardPartitioner 用于将记录输出到下游本地的算子实例。它要求上下游算子并行度一样。简单的说，ForwardPartitioner用来做数据的控制台打印。<br>    7. KeyGroupStreamPartitioner Hash分区器。会将数据按 Key 的 Hash 值输出到下游算子实例中。<br>    8. CustomPartitionerWrapper 用户自定义分区器。需要用户自己实现Partitioner接口，来定义自己的分区逻辑</p>
+<p><strong><font size = 5>6. Flink的并行度了解吗？Flink的并行度设置是怎样的？</font></strong><br>    Flink中的任务被分为多个并行任务来执行，其中每个并行的实例处理一部分数据。这些并行实例的数量被称为并行度。我们在实际生产环境中可以从四个不同层面设置并行度：<br>    操作算子层面(Operator Level)<br>    执行环境层面(Execution Environment Level)<br>    客户端层面(Client Level)<br>    系统层面(System Level)<br>    需要注意的优先级：算子层面&gt;环境层面&gt;客户端层面&gt;系统层面</p>
+<p><strong><font size = 5>7. Flink的Slot和parallelism有什么区别？</font></strong><br>    slot是指taskmanager的并发执行能力，假设我们将 taskmanager.numberOfTaskSlots 配置为3 那么每一个 taskmanager 中分配3个 TaskSlot, 3个 taskmanager 一共有9个TaskSlot。<br>    parallelism是指taskmanager实际使用的并发能力。假设我们把 parallelism.default 设置为1，那么9个 TaskSlot 只能用1个，有8个空闲。</p>
+<p><strong><font size = 5>8. Flink有没有重启策略？说说有哪几种？</font></strong><br>    Flink 实现了多种重启策略。<br>    固定延迟重启策略（Fixed Delay Restart Strategy）<br>    故障率重启策略（Failure Rate Restart Strategy）<br>    没有重启策略（No Restart Strategy）<br>    Fallback重启策略（Fallback Restart Strategy）</p>
+<p><strong><font size = 5>9. 用过Flink中的分布式缓存吗？如何使用？</font></strong><br>    Flink实现的分布式缓存和Hadoop有异曲同工之妙。目的是在本地读取文件，并把他放在 taskmanager 节点中，防止task重复拉取。</p>
+<p><strong><font size = 5>10. 说说Flink中的广播变量，使用时需要注意什么？</font></strong><br>    我们知道Flink是并行的，计算过程可能不在一个 Slot 中进行，那么有一种情况即：当我们需要访问同一份数据。那么Flink中的广播变量就是为了解决这种情况。<br>    我们可以把广播变量理解为是一个公共的共享变量，我们可以把一个dataset 数据集广播出去，然后不同的task在节点上都能够获取到，这个数据在每个节点上只会存在一份</p>
+<p><strong><font size = 5>11. 说说Flink中的窗口？</font></strong><br>    Flink的窗口可以分为Keyed Windows和Non-Keyed Windows，键控窗口会按照key划分逻辑键控流，拥有键控流将允许窗口计算由多个任务并行执行，非键控流的并行度为1<br>    窗口的生命周期：当应该属于该窗口的第一个元素到达时，就会创建一个窗口，并且当时间（事件或处理时间）超过其结束时间戳加上用户指定的允许延迟时，该窗口将被完全删除<br>    窗口分配器可以分为<br>    tumbling windows：无重叠<br>    sliding windows：有重叠<br>    session windows：当会话窗口在一段时间内没有接收到元素时，即发生不活动间隙时，它会关闭<br>    global windows：全局窗口分配器将具有相同键的所有元素分配给同一个全局窗口。仅在指定自定义触发器时才有用。 否则，不会执行任何计算</p>
+<p><strong><font size = 5>12. 说说Flink中的状态存储？</font></strong><br>    Flink在做计算的过程中经常需要存储中间状态，来避免数据丢失和状态恢复。选择的状态存储策略不同，会影响状态持久化如何和 checkpoint 交互。<br>    Flink提供了三种状态存储方式：MemoryStateBackend、FsStateBackend、RocksDBStateBackend</p>
+<p><strong><font size = 5>13. Flink 中的时间有哪几类？</font></strong><br>    Flink 中的时间和其他流式计算系统的时间一样分为三类：事件时间，摄入时间，处理时间三种。<br>    如果以 EventTime 为基准来定义时间窗口将形成EventTimeWindow,要求消息本身就应该携带EventTime。<br>    如果以 IngesingtTime 为基准来定义时间窗口将形成 IngestingTimeWindow,以 source 的systemTime为准。<br>    如果以 ProcessingTime 基准来定义时间窗口将形成 ProcessingTimeWindow，以 operator 的systemTime 为准。</p>
+<p><strong><font size = 5>14. Flink 中水印是什么概念，起到什么作用？</font></strong><br>    Watermark 是 Apache Flink 为了处理 EventTime 窗口计算提出的一种机制, 本质上是一种时间戳。 一般来讲Watermark经常和Window一起被用来处理乱序事件。</p>
+<p><strong><font size = 5>15. Flink是如何做到高效的数据交换的？</font></strong><br>    在一个Flink Job中，数据需要在不同的task中进行交换，整个数据交换是有 TaskManager 负责的，TaskManager 的网络组件首先从缓冲buffer中收集records，然后再发送。<br>    Records 并不是一个一个被发送的，二是积累一个批次再发送，batch 技术可以更加高效的利用网络资源</p>
+<p><strong><font size = 5>16. Flink是如何做容错的？</font></strong><br>    Flink 实现容错主要靠强大的CheckPoint机制和State机制。Checkpoint 负责定时制作分布式快照、对程序中的状态进行备份；State 用来存储计算过程中的中间状态。</p>
+<p><strong><font size = 5>17. Flink 分布式快照的原理是什么？</font></strong><br>    Flink的分布式快照是根据Chandy-Lamport算法量身定做的。简单来说就是持续创建分布式数据流及其状态的一致快照。<br>    核心思想是在 input source 端插入 barrier，控制 barrier 的同步来实现 snapshot 的备份和 exactly-once 语义。</p>
+<p><strong><font size = 5>18. Flink 是如何保证Exactly-once语义的？</font></strong><br>    Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义。 分为以下几个步骤：<br>    开始事务（beginTransaction）创建一个临时文件夹，来写把数据写入到这个文件夹里面<br>    预提交（preCommit）将内存中缓存的数据写入文件并关闭<br>    正式提交（commit）将之前写完的临时文件放入目标目录下。这代表着最终的数据会有一些延迟<br>    丢弃（abort）丢弃临时文件<br>    若失败发生在预提交成功后，正式提交前。可以根据状态来提交预提交的数据，也可删除预提交的数据。</p>
+<p><strong><font size = 5>19. 说说 Flink的内存管理是如何做的?</font></strong><br>    Flink 并不是将大量对象存在堆上，而是将对象都序列化到一个预分配的内存块上。此外，Flink大量的使用了堆外内存。如果需要处理的数据超出了内存限制，则会将部分数据存储到硬盘上。<br>    Flink 为了直接操作二进制数据实现了自己的序列化框架。理论上Flink的内存管理分为三部分：<br>    Network Buffers：这个是在TaskManager启动的时候分配的，这是一组用于缓存网络数据的内存，每个块是32K，默认分配2048个，可以通过“taskmanager.network.numberOfBuffers”修改<br>    Memory Manage pool：大量的Memory Segment块，用于运行时的算法（Sort/Join/Shuffle等），这部分启动的时候就会分配。，内存的分配支持预分配和lazy load，默认懒加载的方式。<br>    User Code，这部分是除了Memory Manager之外的内存用于User code和TaskManager本身的数据结构。</p>
+<p><strong><font size = 5>20. Flink中的Window出现了数据倾斜，你有什么解决办法？</font></strong><br>    window产生数据倾斜指的是数据在不同的窗口内堆积的数据量相差过多。本质上产生这种情况的原因是数据源头发送的数据量速度不同导致的。出现这种情况一般通过两种方式来解决：<br>    在数据进入窗口前做预聚合<br>    重新设计窗口聚合的key</p>
+<p><strong><font size = 5>21. Flink任务延迟高，想解决这个问题，你会如何入手？</font></strong><br>    在Flink的后台任务管理中，我们可以看到Flink的哪个算子和task出现了反压。最主要的手段是资源调优和算子调优。资源调优即是对作业中的Operator的并发数（parallelism）、CPU（core）、堆内存（heap_memory）等参数进行调优。作业参数调优包括：并行度的设置，State的设置，checkpoint的设置</p>
+<p><strong><font size = 5>22. Flink是如何处理反压的？</font></strong><br>    Flink 内部是基于 producer-consumer 模型来进行消息传递的，Flink的反压设计也是基于这个模型。Flink 使用了高效有界的分布式阻塞队列，就像 Java 通用的阻塞队列（BlockingQueue）一样。下游消费者消费变慢，上游就会受到阻塞</p>
+<p><strong><font size = 5>23. Operator Chains（算子链）这个概念你了解吗？</font></strong><br>    为了更高效地分布式执行，Flink会尽可能地将operator的subtask链接（chain）在一起形成task。每个task在一个线程中执行。<br>    将operators链接成task是非常有效的优化：<br>    它能减少线程之间的切换，<br>    减少消息的序列化/反序列化，<br>    减少数据在缓冲区的交换，<br>    减少了延迟的同时提高整体的吞吐量。<br>    这就是我们所说的算子链</p>
+<p><strong><font size = 5>24. Flink什么情况下才会把Operator chain在一起形成算子链？</font></strong><br>    两个operator chain在一起的的条件：<br>    上下游的并行度一致<br>    下游节点的入度为1 （也就是说下游节点没有来自其他节点的输入）<br>    上下游节点都在同一个 slot group 中（下面会解释 slot group）<br>    下游节点的 chain 策略为 ALWAYS（可以与上下游链接，map、flatmap、filter等默认是ALWAYS）<br>    上游节点的 chain 策略为 ALWAYS 或 HEAD（只能与下游链接，不能与上游链接，Source默认是HEAD）<br>    两个节点间数据分区方式是 forward（参考理解数据流的分区）<br>    用户没有禁用 chain</p>
+<p><strong><font size = 5>25. Flink Job的提交流程</font></strong><br>    用户提交的Flink Job会被转化成一个DAG任务运行，分别是：StreamGraph、JobGraph、ExecutionGraph，<br>    Flink中JobManager与TaskManager，JobManager与Client的交互是基于Akka工具包的，是通过消息驱动。<br>    整个Flink Job的提交还包含着ActorSystem的创建，JobManager的启动，TaskManager的启动和注册。</p>
+<p><strong><font size = 5>26. Flink 计算资源的调度是如何实现的？</font></strong><br>    TaskManager中最细粒度的资源是Task slot，代表了一个固定大小的资源子集，每个TaskManager会将其所占有的资源平分给它的slot。<br>    通过调整 task slot 的数量，用户可以定义task之间是如何相互隔离的。每个 TaskManager 有一个slot，也就意味着每个task运行在独立的 JVM 中。<br>    每个 TaskManager 有多个slot的话，也就是说多个task运行在同一个JVM中。而在同一个JVM进程中的task，可以共享TCP连接（基于多路复用）和心跳消息，<br>    可以减少数据的网络传输，也能共享一些数据结构，一定程度上减少了每个task的消耗。 每个slot可以接受单个task，也可以接受多个连续task组成的pipeline</p>
+<p><strong><font size = 5>27. 简述Flink的数据抽象及数据交换过程？</font></strong><br>    Flink 为了避免JVM的固有缺陷例如java对象存储密度低，FGC影响吞吐和响应等，实现了自主管理内存。MemorySegment就是Flink的内存抽象。<br>    默认情况下，一个MemorySegment可以被看做是一个32kb大的内存块的抽象。这块内存既可以是JVM里的一个byte[]，也可以是堆外内存（DirectByteBuffer）。<br>    在MemorySegment这个抽象之上，Flink在数据从operator内的数据对象在向TaskManager上转移，预备被发给下个节点的过程中，使用的抽象或者说内存对象是Buffer。<br>    对接从Java对象转为Buffer的中间对象是另一个抽象StreamRecord。</p>
+<p><strong><font size = 5>28. Flink 中的分布式快照机制是如何实现的？</font></strong><br>    Flink的容错机制的核心部分是制作分布式数据流和操作算子状态的一致性快照。 这些快照充当一致性checkpoint，系统可以在发生故障时回滚。 Flink用于制作这些快照的机制在“分布式数据流的轻量级异步快照”中进行了描述。<br>    它受到分布式快照的标准Chandy-Lamport算法的启发，专门针对Flink的执行模型而定制。<br>    barriers在数据流源处被注入并行数据流中。快照n的barriers被插入的位置（我们称之为Sn）是快照所包含的数据在数据源中最大位置。<br>    例如，在Apache Kafka中，此位置将是分区中最后一条记录的偏移量。 将该位置Sn报告给checkpoint协调器（Flink的JobManager）。<br>    然后barriers向下游流动。当一个中间操作算子从其所有输入流中收到快照n的barriers时，它会为快照n发出barriers进入其所有输出流中。<br>    一旦sink操作算子（流式DAG的末端）从其所有输入流接收到barriers n，它就向checkpoint协调器确认快照n完成。在所有sink确认快照后，意味快照着已完成。<br>    一旦完成快照n，job将永远不再向数据源请求Sn之前的记录，因为此时这些记录（及其后续记录）将已经通过整个数据流拓扑，也即是已经被处理结束。</p>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Flink学习笔记（一）</title>
     <url>/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3370,313 +3756,6 @@ Caused by: java.lang.ClassCastException: cannot assign instance of org.apache.co
       </categories>
       <tags>
         <tag>Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Flink面试题总结</title>
-    <url>/2021/11/11/Flink%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink面试题总结</li>
-</ul>
-<a id="more"></a>
-
-
-
-<p><strong><font size = 5>1. Flink是如何支持批流一体的？</font></strong><br>    Flink的开发者认为批处理是流处理的一种特殊情况。批处理是有限的流处理。Flink 使用一个引擎支持了DataSet API 和 DataStream API<br>    在1.12.x以后，DataSet API会逐渐废弃，DataStream API已经既可以处理流也可以处理批了<br>    具体可以参考<a href="https://www.cnblogs.com/binbingg/p/14330354.html">Apache Flink 1.12.0 正式发布，DataSet API 将被弃用，真正的流批一体</a></p>
-<p><strong><font size = 5>2. Flink 相比传统的 Spark Streaming 有什么区别?</font></strong><br>    Flink 是标准的实时处理引擎，基于事件驱动。而 Spark Streaming 是微批（Micro-Batch）的模型<br>    1. 架构模型Spark Streaming 在运行时的主要角色包括：Master、Worker、Driver、Executor;<br>       Flink 在运行时主要包含：Jobmanager、Taskmanager和Slot。<br>    2. 任务调度Spark Streaming 连续不断的生成微小的数据批次，构建有向无环图DAG，Spark Streaming 会依次创建 DStreamGraph、JobGenerator、JobScheduler。<br>       Flink 根据用户提交的代码生成 StreamGraph，经过优化生成 JobGraph，然后提交给 JobManager进行处理，JobManager 会根据 JobGraph 生成 ExecutionGraph，ExecutionGraph 是 Flink 调度最核心的数据结构，JobManager 根据 ExecutionGraph 对 Job 进行调度。<br>    3. 时间机制Spark Streaming 支持的时间机制有限，只支持处理时间。<br>       Flink 支持了流处理程序在时间上的三个定义：处理时间、事件时间、注入时间。同时也支持 watermark 机制来处理滞后数据。<br>    4. 容错机制对于 Spark Streaming 任务，我们可以设置 checkpoint，然后假如发生故障并重启，我们可以从上次 checkpoint 之处恢复，但是这个行为只能使得数据不丢失，可能会重复处理，不能做到恰好一次处理语义。<br>       Flink 则使用两阶段提交协议来解决这个问题</p>
-<p><strong><font size = 5>3. Flink集群有哪些角色？各自有什么作用？</font></strong><br>    Flink 程序在运行时主要有 TaskManager，JobManager，Client三种角色。<br>    1. 其中JobManager扮演着集群中的管理者Master的角色，它是整个集群的协调者，负责接收Flink Job，协调检查点，Failover 故障恢复等，同时管理Flink集群中从节点TaskManager。<br>    2. TaskManager是实际负责执行计算的Worker，在其上执行Flink Job的一组Task，每个TaskManager负责管理其所在节点上的资源信息，如内存、磁盘、网络，在启动的时候将资源的状态向JobManager汇报。<br>    3. Client是Flink程序提交的客户端，当用户提交一个Flink程序时，会首先创建一个Client，该Client首先会对用户提交的Flink程序进行预处理，并提交到Flink集群中处理，所以Client需要从用户提交的Flink程序配置中获取JobManager的地址，并建立到JobManager的连接，将Flink Job提交给JobManager</p>
-<p><strong><font size = 5>4. 说说 Flink 资源管理中 Task Slot 的概念</font></strong><br>    在Flink架构角色中我们提到，TaskManager是实际负责执行计算的Worker，TaskManager 是一个 JVM 进程，并会以独立的线程来执行一个task或多个subtask。<br>    为了控制一个 TaskManager 能接受多少个 task，Flink 提出了 Task Slot 的概念。简单的说，TaskManager会将自己节点上管理的资源分为不同的Slot：固定大小的资源子集。<br>    这样就避免了不同Job的Task互相竞争内存资源，但是需要主要的是，Slot只会做内存的隔离。没有做CPU的隔离。</p>
-<p><strong><font size = 5>5. 说说你知道的Flink分区策略？</font></strong><br>    1. GlobalPartitioner 数据会被分发到下游算子的第一个实例中进行处理。<br>    2. ShufflePartitioner 数据会被随机分发到下游算子的每一个实例中进行处理。<br>    3. RebalancePartitioner 数据会被循环发送到下游的每一个实例中进行处理。<br>    4. RescalePartitioner 这种分区器会根据上下游算子的并行度，循环的方式输出到下游算子的每个实例。<br>        这里有点难以理解，假设上游并行度为2，编号为A和B。下游并行度为4，编号为1，2，3，4。那么A则把数据循环发送给1和2，B则把数据循环发送给3和4。假设上游并行度为4，编号为A，B，C，D。下游并行度为2，编号为1，2。那么A和B则把数据发送给1，C和D则把数据发送给2。<br>    5. BroadcastPartitioner 广播分区会将上游数据输出到下游算子的每个实例中。适合于大数据集和小数据集做Jion的场景。<br>    6. ForwardPartitioner 用于将记录输出到下游本地的算子实例。它要求上下游算子并行度一样。简单的说，ForwardPartitioner用来做数据的控制台打印。<br>    7. KeyGroupStreamPartitioner Hash分区器。会将数据按 Key 的 Hash 值输出到下游算子实例中。<br>    8. CustomPartitionerWrapper 用户自定义分区器。需要用户自己实现Partitioner接口，来定义自己的分区逻辑</p>
-<p><strong><font size = 5>6. Flink的并行度了解吗？Flink的并行度设置是怎样的？</font></strong><br>    Flink中的任务被分为多个并行任务来执行，其中每个并行的实例处理一部分数据。这些并行实例的数量被称为并行度。我们在实际生产环境中可以从四个不同层面设置并行度：<br>    操作算子层面(Operator Level)<br>    执行环境层面(Execution Environment Level)<br>    客户端层面(Client Level)<br>    系统层面(System Level)<br>    需要注意的优先级：算子层面&gt;环境层面&gt;客户端层面&gt;系统层面</p>
-<p><strong><font size = 5>7. Flink的Slot和parallelism有什么区别？</font></strong><br>    slot是指taskmanager的并发执行能力，假设我们将 taskmanager.numberOfTaskSlots 配置为3 那么每一个 taskmanager 中分配3个 TaskSlot, 3个 taskmanager 一共有9个TaskSlot。<br>    parallelism是指taskmanager实际使用的并发能力。假设我们把 parallelism.default 设置为1，那么9个 TaskSlot 只能用1个，有8个空闲。</p>
-<p><strong><font size = 5>8. Flink有没有重启策略？说说有哪几种？</font></strong><br>    Flink 实现了多种重启策略。<br>    固定延迟重启策略（Fixed Delay Restart Strategy）<br>    故障率重启策略（Failure Rate Restart Strategy）<br>    没有重启策略（No Restart Strategy）<br>    Fallback重启策略（Fallback Restart Strategy）</p>
-<p><strong><font size = 5>9. 用过Flink中的分布式缓存吗？如何使用？</font></strong><br>    Flink实现的分布式缓存和Hadoop有异曲同工之妙。目的是在本地读取文件，并把他放在 taskmanager 节点中，防止task重复拉取。</p>
-<p><strong><font size = 5>10. 说说Flink中的广播变量，使用时需要注意什么？</font></strong><br>    我们知道Flink是并行的，计算过程可能不在一个 Slot 中进行，那么有一种情况即：当我们需要访问同一份数据。那么Flink中的广播变量就是为了解决这种情况。<br>    我们可以把广播变量理解为是一个公共的共享变量，我们可以把一个dataset 数据集广播出去，然后不同的task在节点上都能够获取到，这个数据在每个节点上只会存在一份</p>
-<p><strong><font size = 5>11. 说说Flink中的窗口？</font></strong><br>    Flink的窗口可以分为Keyed Windows和Non-Keyed Windows，键控窗口会按照key划分逻辑键控流，拥有键控流将允许窗口计算由多个任务并行执行，非键控流的并行度为1<br>    窗口的生命周期：当应该属于该窗口的第一个元素到达时，就会创建一个窗口，并且当时间（事件或处理时间）超过其结束时间戳加上用户指定的允许延迟时，该窗口将被完全删除<br>    窗口分配器可以分为<br>    tumbling windows：无重叠<br>    sliding windows：有重叠<br>    session windows：当会话窗口在一段时间内没有接收到元素时，即发生不活动间隙时，它会关闭<br>    global windows：全局窗口分配器将具有相同键的所有元素分配给同一个全局窗口。仅在指定自定义触发器时才有用。 否则，不会执行任何计算</p>
-<p><strong><font size = 5>12. 说说Flink中的状态存储？</font></strong><br>    Flink在做计算的过程中经常需要存储中间状态，来避免数据丢失和状态恢复。选择的状态存储策略不同，会影响状态持久化如何和 checkpoint 交互。<br>    Flink提供了三种状态存储方式：MemoryStateBackend、FsStateBackend、RocksDBStateBackend</p>
-<p><strong><font size = 5>13. Flink 中的时间有哪几类？</font></strong><br>    Flink 中的时间和其他流式计算系统的时间一样分为三类：事件时间，摄入时间，处理时间三种。<br>    如果以 EventTime 为基准来定义时间窗口将形成EventTimeWindow,要求消息本身就应该携带EventTime。<br>    如果以 IngesingtTime 为基准来定义时间窗口将形成 IngestingTimeWindow,以 source 的systemTime为准。<br>    如果以 ProcessingTime 基准来定义时间窗口将形成 ProcessingTimeWindow，以 operator 的systemTime 为准。</p>
-<p><strong><font size = 5>14. Flink 中水印是什么概念，起到什么作用？</font></strong><br>    Watermark 是 Apache Flink 为了处理 EventTime 窗口计算提出的一种机制, 本质上是一种时间戳。 一般来讲Watermark经常和Window一起被用来处理乱序事件。</p>
-<p><strong><font size = 5>15. Flink是如何做到高效的数据交换的？</font></strong><br>    在一个Flink Job中，数据需要在不同的task中进行交换，整个数据交换是有 TaskManager 负责的，TaskManager 的网络组件首先从缓冲buffer中收集records，然后再发送。<br>    Records 并不是一个一个被发送的，二是积累一个批次再发送，batch 技术可以更加高效的利用网络资源</p>
-<p><strong><font size = 5>16. Flink是如何做容错的？</font></strong><br>    Flink 实现容错主要靠强大的CheckPoint机制和State机制。Checkpoint 负责定时制作分布式快照、对程序中的状态进行备份；State 用来存储计算过程中的中间状态。</p>
-<p><strong><font size = 5>17. Flink 分布式快照的原理是什么？</font></strong><br>    Flink的分布式快照是根据Chandy-Lamport算法量身定做的。简单来说就是持续创建分布式数据流及其状态的一致快照。<br>    核心思想是在 input source 端插入 barrier，控制 barrier 的同步来实现 snapshot 的备份和 exactly-once 语义。</p>
-<p><strong><font size = 5>18. Flink 是如何保证Exactly-once语义的？</font></strong><br>    Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义。 分为以下几个步骤：<br>    开始事务（beginTransaction）创建一个临时文件夹，来写把数据写入到这个文件夹里面<br>    预提交（preCommit）将内存中缓存的数据写入文件并关闭<br>    正式提交（commit）将之前写完的临时文件放入目标目录下。这代表着最终的数据会有一些延迟<br>    丢弃（abort）丢弃临时文件<br>    若失败发生在预提交成功后，正式提交前。可以根据状态来提交预提交的数据，也可删除预提交的数据。</p>
-<p><strong><font size = 5>19. 说说 Flink的内存管理是如何做的?</font></strong><br>    Flink 并不是将大量对象存在堆上，而是将对象都序列化到一个预分配的内存块上。此外，Flink大量的使用了堆外内存。如果需要处理的数据超出了内存限制，则会将部分数据存储到硬盘上。<br>    Flink 为了直接操作二进制数据实现了自己的序列化框架。理论上Flink的内存管理分为三部分：<br>    Network Buffers：这个是在TaskManager启动的时候分配的，这是一组用于缓存网络数据的内存，每个块是32K，默认分配2048个，可以通过“taskmanager.network.numberOfBuffers”修改<br>    Memory Manage pool：大量的Memory Segment块，用于运行时的算法（Sort/Join/Shuffle等），这部分启动的时候就会分配。，内存的分配支持预分配和lazy load，默认懒加载的方式。<br>    User Code，这部分是除了Memory Manager之外的内存用于User code和TaskManager本身的数据结构。</p>
-<p><strong><font size = 5>20. Flink中的Window出现了数据倾斜，你有什么解决办法？</font></strong><br>    window产生数据倾斜指的是数据在不同的窗口内堆积的数据量相差过多。本质上产生这种情况的原因是数据源头发送的数据量速度不同导致的。出现这种情况一般通过两种方式来解决：<br>    在数据进入窗口前做预聚合<br>    重新设计窗口聚合的key</p>
-<p><strong><font size = 5>21. Flink任务延迟高，想解决这个问题，你会如何入手？</font></strong><br>    在Flink的后台任务管理中，我们可以看到Flink的哪个算子和task出现了反压。最主要的手段是资源调优和算子调优。资源调优即是对作业中的Operator的并发数（parallelism）、CPU（core）、堆内存（heap_memory）等参数进行调优。作业参数调优包括：并行度的设置，State的设置，checkpoint的设置</p>
-<p><strong><font size = 5>22. Flink是如何处理反压的？</font></strong><br>    Flink 内部是基于 producer-consumer 模型来进行消息传递的，Flink的反压设计也是基于这个模型。Flink 使用了高效有界的分布式阻塞队列，就像 Java 通用的阻塞队列（BlockingQueue）一样。下游消费者消费变慢，上游就会受到阻塞</p>
-<p><strong><font size = 5>23. Operator Chains（算子链）这个概念你了解吗？</font></strong><br>    为了更高效地分布式执行，Flink会尽可能地将operator的subtask链接（chain）在一起形成task。每个task在一个线程中执行。<br>    将operators链接成task是非常有效的优化：<br>    它能减少线程之间的切换，<br>    减少消息的序列化/反序列化，<br>    减少数据在缓冲区的交换，<br>    减少了延迟的同时提高整体的吞吐量。<br>    这就是我们所说的算子链</p>
-<p><strong><font size = 5>24. Flink什么情况下才会把Operator chain在一起形成算子链？</font></strong><br>    两个operator chain在一起的的条件：<br>    上下游的并行度一致<br>    下游节点的入度为1 （也就是说下游节点没有来自其他节点的输入）<br>    上下游节点都在同一个 slot group 中（下面会解释 slot group）<br>    下游节点的 chain 策略为 ALWAYS（可以与上下游链接，map、flatmap、filter等默认是ALWAYS）<br>    上游节点的 chain 策略为 ALWAYS 或 HEAD（只能与下游链接，不能与上游链接，Source默认是HEAD）<br>    两个节点间数据分区方式是 forward（参考理解数据流的分区）<br>    用户没有禁用 chain</p>
-<p><strong><font size = 5>25. Flink Job的提交流程</font></strong><br>    用户提交的Flink Job会被转化成一个DAG任务运行，分别是：StreamGraph、JobGraph、ExecutionGraph，<br>    Flink中JobManager与TaskManager，JobManager与Client的交互是基于Akka工具包的，是通过消息驱动。<br>    整个Flink Job的提交还包含着ActorSystem的创建，JobManager的启动，TaskManager的启动和注册。</p>
-<p><strong><font size = 5>26. Flink 计算资源的调度是如何实现的？</font></strong><br>    TaskManager中最细粒度的资源是Task slot，代表了一个固定大小的资源子集，每个TaskManager会将其所占有的资源平分给它的slot。<br>    通过调整 task slot 的数量，用户可以定义task之间是如何相互隔离的。每个 TaskManager 有一个slot，也就意味着每个task运行在独立的 JVM 中。<br>    每个 TaskManager 有多个slot的话，也就是说多个task运行在同一个JVM中。而在同一个JVM进程中的task，可以共享TCP连接（基于多路复用）和心跳消息，<br>    可以减少数据的网络传输，也能共享一些数据结构，一定程度上减少了每个task的消耗。 每个slot可以接受单个task，也可以接受多个连续task组成的pipeline</p>
-<p><strong><font size = 5>27. 简述Flink的数据抽象及数据交换过程？</font></strong><br>    Flink 为了避免JVM的固有缺陷例如java对象存储密度低，FGC影响吞吐和响应等，实现了自主管理内存。MemorySegment就是Flink的内存抽象。<br>    默认情况下，一个MemorySegment可以被看做是一个32kb大的内存块的抽象。这块内存既可以是JVM里的一个byte[]，也可以是堆外内存（DirectByteBuffer）。<br>    在MemorySegment这个抽象之上，Flink在数据从operator内的数据对象在向TaskManager上转移，预备被发给下个节点的过程中，使用的抽象或者说内存对象是Buffer。<br>    对接从Java对象转为Buffer的中间对象是另一个抽象StreamRecord。</p>
-<p><strong><font size = 5>28. Flink 中的分布式快照机制是如何实现的？</font></strong><br>    Flink的容错机制的核心部分是制作分布式数据流和操作算子状态的一致性快照。 这些快照充当一致性checkpoint，系统可以在发生故障时回滚。 Flink用于制作这些快照的机制在“分布式数据流的轻量级异步快照”中进行了描述。<br>    它受到分布式快照的标准Chandy-Lamport算法的启发，专门针对Flink的执行模型而定制。<br>    barriers在数据流源处被注入并行数据流中。快照n的barriers被插入的位置（我们称之为Sn）是快照所包含的数据在数据源中最大位置。<br>    例如，在Apache Kafka中，此位置将是分区中最后一条记录的偏移量。 将该位置Sn报告给checkpoint协调器（Flink的JobManager）。<br>    然后barriers向下游流动。当一个中间操作算子从其所有输入流中收到快照n的barriers时，它会为快照n发出barriers进入其所有输出流中。<br>    一旦sink操作算子（流式DAG的末端）从其所有输入流接收到barriers n，它就向checkpoint协调器确认快照n完成。在所有sink确认快照后，意味快照着已完成。<br>    一旦完成快照n，job将永远不再向数据源请求Sn之前的记录，因为此时这些记录（及其后续记录）将已经通过整个数据流拓扑，也即是已经被处理结束。</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>面试题总结（一）</title>
-    <url>/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>spark面试题</li>
-<li>hbase面试题</li>
-<li>kafka面试题</li>
-<li>flume面试题</li>
-<li>hive面试题</li>
-<li>kudu面试题</li>
-<li>presto面试题</li>
-<li>flink面试题</li>
-<li>redis面试题</li>
-<li>mongodb面试题</li>
-<li>es面试题</li>
-<li>数据仓库面试题</li>
-<li>java面试题</li>
-<li>scala面试题</li>
-<li>sqoop与datax面试题<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="Spark面试题总结"><a href="#Spark面试题总结" class="headerlink" title="Spark面试题总结"></a>Spark面试题总结</h2><ul>
-<li><p><strong>对于 Spark 中的数据倾斜问题你有什么好的方案?</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">数据倾斜是因为数据中的key分布的不均匀导致的。
-1. 可以把小表广播出去或者使用&#96;map join&#96;
-2. 采样倾斜key并分拆join操作，对倾斜key做添加随机数处理。
-3. 如果其中一个表存在多个key倾斜，把主表的所有key都添加1-n随机数，把从表每条数据都复制n次，并添加1-n的随机数，然后再join
-4. 自定义Partitioner：原始的spark使用的是hashPartition，可以自定义一个paritioner，把key拆分到多个task里去
-5. 提高shuffle操作的并行度，使用reduceByKey(1000)，sparkSQL里设置&#96;spark.sql.shuffle.partitions&#x3D;1000&#96;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-</li>
-<li><p><strong>描述一下RDD,DataFrame,DataSet,DataStream的区别和联系？</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">RDD：弹性分布式数据集，RDD是SparkCore的基本数据结构
-DataFrame: 从源码上看，DataFrame其实就是指定row的DataSet，&#96;type DataFrame &#x3D; Dataset[Row]&#96;
-DataSet：Dataset是一个由特定领域的对象组成强类型集合，可以使用函数（DSL）或关系运算（SQL）进行并行的转换操作。 每个Dataset 还有一个称为“DataFrame”的无类型（untypedrel）视图，它是[[Row]]的数据集。
-Dataset和DataFrame的区别与联系：
-1、Dataset是强类型，会在编译的时候进行类型检测；而DataFrame是弱类型的，在执行的时候进行类型检测；
-2、序列化方式不通，Dataset是通过Encoder进行序列化，支持动态的生成代码，直接在bytes的层面进行排序，过滤等的操作；而DataFrame是采用可选的java的标准序列化或是kyro进行序列化
-3、DataFrame和Dataset实质上都是一个逻辑计划，并且是懒加载的，都包含着scahema信息，只有到数据要读取的时候，才会将逻辑计划进行分析和优化，并最终转化为RDD
-4、二者由于api是统一的，所以都可以采用DSL和SQL方式进行开发，都可以通过sparksession对象进行创建或者是通过transform转化操作得到
-Dataset和RDD的区别与联系：
-首先，Dataset的底层不是RDD，但是它可以和RDD互相转化，DS的一些算子例如filter等都是自己实现的，并没有调用RDD的算子
-DStream：离散化流（DStream），SparkStreaming中的基本抽象，DSream 代表了一系列连续的RDD，DStream中每个RDD包含特定时间间隔的数据，一个DStream 对应了时间维度上的多个RDD。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><p><strong>简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数?</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">窄依赖：子RDD的一个分区只会依赖父RDD的一个分区，父子分区一对一
-宽依赖：子RDD的多个分区会依赖同一个父RDD的一个分区（会涉及到shuffle）
-spark根据RDD的依赖关系划分stage，遇到一个宽依赖，就划分一个stage
-stage中task数目由stage末端的RDD分区个数来决定<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><p><strong>列举Spark常用的transformation和action算子，有哪些算子会导致Shuffle?</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">transformation算子：map、flatMap、reduceByKey、groupByKey、filter等
-action算子：take、ccollect、count、reduce等
-reduceByKey、groupByKey等会产生Shuffle
-注意：
-reduceByKey和groupByKey只是会产生shuffle，但是不是action算子<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-</li>
-<li><p><strong>简述下Spark中的缓存(cache和persist)与checkpoint机制，并指出两者的区别和联系</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">cache缓存到内存中
-persist可以缓存到磁盘和内存里
-checkpoint只能缓存到hdfs上（磁盘上）
-Persist 和 Cache，不会丢掉RDD间的依赖链&#x2F;依赖关系，CheckPoint会斩断依赖链<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><p><strong>Spark开发调优总结</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">1. 避免创建重复的RDD
-2. 尽可能复用同一个RDD
-3. 对多次使用的RDD进行持久化
-4. 尽量避免使用shuffle类算子
-5. 使用map-side预聚合的shuffle操作
-6. 使用高性能的算子  
-    6.1 使用reduceByKey&#x2F;aggregateByKey替代groupByKey  
-    6.2 使用mapPartitions替代普通map  
-    6.3 使用foreachPartitions替代foreach   
-    6.4 使用filter之后进行coalesce操作  
-    6.4 使用repartitionAndSortWithinPartitions替代repartition与sort类操作  
-7. 广播大变量，减少大量的变量副本在网络中传输的性能开销，以及在各个节点的Executor中占用过多内存导致的频繁GC(垃圾回收)
-8. 使用Kryo优化序列化性能
-9. 优化数据结构
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><p><strong>Spark为什么快，Spark SQL 一定比 Hive 快吗</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">1、Spark 计算比 MapReduce 快的根本原因在于 DAG 计算模型，消除了冗余的 HDFS 读写，Spark不需要将计算的中间结果写入磁盘
-    如果计算不涉及与其他节点进行数据交换，Spark 可以在内存中一次性完成这些操作，也就是中间结果无须落盘，减少了磁盘 IO 的操作
-2、Spark 是基于内存的计算并不是spark快的根本原因
-3、MapReduce每启动一个Task便会启动一次JVM，基于进程的操作。而Spark每次MapReduce操作是基于线程的，只在启动Executor时启动一次JVM，内存的Task操作是在线程复用的
-总结：Spark比Mapreduce运行更快，主要得益于其对mapreduce操作的优化以及对JVM使用的优化
-Spark SQL 不一定比Hive快，例如没有shuffle的或者只有一次shuffle的，有可能hive的速度不会低于spark-sql<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><p><strong>Spark Streaming小文件问题</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">1、增加 batch 大小
-2、在输出到hdfs的时候，Coalesce一下
-3、单独起一个定时任务来合并小文件<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
-<li><p><strong>Checkpoint和持久化有什么区别？</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">1、持久化只是将数据保存在BlockManager中，而RDD的lineage是不变的，但是checkpoint执行完后，RDD已经没有之前所谓的依赖RDD了，而只有一个强行为其设置的checkpointRDD，RDD的lineage（血缘关系，依赖关系）改变了
-2、持久化的数据丢失可能性更大，磁盘、内存都可能会存在数据丢失的情况。但是checkpoint的数据通常是存储在如HDFS等容错、高可用的文件系统，数据丢失可能性较小。
-注：默认情况下，如果某个RDD没有持久化，但是设置了checkpoint，会存在问题，本来这个job都执行结束了，但是由于中间RDD没有持久化，checkpoint job想要将RDD的数据写入外部文件系统的话，需要全部重新计算一次，
-再将计算出来的RDD数据checkpoint到外部文件系统。所以，建议对checkpoint()的RDD使用persist(StorageLevel.DISK_ONLY)，该RDD计算之后，就直接持久化到磁盘上。后面进行checkpoint操作时就可以直接从磁盘上读取RDD的数据，并checkpoint到外部文件系统。
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><p><strong>SparkStreaming读取Kafka数据的两种方式，有什么区别？</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">SparkStreaming读取Kafka数据有两种方式，分别为基于Receiver方式和基于Direct(No Receiver)方式
-1、基于Receiver方式：
-    1.1 需要使用单独的Receiver线程来异步获取Kafka数据。
-    1.2 Receiver底层实现中使用了Kafka高级消费者API,因此,不需要自己管理Offset,只需指定Zookeeper和消费者组GroupID,系统便会自行管理。
-    1.3 执行过程: Spark Streaming启动时，会在Executor中同时启动Receiver异步线程用于从Kafka持续获取数据，获取的数据先存储在Receiver中(存储方式由StorageLevel决定)，后续，当Batch Job触发后，这些数据会被转移到剩下的Executor中被处理。处理完毕后，Receiver会自动更新Zookeeper中的Offset。
-    1.4 默认情况下,程序失败或Executor宕掉后可能会丢失数据，为避免数据丢失，可启用预写日志(Write Ahead Log,WAL)。将Receiver收到的数据再备份一份到更可靠的系统如HDFS分布式文件中，以冗余的数据来换取数据不丢失。
-    1.5 生产下，为保证数据完全不丢失，一般需要启用WAL。启用WAL，在数据量较大，网络不好情况下，会严重降低性能
-2、基于Direct(No Receiver)方式
-    2.1 不需要使用单独的Receiver线程从Kafka获取数据。
-    2.2 使用Kafka简单消费者API,不需要ZooKeeper参与，直接从Kafka Broker获取数据。
-    2.3 执行过程:Spark Streaming Batch Job触发时，Driver端确定要读取的Topic-Partition的OffsetRange，然后由Executor并行从Kafka各Partition读取数据并计算。
-    2.4 为保证整个应用EOS， Offset管理一般需要借助外部存储实现。如Mysql、HBase等。
-    2.5 由于不需要WAL，且Spark Streaming会创建和Kafka Topic Partition一样多的RDD Partition,且一一对应，这样,就可以并行读取，大大提高了性能。
-    2.6 Spark Streaming应用启动后，自己通过内部currentOffsets变量跟踪Offset，避免了基于Receiver的方式中Spark Streaming和Zookeeper中的Offset不一致问题。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><p><strong>如何使用Spark实现TopN的获取（描述思路或使用伪代码）？</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">最简单的就是，直接reduceByKey计算key的个数，然后按照value排序
-但是，这样会有一个问题，就是当数据量很大的时候，有可能会导致OOM，或者数据倾斜
-可以使用map算子，把每个key添加一个随机数，然后再reduceByKey,最后再把key拆出来，再做一次reduceByKey<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>可以参考<a href="https://zhuanlan.zhihu.com/p/49169166">Spark面试题(一)</a></p>
-</li>
-</ul>
-<h2 id="Kafka面试题总结"><a href="#Kafka面试题总结" class="headerlink" title="Kafka面试题总结"></a>Kafka面试题总结</h2><ul>
-<li><strong>Kafka 分布式的情况下，如何保证消息的顺序?</strong><pre class="line-numbers language-none"><code class="language-none">Kakfa不保证数据的整体有序，但是可以设置分区内消息有序，可以设置相同的key到同一个partition，这样就可以保证同一个key的消息，肯定是有序的<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-
-</li>
-</ul>
-<h2 id="数据仓库面试题总结"><a href="#数据仓库面试题总结" class="headerlink" title="数据仓库面试题总结"></a>数据仓库面试题总结</h2><ul>
-<li><p><strong>全量表(df),增量表(di),追加表(da)，拉链表(dz)的区别及使用场景</strong></p>
-</li>
-<li><p><strong>星型模型和雪花模型</strong></p>
-</li>
-<li><p><strong>缓慢变化维如何处理，几种方式</strong></p>
-</li>
-<li><p><strong>说说你从0-1搭建数仓都做了什么？你觉得最有挑战的是什么？</strong></p>
-</li>
-<li><p><strong>流批一体有什么好处？为什么要搞流批一体？</strong><br>传统数仓Lambda架构，数据分析需求基于流、批两套计算引擎产出，这种分离的架构不仅会带来两套开发成本，也导致数据逻辑和口径难以对齐<br><a href="https://baijiahao.baidu.com/s?id=1685957539299113384&wfr=spider&for=pc">为什么阿里云要做流批一体？</a><br>流批一体首先是架构上的流批一体，不仅仅是计算引擎流批一体，存储引擎也需要流批一体，计算引擎可以使用flink，存储引擎，现在常用的可以使用Hudi，Iceberg</p>
-</li>
-</ul>
-<p>参考<br><a href="https://mp.weixin.qq.com/s/0mgy07WAMBYNBP6er8_hDA">(终极版)2021大数据面试真题(务必进来看一下)</a></p>
-<h2 id="Hbase面试题"><a href="#Hbase面试题" class="headerlink" title="Hbase面试题"></a>Hbase面试题</h2><ul>
-<li><strong>Hbase是写快还是读快？为什么？</strong><pre class="line-numbers language-none"><code class="language-none">Hbase是写快读慢。
-Hbase写入速度比读取速度要快，根本原因LSM存储引擎
-LSM核心思想的核心就是放弃部分读能力，换取写入的最大化能力
-LSM核心思路就是假定内存足够大，因此不需要每次有数据更新就必须将数据写入到磁盘中，而可以先将最新的数据驻留在内存中，等到积累到最后多之后，再使用归并排序的方式将内存内的数据合并追加到磁盘队尾
-将对数据的修改增量保持在内存中，达到指定的大小限制后将这些修改操作批量写入磁盘，不过读取的时候稍微麻烦，需要合并磁盘中历史数据和内存中最近修改操作，所以写入性能大大提升，读取时可能需要先看是否命中内存，否则需要访问较多的磁盘文件
-LSM树原理把一棵大树拆分成N棵小树，它首先写入内存中，随着小树越来越大，内存中的小树会flush到磁盘中，磁盘中的树定期可以做merge操作，合并成一棵大树，以优化读性能<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-
-
-
-
-
-</li>
-</ul>
-<h2 id="Sqoop与DataX面试题"><a href="#Sqoop与DataX面试题" class="headerlink" title="Sqoop与DataX面试题"></a>Sqoop与DataX面试题</h2><ul>
-<li><strong>Sqoop与DataX优缺点比较？</strong>  <table>
-<thead>
-<tr>
-<th align="center">功能</th>
-<th align="center">DataX</th>
-<th align="center">Sqoop</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center">运行模型</td>
-<td align="center">单进程多线程</td>
-<td align="center">MapReduce</td>
-</tr>
-<tr>
-<td align="center">Mysql读写</td>
-<td align="center">单机压力大；读写粒度容易控制</td>
-<td align="center">mr模式重，写出错处理麻烦</td>
-</tr>
-<tr>
-<td align="center">hive读写</td>
-<td align="center">单机压力大</td>
-<td align="center">很好</td>
-</tr>
-<tr>
-<td align="center">分布式</td>
-<td align="center">不支持，可以通过调度系统规避</td>
-<td align="center">支持</td>
-</tr>
-<tr>
-<td align="center">流控</td>
-<td align="center">有流控功能</td>
-<td align="center">需要定制</td>
-</tr>
-<tr>
-<td align="center">DataX是单机的，不是分布式的，但是可以通过在多台脚本机上启动任务来规避。但是DataX比较灵活，Sqoop重一点。</td>
-<td align="center"></td>
-<td align="center"></td>
-</tr>
-<tr>
-<td align="center">DataX虽然是单机的，但是，它的客户端是与namenode通信，走的是hdfs写数据流程，写数据的过程是并行执行的</td>
-<td align="center"></td>
-<td align="center"></td>
-</tr>
-</tbody></table>
-</li>
-</ul>
-<p>Canel 是实时的，可以采集mysql的Binlog数据</p>
-<h2 id="Redis面试题"><a href="#Redis面试题" class="headerlink" title="Redis面试题"></a>Redis面试题</h2><ul>
-<li><strong>Redis有哪些优缺点</strong></li>
-<li>*优点**</li>
-<li>读写性能优异， Redis能读的速度是110000次/s，写的速度是81000次/s。</li>
-<li>支持数据持久化，支持AOF和RDB两种持久化方式。</li>
-<li>支持事务，Redis的所有操作都是原子性的，同时Redis还支持对几个操作合并后的原子性执行。</li>
-<li>数据结构丰富，除了支持string类型的value外还支持hash、set、zset、list等数据结构。</li>
-<li>支持主从复制，主机会自动将数据同步到从机，可以进行读写分离。</li>
-</ul>
-<p><strong>缺点</strong></p>
-<ul>
-<li><p>数据库容量受到物理内存的限制，不能用作海量数据的高性能读写，因此Redis适合的场景主要局限在较小数据量的高性能操作和运算上。</p>
-</li>
-<li><p>Redis 不具备自动容错和恢复功能，主机从机的宕机都会导致前端部分读写请求失败，需要等待机器重启或者手动切换前端的IP才能恢复。</p>
-</li>
-<li><p>主机宕机，宕机前有部分数据未能及时同步到从机，切换IP后还会引入数据不一致的问题，降低了系统的可用性。</p>
-</li>
-<li><p>Redis 较难支持在线扩容，在集群容量达到上限时在线扩容会变得很复杂。为避免这一问题，运维人员在系统上线时必须确保有足够的空间，这对资源造成了很大的浪费。</p>
-</li>
-<li><p><strong>为什么要用 Redis 而不用 map/guava 做缓存?</strong><br>缓存分为本地缓存和分布式缓存。以 Java 为例，使用自带的 map 或者 guava 实现的是本地缓存，最主要的特点是轻量以及快速，生命周期随着 jvm 的销毁而结束，并且在多实例的情况下，每个实例都需要各自保存一份缓存，缓存不具有一致性。<br>使用 redis 或 memcached 之类的称为分布式缓存，在多实例的情况下，各实例共用一份缓存数据，缓存具有一致性。缺点是需要保持 redis 或 memcached服务的高可用，整个程序架构上较为复杂。</p>
-</li>
-</ul>
-<ul>
-<li><strong>Redis 的持久化机制是什么？各自的优缺点？</strong><br>Redis 提供两种持久化机制 <code>RDB（默认）</code> 和 <code>AOF 机制</code><br>RDB：是Redis DataBase缩写快照<blockquote>
-<p>RDB是Redis默认的持久化方式。按照一定的时间将内存的数据以快照的形式保存到硬盘中，对应产生的数据文件为dump.rdb。通过配置文件中的save参数来定义快照的周期。</p>
-</blockquote>
-</li>
-</ul>
-<p>优点：<br>1、只有一个文件 dump.rdb，方便持久化。<br>2、容灾性好，一个文件可以保存到安全的磁盘。<br>3、性能最大化，fork 子进程来完成写操作，让主进程继续处理命令，所以是 IO 最大化。使用单独子进程来进行持久化，主进程不会进行任何 IO 操作，保证了 redis 的高性能<br>4.相对于数据集大时，比 AOF 的启动效率更高。</p>
-<p>缺点：<br>1、数据安全性低。RDB 是间隔一段时间进行持久化，如果持久化之间 redis 发生故障，会发生数据丢失。所以这种方式更适合数据要求不严谨的时候)</p>
-<blockquote>
-<p>AOF持久化(即Append Only File持久化)，则是将Redis执行的每次写命令记录到单独的日志文件中，当重启Redis会重新将持久化的日志中文件恢复数据。<br>当两种方式同时开启时，数据恢复Redis会优先选择AOF恢复。</p>
-</blockquote>
-<p>优点：<br>1、数据安全，aof 持久化可以配置 appendfsync 属性，有 always，每进行一次 命令操作就记录到 aof 文件中一次。<br>2、通过 append 模式写文件，即使中途服务器宕机，可以通过 redis-check-aof 工具解决数据一致性问题。<br>3、AOF 机制的 rewrite 模式。AOF 文件没被 rewrite 之前（文件过大时会对命令 进行合并重写），可以删除其中的某些命令（比如误操作的 flushall）)</p>
-<p>缺点：<br>1、AOF 文件比 RDB 文件大，且恢复速度慢。<br>2、数据集大的时候，比 rdb 启动效率低。</p>
-<blockquote>
-<p><code>RDB（默认）</code> 和 <code>AOF 机制</code>优缺点是什么？ </p>
-</blockquote>
-<p>AOF文件比RDB更新频率高，优先使用AOF还原数据。<br>AOF比RDB更安全也更大<br>RDB性能比AOF好<br>如果两个都配了优先加载AOF</p>
-<ul>
-<li><strong>Redis的过期键的删除策略</strong><blockquote>
-<p>MySQL里有2000w数据，redis中只存20w的数据，如何保证redis中的数据都是热点数据</p>
-</blockquote>
-</li>
-</ul>
-<p>redis内存数据集大小上升到一定大小的时候，就会施行数据淘汰策略。</p>
-<ul>
-<li>全局的键空间选择性移除<br>noeviction：当内存不足以容纳新写入数据时，新写入操作会报错。<br>allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key。（这个是最常用的）<br>allkeys-random：当内存不足以容纳新写入数据时，在键空间中，随机移除某个key。</li>
-<li>设置过期时间的键空间选择性移除<br>volatile-lru：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，移除最近最少使用的key。<br>volatile-random：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，随机移除某个key。<br>volatile-ttl：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，有更早过期时间的key优先移除。</li>
-</ul>
-<h2 id="flink面试题"><a href="#flink面试题" class="headerlink" title="flink面试题"></a>flink面试题</h2><p>移步<a href="https://gujincheng.github.io/">Flink面试题总结</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>面试题</category>
-      </categories>
-      <tags>
-        <tag>面试题</tag>
       </tags>
   </entry>
 </search>
