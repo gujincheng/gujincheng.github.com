@@ -35,7 +35,7 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210330/trade%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210330/%E5%AE%9E%E6%97%B6%E8%AE%A2%E5%8D%95%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88.png">
 <meta property="article:published_time" content="2021-03-30T07:10:04.000Z">
-<meta property="article:modified_time" content="2021-04-29T09:48:42.000Z">
+<meta property="article:modified_time" content="2021-11-24T03:30:46.221Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -238,7 +238,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
+                <time title="修改时间：2021-11-24 11:30:46" itemprop="dateModified" datetime="2021-11-24T11:30:46+08:00">2021-11-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -747,6 +747,30 @@
     <span class="token punctuation">.</span>addSource<span class="token punctuation">(</span>kafkaConsumer<span class="token punctuation">)</span>
     <span class="token punctuation">.</span>rebalance
     <span class="token punctuation">.</span>assignTimestampsAndWatermarks<span class="token punctuation">(</span><span class="token keyword">new</span> MyWatermarkGenerator<span class="token punctuation">[</span>MyRecord<span class="token punctuation">]</span><span class="token punctuation">(</span>Time<span class="token punctuation">.</span>seconds<span class="token punctuation">(</span>config<span class="token punctuation">.</span>latencyDuration<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h2 id="Flink反压"><a href="#Flink反压" class="headerlink" title="Flink反压"></a>Flink反压</h2><p>反压（backpressure）是实时计算应用开发中，特别是流式计算中，十分常见的问题。反压意味着数据管道中某个节点成为瓶颈，处理速率跟不上上游发送数据的速率，而需要对上游进行限速。</p>
+<h3 id="反压的影响"><a href="#反压的影响" class="headerlink" title="反压的影响"></a>反压的影响</h3><p>反压并不会直接影响作业的可用性，它表明作业处于亚健康的状态，有潜在的性能瓶颈并可能导致更大的数据处理延迟。通常来说，对于一些对延迟要求不太高或者数据量比较小的应用来说，反压的影响可能并不明显，然而对于规模比较大的 Flink 作业来说反压可能会导致严重的问题。</p>
+<p>这是因为 Flink 的 checkpoint 机制，反压还会影响到两项指标: checkpoint 时长和 state 大小。</p>
+<ul>
+<li>前者是因为 checkpoint barrier 是不会越过普通数据的，数据处理被阻塞也会导致 checkpoint barrier 流经整个数据管道的时长变长，因而 checkpoint 总体时间（End to End Duration）变长。</li>
+<li>后者是因为为保证 EOS（Exactly-Once-Semantics，准确一次），对于有两个以上输入管道的 Operator，checkpoint barrier 需要对齐（Alignment），接受到较快的输入管道的 barrier 后，它后面数据会被缓存起来但不处理，直到较慢的输入管道的 barrier 也到达，这些被缓存的数据会被放到state 里面，导致 checkpoint 变大。</li>
+</ul>
+<p>这两个影响对于生产环境的作业来说是十分危险的，因为 checkpoint 是保证数据一致性的关键，checkpoint 时间变长有可能导致 checkpoint 超时失败，而 state 大小同样可能拖慢 checkpoint 甚至导致 OOM （使用 Heap-based StateBackend）或者物理内存使用超出容器资源（使用 RocksDBStateBackend）的稳定性问题。</p>
+<h3 id="定位反压节点"><a href="#定位反压节点" class="headerlink" title="定位反压节点"></a>定位反压节点</h3><p>要解决反压首先要做的是定位到造成反压的节点，这主要有两种办法:</p>
+<ul>
+<li>通过 Flink Web UI 自带的反压监控面板；</li>
+<li>通过 Flink Task Metrics。<br>前者比较容易上手，适合简单分析，后者则提供了更加丰富的信息，适合用于监控系统。因为反压会向上游传导，这两种方式都要求我们从 Source 节点到 Sink 的逐一排查，直到找到造成反压的根源原因。下面分别介绍这两种办法。</li>
+</ul>
+<p>反压监控面板</p>
+<p>Flink Web UI 的反压监控提供了 SubTask 级别的反压监控，原理是通过周期性对 Task 线程的栈信息采样，得到线程被阻塞在请求 Buffer（意味着被下游队列阻塞）的频率来判断该节点是否处于反压状态。默认配置下，这个频率在 0.1 以下则为 OK，0.1 至 0.5 为 LOW，而超过 0.5 则为 HIGH。</p>
+<p>如果处于反压状态，那么有两种可能性：</p>
+<ul>
+<li>该节点的发送速率跟不上它的产生数据速率。这一般会发生在一条输入多条输出的 Operator（比如 flatmap）。</li>
+<li>下游的节点接受速率较慢，通过反压机制限制了该节点的发送速率。<br>如果是第一种状况，那么该节点则为反压的根源节点，它是从 Source Task 到 Sink Task 的第一个出现反压的节点。如果是第二种情况，则需要继续排查下游节点。</li>
+</ul>
+<p>具体可以参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/92743373">如何分析及处理 Flink 反压？</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/2779e73abcb8">一文搞懂 Flink 网络流控与反压机制</a></p>
+
     </div>
 
     
@@ -830,7 +854,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E8%AE%A2%E5%8D%95%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.</span> <span class="nav-text">实时订单模型实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%BA%90%E6%A0%B7%E4%BE%8B%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">数据源样例：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88%E6%B5%81%E7%A8%8B%E5%9B%BE%E5%A6%82%E4%B8%8B%EF%BC%9A"><span class="nav-number">1.2.</span> <span class="nav-text">设计方案流程图如下：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.3.</span> <span class="nav-text">代码实现</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E8%AE%A2%E5%8D%95%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.</span> <span class="nav-text">实时订单模型实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%BA%90%E6%A0%B7%E4%BE%8B%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">数据源样例：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88%E6%B5%81%E7%A8%8B%E5%9B%BE%E5%A6%82%E4%B8%8B%EF%BC%9A"><span class="nav-number">1.2.</span> <span class="nav-text">设计方案流程图如下：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.3.</span> <span class="nav-text">代码实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%8F%8D%E5%8E%8B"><span class="nav-number">2.</span> <span class="nav-text">Flink反压</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8D%E5%8E%8B%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-number">2.1.</span> <span class="nav-text">反压的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%BD%8D%E5%8F%8D%E5%8E%8B%E8%8A%82%E7%82%B9"><span class="nav-number">2.2.</span> <span class="nav-text">定位反压节点</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
