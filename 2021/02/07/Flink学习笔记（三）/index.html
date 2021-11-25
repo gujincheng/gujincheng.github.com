@@ -34,8 +34,9 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20211109/barrier%E5%AF%B9%E9%BD%90.png">
 <meta property="article:published_time" content="2021-02-07T09:43:04.000Z">
-<meta property="article:modified_time" content="2021-11-24T02:18:38.885Z">
+<meta property="article:modified_time" content="2021-11-25T07:18:47.090Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -238,7 +239,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-24 10:18:38" itemprop="dateModified" datetime="2021-11-24T10:18:38+08:00">2021-11-24</time>
+                <time title="修改时间：2021-11-25 15:18:47" itemprop="dateModified" datetime="2021-11-25T15:18:47+08:00">2021-11-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -390,9 +391,56 @@
 <li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
 </ul>
 <p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
-<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h2 id="Flink精准一次探究"><a href="#Flink精准一次探究" class="headerlink" title="Flink精准一次探究"></a>Flink精准一次探究</h2><p>Flink貌似本身是不支持端到端的精准一次的，需要自己去实现<br>举个例子，Flink读取kafak数据，然后Sink写入Hbase，如果中间程序失败，Flink可以从checkpoint读取上次消费的地方重新消费<br>但是这里就有一个问题，flink checkpoint貌似记录的是写入sink成功以后的offset，就有可能重新启动程序的时候，会有一部分消息是重复消费了。如果期间有第三方缓存的话，可能会有影响<br>这里后期写个代码测试一下</p>
-<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作</p>
-<p>自己写的代码，可能是因为Mac的环境问题，Checkpoint写入本地文件，总是失败<br>但是指定到hdfs上，又告警需要配置hadoop的classpath，最后放弃了，不在这上面耽误时间了</p>
+<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h3 id="如何理解flink中state-状态"><a href="#如何理解flink中state-状态" class="headerlink" title="如何理解flink中state(状态)"></a>如何理解flink中state(状态)</h3><p>state泛指：flink中有状态函数和运算符在各个元素(element)/事件(event)的处理过程中存储的数据（注意：状态数据可以修改和查询，可以自己维护，根据自己的业务场景，保存历史数据或者中间结果到状态(state)中）；<br>使用状态计算的例子：</p>
+<ul>
+<li>当应用程序搜索某些事件模式时，状态将存储到目前为止遇到的事件序列。</li>
+<li>在每分钟/小时/天聚合事件时，状态保存待处理的聚合。</li>
+<li>当在数据点流上训练机器学习模型时，状态保持模型参数的当前版本。</li>
+<li>当需要管理历史数据时，状态允许有效访问过去发生的事件。</li>
+</ul>
+<p>无状态计算指的是数据进入Flink后经过算子时只需要对当前数据进行处理就能得到想要的结果；<br>有状态计算就是需要和历史的一些状态或进行相关操作，才能计算出正确的结果；</p>
+<h3 id="flink中checkpoint执行流程"><a href="#flink中checkpoint执行流程" class="headerlink" title="flink中checkpoint执行流程"></a>flink中checkpoint执行流程</h3><ul>
+<li>checkpoint机制是Flink可靠性的基石，可以保证Flink集群在某个算子因为某些原因(如 异常退出)出现故障时，能够将整个应用流图的状态恢复到故障之前的某一状态，保 证应用流图状态的一致性。Flink的checkpoint机制原理来自“Chandy-Lamport algorithm”算法。 (分布式快照算)</li>
+<li>每个需要checkpoint的应用在启动时，Flink的JobManager为其创建一个 CheckpointCoordinator，CheckpointCoordinator全权负责本应用的快照制作。</li>
+<li>CheckpointCoordinator周期性的向该流应用的所有source算子发送barrier。</li>
+<li>当某个source算子收到一个barrier时，便暂停数据处理过程，然后将自己的当前状 态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告 自己快照制作情况，同时向自身所有下游算子广播该barrier，恢复数据处理</li>
+<li>下游算子收到barrier之后，会暂停自己的数据处理过程，然后将自身的相关状态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告自身 快照情况，同时向自身所有下游算子广播该barrier，恢复数据处理。</li>
+<li>每个算子按照步骤3不断制作快照并向下游广播，直到最后barrier传递到sink算子，快照制作完成。</li>
+<li>当CheckpointCoordinator收到所有算子的报告之后，认为该周期的快照制作成功; 否则，如果在规定的时间内没有收到所有算子的报告，则认为本周期快照制作失败 ;</li>
+</ul>
+<p>整个过程如下：</p>
+<ol>
+<li>JobManager端的 CheckPointCoordinator向 所有SourceTask发送CheckPointTrigger，Source Task会在数据流中安插CheckPoint barrier</li>
+<li>当task收到所有的barrier后，向自己的下游继续传递barrier，然后自身执行快照，并将自己的状态异步写入到持久化存储中。增量CheckPoint只是把最新的一部分更新写入到 外部存储；为了下游尽快做CheckPoint，所以会先发送barrier到下游，自身再同步进行快照</li>
+<li>当task完成备份后，会将备份数据的地址（state handle）通知给JobManager的CheckPointCoordinator；如果CheckPoint的持续时长超过 了CheckPoint设定的超时时间，CheckPointCoordinator 还没有收集完所有的 State Handle，CheckPointCoordinator就会认为本次CheckPoint失败，会把这次CheckPoint产生的所有 状态数据全部删除。</li>
+<li>最后 CheckPoint Coordinator 会把整个 StateHandle 封装成 completed CheckPoint Meta，写入到hdfs。</li>
+</ol>
+<h3 id="什么是barrier对齐？"><a href="#什么是barrier对齐？" class="headerlink" title="什么是barrier对齐？"></a>什么是barrier对齐？</h3><p><img src="/uploads/20211109/barrier%E5%AF%B9%E9%BD%90.png" alt="barrier对齐"></p>
+<ul>
+<li>一旦Operator从输入流接收到CheckPoint barrier n，它就不能处理来自该流的任何数据记录，直到它从其他所有输入接收到barrier n为止。否则，它会混合属于快照n的记录和属于快照n + 1的记录；</li>
+<li>接收到barrier n的流暂时被搁置。从这些流接收的记录不会被处理，而是放入输入缓冲区。</li>
+<li>上图中第2个图，虽然数字流对应的barrier已经到达了，但是barrier之后的1、2、3这些数据只能放到buffer中，等待字母流的barrier到达；</li>
+<li>一旦最后所有输入流都接收到barrier n，Operator就会把缓冲区中pending 的输出数据发出去，然后把CheckPoint barrier n接着往下游发送</li>
+<li>这里还会对自身进行快照；之后，Operator将继续处理来自所有输入流的记录，在处理来自流的记录之前先处理来自输入缓冲区的记录。</li>
+</ul>
+<h3 id="什么是barrier不对齐？"><a href="#什么是barrier不对齐？" class="headerlink" title="什么是barrier不对齐？"></a>什么是barrier不对齐？</h3><p>checkpoint 是要等到所有的barrier全部都到才算完成</p>
+<ul>
+<li>上述图2中，当还有其他输入流的barrier还没有到达时，会把已到达的barrier之后的数据1、2、3搁置在缓冲区，等待其他流的barrier到达后才能处理</li>
+<li>barrier不对齐就是指当还有其他流的barrier还没到达时，为了不影响性能，也不用理会，直接处理barrier之后的数据。等到所有流的barrier的都到达后，就可以对该Operator做CheckPoint了；</li>
+</ul>
+<p>为什么要进行barrier对齐？不对齐到底行不行？<br>Exactly Once时必须barrier对齐，如果barrier不对齐就变成了At Least Once；</p>
+<h3 id="checkpoint中保存的是什么信息"><a href="#checkpoint中保存的是什么信息" class="headerlink" title="checkpoint中保存的是什么信息"></a>checkpoint中保存的是什么信息</h3><p>快照里面到底保存着什么信息呢？以flink消费kafka数据wordcount为例：<br>我们从Kafka读取到一条条的日志，从日志中解析出app_id，然后将统计的结果放到内存中一个Map集合，app_id做为key，对应的pv做为value，每次只需要将相应app_id 的pv值+1后put到Map中即可；<br>kafka topic：test；<br>flink运算流程如下：<br>kakfa的testtopic的分区 —&gt; Flink的source task —&gt; flink的pv计算task</p>
+<h2 id="Flink-Exactly-once语义探究"><a href="#Flink-Exactly-once语义探究" class="headerlink" title="Flink Exactly-once语义探究"></a>Flink Exactly-once语义探究</h2><p>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义;<br>Flink不是默认就有EOS的，flink 官方推荐所有需要保证EOS的sink 逻辑都继承TwoPhaseCommitSinkFunction抽象类。它具体定义如下四个抽象方法。需要我们去在子类中实现。</p>
+<pre><code class="java">protected abstract TXN beginTransaction() throws Exception;
+protected abstract void preCommit(TXN transaction) throws Exception;
+protected abstract void commit(TXN transaction);
+protected abstract void abort(TXN transaction);</code></pre>
+<p>beginTransaction(): 开始一个事务，返回事务信息的句柄。<br>preCommit :预提交（即提交请求）阶段的逻辑<br>commit():正式提交阶段的逻辑<br>abort():取消事务</p>
+<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作(继承TwoPhaseCommitSinkFunction抽象类)<br>使用kafka的sink已经自动实现了，但是，自己写的sink，需要自己继承TwoPhaseCommitSinkFunction抽象类</p>
+<h3 id="flink的二阶段提交"><a href="#flink的二阶段提交" class="headerlink" title="flink的二阶段提交"></a>flink的二阶段提交</h3><p>两阶段提交（two-phase commit, 2PC）是最基础的分布式一致性协议，应用广泛<br>2PC 在分布式系统中，为了让每个节点能够感知其他所有节点的事务执行情况，需要我们引入一个中心节点的凡是统一所有节点的执行逻辑和进度。这个中心节点叫做协调者（coordinator），而其中向中心节点汇报或者被中心节点调度的其他节点叫做参与者。</p>
+<h4 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h4><p><strong>请求阶段</strong><br>1、协调者向所有参与者发送准备请求与事务内容，询问是否可以准备事务提交，并等待参与者的响应。<br>2、参与者执行事务中的包含操作，并记录undo日志（用于回滚）和redo日志（用于重放），但是不真正提交。<br>3、参与者向协调者返回事务才做的执行结果，执行陈工返回yes,否则返回no.<br><strong>提交阶段（分成成功和失败两种情况）</strong><br>若所有的参与者都返回yes,说明事务可以提交。<br>1、协调者向所有参与者发送commit请求。<br>2、参与者收到commit 请求后，将事务真正的提交上去，并释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者ack消息，事务成功完成。<br><strong>事务回滚</strong><br>若有参与者返回no或者超时未返回，说明事务终端，需要回滚。<br>1、协调者向所有参与者发送rollback请求。<br>2、参与者收到rollback请求后，根据undo日志回滚到事务执行前的状态，释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者的ack消息，事务回滚完成。</p>
+<h4 id="2PC-的优缺点"><a href="#2PC-的优缺点" class="headerlink" title="2PC 的优缺点"></a>2PC 的优缺点</h4><p><strong>优点</strong><br>2PC的优点在于原理非常简单，容易理解及实现。<br><strong>缺点</strong><br>缺点主要有3个，列举如下：<br>（1）协调者存在单点问题。如果协调者挂了，整个2PC逻辑就彻底不能运行。<br>（2）、执行过程是完全同步的。各参与者在等待其他参与者响应的过程中都处于阻塞状态，大并发下有性能问题。<br>（3）、仍然存在不一致风险。如果由于网络异常等意外导致只有部分参与者收到了commit请求，就会造成部分参与者提交了事务而其他参与者未提交的情况。</p>
+<p>具体可以参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhipeng-wang/p/14082806.html">flink的二阶段提交</a></p>
 
     </div>
 
@@ -477,7 +525,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">Flink状态管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%AE%A1%E7%90%86%E7%8A%B6%E6%80%81"><span class="nav-number">1.1.</span> <span class="nav-text">为什么要管理状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E7%9A%84%E5%87%A0%E7%A7%8D%E7%8A%B6%E6%80%81%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.</span> <span class="nav-text">Flink的几种状态类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Managed-State%E5%92%8CRaw-State"><span class="nav-number">1.2.1.</span> <span class="nav-text">Managed State和Raw State</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keyed-State%E5%92%8COperator-State"><span class="nav-number">1.2.2.</span> <span class="nav-text">Keyed State和Operator State</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.3.</span> <span class="nav-text">横向扩展问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keyed-State%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.4.</span> <span class="nav-text">Keyed State的使用方法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink-Checkpoint%E6%9C%BA%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">Flink Checkpoint机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%B2%BE%E5%87%86%E4%B8%80%E6%AC%A1%E6%8E%A2%E7%A9%B6"><span class="nav-number">3.</span> <span class="nav-text">Flink精准一次探究</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E5%AE%9E%E7%8E%B0%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E7%B2%BE%E5%87%86%E4%B8%80%E6%AC%A1"><span class="nav-number">3.1.</span> <span class="nav-text">Flink实现端到端的精准一次</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">Flink状态管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%AE%A1%E7%90%86%E7%8A%B6%E6%80%81"><span class="nav-number">1.1.</span> <span class="nav-text">为什么要管理状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E7%9A%84%E5%87%A0%E7%A7%8D%E7%8A%B6%E6%80%81%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.</span> <span class="nav-text">Flink的几种状态类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Managed-State%E5%92%8CRaw-State"><span class="nav-number">1.2.1.</span> <span class="nav-text">Managed State和Raw State</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keyed-State%E5%92%8COperator-State"><span class="nav-number">1.2.2.</span> <span class="nav-text">Keyed State和Operator State</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.3.</span> <span class="nav-text">横向扩展问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Keyed-State%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.4.</span> <span class="nav-text">Keyed State的使用方法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink-Checkpoint%E6%9C%BA%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">Flink Checkpoint机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3flink%E4%B8%ADstate-%E7%8A%B6%E6%80%81"><span class="nav-number">2.1.</span> <span class="nav-text">如何理解flink中state(状态)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E4%B8%ADcheckpoint%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">2.2.</span> <span class="nav-text">flink中checkpoint执行流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFbarrier%E5%AF%B9%E9%BD%90%EF%BC%9F"><span class="nav-number">2.3.</span> <span class="nav-text">什么是barrier对齐？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFbarrier%E4%B8%8D%E5%AF%B9%E9%BD%90%EF%BC%9F"><span class="nav-number">2.4.</span> <span class="nav-text">什么是barrier不对齐？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#checkpoint%E4%B8%AD%E4%BF%9D%E5%AD%98%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88%E4%BF%A1%E6%81%AF"><span class="nav-number">2.5.</span> <span class="nav-text">checkpoint中保存的是什么信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink-Exactly-once%E8%AF%AD%E4%B9%89%E6%8E%A2%E7%A9%B6"><span class="nav-number">3.</span> <span class="nav-text">Flink Exactly-once语义探究</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E5%AE%9E%E7%8E%B0%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E7%B2%BE%E5%87%86%E4%B8%80%E6%AC%A1"><span class="nav-number">3.1.</span> <span class="nav-text">Flink实现端到端的精准一次</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E7%9A%84%E4%BA%8C%E9%98%B6%E6%AE%B5%E6%8F%90%E4%BA%A4"><span class="nav-number">3.2.</span> <span class="nav-text">flink的二阶段提交</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E8%BF%87%E7%A8%8B"><span class="nav-number">3.2.1.</span> <span class="nav-text">具体过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2PC-%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">3.2.2.</span> <span class="nav-text">2PC 的优缺点</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
