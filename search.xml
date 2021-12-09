@@ -836,53 +836,6 @@ bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe -
       </tags>
   </entry>
   <entry>
-    <title>MongoDB杂记（一）</title>
-    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>MongoDB</category>
-      </categories>
-      <tags>
-        <tag>MongoDB</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Redis杂记（一）</title>
-    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>什么是Redis</li>
-<li>Redis有哪些优缺点</li>
-<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
-<li>Redis为什么这么快</li>
-<li>Redis的应用场景</li>
-<li>Redis持久化</li>
-<li>Redis踩的坑</li>
-</ul>
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/20211109/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
-<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
-<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
-<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
-<p>这里记录一下两个命令：</p>
-<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mac使用笔记（一）</title>
     <url>/2021/05/20/Mac%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1166,6 +1119,53 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
+    <title>MongoDB杂记（一）</title>
+    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>MongoDB</category>
+      </categories>
+      <tags>
+        <tag>MongoDB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Redis杂记（一）</title>
+    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>什么是Redis</li>
+<li>Redis有哪些优缺点</li>
+<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
+<li>Redis为什么这么快</li>
+<li>Redis的应用场景</li>
+<li>Redis持久化</li>
+<li>Redis踩的坑</li>
+</ul>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/20211109/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
+<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
+<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
+<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
+<p>这里记录一下两个命令：</p>
+<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scala杂记（一）</title>
     <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1227,6 +1227,40 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
 ]]></content>
       <categories>
         <category>大数据</category>
+        <category>Scala</category>
+      </categories>
+      <tags>
+        <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Scala面试题</title>
+    <url>/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Scala面试题总结</li>
+</ul>
+<a id="more"></a>
+
+
+<p><strong><font size = 5>1. 方法和函数的区别？</font></strong><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
+<p><strong><font size = 5>2. Scala类型系统中Nil, Null, None, Nothing四个类型的区别？？</font></strong><br>Null是一个trait（特质），是所以引用类型AnyRef的一个子类型，null是Null唯一的实例。<br>Nothing也是一个trait（特质），是所有类型Any（包括值类型和引用类型）的子类型，它不在有子类型，它也没有实例，实际上为了一个方法抛出异常，通常会设置一个默认返回类型。<br>Nil代表一个List空类型，等同List[Nothing]<br>None是Option monad的空标识（深入了解请参考问题Q11）</p>
+<p><strong><font size = 5>3. 什么是高阶函数？</font></strong><br>高阶函数指能接受或者返回其他函数的函数，scala中的filter map flatMap函数都能接受其他函数作为参数。</p>
+<p><strong><font size = 5>4. 什么是隐式转换？</font></strong><br>通过隐式转换，程序员可以在编写Scala程序时故意漏掉一些信息，让编译器去尝试在编译期间自动推导出这些信息来，这种特性可以极大的减少代码量，忽略那些冗长，过于细节的代码<br>隐式转换必须满足无歧义规则，在声明隐式参数的类型是最好使用特别的或自定义的数据类型，不要使用Int,String这些常用类型，避免碰巧匹配<br>调用方法：</p>
+<ol>
+<li>将方法或变量标记为implicit</li>
+<li>将方法的参数列表标记为implicit</li>
+<li>将类标记为implicit</li>
+</ol>
+<p>Scala支持3种形式的隐式转换：<br>隐式值：用于给方法提供参数<br>隐式视图：用于类型间转换或使针对某类型的方法能调用成功<br>隐式类：使用implicit声明类</p>
+<p><strong><font size = 5>5. scala的模式匹配？</font></strong><br>有点类似于Java语言的 switch，但其实还是有很大的不同的</p>
+<ul>
+<li>java 的 switch 仅仅会做一些基本类型的匹配，然后执行一些动作，并且是没有返回值的。</li>
+<li>scala 的模式匹配除了可以匹配数值，同时它还能匹配类型，同时它还是有返回值的</li>
+</ul>
+]]></content>
+      <categories>
+        <category>面试题</category>
         <category>Scala</category>
       </categories>
       <tags>
@@ -2419,6 +2453,46 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       </tags>
   </entry>
   <entry>
+    <title>数据仓库-数据质量</title>
+    <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>数据质量基本概念</li>
+<li>影响因素</li>
+<li>评估维度</li>
+<li>实施流程<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="数据质量基本概念"><a href="#数据质量基本概念" class="headerlink" title="数据质量基本概念"></a>数据质量基本概念</h2><ul>
+<li>数据质量管理（Data Quality Management），是指对数据从计划、获取、存储、共享、维护、应用、消亡生命周期的每个阶段里可能引发的各类数据质量问题，进行识别、度量、监控、预警等一系列管理活动，并通过改善和提高组织的管理水平使得数据质量获得进一步提高</li>
+<li>数据质量管理不是一时的数据治理手段，而是循环的管理过程。其终极目标是通过可靠的数据，提升数据在使用中的价值，并最终为企业赢得经济效益</li>
+</ul>
+<h2 id="影响因素"><a href="#影响因素" class="headerlink" title="影响因素"></a>影响因素</h2><p>数据问题的来源可能产生于从数据源头到数据存储介质的各个环节。在数据采集阶段，数据的真实性、准确性、完整性、时效性都会影响数据质量。除此之外，数据的加工、存储过程都有可能涉及对原始数据的修改，从而引发数据的质量问题。所以，技术、流程、管理等多方面的因素都有可能会影响到数据质量。</p>
+<h2 id="评估维度"><a href="#评估维度" class="headerlink" title="评估维度"></a>评估维度</h2><ul>
+<li>完整性<br>数据完整性问题包含数据条目不完整，数据属性不完整等</li>
+<li>一致性<br>多源数据的数据模型不一致，如命名不一致，数据编码不一致，含义不一致，生命周期不一致等</li>
+<li>准确性<br>准确性也叫可靠性，不可靠的数据可能会导致严重的问题，会造成有缺陷的方法和糟糕的决策</li>
+<li>唯一性<br>用于识别和度量重复数据，冗余数据，重复数据是导致业务无法协同，流程无法追溯的重要因素，也是数据治理需要解 决的最基本的数据问题</li>
+<li>关联性<br>数据关联性问题是指存在数据关联的数据关系缺失或错误，例如：函数关系、相关系数、主外键关系、索引关系等。存在数据关联性问题，会直接影响数据分析的结果，进而影响管理决策。</li>
+<li>真实性<br>数据必须真实准确的反映客观的实体存在或真实的业务，真实可靠的原始统计数据是企业统计工作的灵魂</li>
+<li>及时性<br>数据的及时性(In-time)是指能否在需要的时候获到数据，数据的及时性与企业的数据处理速度及效率有直接的关系，是影响业务处理和管理效率的关键指标。</li>
+<li>逻辑检查<br>不同表字段之间可能会有逻辑关联，需要稽核</li>
+<li>离群值检查<br>部分数据可能会偏离其他数据，比如同一个商品金额大家都是100元，而有一条数据是1W</li>
+<li>自定义规则<br>由需求方自定义相关规则</li>
+<li>波动稽核<br>与上周环比稽核波动情况 </li>
+<li>强弱规则<br>每个规则的权重应该是不一样的，需要配置优先级，这对后续的告警方式是有帮助的</li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+        <category>数据质量</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>基于githup搭建个人博客网站</title>
     <url>/2021/01/14/%E5%9F%BA%E4%BA%8Egithup%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E7%BD%91%E7%AB%99/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2688,46 +2762,6 @@ search:
       </tags>
   </entry>
   <entry>
-    <title>数据仓库-数据质量</title>
-    <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>数据质量基本概念</li>
-<li>影响因素</li>
-<li>评估维度</li>
-<li>实施流程<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="数据质量基本概念"><a href="#数据质量基本概念" class="headerlink" title="数据质量基本概念"></a>数据质量基本概念</h2><ul>
-<li>数据质量管理（Data Quality Management），是指对数据从计划、获取、存储、共享、维护、应用、消亡生命周期的每个阶段里可能引发的各类数据质量问题，进行识别、度量、监控、预警等一系列管理活动，并通过改善和提高组织的管理水平使得数据质量获得进一步提高</li>
-<li>数据质量管理不是一时的数据治理手段，而是循环的管理过程。其终极目标是通过可靠的数据，提升数据在使用中的价值，并最终为企业赢得经济效益</li>
-</ul>
-<h2 id="影响因素"><a href="#影响因素" class="headerlink" title="影响因素"></a>影响因素</h2><p>数据问题的来源可能产生于从数据源头到数据存储介质的各个环节。在数据采集阶段，数据的真实性、准确性、完整性、时效性都会影响数据质量。除此之外，数据的加工、存储过程都有可能涉及对原始数据的修改，从而引发数据的质量问题。所以，技术、流程、管理等多方面的因素都有可能会影响到数据质量。</p>
-<h2 id="评估维度"><a href="#评估维度" class="headerlink" title="评估维度"></a>评估维度</h2><ul>
-<li>完整性<br>数据完整性问题包含数据条目不完整，数据属性不完整等</li>
-<li>一致性<br>多源数据的数据模型不一致，如命名不一致，数据编码不一致，含义不一致，生命周期不一致等</li>
-<li>准确性<br>准确性也叫可靠性，不可靠的数据可能会导致严重的问题，会造成有缺陷的方法和糟糕的决策</li>
-<li>唯一性<br>用于识别和度量重复数据，冗余数据，重复数据是导致业务无法协同，流程无法追溯的重要因素，也是数据治理需要解 决的最基本的数据问题</li>
-<li>关联性<br>数据关联性问题是指存在数据关联的数据关系缺失或错误，例如：函数关系、相关系数、主外键关系、索引关系等。存在数据关联性问题，会直接影响数据分析的结果，进而影响管理决策。</li>
-<li>真实性<br>数据必须真实准确的反映客观的实体存在或真实的业务，真实可靠的原始统计数据是企业统计工作的灵魂</li>
-<li>及时性<br>数据的及时性(In-time)是指能否在需要的时候获到数据，数据的及时性与企业的数据处理速度及效率有直接的关系，是影响业务处理和管理效率的关键指标。</li>
-<li>逻辑检查<br>不同表字段之间可能会有逻辑关联，需要稽核</li>
-<li>离群值检查<br>部分数据可能会偏离其他数据，比如同一个商品金额大家都是100元，而有一条数据是1W</li>
-<li>自定义规则<br>由需求方自定义相关规则</li>
-<li>波动稽核<br>与上周环比稽核波动情况 </li>
-<li>强弱规则<br>每个规则的权重应该是不一样的，需要配置优先级，这对后续的告警方式是有帮助的</li>
-</ul>
-]]></content>
-      <categories>
-        <category>数据仓库</category>
-        <category>数据质量</category>
-      </categories>
-      <tags>
-        <tag>数据仓库</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>数据仓库面试题</title>
     <url>/2021/11/18/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2736,18 +2770,23 @@ search:
 </ul>
 <a id="more"></a>
 
+<p><strong><font size = 5>1. 全量表(df),增量表(di),追加表(da)，拉链表(dz)的区别及使用场景？</font></strong></p>
+<p><strong><font size = 5>2. 星型模型和雪花模型？</font></strong></p>
+<p><strong><font size = 5>3. 缓慢变化维如何处理，几种方式？</font></strong></p>
+<ol>
+<li>直接覆盖历史数据</li>
+<li>采用拉链表，把记录的过程都记录下来</li>
+<li>增加预留资源，每次变化，把新变化的数据放到备用字段</li>
+<li>字段透传，把变化的纬度透传到上层的事实表，这样就不用关联了</li>
+</ol>
+<p><strong><font size = 5>4. 说说你从0-1搭建数仓都做了什么？你觉得最有挑战的是什么？</font></strong></p>
+<p><strong><font size = 5>5. 流批一体有什么好处？为什么要搞流批一体？</font></strong><br>传统数仓Lambda架构，数据分析需求基于流、批两套计算引擎产出，这种分离的架构不仅会带来两套开发成本，也导致数据逻辑和口径难以对齐<br><a href="https://baijiahao.baidu.com/s?id=1685957539299113384&wfr=spider&for=pc">为什么阿里云要做流批一体？</a><br>流批一体首先是架构上的流批一体，不仅仅是计算引擎流批一体，存储引擎也需要流批一体，计算引擎可以使用flink，存储引擎，现在常用的可以使用Hudi，Iceberg</p>
+<p><strong><font size = 5>6. left semi join和left jion区别？</font></strong></p>
 <ul>
-<li><p><strong>全量表(df),增量表(di),追加表(da)，拉链表(dz)的区别及使用场景</strong></p>
-</li>
-<li><p><strong>星型模型和雪花模型</strong></p>
-</li>
-<li><p><strong>缓慢变化维如何处理，几种方式</strong></p>
-</li>
-<li><p><strong>说说你从0-1搭建数仓都做了什么？你觉得最有挑战的是什么？</strong></p>
-</li>
-<li><p><strong>流批一体有什么好处？为什么要搞流批一体？</strong><br>传统数仓Lambda架构，数据分析需求基于流、批两套计算引擎产出，这种分离的架构不仅会带来两套开发成本，也导致数据逻辑和口径难以对齐<br><a href="https://baijiahao.baidu.com/s?id=1685957539299113384&wfr=spider&for=pc">为什么阿里云要做流批一体？</a><br>流批一体首先是架构上的流批一体，不仅仅是计算引擎流批一体，存储引擎也需要流批一体，计算引擎可以使用flink，存储引擎，现在常用的可以使用Hudi，Iceberg</p>
-</li>
+<li><code>left semi join</code>左半连接,是 in(keySet) 的关系，遇到右表重复记录，左表会跳过；<br>当右表不存在的时候，左表数据不会显示; 相当于SQL的in语句，注意，结果中是没有B表的字段的<br>LEFT SEMI JOIN 是 IN/EXISTS 子查询的一种更高效的实现。</li>
+<li><code>left join</code>:当右表不存在的时候，则会显示NULL</li>
 </ul>
+<p>数仓面试题可以参考<br><a href="https://blog.csdn.net/qq_28680977/article/details/108460523">2020大厂面试题-数仓篇</a></p>
 <p>参考<br><a href="https://mp.weixin.qq.com/s/0mgy07WAMBYNBP6er8_hDA">(终极版)2021大数据面试真题(务必进来看一下)</a></p>
 ]]></content>
       <categories>
@@ -2822,6 +2861,184 @@ search:
       <tags>
         <tag>VMWare</tag>
         <tag>IDEA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>获取yarn上application资源占用情况</title>
+    <url>/2021/12/09/%E8%8E%B7%E5%8F%96yarn%E4%B8%8Aapplication%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>根据yarn的applicationid获取应用实时资源消耗的方法</li>
+<li>写python脚本调取yarn api获取实时资源消耗情况</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="根据yarn的applicationid获取应用实时资源消耗的方法"><a href="#根据yarn的applicationid获取应用实时资源消耗的方法" class="headerlink" title="根据yarn的applicationid获取应用实时资源消耗的方法"></a>根据yarn的applicationid获取应用实时资源消耗的方法</h2><p>这种方法是根据hadoop的配置文件，使用YarnClient来获取applicationId的资源占用情况</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">YarnListener</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Logger</span> logger <span class="token operator">=</span> <span class="token class-name">LoggerFactory</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">YarnListener</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">URL</span> resource <span class="token operator">=</span> <span class="token class-name">HDFSUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getResource</span><span class="token punctuation">(</span><span class="token string">"config/hadoop-conf"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> resourceDir <span class="token operator">=</span> resource<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token class-name">Constants</span><span class="token punctuation">.</span>SEPARATOR<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">YarnConfiguration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"hdfs-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"core-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"yarn-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">YarnClient</span> yarnClient <span class="token operator">=</span> <span class="token class-name">YarnClient</span><span class="token punctuation">.</span><span class="token function">createYarnClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        yarnClient<span class="token punctuation">.</span><span class="token function">init</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        yarnClient<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+        <span class="token class-name">ApplicationId</span> applicationId <span class="token operator">=</span> <span class="token class-name">ApplicationId</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token number">1577686647484L</span><span class="token punctuation">,</span><span class="token number">0001</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">ApplicationReport</span> report <span class="token operator">=</span> yarnClient<span class="token punctuation">.</span><span class="token function">getApplicationReport</span><span class="token punctuation">(</span>applicationId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getStartTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getUsedResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getVirtualCores</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getUsedResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getMemorySize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getStartTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">YarnException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        yarnClient<span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>输出结果如下：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json">num_used_containers<span class="token operator">:</span> <span class="token number">-1</span>
+num_reserved_containers<span class="token operator">:</span> <span class="token number">-1</span>
+used_resources <span class="token punctuation">&#123;</span>
+  memory<span class="token operator">:</span> <span class="token number">-1</span>
+  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">""</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+reserved_resources <span class="token punctuation">&#123;</span>
+  memory<span class="token operator">:</span> <span class="token number">-1</span>
+  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">""</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+needed_resources <span class="token punctuation">&#123;</span>
+  memory<span class="token operator">:</span> <span class="token number">-1</span>
+  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">""</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+memory_seconds<span class="token operator">:</span> <span class="token number">5549488</span>
+vcore_seconds<span class="token operator">:</span> <span class="token number">5378</span>
+preempted_memory_seconds<span class="token operator">:</span> <span class="token number">5549488</span>
+preempted_vcore_seconds<span class="token operator">:</span> <span class="token number">5378</span>
+application_resource_usage_map <span class="token punctuation">&#123;</span>
+  key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+  value<span class="token operator">:</span> <span class="token number">5549488</span>
+<span class="token punctuation">&#125;</span>
+application_resource_usage_map <span class="token punctuation">&#123;</span>
+  key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+  value<span class="token operator">:</span> <span class="token number">5378</span>
+<span class="token punctuation">&#125;</span>
+application_preempted_resource_usage_map <span class="token punctuation">&#123;</span>
+  key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+  value<span class="token operator">:</span> <span class="token number">5549488</span>
+<span class="token punctuation">&#125;</span>
+application_preempted_resource_usage_map <span class="token punctuation">&#123;</span>
+  key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+  value<span class="token operator">:</span> <span class="token number">5378</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h3><p>这种方法，感觉可以和hive的hook结合起来使用，在hivesql执行过程中，就把资源使用情况保存下来<br>这里的资源占用都是实时的占用，可以取一个平均资源占用来当作这个任务的资源占用情况</p>
+<h2 id="写python脚本调取yarn-api获取实时资源消耗情况"><a href="#写python脚本调取yarn-api获取实时资源消耗情况" class="headerlink" title="写python脚本调取yarn api获取实时资源消耗情况"></a>写python脚本调取yarn api获取实时资源消耗情况</h2><p>这种方式，就是用爬虫yarn的监控页面，取页面上的内容，其实不是很好，因为namenode在ha之后会切换，但是很方便</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> requests
+<span class="token keyword">import</span> json
+<span class="token keyword">import</span> time
+<span class="token keyword">import</span> pymysql
+<span class="token keyword">from</span> bs4 <span class="token keyword">import</span> BeautifulSoup
+<span class="token keyword">import</span> os<span class="token punctuation">,</span>threading<span class="token punctuation">,</span>time
+
+url_full<span class="token operator">=</span><span class="token string">"http://ip:port/cluster"</span>
+
+conn <span class="token operator">=</span> pymysql<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">'114.67.103.201'</span><span class="token punctuation">,</span>user <span class="token operator">=</span> <span class="token string">"root"</span><span class="token punctuation">,</span>passwd <span class="token operator">=</span> <span class="token string">"admin@123456"</span><span class="token punctuation">,</span>db <span class="token operator">=</span> <span class="token string">"myuse"</span><span class="token punctuation">)</span>
+cur<span class="token operator">=</span>conn<span class="token punctuation">.</span>cursor<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment">#获取游标</span>
+response <span class="token operator">=</span> requests<span class="token punctuation">.</span>request<span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> url_full<span class="token punctuation">,</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>url_full<span class="token punctuation">)</span>
+soup <span class="token operator">=</span> BeautifulSoup<span class="token punctuation">(</span>response<span class="token punctuation">.</span>text<span class="token punctuation">,</span> <span class="token string">'html.parser'</span><span class="token punctuation">)</span> <span class="token comment">#也可用lxml</span>
+<span class="token comment">#已提交的任务</span>
+apps_submit <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(1)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>apps_submit<span class="token punctuation">)</span>
+<span class="token comment">#等待中的任务</span>
+apps_pending <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(2)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>apps_pending<span class="token punctuation">)</span>
+<span class="token comment">#运行中的任务</span>
+apps_running <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(3)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>apps_running<span class="token punctuation">)</span>
+<span class="token comment">#已完成的任务</span>
+apps_completed <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(4)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>apps_completed<span class="token punctuation">)</span>
+<span class="token comment">#运行的contaniner</span>
+container_running <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(5)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>container_running<span class="token punctuation">)</span>
+<span class="token comment">#一用的内存</span>
+memory_used <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(6)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>memory_used<span class="token punctuation">)</span>
+<span class="token comment">#总内存</span>
+memory_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(7)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>memory_total<span class="token punctuation">)</span>
+<span class="token comment">#已用的core</span>
+core_used <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(9)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>core_used<span class="token punctuation">)</span>
+<span class="token comment">#总的core</span>
+core_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(10)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>core_total<span class="token punctuation">)</span>
+<span class="token comment">#yarn总的节点数</span>
+node_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#nodemetricsoverview > tbody > tr > td:nth-of-type(1) > a'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>node_total<span class="token punctuation">)</span>
+<span class="token comment">#yran的调度类型</span>
+yarn_scheduler_type <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#schedulermetricsoverview > tbody > tr > td:nth-of-type(1)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>yarn_scheduler_type<span class="token punctuation">)</span>
+
+sql<span class="token operator">=</span><span class="token string">"insert into yarn_monitor(apps_submit,apps_pending,apps_running,memory_used,memory_total,core_used,node_total,yarn_scheduler_type)"</span> \
+                <span class="token string">" values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"</span>
+cur<span class="token punctuation">.</span>execute<span class="token punctuation">(</span>sql<span class="token punctuation">,</span><span class="token punctuation">(</span>apps_submit<span class="token punctuation">,</span>apps_pending<span class="token punctuation">,</span>apps_running<span class="token punctuation">,</span>memory_used<span class="token punctuation">,</span>memory_total<span class="token punctuation">,</span>core_used<span class="token punctuation">,</span>node_total<span class="token punctuation">,</span>yarn_scheduler_type<span class="token punctuation">)</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+cur<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>监控</category>
+      </categories>
+      <tags>
+        <tag>监控</tag>
       </tags>
   </entry>
   <entry>
