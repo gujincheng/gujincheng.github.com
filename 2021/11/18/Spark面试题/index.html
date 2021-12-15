@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Spark面试题总结">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-11-18T03:31:35.000Z">
-<meta property="article:modified_time" content="2021-11-25T09:09:29.039Z">
+<meta property="article:modified_time" content="2021-12-15T02:02:15.047Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Spark">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-11-25 17:09:29" itemprop="dateModified" datetime="2021-11-25T17:09:29+08:00">2021-11-25</time>
+                <time title="修改时间：2021-12-15 10:02:15" itemprop="dateModified" datetime="2021-12-15T10:02:15+08:00">2021-12-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -344,6 +344,18 @@
 <li>数据分片的高度弹性</li>
 </ol>
 <p><strong><font size = 5>14. RDD通过Linage（记录数据更新）的方式为何很高效？</font></strong></p>
+<p><strong><font size = 5>14. Spark与MapReduce以及Tez的区别？</font></strong></p>
+<ul>
+<li>spark与tez都是以dag方式处理数据</li>
+<li>MR相比tez和spark，每次计算结果都会落盘，增加了磁盘IO</li>
+</ul>
+<p>tez和spark的区别：</p>
+<ul>
+<li>spark更像是一个通用的计算引擎，提供内存计算，实时流处理，机器学习等多种计算方式，适合迭代计算</li>
+<li>tez作为一个框架工具，特定为hive和pig提供批量计算</li>
+<li>spark属于内存计算，支持多种运行模式，可以跑在standalone，yarn上；而tez只能跑在yarn上；虽然spark与yarn兼容，但是spark不适合和其他yarn应用跑在一起</li>
+<li>tez能够及时的释放资源，重用container，节省调度时间，对内存的资源要求率不高； 而spark如果存在迭代计算时，container一直占用资源；</li>
+</ul>
 <p>可以参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/49169166">Spark面试题(一)</a></p>
 
     </div>

@@ -508,6 +508,48 @@ input
       </tags>
   </entry>
   <entry>
+    <title>Iceberg学习笔记</title>
+    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Iceberg简介</li>
+<li>Iceberg架构</li>
+<li>Iceberg简单使用案例</li>
+<li>Iceberg压力测试<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
+<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
+<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
+<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
+<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
+<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
+<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
+</ul>
+<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
+<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
+<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/20210520/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
+<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
+<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
+<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
+<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
+<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
+<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
+</ul>
+<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Iceberg</category>
+      </categories>
+      <tags>
+        <tag>Iceberg</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java杂记</title>
     <url>/2021/08/18/Java%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -678,48 +720,6 @@ input
       </categories>
       <tags>
         <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Iceberg学习笔记</title>
-    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Iceberg简介</li>
-<li>Iceberg架构</li>
-<li>Iceberg简单使用案例</li>
-<li>Iceberg压力测试<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
-<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
-<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
-<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
-<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
-<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
-<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
-<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
-<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
-</ul>
-<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
-<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
-<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/20210520/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
-<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
-<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
-<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
-<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
-<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
-<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
-<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
-</ul>
-<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Iceberg</category>
-      </categories>
-      <tags>
-        <tag>Iceberg</tag>
       </tags>
   </entry>
   <entry>
@@ -1400,6 +1400,18 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
 <li>数据分片的高度弹性</li>
 </ol>
 <p><strong><font size = 5>14. RDD通过Linage（记录数据更新）的方式为何很高效？</font></strong></p>
+<p><strong><font size = 5>14. Spark与MapReduce以及Tez的区别？</font></strong></p>
+<ul>
+<li>spark与tez都是以dag方式处理数据</li>
+<li>MR相比tez和spark，每次计算结果都会落盘，增加了磁盘IO</li>
+</ul>
+<p>tez和spark的区别：</p>
+<ul>
+<li>spark更像是一个通用的计算引擎，提供内存计算，实时流处理，机器学习等多种计算方式，适合迭代计算</li>
+<li>tez作为一个框架工具，特定为hive和pig提供批量计算</li>
+<li>spark属于内存计算，支持多种运行模式，可以跑在standalone，yarn上；而tez只能跑在yarn上；虽然spark与yarn兼容，但是spark不适合和其他yarn应用跑在一起</li>
+<li>tez能够及时的释放资源，重用container，节省调度时间，对内存的资源要求率不高； 而spark如果存在迭代计算时，container一直占用资源；</li>
+</ul>
 <p>可以参考<a href="https://zhuanlan.zhihu.com/p/49169166">Spark面试题(一)</a></p>
 ]]></content>
       <categories>
@@ -1409,45 +1421,6 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       </categories>
       <tags>
         <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>azkban从编译开始安装</title>
-    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>如何下载Azkaban稳定版代码</li>
-<li>如何构建Azkaban源码</li>
-<li>如何配置Azkaban</li>
-<li>启动Azkaban注意点<a id="more"></a>
-<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
-</ul>
-<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
-<p>后来还是直接clone官网上的代码来构建</p>
-<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
-<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
-<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
-<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
-2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
-2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
-<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Azkaban</category>
-      </categories>
-      <tags>
-        <tag>Azkaban</tag>
       </tags>
   </entry>
   <entry>
@@ -1497,6 +1470,45 @@ cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServe
       </categories>
       <tags>
         <tag>Zookeeper</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>azkban从编译开始安装</title>
+    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>如何下载Azkaban稳定版代码</li>
+<li>如何构建Azkaban源码</li>
+<li>如何配置Azkaban</li>
+<li>启动Azkaban注意点<a id="more"></a>
+<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
+</ul>
+<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
+<p>后来还是直接clone官网上的代码来构建</p>
+<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
+<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
+<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
+<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
+2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
+2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
+<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Azkaban</category>
+      </categories>
+      <tags>
+        <tag>Azkaban</tag>
       </tags>
   </entry>
   <entry>
@@ -1552,311 +1564,6 @@ sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<spa
       </categories>
       <tags>
         <tag>emacs</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>hive杂记（一）</title>
-    <url>/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>hive中的复杂数据类型数据如何导入(array)</li>
-<li>hive中load数据到分区和add partition的区别：</li>
-<li>hive引用udf的jar报无效</li>
-<li>hive实现job并发执行</li>
-<li>验证hive两个join的结果是否相等<a id="more"></a>
-<h2 id="hive中的复杂数据类型数据如何导入-array"><a href="#hive中的复杂数据类型数据如何导入-array" class="headerlink" title="hive中的复杂数据类型数据如何导入(array)"></a>hive中的复杂数据类型数据如何导入(array)</h2><h3 id="创建hive表"><a href="#创建hive表" class="headerlink" title="创建hive表"></a>创建hive表</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>dws_search_by_program_set_count_his<span class="token punctuation">(</span>
-  program_set_id string<span class="token punctuation">,</span> 
-  click_array array<span class="token operator">&lt;</span>string<span class="token operator">></span><span class="token punctuation">)</span>
-<span class="token keyword">row</span> format delimited
-<span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">','</span>
-collection items <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'#'</span>
-<span class="token keyword">lines</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'\n'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-其中click_array 为array类型。</li>
-</ul>
-<blockquote>
-<p>注意：</p>
-</blockquote>
-<ul>
-<li>在建表的时候一定要指定row format delimited，我这里指定了列与列质检为逗号，array的元素内容为#</li>
-</ul>
-<p>数据格式：</p>
-<pre class="line-numbers language-text" data-language="text"><code class="language-text">100051130,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-100051133,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-100051134,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-100051136,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-100051138,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-100051140,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-100051157,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-100051161,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-100051163,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>下面来导入数据：</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> inpath <span class="token string">'/home/gold/dws_search_by_program_set_count_his.csv'</span> overwrite <span class="token keyword">into</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>dws_search_by_program_set_count_his<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>效果：<br><img src="/uploads/20210114/hive-import-data.png" alt="hive-import-data"></p>
-<h2 id="hive中load数据到分区和add-partition的区别："><a href="#hive中load数据到分区和add-partition的区别：" class="headerlink" title="hive中load数据到分区和add partition的区别："></a>hive中load数据到分区和add partition的区别：</h2><p>load data的方式需要移动文件路径，如果把文件就放在分区位置，这时候如果用load data的方式，就会报错，需要用add partition的方式</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> dws<span class="token punctuation">.</span>dws_device_box_info_his_v2 <span class="token keyword">ADD</span> <span class="token keyword">partition</span><span class="token punctuation">(</span>province_alias<span class="token operator">=</span><span class="token string">'js'</span><span class="token punctuation">,</span>dt<span class="token operator">=</span><span class="token string">'20190701'</span><span class="token punctuation">)</span> 
-location <span class="token string">'hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>如果用load data的方式：</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">load</span> <span class="token keyword">data</span> inpath <span class="token string">'hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701'</span> 
-overwrite <span class="token keyword">into</span> <span class="token keyword">table</span> dws<span class="token punctuation">.</span>dws_device_box_info_his_v2 <span class="token keyword">partition</span><span class="token punctuation">(</span>province_alias<span class="token operator">=</span><span class="token string">'js'</span><span class="token punctuation">,</span>dt<span class="token operator">=</span><span class="token string">'20190701'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span>
-就会报错：
-<span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span>shell
-FAILED: Execution Error<span class="token punctuation">,</span> <span class="token keyword">return</span> code <span class="token number">1</span> <span class="token keyword">from</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hive<span class="token punctuation">.</span>ql<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>MoveTask<span class="token punctuation">.</span> Unable <span class="token keyword">to</span> move source hdfs:<span class="token comment">//ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701 to destination hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>可以看出，报错是不能移动文件位置，因为文件已经在这个路径下了</p>
-<p>总结：</p>
-<ul>
-<li>如果文件已经在分区的位置，这时候，需要用add partition的方式</li>
-<li>如果文件不在分区的位置，这时候用load data的方式</li>
-</ul>
-<p>具体的可以参考<br><a href="https://blog.csdn.net/worldchinalee/article/details/80278111">hive中的复杂类型struct、array、map</a>，这里struct、array、map都有</p>
-<h2 id="hive引用udf的jar报无效"><a href="#hive引用udf的jar报无效" class="headerlink" title="hive引用udf的jar报无效"></a>hive引用udf的jar报无效</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>原始的hive jar包在/opt/hive/auxlib/udf.jar，因为要测试代码，就又创建了一个jar包，/opt/hive/auxlib/udf1.jar<br>但是不管怎么创建udf，新的udf的代码都没有被引用</p>
-<h3 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h3><p>udf1.jar和udf.jar的java 类的路径和类名都是一样的，虽然在引用udf1.jar的时候，重新add jar了，但是hive不是把原始udf.jar从资源配置里拿去，当创建udf的时候，由于引用的类在原始的udf.jar中也有，所以，hive默认会引用hive在启动的时候加载的udf.jar，而不会使用udf1.jar</p>
-<h3 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h3><p>新旧两个jar包，类名或者路径保持不一致</p>
-<h2 id="hive实现job并发执行"><a href="#hive实现job并发执行" class="headerlink" title="hive实现job并发执行"></a>hive实现job并发执行</h2><p>写了个sql，job数有20多个，一直都是上一个job跑完，下一个才开始执行，需要执行40多分钟<br>最近找到个方法，可以设置hive-job并发执行，但是这样会提高资源消耗，如果读取的表都是明细表，谨慎使用</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> hive<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>parallel<span class="token operator">=</span><span class="token boolean">true</span><span class="token punctuation">;</span>
-<span class="token keyword">set</span> hive<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>parallel<span class="token punctuation">.</span>thread<span class="token punctuation">.</span>number<span class="token operator">=</span>最大并发job数<span class="token punctuation">;</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>启动了5个并发，时间被控制在10分钟以内了。</p>
-<h2 id="hive-两个join的结果是否相等"><a href="#hive-两个join的结果是否相等" class="headerlink" title="hive 两个join的结果是否相等"></a>hive 两个join的结果是否相等</h2><p>有3个表A(id,name) B(id,name) C(id,name)<br>其中A的name为空，B两个都非空</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">A <span class="token keyword">inner</span> <span class="token keyword">join</span> C <span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id 
-<span class="token keyword">union</span> <span class="token keyword">all</span>
-B <span class="token keyword">join</span> C <span class="token keyword">on</span> b<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id <span class="token operator">and</span> b<span class="token punctuation">.</span>name <span class="token operator">=</span> c<span class="token punctuation">.</span>name<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>是否等于</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token punctuation">(</span>A <span class="token keyword">union</span> <span class="token keyword">all</span> B<span class="token punctuation">)</span> t1
-<span class="token keyword">join</span> C t2
-<span class="token keyword">on</span> t1<span class="token punctuation">.</span>id <span class="token operator">=</span> t2<span class="token punctuation">.</span>id
-<span class="token keyword">where</span> t1<span class="token punctuation">.</span>name <span class="token operator">is</span> <span class="token boolean">null</span> <span class="token operator">or</span> t1<span class="token punctuation">.</span>name <span class="token operator">=</span> t2<span class="token punctuation">.</span>name<span class="token punctuation">)</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>验证过程:</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
-<span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
-<span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
-<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 <span class="token keyword">values</span>
-<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span>
-<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222 <span class="token keyword">values</span>
-<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'b'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'c'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'d'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token string">'e'</span><span class="token punctuation">)</span>
-<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 <span class="token keyword">values</span>
-<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'b'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'c'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'d'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token string">'e'</span><span class="token punctuation">)</span>
-
-<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
-<span class="token punctuation">(</span><span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 
-<span class="token keyword">union</span> <span class="token keyword">all</span> 
-<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222<span class="token punctuation">)</span> t1
-<span class="token keyword">inner</span> <span class="token keyword">join</span> 
-<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 t2
-<span class="token keyword">on</span> t1<span class="token punctuation">.</span>id <span class="token operator">=</span> t2<span class="token punctuation">.</span>id
-<span class="token keyword">where</span> t1<span class="token punctuation">.</span>name <span class="token operator">is</span> <span class="token boolean">null</span> <span class="token operator">or</span> t1<span class="token punctuation">.</span>name <span class="token operator">=</span> t2<span class="token punctuation">.</span>name
-
-<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
-<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 a <span class="token keyword">inner</span> <span class="token keyword">join</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 b
-<span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> b<span class="token punctuation">.</span>id
-<span class="token keyword">union</span> <span class="token keyword">all</span>
-<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
-<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222 a <span class="token keyword">inner</span> <span class="token keyword">join</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 c
-<span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id <span class="token operator">and</span> a<span class="token punctuation">.</span>name <span class="token operator">=</span> c<span class="token punctuation">.</span>name<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>经过验证，两个结果相同 </p>
-<h2 id="基于python编写udf，实现判断字符串是否是标准json"><a href="#基于python编写udf，实现判断字符串是否是标准json" class="headerlink" title="基于python编写udf，实现判断字符串是否是标准json"></a>基于python编写udf，实现判断字符串是否是标准json</h2><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment"># -*- coding: utf-8 -*-</span>
-<span class="token comment">## add file /home/19190845/udf.py</span>
-<span class="token comment">## select transform(fbdeal_id,orderdata) USING 'python udf.py'  AS (fbdeal_id,orderdata) from app.app_onedata_oms_orders_t_bdeal_da;</span>
-<span class="token keyword">import</span> sys
-<span class="token keyword">import</span> json
-
-<span class="token keyword">def</span> <span class="token function">is_json</span><span class="token punctuation">(</span>myjson<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">try</span><span class="token punctuation">:</span>
-        json_object <span class="token operator">=</span> json<span class="token punctuation">.</span>loads<span class="token punctuation">(</span>myjson<span class="token punctuation">)</span>
-    <span class="token keyword">except</span> ValueError<span class="token punctuation">,</span> e<span class="token punctuation">:</span>
-        <span class="token keyword">return</span> <span class="token boolean">False</span>
-    <span class="token keyword">return</span> <span class="token boolean">True</span>
-<span class="token keyword">for</span> line <span class="token keyword">in</span> sys<span class="token punctuation">.</span>stdin<span class="token punctuation">:</span>
-    detail <span class="token operator">=</span> line<span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">"\t"</span><span class="token punctuation">)</span>
-    <span class="token keyword">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>detail<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">2</span><span class="token punctuation">:</span>
-        <span class="token keyword">continue</span>
-    <span class="token keyword">else</span><span class="token punctuation">:</span>
-        deal_id <span class="token operator">=</span> detail<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
-        orderData <span class="token operator">=</span> detail<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
-        isJson <span class="token operator">=</span> is_json<span class="token punctuation">(</span>orderData<span class="token punctuation">)</span>
-        <span class="token keyword">if</span> <span class="token keyword">not</span> isJson<span class="token punctuation">:</span>
-            <span class="token keyword">print</span> <span class="token builtin">str</span><span class="token punctuation">(</span>deal_id<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"\t"</span> <span class="token operator">+</span> orderData
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">add</span> <span class="token keyword">file</span> <span class="token operator">/</span>home<span class="token operator">/</span><span class="token number">19190845</span><span class="token operator">/</span>udf<span class="token punctuation">.</span>py
-<span class="token keyword">select</span> transform<span class="token punctuation">(</span>fbdeal_id<span class="token punctuation">,</span>orderdata<span class="token punctuation">)</span> <span class="token keyword">USING</span> <span class="token string">'python udf.py'</span>  <span class="token keyword">AS</span> <span class="token punctuation">(</span>fbdeal_id<span class="token punctuation">,</span>orderdata<span class="token punctuation">)</span> <span class="token keyword">from</span> app<span class="token punctuation">.</span>app_onedata_oms_orders_t_bdeal_da<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>以上语句，支持hive mr、tez引擎，并支持spark-sql命令行</p>
-<h2 id="hive列转行"><a href="#hive列转行" class="headerlink" title="hive列转行"></a>hive列转行</h2><p>可以使用map和ateral view explode新造列名，很实用</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span>  model_code<span class="token punctuation">,</span>
-        fact_rate<span class="token punctuation">,</span>
-        item_code<span class="token punctuation">,</span>
-        quota_name<span class="token punctuation">,</span>
-        refer_enum<span class="token punctuation">,</span>
-        busi_cnt
-<span class="token keyword">from</span>
-<span class="token punctuation">(</span><span class="token keyword">select</span> model_code<span class="token punctuation">,</span>
-       <span class="token string">'POP001'</span> <span class="token keyword">AS</span> fact_rate<span class="token punctuation">,</span>
-       item_code<span class="token punctuation">,</span>
-       <span class="token keyword">case</span> <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00101'</span> <span class="token keyword">then</span> <span class="token string">'商品满意度'</span>
-            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00103'</span> <span class="token keyword">then</span> <span class="token string">'物流配送'</span>
-            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00104'</span> <span class="token keyword">then</span> <span class="token string">'服务满意度'</span>
-            <span class="token keyword">else</span> <span class="token string">'unknown'</span>
-       <span class="token keyword">end</span> <span class="token keyword">as</span> quota_name<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">2</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">2.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt2<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">3</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">3.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt3<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">4</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">4.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt4<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">5</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">5.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt5<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">6</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">6.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt6<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">7</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">7.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt7<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">8</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">8.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt8<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">9</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">10</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt9
-<span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_business_growth_comment_item_score_da
-<span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;stat_date&#125;'</span>
-  <span class="token operator">and</span> item_code <span class="token operator">in</span> <span class="token punctuation">(</span><span class="token string">'POP00101'</span><span class="token punctuation">,</span><span class="token string">'POP00103'</span><span class="token punctuation">,</span><span class="token string">'POP00104'</span><span class="token punctuation">)</span>
-<span class="token keyword">group</span> <span class="token keyword">by</span> model_code<span class="token punctuation">,</span>
-         item_code<span class="token punctuation">)</span> a
-lateral <span class="token keyword">view</span> explode<span class="token punctuation">(</span>map<span class="token punctuation">(</span><span class="token string">'2-2.99'</span><span class="token punctuation">,</span> cnt2<span class="token punctuation">,</span>
-                         <span class="token string">'3-3.99'</span><span class="token punctuation">,</span> cnt3<span class="token punctuation">,</span>
-                         <span class="token string">'4-4.99'</span><span class="token punctuation">,</span> cnt4<span class="token punctuation">,</span>
-                         <span class="token string">'5-5.99'</span><span class="token punctuation">,</span> cnt5<span class="token punctuation">,</span>
-                         <span class="token string">'6-6.99'</span><span class="token punctuation">,</span> cnt6<span class="token punctuation">,</span>
-                         <span class="token string">'7-7.99'</span><span class="token punctuation">,</span> cnt7<span class="token punctuation">,</span>
-                         <span class="token string">'8-8.99'</span><span class="token punctuation">,</span> cnt8<span class="token punctuation">,</span>
-                         <span class="token string">'9-10'</span><span class="token punctuation">,</span> cnt9<span class="token punctuation">)</span><span class="token punctuation">)</span> b <span class="token keyword">as</span> refer_enum<span class="token punctuation">,</span> busi_cnt
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>或者使用str_to_map函数,不过感觉还不如直接用map</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span>  model_code<span class="token punctuation">,</span>
-        fact_rate<span class="token punctuation">,</span>
-        item_code<span class="token punctuation">,</span>
-        quota_name<span class="token punctuation">,</span>
-        refer_enum<span class="token punctuation">,</span>
-        busi_cnt
-<span class="token keyword">from</span>
-<span class="token punctuation">(</span><span class="token keyword">select</span> model_code<span class="token punctuation">,</span>
-       <span class="token string">'POP001'</span> <span class="token keyword">AS</span> fact_rate<span class="token punctuation">,</span>
-       item_code<span class="token punctuation">,</span>
-       <span class="token keyword">case</span> <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00101'</span> <span class="token keyword">then</span> <span class="token string">'商品满意度'</span>
-            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00103'</span> <span class="token keyword">then</span> <span class="token string">'物流配送'</span>
-            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00104'</span> <span class="token keyword">then</span> <span class="token string">'服务满意度'</span>
-            <span class="token keyword">else</span> <span class="token string">'unknown'</span>
-       <span class="token keyword">end</span> <span class="token keyword">as</span> quota_name<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">2</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">2.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt2<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">3</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">3.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt3<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">4</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">4.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt4<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">5</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">5.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt5<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">6</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">6.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt6<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">7</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">7.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt7<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">8</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">8.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt8<span class="token punctuation">,</span>
-       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">9</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">10</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt9
-<span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_business_growth_comment_item_score_da
-<span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;stat_date&#125;'</span>
-  <span class="token operator">and</span> item_code <span class="token operator">in</span> <span class="token punctuation">(</span><span class="token string">'POP00101'</span><span class="token punctuation">,</span><span class="token string">'POP00103'</span><span class="token punctuation">,</span><span class="token string">'POP00104'</span><span class="token punctuation">)</span>
-<span class="token keyword">group</span> <span class="token keyword">by</span> model_code<span class="token punctuation">,</span>
-         item_code<span class="token punctuation">)</span> a
-LATERAL <span class="token keyword">VIEW</span>
-    EXPLODE<span class="token punctuation">(</span>
-            STR_TO_MAP<span class="token punctuation">(</span>
-                    CONCAT<span class="token punctuation">(</span>
-                        <span class="token string">'2-2.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt2 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                        <span class="token string">'&amp;3-3.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt3 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                        <span class="token string">'&amp;4-4.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt4 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                        <span class="token string">'&amp;5-5.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt5 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                        <span class="token string">'&amp;6-6.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt6 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                        <span class="token string">'&amp;7-7.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt7 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                        <span class="token string">'&amp;8-8.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt8 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                        <span class="token string">'&amp;9-10='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt9 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                    <span class="token punctuation">)</span>
-                <span class="token punctuation">,</span><span class="token string">'&amp;'</span><span class="token punctuation">,</span> <span class="token string">'='</span><span class="token punctuation">)</span>
-        <span class="token punctuation">)</span> lateral_table <span class="token keyword">AS</span> refer_enum<span class="token punctuation">,</span> busi_cnt
-<span class="token punctuation">;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h2 id="hive数据倾斜"><a href="#hive数据倾斜" class="headerlink" title="hive数据倾斜"></a>hive数据倾斜</h2><p>这里数据倾斜的原因是<code>partner_id = 3</code>的数据好几百万，这里的解决办法是，把<code>partner_id = 3</code>的数据单独处理，添加随机数</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 取下单前的最后的广告，提交订单的session关联到广告</span>
-<span class="token keyword">drop</span> <span class="token keyword">table</span> <span class="token keyword">if</span> <span class="token keyword">exists</span> tmp<span class="token punctuation">.</span>tmp_adm_tracker_order_dt_de_3<span class="token punctuation">;</span>
-<span class="token keyword">create</span>  <span class="token keyword">table</span> tmp<span class="token punctuation">.</span>tmp_adm_tracker_order_dt_de_3
-stored <span class="token keyword">as</span> orc
-<span class="token keyword">as</span>
-<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> <span class="token punctuation">(</span>
-<span class="token keyword">select</span> <span class="token operator">*</span><span class="token punctuation">,</span>
-       row_number<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">over</span><span class="token punctuation">(</span><span class="token keyword">partition</span> <span class="token keyword">by</span> ftrade_id<span class="token punctuation">,</span>partner_id <span class="token keyword">order</span> <span class="token keyword">by</span> front_time <span class="token keyword">desc</span><span class="token punctuation">)</span> <span class="token keyword">as</span> rank <span class="token comment">-- 最新的广告</span>
-<span class="token keyword">from</span> <span class="token punctuation">(</span>
-  <span class="token keyword">select</span>
-       t1<span class="token punctuation">.</span><span class="token operator">*</span><span class="token punctuation">,</span>
-       <span class="token boolean">null</span> <span class="token keyword">as</span> rand_num<span class="token punctuation">,</span>
-       t2<span class="token punctuation">.</span>ad_type<span class="token punctuation">,</span><span class="token comment">-- 广告类型</span>
-       t2<span class="token punctuation">.</span>ad_id<span class="token punctuation">,</span><span class="token comment">-- 广告id</span>
-       t2<span class="token punctuation">.</span>keyword_id<span class="token punctuation">,</span><span class="token comment">-- 竞价关键词id</span>
-       t2<span class="token punctuation">.</span>keyword_contect <span class="token punctuation">,</span><span class="token comment">-- 竞价关键词内容</span>
-       t2<span class="token punctuation">.</span>sku_id <span class="token keyword">as</span> search_ad_sku_id  <span class="token punctuation">,</span><span class="token comment">-- 搜索广告商品id</span>
-       t2<span class="token punctuation">.</span>is_premium                  <span class="token punctuation">,</span><span class="token comment">-- 是否溢价</span>
-       front_time
-  <span class="token keyword">from</span> <span class="token punctuation">(</span>
-  <span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> tmp<span class="token punctuation">.</span>tmp_adm_tracker_order_dt_de_1
-  <span class="token keyword">where</span> partner_id <span class="token operator">&lt;></span> <span class="token number">3</span><span class="token punctuation">)</span>  t1
-  <span class="token keyword">left</span> <span class="token keyword">join</span> <span class="token punctuation">(</span>
-      <span class="token keyword">select</span> ad_type<span class="token punctuation">,</span>                      <span class="token comment">-- 广告类型</span>
-             ad_id<span class="token punctuation">,</span>                        <span class="token comment">-- 广告id</span>
-             keyword_id<span class="token punctuation">,</span>                   <span class="token comment">-- 竞价关键词id</span>
-             keyword_contect <span class="token punctuation">,</span>             <span class="token comment">-- 竞价关键词内容</span>
-             sku_id                      <span class="token punctuation">,</span> <span class="token comment">-- 搜索广告商品id</span>
-             is_premium                  <span class="token punctuation">,</span> <span class="token comment">-- 是否溢价</span>
-             partner_id                  <span class="token punctuation">,</span>
-             front_time
-      <span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_tracker_ad_click_dt_de
-      <span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;v_dt&#125;'</span> <span class="token operator">and</span> partner_id <span class="token operator">&lt;></span> <span class="token number">3</span>
-  <span class="token punctuation">)</span> t2
-    <span class="token keyword">on</span> t1<span class="token punctuation">.</span>partner_id <span class="token operator">=</span> t2<span class="token punctuation">.</span>partner_id
- <span class="token keyword">where</span> to_unix_timestamp<span class="token punctuation">(</span>t1<span class="token punctuation">.</span>ftrade_gen_time<span class="token punctuation">)</span><span class="token operator">*</span><span class="token number">1000</span> <span class="token operator">></span> t2<span class="token punctuation">.</span>front_time
-
- <span class="token keyword">union</span> <span class="token keyword">all</span>
-
-  <span class="token keyword">select</span>
-       t1<span class="token punctuation">.</span><span class="token operator">*</span><span class="token punctuation">,</span>
-       t2<span class="token punctuation">.</span>ad_type<span class="token punctuation">,</span><span class="token comment">-- 广告类型</span>
-       t2<span class="token punctuation">.</span>ad_id<span class="token punctuation">,</span><span class="token comment">-- 广告id</span>
-       t2<span class="token punctuation">.</span>keyword_id<span class="token punctuation">,</span><span class="token comment">-- 竞价关键词id</span>
-       t2<span class="token punctuation">.</span>keyword_contect <span class="token punctuation">,</span><span class="token comment">-- 竞价关键词内容</span>
-       t2<span class="token punctuation">.</span>sku_id <span class="token keyword">as</span> search_ad_sku_id  <span class="token punctuation">,</span><span class="token comment">-- 搜索广告商品id</span>
-       t2<span class="token punctuation">.</span>is_premium                  <span class="token punctuation">,</span><span class="token comment">-- 是否溢价</span>
-       front_time
-  <span class="token keyword">from</span> <span class="token punctuation">(</span>
-    <span class="token keyword">select</span> <span class="token operator">*</span><span class="token punctuation">,</span>
-    <span class="token punctuation">(</span>row_number<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">over</span><span class="token punctuation">(</span><span class="token keyword">partition</span> <span class="token keyword">by</span> <span class="token number">1</span> <span class="token keyword">order</span> <span class="token keyword">by</span> <span class="token number">1</span> <span class="token keyword">desc</span><span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">100</span><span class="token punctuation">)</span> <span class="token keyword">as</span> rand_num   <span class="token comment">--数据倾斜，使用随机数重新关联</span>
-    <span class="token keyword">from</span> tmp<span class="token punctuation">.</span>tmp_adm_tracker_order_dt_de_1
-    <span class="token keyword">where</span> partner_id <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">)</span>  t1
-  <span class="token keyword">left</span> <span class="token keyword">join</span> <span class="token punctuation">(</span>
-      <span class="token keyword">select</span> ad_type<span class="token punctuation">,</span>                      <span class="token comment">-- 广告类型</span>
-             ad_id<span class="token punctuation">,</span>                        <span class="token comment">-- 广告id</span>
-             keyword_id<span class="token punctuation">,</span>                   <span class="token comment">-- 竞价关键词id</span>
-             keyword_contect <span class="token punctuation">,</span>             <span class="token comment">-- 竞价关键词内容</span>
-             sku_id                      <span class="token punctuation">,</span> <span class="token comment">-- 搜索广告商品id</span>
-             is_premium                  <span class="token punctuation">,</span> <span class="token comment">-- 是否溢价</span>
-             partner_id                  <span class="token punctuation">,</span>
-             front_time<span class="token punctuation">,</span>
-             <span class="token punctuation">(</span>row_number<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">over</span><span class="token punctuation">(</span><span class="token keyword">partition</span> <span class="token keyword">by</span> <span class="token number">1</span> <span class="token keyword">order</span> <span class="token keyword">by</span> <span class="token number">1</span> <span class="token keyword">desc</span><span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">100</span><span class="token punctuation">)</span> <span class="token keyword">as</span> rand_num  <span class="token comment">--数据倾斜，使用随机数重新关联</span>
-      <span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_tracker_ad_click_dt_de
-      <span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;v_dt&#125;'</span> <span class="token operator">and</span> partner_id <span class="token operator">=</span> <span class="token number">3</span>
-  <span class="token punctuation">)</span> t2
-    <span class="token keyword">on</span> t1<span class="token punctuation">.</span>partner_id <span class="token operator">=</span> t2<span class="token punctuation">.</span>partner_id
-    <span class="token operator">and</span> t1<span class="token punctuation">.</span>rand_num <span class="token operator">=</span> t2<span class="token punctuation">.</span>rand_num
- <span class="token keyword">where</span> to_unix_timestamp<span class="token punctuation">(</span>t1<span class="token punctuation">.</span>ftrade_gen_time<span class="token punctuation">)</span><span class="token operator">*</span><span class="token number">1000</span> <span class="token operator">></span> t2<span class="token punctuation">.</span>front_time
- <span class="token punctuation">)</span> t <span class="token punctuation">)</span> tt
- <span class="token keyword">where</span> rank <span class="token operator">=</span> <span class="token number">1</span>
-<span class="token punctuation">;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Hive</category>
-      </categories>
-      <tags>
-        <tag>Hive</tag>
       </tags>
   </entry>
   <entry>
@@ -4272,6 +3979,374 @@ protected abstract void abort(TXN transaction);</code></pre>
       </categories>
       <tags>
         <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hive杂记（一）</title>
+    <url>/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>hive中的复杂数据类型数据如何导入(array)</li>
+<li>hive中load数据到分区和add partition的区别：</li>
+<li>hive引用udf的jar报无效</li>
+<li>hive实现job并发执行</li>
+<li>验证hive两个join的结果是否相等<a id="more"></a>
+<h2 id="hive中的复杂数据类型数据如何导入-array"><a href="#hive中的复杂数据类型数据如何导入-array" class="headerlink" title="hive中的复杂数据类型数据如何导入(array)"></a>hive中的复杂数据类型数据如何导入(array)</h2><h3 id="创建hive表"><a href="#创建hive表" class="headerlink" title="创建hive表"></a>创建hive表</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>dws_search_by_program_set_count_his<span class="token punctuation">(</span>
+  program_set_id string<span class="token punctuation">,</span> 
+  click_array array<span class="token operator">&lt;</span>string<span class="token operator">></span><span class="token punctuation">)</span>
+<span class="token keyword">row</span> format delimited
+<span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">','</span>
+collection items <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'#'</span>
+<span class="token keyword">lines</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'\n'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+其中click_array 为array类型。</li>
+</ul>
+<blockquote>
+<p>注意：</p>
+</blockquote>
+<ul>
+<li>在建表的时候一定要指定row format delimited，我这里指定了列与列质检为逗号，array的元素内容为#</li>
+</ul>
+<p>数据格式：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">100051130,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051133,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051134,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051136,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051138,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051140,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051157,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051161,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+100051163,0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>下面来导入数据：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> inpath <span class="token string">'/home/gold/dws_search_by_program_set_count_his.csv'</span> overwrite <span class="token keyword">into</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>dws_search_by_program_set_count_his<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>效果：<br><img src="/uploads/20210114/hive-import-data.png" alt="hive-import-data"></p>
+<h2 id="hive中load数据到分区和add-partition的区别："><a href="#hive中load数据到分区和add-partition的区别：" class="headerlink" title="hive中load数据到分区和add partition的区别："></a>hive中load数据到分区和add partition的区别：</h2><p>load data的方式需要移动文件路径，如果把文件就放在分区位置，这时候如果用load data的方式，就会报错，需要用add partition的方式</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> dws<span class="token punctuation">.</span>dws_device_box_info_his_v2 <span class="token keyword">ADD</span> <span class="token keyword">partition</span><span class="token punctuation">(</span>province_alias<span class="token operator">=</span><span class="token string">'js'</span><span class="token punctuation">,</span>dt<span class="token operator">=</span><span class="token string">'20190701'</span><span class="token punctuation">)</span> 
+location <span class="token string">'hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>如果用load data的方式：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">load</span> <span class="token keyword">data</span> inpath <span class="token string">'hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701'</span> 
+overwrite <span class="token keyword">into</span> <span class="token keyword">table</span> dws<span class="token punctuation">.</span>dws_device_box_info_his_v2 <span class="token keyword">partition</span><span class="token punctuation">(</span>province_alias<span class="token operator">=</span><span class="token string">'js'</span><span class="token punctuation">,</span>dt<span class="token operator">=</span><span class="token string">'20190701'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span>
+就会报错：
+<span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span>shell
+FAILED: Execution Error<span class="token punctuation">,</span> <span class="token keyword">return</span> code <span class="token number">1</span> <span class="token keyword">from</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hive<span class="token punctuation">.</span>ql<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>MoveTask<span class="token punctuation">.</span> Unable <span class="token keyword">to</span> move source hdfs:<span class="token comment">//ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701 to destination hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看出，报错是不能移动文件位置，因为文件已经在这个路径下了</p>
+<p>总结：</p>
+<ul>
+<li>如果文件已经在分区的位置，这时候，需要用add partition的方式</li>
+<li>如果文件不在分区的位置，这时候用load data的方式</li>
+</ul>
+<p>具体的可以参考<br><a href="https://blog.csdn.net/worldchinalee/article/details/80278111">hive中的复杂类型struct、array、map</a>，这里struct、array、map都有</p>
+<h2 id="hive引用udf的jar报无效"><a href="#hive引用udf的jar报无效" class="headerlink" title="hive引用udf的jar报无效"></a>hive引用udf的jar报无效</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>原始的hive jar包在/opt/hive/auxlib/udf.jar，因为要测试代码，就又创建了一个jar包，/opt/hive/auxlib/udf1.jar<br>但是不管怎么创建udf，新的udf的代码都没有被引用</p>
+<h3 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h3><p>udf1.jar和udf.jar的java 类的路径和类名都是一样的，虽然在引用udf1.jar的时候，重新add jar了，但是hive不是把原始udf.jar从资源配置里拿去，当创建udf的时候，由于引用的类在原始的udf.jar中也有，所以，hive默认会引用hive在启动的时候加载的udf.jar，而不会使用udf1.jar</p>
+<h3 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h3><p>新旧两个jar包，类名或者路径保持不一致</p>
+<h2 id="hive实现job并发执行"><a href="#hive实现job并发执行" class="headerlink" title="hive实现job并发执行"></a>hive实现job并发执行</h2><p>写了个sql，job数有20多个，一直都是上一个job跑完，下一个才开始执行，需要执行40多分钟<br>最近找到个方法，可以设置hive-job并发执行，但是这样会提高资源消耗，如果读取的表都是明细表，谨慎使用</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> hive<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>parallel<span class="token operator">=</span><span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token keyword">set</span> hive<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>parallel<span class="token punctuation">.</span>thread<span class="token punctuation">.</span>number<span class="token operator">=</span>最大并发job数<span class="token punctuation">;</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>启动了5个并发，时间被控制在10分钟以内了。</p>
+<h2 id="hive-两个join的结果是否相等"><a href="#hive-两个join的结果是否相等" class="headerlink" title="hive 两个join的结果是否相等"></a>hive 两个join的结果是否相等</h2><p>有3个表A(id,name) B(id,name) C(id,name)<br>其中A的name为空，B两个都非空</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">A <span class="token keyword">inner</span> <span class="token keyword">join</span> C <span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id 
+<span class="token keyword">union</span> <span class="token keyword">all</span>
+B <span class="token keyword">join</span> C <span class="token keyword">on</span> b<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id <span class="token operator">and</span> b<span class="token punctuation">.</span>name <span class="token operator">=</span> c<span class="token punctuation">.</span>name<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>是否等于</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token punctuation">(</span>A <span class="token keyword">union</span> <span class="token keyword">all</span> B<span class="token punctuation">)</span> t1
+<span class="token keyword">join</span> C t2
+<span class="token keyword">on</span> t1<span class="token punctuation">.</span>id <span class="token operator">=</span> t2<span class="token punctuation">.</span>id
+<span class="token keyword">where</span> t1<span class="token punctuation">.</span>name <span class="token operator">is</span> <span class="token boolean">null</span> <span class="token operator">or</span> t1<span class="token punctuation">.</span>name <span class="token operator">=</span> t2<span class="token punctuation">.</span>name<span class="token punctuation">)</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>验证过程:</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
+<span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
+<span class="token keyword">create</span> <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333<span class="token punctuation">(</span>id <span class="token keyword">int</span><span class="token punctuation">,</span>name string<span class="token punctuation">)</span>
+<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 <span class="token keyword">values</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span>
+<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222 <span class="token keyword">values</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'b'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'c'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'d'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token string">'e'</span><span class="token punctuation">)</span>
+<span class="token keyword">insert</span> overwrite <span class="token keyword">table</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 <span class="token keyword">values</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'b'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'c'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span><span class="token string">'d'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span><span class="token string">'e'</span><span class="token punctuation">)</span>
+
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
+<span class="token punctuation">(</span><span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 
+<span class="token keyword">union</span> <span class="token keyword">all</span> 
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222<span class="token punctuation">)</span> t1
+<span class="token keyword">inner</span> <span class="token keyword">join</span> 
+<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 t2
+<span class="token keyword">on</span> t1<span class="token punctuation">.</span>id <span class="token operator">=</span> t2<span class="token punctuation">.</span>id
+<span class="token keyword">where</span> t1<span class="token punctuation">.</span>name <span class="token operator">is</span> <span class="token boolean">null</span> <span class="token operator">or</span> t1<span class="token punctuation">.</span>name <span class="token operator">=</span> t2<span class="token punctuation">.</span>name
+
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
+<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_111 a <span class="token keyword">inner</span> <span class="token keyword">join</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 b
+<span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> b<span class="token punctuation">.</span>id
+<span class="token keyword">union</span> <span class="token keyword">all</span>
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> 
+<span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_222 a <span class="token keyword">inner</span> <span class="token keyword">join</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>gjc_test_333 c
+<span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> c<span class="token punctuation">.</span>id <span class="token operator">and</span> a<span class="token punctuation">.</span>name <span class="token operator">=</span> c<span class="token punctuation">.</span>name<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>经过验证，两个结果相同 </p>
+<h2 id="基于python编写udf，实现判断字符串是否是标准json"><a href="#基于python编写udf，实现判断字符串是否是标准json" class="headerlink" title="基于python编写udf，实现判断字符串是否是标准json"></a>基于python编写udf，实现判断字符串是否是标准json</h2><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment"># -*- coding: utf-8 -*-</span>
+<span class="token comment">## add file /home/19190845/udf.py</span>
+<span class="token comment">## select transform(fbdeal_id,orderdata) USING 'python udf.py'  AS (fbdeal_id,orderdata) from app.app_onedata_oms_orders_t_bdeal_da;</span>
+<span class="token keyword">import</span> sys
+<span class="token keyword">import</span> json
+
+<span class="token keyword">def</span> <span class="token function">is_json</span><span class="token punctuation">(</span>myjson<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        json_object <span class="token operator">=</span> json<span class="token punctuation">.</span>loads<span class="token punctuation">(</span>myjson<span class="token punctuation">)</span>
+    <span class="token keyword">except</span> ValueError<span class="token punctuation">,</span> e<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token boolean">False</span>
+    <span class="token keyword">return</span> <span class="token boolean">True</span>
+<span class="token keyword">for</span> line <span class="token keyword">in</span> sys<span class="token punctuation">.</span>stdin<span class="token punctuation">:</span>
+    detail <span class="token operator">=</span> line<span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">"\t"</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>detail<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">2</span><span class="token punctuation">:</span>
+        <span class="token keyword">continue</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        deal_id <span class="token operator">=</span> detail<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+        orderData <span class="token operator">=</span> detail<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+        isJson <span class="token operator">=</span> is_json<span class="token punctuation">(</span>orderData<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> <span class="token keyword">not</span> isJson<span class="token punctuation">:</span>
+            <span class="token keyword">print</span> <span class="token builtin">str</span><span class="token punctuation">(</span>deal_id<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"\t"</span> <span class="token operator">+</span> orderData
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">add</span> <span class="token keyword">file</span> <span class="token operator">/</span>home<span class="token operator">/</span><span class="token number">19190845</span><span class="token operator">/</span>udf<span class="token punctuation">.</span>py
+<span class="token keyword">select</span> transform<span class="token punctuation">(</span>fbdeal_id<span class="token punctuation">,</span>orderdata<span class="token punctuation">)</span> <span class="token keyword">USING</span> <span class="token string">'python udf.py'</span>  <span class="token keyword">AS</span> <span class="token punctuation">(</span>fbdeal_id<span class="token punctuation">,</span>orderdata<span class="token punctuation">)</span> <span class="token keyword">from</span> app<span class="token punctuation">.</span>app_onedata_oms_orders_t_bdeal_da<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>以上语句，支持hive mr、tez引擎，并支持spark-sql命令行</p>
+<h2 id="hive列转行"><a href="#hive列转行" class="headerlink" title="hive列转行"></a>hive列转行</h2><p>可以使用map和ateral view explode新造列名，很实用</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span>  model_code<span class="token punctuation">,</span>
+        fact_rate<span class="token punctuation">,</span>
+        item_code<span class="token punctuation">,</span>
+        quota_name<span class="token punctuation">,</span>
+        refer_enum<span class="token punctuation">,</span>
+        busi_cnt
+<span class="token keyword">from</span>
+<span class="token punctuation">(</span><span class="token keyword">select</span> model_code<span class="token punctuation">,</span>
+       <span class="token string">'POP001'</span> <span class="token keyword">AS</span> fact_rate<span class="token punctuation">,</span>
+       item_code<span class="token punctuation">,</span>
+       <span class="token keyword">case</span> <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00101'</span> <span class="token keyword">then</span> <span class="token string">'商品满意度'</span>
+            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00103'</span> <span class="token keyword">then</span> <span class="token string">'物流配送'</span>
+            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00104'</span> <span class="token keyword">then</span> <span class="token string">'服务满意度'</span>
+            <span class="token keyword">else</span> <span class="token string">'unknown'</span>
+       <span class="token keyword">end</span> <span class="token keyword">as</span> quota_name<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">2</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">2.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt2<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">3</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">3.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt3<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">4</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">4.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt4<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">5</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">5.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt5<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">6</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">6.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt6<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">7</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">7.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt7<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">8</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">8.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt8<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">9</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">10</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt9
+<span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_business_growth_comment_item_score_da
+<span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;stat_date&#125;'</span>
+  <span class="token operator">and</span> item_code <span class="token operator">in</span> <span class="token punctuation">(</span><span class="token string">'POP00101'</span><span class="token punctuation">,</span><span class="token string">'POP00103'</span><span class="token punctuation">,</span><span class="token string">'POP00104'</span><span class="token punctuation">)</span>
+<span class="token keyword">group</span> <span class="token keyword">by</span> model_code<span class="token punctuation">,</span>
+         item_code<span class="token punctuation">)</span> a
+lateral <span class="token keyword">view</span> explode<span class="token punctuation">(</span>map<span class="token punctuation">(</span><span class="token string">'2-2.99'</span><span class="token punctuation">,</span> cnt2<span class="token punctuation">,</span>
+                         <span class="token string">'3-3.99'</span><span class="token punctuation">,</span> cnt3<span class="token punctuation">,</span>
+                         <span class="token string">'4-4.99'</span><span class="token punctuation">,</span> cnt4<span class="token punctuation">,</span>
+                         <span class="token string">'5-5.99'</span><span class="token punctuation">,</span> cnt5<span class="token punctuation">,</span>
+                         <span class="token string">'6-6.99'</span><span class="token punctuation">,</span> cnt6<span class="token punctuation">,</span>
+                         <span class="token string">'7-7.99'</span><span class="token punctuation">,</span> cnt7<span class="token punctuation">,</span>
+                         <span class="token string">'8-8.99'</span><span class="token punctuation">,</span> cnt8<span class="token punctuation">,</span>
+                         <span class="token string">'9-10'</span><span class="token punctuation">,</span> cnt9<span class="token punctuation">)</span><span class="token punctuation">)</span> b <span class="token keyword">as</span> refer_enum<span class="token punctuation">,</span> busi_cnt
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>或者使用str_to_map函数,不过感觉还不如直接用map</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span>  model_code<span class="token punctuation">,</span>
+        fact_rate<span class="token punctuation">,</span>
+        item_code<span class="token punctuation">,</span>
+        quota_name<span class="token punctuation">,</span>
+        refer_enum<span class="token punctuation">,</span>
+        busi_cnt
+<span class="token keyword">from</span>
+<span class="token punctuation">(</span><span class="token keyword">select</span> model_code<span class="token punctuation">,</span>
+       <span class="token string">'POP001'</span> <span class="token keyword">AS</span> fact_rate<span class="token punctuation">,</span>
+       item_code<span class="token punctuation">,</span>
+       <span class="token keyword">case</span> <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00101'</span> <span class="token keyword">then</span> <span class="token string">'商品满意度'</span>
+            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00103'</span> <span class="token keyword">then</span> <span class="token string">'物流配送'</span>
+            <span class="token keyword">when</span> item_code <span class="token operator">=</span> <span class="token string">'POP00104'</span> <span class="token keyword">then</span> <span class="token string">'服务满意度'</span>
+            <span class="token keyword">else</span> <span class="token string">'unknown'</span>
+       <span class="token keyword">end</span> <span class="token keyword">as</span> quota_name<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">2</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">2.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt2<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">3</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">3.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt3<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">4</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">4.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt4<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">5</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">5.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt5<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">6</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">6.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt6<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">7</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">7.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt7<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">8</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">8.99</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt8<span class="token punctuation">,</span>
+       <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token keyword">if</span><span class="token punctuation">(</span>item_value <span class="token operator">>=</span> <span class="token number">9</span> <span class="token operator">and</span> item_value <span class="token operator">&lt;=</span> <span class="token number">10</span><span class="token punctuation">,</span>business_id<span class="token punctuation">,</span><span class="token boolean">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> cnt9
+<span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_business_growth_comment_item_score_da
+<span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;stat_date&#125;'</span>
+  <span class="token operator">and</span> item_code <span class="token operator">in</span> <span class="token punctuation">(</span><span class="token string">'POP00101'</span><span class="token punctuation">,</span><span class="token string">'POP00103'</span><span class="token punctuation">,</span><span class="token string">'POP00104'</span><span class="token punctuation">)</span>
+<span class="token keyword">group</span> <span class="token keyword">by</span> model_code<span class="token punctuation">,</span>
+         item_code<span class="token punctuation">)</span> a
+LATERAL <span class="token keyword">VIEW</span>
+    EXPLODE<span class="token punctuation">(</span>
+            STR_TO_MAP<span class="token punctuation">(</span>
+                    CONCAT<span class="token punctuation">(</span>
+                        <span class="token string">'2-2.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt2 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;3-3.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt3 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;4-4.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt4 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;5-5.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt5 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;6-6.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt6 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;7-7.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt7 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;8-8.99='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt8 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">'&amp;9-10='</span><span class="token punctuation">,</span>CAST <span class="token punctuation">(</span>cnt9 <span class="token keyword">AS</span> STRING<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token punctuation">)</span>
+                <span class="token punctuation">,</span><span class="token string">'&amp;'</span><span class="token punctuation">,</span> <span class="token string">'='</span><span class="token punctuation">)</span>
+        <span class="token punctuation">)</span> lateral_table <span class="token keyword">AS</span> refer_enum<span class="token punctuation">,</span> busi_cnt
+<span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="hive数据倾斜"><a href="#hive数据倾斜" class="headerlink" title="hive数据倾斜"></a>hive数据倾斜</h2><p>这里数据倾斜的原因是<code>partner_id = 3</code>的数据好几百万，这里的解决办法是，把<code>partner_id = 3</code>的数据单独处理，添加随机数</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 取下单前的最后的广告，提交订单的session关联到广告</span>
+<span class="token keyword">drop</span> <span class="token keyword">table</span> <span class="token keyword">if</span> <span class="token keyword">exists</span> tmp<span class="token punctuation">.</span>tmp_adm_tracker_order_dt_de_3<span class="token punctuation">;</span>
+<span class="token keyword">create</span>  <span class="token keyword">table</span> tmp<span class="token punctuation">.</span>tmp_adm_tracker_order_dt_de_3
+stored <span class="token keyword">as</span> orc
+<span class="token keyword">as</span>
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> <span class="token punctuation">(</span>
+<span class="token keyword">select</span> <span class="token operator">*</span><span class="token punctuation">,</span>
+       row_number<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">over</span><span class="token punctuation">(</span><span class="token keyword">partition</span> <span class="token keyword">by</span> ftrade_id<span class="token punctuation">,</span>partner_id <span class="token keyword">order</span> <span class="token keyword">by</span> front_time <span class="token keyword">desc</span><span class="token punctuation">)</span> <span class="token keyword">as</span> rank <span class="token comment">-- 最新的广告</span>
+<span class="token keyword">from</span> <span class="token punctuation">(</span>
+  <span class="token keyword">select</span>
+       t1<span class="token punctuation">.</span><span class="token operator">*</span><span class="token punctuation">,</span>
+       <span class="token boolean">null</span> <span class="token keyword">as</span> rand_num<span class="token punctuation">,</span>
+       t2<span class="token punctuation">.</span>ad_type<span class="token punctuation">,</span><span class="token comment">-- 广告类型</span>
+       t2<span class="token punctuation">.</span>ad_id<span class="token punctuation">,</span><span class="token comment">-- 广告id</span>
+       t2<span class="token punctuation">.</span>keyword_id<span class="token punctuation">,</span><span class="token comment">-- 竞价关键词id</span>
+       t2<span class="token punctuation">.</span>keyword_contect <span class="token punctuation">,</span><span class="token comment">-- 竞价关键词内容</span>
+       t2<span class="token punctuation">.</span>sku_id <span class="token keyword">as</span> search_ad_sku_id  <span class="token punctuation">,</span><span class="token comment">-- 搜索广告商品id</span>
+       t2<span class="token punctuation">.</span>is_premium                  <span class="token punctuation">,</span><span class="token comment">-- 是否溢价</span>
+       front_time
+  <span class="token keyword">from</span> <span class="token punctuation">(</span>
+  <span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> tmp<span class="token punctuation">.</span>tmp_adm_tracker_order_dt_de_1
+  <span class="token keyword">where</span> partner_id <span class="token operator">&lt;></span> <span class="token number">3</span><span class="token punctuation">)</span>  t1
+  <span class="token keyword">left</span> <span class="token keyword">join</span> <span class="token punctuation">(</span>
+      <span class="token keyword">select</span> ad_type<span class="token punctuation">,</span>                      <span class="token comment">-- 广告类型</span>
+             ad_id<span class="token punctuation">,</span>                        <span class="token comment">-- 广告id</span>
+             keyword_id<span class="token punctuation">,</span>                   <span class="token comment">-- 竞价关键词id</span>
+             keyword_contect <span class="token punctuation">,</span>             <span class="token comment">-- 竞价关键词内容</span>
+             sku_id                      <span class="token punctuation">,</span> <span class="token comment">-- 搜索广告商品id</span>
+             is_premium                  <span class="token punctuation">,</span> <span class="token comment">-- 是否溢价</span>
+             partner_id                  <span class="token punctuation">,</span>
+             front_time
+      <span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_tracker_ad_click_dt_de
+      <span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;v_dt&#125;'</span> <span class="token operator">and</span> partner_id <span class="token operator">&lt;></span> <span class="token number">3</span>
+  <span class="token punctuation">)</span> t2
+    <span class="token keyword">on</span> t1<span class="token punctuation">.</span>partner_id <span class="token operator">=</span> t2<span class="token punctuation">.</span>partner_id
+ <span class="token keyword">where</span> to_unix_timestamp<span class="token punctuation">(</span>t1<span class="token punctuation">.</span>ftrade_gen_time<span class="token punctuation">)</span><span class="token operator">*</span><span class="token number">1000</span> <span class="token operator">></span> t2<span class="token punctuation">.</span>front_time
+
+ <span class="token keyword">union</span> <span class="token keyword">all</span>
+
+  <span class="token keyword">select</span>
+       t1<span class="token punctuation">.</span><span class="token operator">*</span><span class="token punctuation">,</span>
+       t2<span class="token punctuation">.</span>ad_type<span class="token punctuation">,</span><span class="token comment">-- 广告类型</span>
+       t2<span class="token punctuation">.</span>ad_id<span class="token punctuation">,</span><span class="token comment">-- 广告id</span>
+       t2<span class="token punctuation">.</span>keyword_id<span class="token punctuation">,</span><span class="token comment">-- 竞价关键词id</span>
+       t2<span class="token punctuation">.</span>keyword_contect <span class="token punctuation">,</span><span class="token comment">-- 竞价关键词内容</span>
+       t2<span class="token punctuation">.</span>sku_id <span class="token keyword">as</span> search_ad_sku_id  <span class="token punctuation">,</span><span class="token comment">-- 搜索广告商品id</span>
+       t2<span class="token punctuation">.</span>is_premium                  <span class="token punctuation">,</span><span class="token comment">-- 是否溢价</span>
+       front_time
+  <span class="token keyword">from</span> <span class="token punctuation">(</span>
+    <span class="token keyword">select</span> <span class="token operator">*</span><span class="token punctuation">,</span>
+    <span class="token punctuation">(</span>row_number<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">over</span><span class="token punctuation">(</span><span class="token keyword">partition</span> <span class="token keyword">by</span> <span class="token number">1</span> <span class="token keyword">order</span> <span class="token keyword">by</span> <span class="token number">1</span> <span class="token keyword">desc</span><span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">100</span><span class="token punctuation">)</span> <span class="token keyword">as</span> rand_num   <span class="token comment">--数据倾斜，使用随机数重新关联</span>
+    <span class="token keyword">from</span> tmp<span class="token punctuation">.</span>tmp_adm_tracker_order_dt_de_1
+    <span class="token keyword">where</span> partner_id <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">)</span>  t1
+  <span class="token keyword">left</span> <span class="token keyword">join</span> <span class="token punctuation">(</span>
+      <span class="token keyword">select</span> ad_type<span class="token punctuation">,</span>                      <span class="token comment">-- 广告类型</span>
+             ad_id<span class="token punctuation">,</span>                        <span class="token comment">-- 广告id</span>
+             keyword_id<span class="token punctuation">,</span>                   <span class="token comment">-- 竞价关键词id</span>
+             keyword_contect <span class="token punctuation">,</span>             <span class="token comment">-- 竞价关键词内容</span>
+             sku_id                      <span class="token punctuation">,</span> <span class="token comment">-- 搜索广告商品id</span>
+             is_premium                  <span class="token punctuation">,</span> <span class="token comment">-- 是否溢价</span>
+             partner_id                  <span class="token punctuation">,</span>
+             front_time<span class="token punctuation">,</span>
+             <span class="token punctuation">(</span>row_number<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">over</span><span class="token punctuation">(</span><span class="token keyword">partition</span> <span class="token keyword">by</span> <span class="token number">1</span> <span class="token keyword">order</span> <span class="token keyword">by</span> <span class="token number">1</span> <span class="token keyword">desc</span><span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">100</span><span class="token punctuation">)</span> <span class="token keyword">as</span> rand_num  <span class="token comment">--数据倾斜，使用随机数重新关联</span>
+      <span class="token keyword">from</span> adm<span class="token punctuation">.</span>adm_tracker_ad_click_dt_de
+      <span class="token keyword">where</span> dt <span class="token operator">=</span> <span class="token string">'$&#123;v_dt&#125;'</span> <span class="token operator">and</span> partner_id <span class="token operator">=</span> <span class="token number">3</span>
+  <span class="token punctuation">)</span> t2
+    <span class="token keyword">on</span> t1<span class="token punctuation">.</span>partner_id <span class="token operator">=</span> t2<span class="token punctuation">.</span>partner_id
+    <span class="token operator">and</span> t1<span class="token punctuation">.</span>rand_num <span class="token operator">=</span> t2<span class="token punctuation">.</span>rand_num
+ <span class="token keyword">where</span> to_unix_timestamp<span class="token punctuation">(</span>t1<span class="token punctuation">.</span>ftrade_gen_time<span class="token punctuation">)</span><span class="token operator">*</span><span class="token number">1000</span> <span class="token operator">></span> t2<span class="token punctuation">.</span>front_time
+ <span class="token punctuation">)</span> t <span class="token punctuation">)</span> tt
+ <span class="token keyword">where</span> rank <span class="token operator">=</span> <span class="token number">1</span>
+<span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Hive优化技巧"><a href="#Hive优化技巧" class="headerlink" title="Hive优化技巧"></a>Hive优化技巧</h2><h3 id="控制reducer数量"><a href="#控制reducer数量" class="headerlink" title="控制reducer数量"></a>控制reducer数量</h3><p>控制hive中reducer的数量由三种方式，分别是：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">set hive.exec.reducers.bytes.per.reducer&#x3D;&lt;number&gt; 
+set hive.exec.reducers.max&#x3D;&lt;number&gt;
+set mapreduce.job.reduces&#x3D;&lt;number&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>其中<code>set mapreduce.job.reduces=&lt;number&gt;</code>的方式优先级最高，<br><code>set hive.exec.reducers.max=&lt;number&gt;</code>优先级次之，<br><code>set hive.exec.reducers.bytes.per.reducer=&lt;number&gt; </code>优先级最低。<br>从hive0.14开始，一个reducer处理文件的大小的默认值是256M。<br>reducer的数量并不是越多越好，我们知道有多少个reducer就会生成多少个文件，小文件过多在hdfs中就会占用大量的空间，造成资源的浪费。<br>如果reducer数量过小，导致某个reducer处理大量的数据（数据倾斜就会出现这样的现象），没有利用hadoop的分而治之功能，甚至会产生OOM内存溢出的错误。<br>使用多少个reducer处理数据和业务场景相关，不同的业务场景处理的办法不同。</p>
+<h3 id="使用Map-join"><a href="#使用Map-join" class="headerlink" title="使用Map join"></a>使用Map join</h3><p>set hive.auto.convert.join = true<br>或者使用</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token comment">/*+ MAPJOIN(table_a)*/</span><span class="token punctuation">,</span>
+       a<span class="token punctuation">.</span><span class="token operator">*</span><span class="token punctuation">,</span>
+       b<span class="token punctuation">.</span><span class="token operator">*</span> 
+<span class="token keyword">from</span> table_a a 
+<span class="token keyword">join</span> table_b b 
+<span class="token keyword">on</span> a<span class="token punctuation">.</span>id <span class="token operator">=</span> b<span class="token punctuation">.</span>id
+<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="使用distinct-union-all代替union"><a href="#使用distinct-union-all代替union" class="headerlink" title="使用distinct + union all代替union"></a>使用distinct + union all代替union</h3><p>使用</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token function">count</span><span class="token punctuation">(</span><span class="token keyword">distinct</span> <span class="token operator">*</span><span class="token punctuation">)</span> 
+<span class="token keyword">from</span> <span class="token punctuation">(</span>
+<span class="token keyword">select</span> order_id<span class="token punctuation">,</span>user_id<span class="token punctuation">,</span>order_type <span class="token keyword">from</span> orders <span class="token keyword">where</span> order_type<span class="token operator">=</span><span class="token string">'0'</span> <span class="token keyword">union</span> <span class="token keyword">all</span>
+<span class="token keyword">select</span> order_id<span class="token punctuation">,</span>user_id<span class="token punctuation">,</span>order_type <span class="token keyword">from</span> orders <span class="token keyword">where</span> order_type<span class="token operator">=</span><span class="token string">'1'</span> <span class="token keyword">union</span> <span class="token keyword">all</span> 
+<span class="token keyword">select</span> order_id<span class="token punctuation">,</span>user_id<span class="token punctuation">,</span>order_type <span class="token keyword">from</span> orders <span class="token keyword">where</span> order_type<span class="token operator">=</span><span class="token string">'1'</span>
+<span class="token punctuation">)</span>a<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>代替</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token function">count</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">)</span> 
+<span class="token keyword">from</span><span class="token punctuation">(</span>
+<span class="token keyword">select</span> order_id<span class="token punctuation">,</span>user_id<span class="token punctuation">,</span>order_type <span class="token keyword">from</span> orders <span class="token keyword">where</span> order_type<span class="token operator">=</span><span class="token string">'0'</span> <span class="token keyword">union</span>
+<span class="token keyword">select</span> order_id<span class="token punctuation">,</span>user_id<span class="token punctuation">,</span>order_type <span class="token keyword">from</span> orders <span class="token keyword">where</span> order_type<span class="token operator">=</span><span class="token string">'0'</span> <span class="token keyword">union</span>
+<span class="token keyword">select</span> order_id<span class="token punctuation">,</span>user_id<span class="token punctuation">,</span>order_type <span class="token keyword">from</span> orders <span class="token keyword">where</span> order_type<span class="token operator">=</span><span class="token string">'1'</span><span class="token punctuation">)</span>t<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="解决数据倾斜的通用办法"><a href="#解决数据倾斜的通用办法" class="headerlink" title="解决数据倾斜的通用办法"></a>解决数据倾斜的通用办法</h3><p>数据倾斜的现象：任务进度长时间维持在99%，只有少量reducer任务完成，未完成任务数据读写量非常大，超过10G。在聚合操作是经常发生。<br>通用解决方法：<code>set hive.groupby.skewindata=true;</code><br>将一个map reduce拆分成两个map reduce。</p>
+<p>最常用的是，把key设置一个随机数值。保证所有数据平均的分配到所有的reducer中处理</p>
+<h3 id="通过group-by代替count-distinct-使用"><a href="#通过group-by代替count-distinct-使用" class="headerlink" title="通过group by代替count(distinct)使用"></a>通过group by代替count(distinct)使用</h3><h3 id="left-semi-join替代in-exsits"><a href="#left-semi-join替代in-exsits" class="headerlink" title="left semi join替代in/exsits"></a>left semi join替代in/exsits</h3><h2 id="Hive-Join的实现原理"><a href="#Hive-Join的实现原理" class="headerlink" title="Hive Join的实现原理"></a>Hive Join的实现原理</h2><p>hive执行引擎会将HQL“翻译”成为map-reduce任务，如果多张表使用同一列做join则将被翻译成一个reduce，否则将被翻译成多个map-reduce任务<br>例如：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> a<span class="token punctuation">.</span>val<span class="token punctuation">,</span> 
+       b<span class="token punctuation">.</span>val<span class="token punctuation">,</span> 
+       c<span class="token punctuation">.</span>val 
+<span class="token keyword">FROM</span> a 
+<span class="token keyword">JOIN</span> b 
+<span class="token keyword">ON</span> <span class="token punctuation">(</span>a<span class="token punctuation">.</span><span class="token keyword">key</span> <span class="token operator">=</span> b<span class="token punctuation">.</span>key1<span class="token punctuation">)</span> 
+<span class="token keyword">JOIN</span> c 
+<span class="token keyword">ON</span> <span class="token punctuation">(</span>c<span class="token punctuation">.</span><span class="token keyword">key</span> <span class="token operator">=</span> b<span class="token punctuation">.</span>key1<span class="token punctuation">)</span>
+<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>将被翻译成1个map-reduce任务</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> a<span class="token punctuation">.</span>val<span class="token punctuation">,</span> 
+       b<span class="token punctuation">.</span>val<span class="token punctuation">,</span>
+       c<span class="token punctuation">.</span>val 
+<span class="token keyword">FROM</span> a 
+<span class="token keyword">JOIN</span> b 
+<span class="token keyword">ON</span> <span class="token punctuation">(</span>a<span class="token punctuation">.</span><span class="token keyword">key</span> <span class="token operator">=</span> b<span class="token punctuation">.</span>key1<span class="token punctuation">)</span> 
+<span class="token keyword">JOIN</span> c 
+<span class="token keyword">ON</span> <span class="token punctuation">(</span>c<span class="token punctuation">.</span><span class="token keyword">key</span> <span class="token operator">=</span> b<span class="token punctuation">.</span>key2<span class="token punctuation">)</span>
+<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>将被翻译成2个map-reduce任务</p>
+<p>Hive中的Join可分为Common Join（Reduce阶段完成join）和Map Join（Map阶段完成join）</p>
+<h3 id="Common-Join"><a href="#Common-Join" class="headerlink" title="Common Join"></a>Common Join</h3><ul>
+<li><p>Map阶段<br>读取源表的数据，Map输出时候以Join on条件中的列为key，如果Join有多个关联键，则以这些关联键的组合作为key;<br>Map输出的value为join之后所关心的(select或者where中需要用到的)列；同时在value中还会包含表的Tag信息，用于标明此value对应哪个表；<br>按照key进行排序</p>
+</li>
+<li><p>Shuffle阶段<br>根据key的值进行hash,并将key/value按照hash值推送至不同的reduce中，这样确保两个表中相同的key位于同一个reduce中</p>
+</li>
+<li><p>Reduce阶段<br>根据key的值完成join操作，期间通过Tag来识别不同表中的数据。</p>
+</li>
+</ul>
+<h3 id="Map-Join"><a href="#Map-Join" class="headerlink" title="Map Join"></a>Map Join</h3><ul>
+<li>首先是Task A，它是一个Local Task（在客户端本地执行的Task），负责扫描小表b的数据，将其转换成一个HashTable的数据结构，并写入本地的文件中，之后将该文件加载到DistributeCache中</li>
+<li>接下来是Task B，该任务是一个没有Reduce的MR，启动MapTasks扫描大表a,在Map阶段，根据a的每一条记录去和DistributeCache中b表对应的HashTable关联，并直接输出结果。<br>由于MapJoin没有Reduce，所以由Map直接输出结果文件，有多少个Map Task，就有多少个结果文件。</li>
+</ul>
+<p>具体可以参考<a href="https://www.hadoopdoc.com/hive/hive-join">Hive Join 的原理与机制</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hive</category>
+      </categories>
+      <tags>
+        <tag>Hive</tag>
       </tags>
   </entry>
 </search>
