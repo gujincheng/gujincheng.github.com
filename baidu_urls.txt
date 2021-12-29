@@ -1,3 +1,4 @@
+https://gujincheng.github.io/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/
 https://gujincheng.github.io/2021/12/17/FlinkCDC%E4%B8%8E%E5%B8%B8%E7%94%A8CDC%E5%AF%B9%E6%AF%94/
 https://gujincheng.github.io/2021/12/09/%E8%8E%B7%E5%8F%96yarn%E4%B8%8Aapplication%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/
 https://gujincheng.github.io/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/
@@ -17,4 +18,3 @@ https://gujincheng.github.io/2021/03/30/Flink%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8
 https://gujincheng.github.io/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/
 https://gujincheng.github.io/2021/01/29/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/
 https://gujincheng.github.io/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/
-https://gujincheng.github.io/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/

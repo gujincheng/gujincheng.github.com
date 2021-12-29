@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  DataX学习笔记  DataX概览DataX 3.0概览 DataX 是一个异构数据源离线同步工具，致力于实现包括关系型数据库(MySQL、Oracle等)、HDFS、Hive、ODPS、HBase、FTP等各种异构数据源之间稳定高效的数据同步功能。 DataX 的设计理念为了解决异构数据源同步问题，DataX 将复杂的网状的同步链路变成了星型数据链路，DataX 作为中间传输">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DataX学习笔记">
+<meta property="og:url" content="https://gujincheng.github.io/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  DataX学习笔记  DataX概览DataX 3.0概览 DataX 是一个异构数据源离线同步工具，致力于实现包括关系型数据库(MySQL、Oracle等)、HDFS、Hive、ODPS、HBase、FTP等各种异构数据源之间稳定高效的数据同步功能。 DataX 的设计理念为了解决异构数据源同步问题，DataX 将复杂的网状的同步链路变成了星型数据链路，DataX 作为中间传输">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20211228/DataX%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20211228/DataX%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/20211228/DataX%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86.png">
+<meta property="article:published_time" content="2021-12-27T09:53:37.000Z">
+<meta property="article:modified_time" content="2021-12-29T08:39:24.037Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="DataX">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/20211228/DataX%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>DataX学习笔记 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DataX学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-27 17:53:37" itemprop="dateCreated datePublished" datetime="2021-12-27T17:53:37+08:00">2021-12-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-29 16:39:24" itemprop="dateModified" datetime="2021-12-29T16:39:24+08:00">2021-12-29</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/DataX/" itemprop="url" rel="index"><span itemprop="name">DataX</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="DataX学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>DataX学习笔记</li>
+</ul>
+<h2 id="DataX概览"><a href="#DataX概览" class="headerlink" title="DataX概览"></a>DataX概览</h2><h3 id="DataX-3-0概览"><a href="#DataX-3-0概览" class="headerlink" title="DataX 3.0概览"></a>DataX 3.0概览</h3><p> DataX 是一个异构数据源离线同步工具，致力于实现包括关系型数据库(MySQL、Oracle等)、HDFS、Hive、ODPS、HBase、FTP等各种异构数据源之间稳定高效的数据同步功能。</p>
+<h3 id="DataX-的设计理念"><a href="#DataX-的设计理念" class="headerlink" title="DataX 的设计理念"></a>DataX 的设计理念</h3><p>为了解决异构数据源同步问题，DataX 将复杂的网状的同步链路变成了星型数据链路，DataX 作为中间传输载体负责连接各种数据源。当需要接入一个新的数据源的时候，只需要将此数据源对接到 DataX，便能跟已有的数据源做到无缝数据同步。<br><img src="/uploads/20211228/DataX%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF.png" alt="DataX数据链路"></p>
+<h3 id="框架设计"><a href="#框架设计" class="headerlink" title="框架设计"></a>框架设计</h3><p><img src="/uploads/20211228/DataX%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1.png" alt="DataX框架设计"></p>
+<ul>
+<li>Reader：数据采集模块，负责采集数据源的数据，将数据发给Framework。</li>
+<li>Wiriter: 数据写入模块，负责不断向Framwork取数据，并将数据写入到目的端。</li>
+<li>Framework:用于连接read和writer,作为两者的数据传输通道，并处理缓冲，流控，并发，数据转换等你核心技术问题。<h3 id="运行原理"><a href="#运行原理" class="headerlink" title="运行原理"></a>运行原理</h3><img src="/uploads/20211228/DataX%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86.png" alt="DataX运行原理"></li>
+<li>*核心模块介绍：**</li>
+</ul>
+<ol>
+<li>DataX完成单个数据同步的作业，我们称之为Job，DataX接受到一个Job之后，将启动一个进程来完成整个作业同步过程。DataX Job模块是单个作业的中枢管理节点，承担了数据清理、子任务切分(将单一作业计算转化为多个子Task)、TaskGroup管理等功能。</li>
+<li>DataXJob启动后，会根据不同的源端切分策略，将Job切分成多个小的Task(子任务)，以便于并发执行。Task便是DataX作业的最小单元，每一个Task都会负责一部分数据的同步工作。</li>
+<li>切分多个Task之后，DataX Job会调用Scheduler模块，根据配置的并发数据量，将拆分成的Task重新组合，组装成TaskGroup(任务组)。每一个TaskGroup负责以一定的并发运行完毕分配好的所有Task，默认单个任务组的并发数量为5。</li>
+<li>每一个Task都由TaskGroup负责启动，Task启动后，会固定启动Reader—&gt;Channel—&gt;Writer的线程来完成任务同步工作。</li>
+<li>DataX作业运行起来之后， Job监控并等待多个TaskGroup模块任务完成，等待所有TaskGroup任务完成后Job成功退出。否则，异常退出，进程退出值非0</li>
+</ol>
+<p><strong>DataX调度流程：</strong><br>举例来说，用户提交了一个DataX作业，并且配置了20个并发，目的是将一个100张分表的mysql数据同步到odps里面。 DataX的调度决策思路是：</p>
+<ol>
+<li>DataXJob根据分库分表切分成了100个Task。</li>
+<li>根据20个并发，DataX计算共需要分配4个TaskGroup。</li>
+<li>4个TaskGroup平分切分好的100个Task，每一个TaskGroup负责以5个并发共计运行25个Task。</li>
+</ol>
+<ul>
+<li>Job：单个作业的管理节点，负责数据清理、子任务划分、TaskGroup监控管理。</li>
+<li>Task：由Job切分而来，是DataX作业的最小单元，每个Task负责一部分数据的同步工作。</li>
+<li>Schedule：将Task组成TaskGroup，单个TaskGroup的并发数量为5。</li>
+<li>TaskGroup：负责启动Task。</li>
+</ul>
+<h3 id="DataX3-0插件体系"><a href="#DataX3-0插件体系" class="headerlink" title="DataX3.0插件体系"></a>DataX3.0插件体系</h3><p>经过几年积累，DataX目前已经有了比较全面的插件体系，主流的RDBMS数据库、NOSQL、大数据计算系统都已经接入。DataX目前支持数据如下：<br>| 类型               | 数据源                          | Reader(读) | Writer(写) | 文档                                                         |<br>| —————— | ——————————- | ———- | ———- | ———————————————————— |<br>| RDBMS 关系型数据库 | MySQL                           | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/mysqlreader/doc/mysqlreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/mysqlwriter/doc/mysqlwriter.md">写</a> |<br>|                    | Oracle                          | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/oraclereader/doc/oraclereader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/oraclewriter/doc/oraclewriter.md">写</a> |<br>|                    | OceanBase                       | √          | √          | <a target="_blank" rel="noopener" href="https://open.oceanbase.com/docs/community/oceanbase-database/V3.1.0/use-datax-to-full-migration-data-to-oceanbase">读</a> 、<a target="_blank" rel="noopener" href="https://open.oceanbase.com/docs/community/oceanbase-database/V3.1.0/use-datax-to-full-migration-data-to-oceanbase">写</a> |<br>|                    | SQLServer                       | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/sqlserverreader/doc/sqlserverreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/sqlserverwriter/doc/sqlserverwriter.md">写</a> |<br>|                    | PostgreSQL                      | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/postgresqlreader/doc/postgresqlreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/postgresqlwriter/doc/postgresqlwriter.md">写</a> |<br>|                    | DRDS                            | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/drdsreader/doc/drdsreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/drdswriter/doc/drdswriter.md">写</a> |<br>|                    | 通用RDBMS(支持所有关系型数据库) | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/rdbmsreader/doc/rdbmsreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/rdbmswriter/doc/rdbmswriter.md">写</a> |<br>| 阿里云数仓数据存储 | ODPS                            | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/odpsreader/doc/odpsreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/odpswriter/doc/odpswriter.md">写</a> |<br>|                    | ADS                             |            | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/adswriter/doc/adswriter.md">写</a> |<br>|                    | OSS                             | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/ossreader/doc/ossreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/osswriter/doc/osswriter.md">写</a> |<br>|                    | OCS                             |            | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/ocswriter/doc/ocswriter.md">写</a> |<br>| NoSQL数据存储      | OTS                             | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/otsreader/doc/otsreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/otswriter/doc/otswriter.md">写</a> |<br>|                    | Hbase0.94                       | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hbase094xreader/doc/hbase094xreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hbase094xwriter/doc/hbase094xwriter.md">写</a> |<br>|                    | Hbase1.1                        | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hbase11xreader/doc/hbase11xreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hbase11xwriter/doc/hbase11xwriter.md">写</a> |<br>|                    | Phoenix4.x                      | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hbase11xsqlreader/doc/hbase11xsqlreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hbase11xsqlwriter/doc/hbase11xsqlwriter.md">写</a> |<br>|                    | Phoenix5.x                      | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hbase20xsqlreader/doc/hbase20xsqlreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hbase20xsqlwriter/doc/hbase20xsqlwriter.md">写</a> |<br>|                    | MongoDB                         | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/mongodbreader/doc/mongodbreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/mongodbwriter/doc/mongodbwriter.md">写</a> |<br>|                    | Hive                            | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hdfsreader/doc/hdfsreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hdfswriter/doc/hdfswriter.md">写</a> |<br>|                    | Cassandra                       | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/cassandrareader/doc/cassandrareader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/cassandrawriter/doc/cassandrawriter.md">写</a> |<br>| 无结构化数据存储   | TxtFile                         | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/txtfilereader/doc/txtfilereader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/txtfilewriter/doc/txtfilewriter.md">写</a> |<br>|                    | FTP                             | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/ftpreader/doc/ftpreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/ftpwriter/doc/ftpwriter.md">写</a> |<br>|                    | HDFS                            | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hdfsreader/doc/hdfsreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/hdfswriter/doc/hdfswriter.md">写</a> |<br>|                    | Elasticsearch                   |            | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/elasticsearchwriter/doc/elasticsearchwriter.md">写</a> |<br>| 时间序列数据库     | OpenTSDB                        | √          |            | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/opentsdbreader/doc/opentsdbreader.md">读</a> |<br>|                    | TSDB                            | √          | √          | <a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/tsdbreader/doc/tsdbreader.md">读</a> 、<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/tsdbwriter/doc/tsdbhttpwriter.md">写</a> |</p>
+<p>DataX Framework提供了简单的接口与插件交互，提供简单的插件接入机制，只需要任意加上一种插件，就能无缝对接其他数据源。</p>
+<h2 id="DataX使用案例"><a href="#DataX使用案例" class="headerlink" title="DataX使用案例"></a>DataX使用案例</h2><p>DataX通过插件机制，动态的在运行时载入reader和writer进行数据同步的执行。<br>所以在使用DataX的时候，需要指定reader和writer，确定是数据是从哪里来到哪里去<br>例如，现在需要采集mysql数据到hive。那么reader其实就是mysql，writer就是hdfs</p>
+<ol>
+<li>进入到<code>datax/plugin/reader</code>查看reader下插件目录，从中发现有mysqlreader</li>
+<li>再进入<code>datax/plugin/writer</code>查看writer下插件目录，从中发现有hdfswriter</li>
+<li>查看官方给的调用模版,执行<code>bin/datax.py -r mysqlreader -w hdfswriter</code>,得到如下json：<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+    <span class="token property">"job"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+        <span class="token property">"content"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+            <span class="token punctuation">&#123;</span>
+                <span class="token property">"reader"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+                    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"mysqlreader"</span><span class="token punctuation">,</span>
+                    <span class="token property">"parameter"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+                        <span class="token property">"column"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                        <span class="token property">"connection"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+                            <span class="token punctuation">&#123;</span>
+                                <span class="token property">"jdbcUrl"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                                <span class="token property">"table"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+                            <span class="token punctuation">&#125;</span>
+                        <span class="token punctuation">]</span><span class="token punctuation">,</span>
+                        <span class="token property">"password"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token property">"username"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token property">"where"</span><span class="token operator">:</span> <span class="token string">""</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+                <span class="token property">"writer"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+                    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"hdfswriter"</span><span class="token punctuation">,</span>
+                    <span class="token property">"parameter"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+                        <span class="token property">"column"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                        <span class="token property">"compress"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token property">"defaultFS"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token property">"fieldDelimiter"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token property">"fileName"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token property">"fileType"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token property">"path"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token property">"writeMode"</span><span class="token operator">:</span> <span class="token string">""</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token property">"setting"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+            <span class="token property">"speed"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+                <span class="token property">"channel"</span><span class="token operator">:</span> <span class="token string">""</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ol>
+<p><strong>注意：</strong> 这里的模版只会给必写的选项，非必写的，就不会在这个模版里。例如<code>hadoopConfig</code><br>如果要看全部的选项，可以在源码里找到相对应的插件目录，里面有相应的md文件，例如hdfswriter的文档在<br><code>DataX/hdfswriter/doc/hdfswriter.md</code></p>
+<ol start="4">
+<li>编写自己的mysql2hive.json文件，并执行<code>bin/datax.py job/mysql2hive.json</code>即可</li>
+</ol>
+<p>完整的mysql2hive.json案例：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+	<span class="token property">"job"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+		<span class="token property">"content"</span><span class="token operator">:</span><span class="token punctuation">[</span>
+			<span class="token punctuation">&#123;</span>
+				<span class="token property">"reader"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+					<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"mysqlreader"</span><span class="token punctuation">,</span>
+					<span class="token property">"parameter"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+						<span class="token property">"column"</span><span class="token operator">:</span><span class="token punctuation">[</span>
+							<span class="token string">"`id`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`activity_name`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`start_time`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`end_time`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`status`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`status_desc`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`charge_type`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`daily_budgets`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`bid`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`kb_cost_task_id`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`account_type`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`bp_id`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`bp_type`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`bp_name`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`shop_id`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`shop_name`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`create_user`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`create_user_name`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`create_time`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`update_user`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`update_time`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`yn`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`update_user_name`"</span><span class="token punctuation">,</span>
+							<span class="token string">"`sales_order_no`"</span>
+						<span class="token punctuation">]</span><span class="token punctuation">,</span>
+						<span class="token property">"connection"</span><span class="token operator">:</span><span class="token punctuation">[</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"customParam"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+								<span class="token property">"jdbcUrl"</span><span class="token operator">:</span><span class="token punctuation">[</span>
+									<span class="token string">"jdbc:mysql://xxxx:3306/ad_star_store?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true"</span>
+								<span class="token punctuation">]</span><span class="token punctuation">,</span>
+								<span class="token property">"querySql"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+								<span class="token property">"table"</span><span class="token operator">:</span><span class="token punctuation">[</span>
+									<span class="token string">"hbp_ad_activity"</span>
+								<span class="token punctuation">]</span>
+							<span class="token punctuation">&#125;</span>
+						<span class="token punctuation">]</span><span class="token punctuation">,</span>
+						<span class="token property">"mandatoryEncoding"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+						<span class="token property">"monthTableMode"</span><span class="token operator">:</span><span class="token string">""</span><span class="token punctuation">,</span>
+						<span class="token property">"password"</span><span class="token operator">:</span><span class="token string">"xxxx"</span><span class="token punctuation">,</span>
+						<span class="token property">"splitPk"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+						<span class="token property">"tableOrView"</span><span class="token operator">:</span><span class="token string">"1"</span><span class="token punctuation">,</span>
+						<span class="token property">"username"</span><span class="token operator">:</span><span class="token string">"xxxx"</span><span class="token punctuation">,</span>
+						<span class="token property">"version"</span><span class="token operator">:</span><span class="token string">"2"</span><span class="token punctuation">,</span>
+						<span class="token property">"where"</span><span class="token operator">:</span><span class="token null keyword">null</span>
+					<span class="token punctuation">&#125;</span>
+				<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+				<span class="token property">"transformer"</span><span class="token operator">:</span><span class="token punctuation">[</span>
+					<span class="token punctuation">&#123;</span>
+						<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"proxy_transformer"</span><span class="token punctuation">,</span>
+						<span class="token property">"parameter"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+							<span class="token property">"code"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+							<span class="token property">"columnIndex"</span><span class="token operator">:</span><span class="token number">-1</span><span class="token punctuation">,</span>
+							<span class="token property">"extraPackage"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+							<span class="token property">"paras"</span><span class="token operator">:</span><span class="token punctuation">[</span><span class="token string">"1"</span><span class="token punctuation">,</span><span class="token string">"xxxx"</span><span class="token punctuation">,</span><span class="token string">"id"</span><span class="token punctuation">,</span><span class="token string">"activity_name"</span><span class="token punctuation">,</span><span class="token string">"start_time"</span><span class="token punctuation">,</span><span class="token string">"end_time"</span><span class="token punctuation">,</span><span class="token string">"status"</span><span class="token punctuation">,</span><span class="token string">"status_desc"</span><span class="token punctuation">,</span><span class="token string">"charge_type"</span><span class="token punctuation">,</span><span class="token string">"daily_budgets"</span><span class="token punctuation">,</span><span class="token string">"bid"</span><span class="token punctuation">,</span><span class="token string">"kb_cost_task_id"</span><span class="token punctuation">,</span><span class="token string">"account_type"</span><span class="token punctuation">,</span><span class="token string">"bp_id"</span><span class="token punctuation">,</span><span class="token string">"bp_type"</span><span class="token punctuation">,</span><span class="token string">"bp_name"</span><span class="token punctuation">,</span><span class="token string">"shop_id"</span><span class="token punctuation">,</span><span class="token string">"shop_name"</span><span class="token punctuation">,</span><span class="token string">"create_user"</span><span class="token punctuation">,</span><span class="token string">"create_user_name"</span><span class="token punctuation">,</span><span class="token string">"create_time"</span><span class="token punctuation">,</span><span class="token string">"update_user"</span><span class="token punctuation">,</span><span class="token string">"update_time"</span><span class="token punctuation">,</span><span class="token string">"yn"</span><span class="token punctuation">,</span><span class="token string">"update_user_name"</span><span class="token punctuation">,</span><span class="token string">"sales_order_no"</span><span class="token punctuation">]</span>
+						<span class="token punctuation">&#125;</span>
+					<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+					<span class="token punctuation">&#123;</span>
+						<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"proxy_transformer"</span><span class="token punctuation">,</span>
+						<span class="token property">"parameter"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+							<span class="token property">"code"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+							<span class="token property">"columnIndex"</span><span class="token operator">:</span><span class="token number">-1</span><span class="token punctuation">,</span>
+							<span class="token property">"extraPackage"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+							<span class="token property">"paras"</span><span class="token operator">:</span><span class="token punctuation">[</span><span class="token string">"2"</span><span class="token punctuation">,</span><span class="token string">"xxxx"</span><span class="token punctuation">,</span><span class="token string">"id"</span><span class="token punctuation">,</span><span class="token string">"activity_name"</span><span class="token punctuation">,</span><span class="token string">"start_time"</span><span class="token punctuation">,</span><span class="token string">"end_time"</span><span class="token punctuation">,</span><span class="token string">"status"</span><span class="token punctuation">,</span><span class="token string">"status_desc"</span><span class="token punctuation">,</span><span class="token string">"charge_type"</span><span class="token punctuation">,</span><span class="token string">"daily_budgets"</span><span class="token punctuation">,</span><span class="token string">"bid"</span><span class="token punctuation">,</span><span class="token string">"kb_cost_task_id"</span><span class="token punctuation">,</span><span class="token string">"account_type"</span><span class="token punctuation">,</span><span class="token string">"bp_id"</span><span class="token punctuation">,</span><span class="token string">"bp_type"</span><span class="token punctuation">,</span><span class="token string">"bp_name"</span><span class="token punctuation">,</span><span class="token string">"shop_id"</span><span class="token punctuation">,</span><span class="token string">"shop_name"</span><span class="token punctuation">,</span><span class="token string">"create_user"</span><span class="token punctuation">,</span><span class="token string">"create_user_name"</span><span class="token punctuation">,</span><span class="token string">"create_time"</span><span class="token punctuation">,</span><span class="token string">"update_user"</span><span class="token punctuation">,</span><span class="token string">"update_time"</span><span class="token punctuation">,</span><span class="token string">"yn"</span><span class="token punctuation">,</span><span class="token string">"update_user_name"</span><span class="token punctuation">,</span><span class="token string">"sales_order_no"</span><span class="token punctuation">]</span>
+						<span class="token punctuation">&#125;</span>
+					<span class="token punctuation">&#125;</span>
+				<span class="token punctuation">]</span><span class="token punctuation">,</span>
+				<span class="token property">"writer"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+					<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"hdfswriter"</span><span class="token punctuation">,</span>
+					<span class="token property">"parameter"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+						<span class="token property">"column"</span><span class="token operator">:</span><span class="token punctuation">[</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"id"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"BIGINT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"activity_name"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"start_time"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"TIMESTAMP"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"end_time"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"TIMESTAMP"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"status"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"TINYINT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"status_desc"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"charge_type"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"TINYINT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"daily_budgets"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"BIGINT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"bid"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"BIGINT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"kb_cost_task_id"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"BIGINT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"account_type"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"TINYINT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"bp_id"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"bp_type"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"TINYINT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"bp_name"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"shop_id"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"shop_name"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"create_user"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"create_user_name"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"create_time"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"TIMESTAMP"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"update_user"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"update_time"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"TIMESTAMP"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"yn"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"INT"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"update_user_name"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+							<span class="token punctuation">&#123;</span>
+								<span class="token property">"name"</span><span class="token operator">:</span><span class="token string">"sales_order_no"</span><span class="token punctuation">,</span>
+								<span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"STRING"</span>
+							<span class="token punctuation">&#125;</span>
+						<span class="token punctuation">]</span><span class="token punctuation">,</span>
+						<span class="token property">"compress"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+						<span class="token property">"defaultFS"</span><span class="token operator">:</span><span class="token string">"hdfs://xxxx"</span><span class="token punctuation">,</span>
+						<span class="token property">"fieldDelimiter"</span><span class="token operator">:</span><span class="token string">"\t"</span><span class="token punctuation">,</span>
+						<span class="token property">"fileName"</span><span class="token operator">:</span><span class="token string">"hbp_ad_activity"</span><span class="token punctuation">,</span>
+						<span class="token property">"fileType"</span><span class="token operator">:</span><span class="token string">"text"</span><span class="token punctuation">,</span>
+						<span class="token property">"hadoopConfig"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>  
+							<span class="token property">"fs.defaultFS"</span><span class="token operator">:</span><span class="token string">"hdfs://xxxx"</span><span class="token punctuation">,</span>
+							<span class="token property">"dfs.ha.namenodes.HZWONE"</span><span class="token operator">:</span><span class="token string">"nn1,nn2"</span><span class="token punctuation">,</span>
+							<span class="token property">"dfs.nameservices"</span><span class="token operator">:</span><span class="token string">"xxxx"</span><span class="token punctuation">,</span>
+							<span class="token property">"dfs.namenode.rpc-address.HZWONE.nn2"</span><span class="token operator">:</span><span class="token string">"hdfs://xxxx:xxxx"</span><span class="token punctuation">,</span>
+							<span class="token property">"dfs.namenode.rpc-address.HZWONE.nn1"</span><span class="token operator">:</span><span class="token string">"hdfs://xxxx:xxxx"</span><span class="token punctuation">,</span>
+							<span class="token property">"dfs.client.failover.proxy.provider.HZWONE"</span><span class="token operator">:</span><span class="token string">"org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"</span>
+						<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+						<span class="token property">"path"</span><span class="token operator">:</span><span class="token string">"xxxx"</span><span class="token punctuation">,</span>
+						<span class="token property">"writeMode"</span><span class="token operator">:</span><span class="token string">"append"</span>
+					<span class="token punctuation">&#125;</span>
+				<span class="token punctuation">&#125;</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">]</span><span class="token punctuation">,</span>
+		<span class="token property">"setting"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+			<span class="token property">"errorLimit"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+			<span class="token property">"speed"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+				<span class="token property">"batchSize"</span><span class="token operator">:</span><span class="token number">0</span><span class="token punctuation">,</span>
+				<span class="token property">"channel"</span><span class="token operator">:</span><span class="token number">8</span><span class="token punctuation">,</span>
+				<span class="token property">"record"</span><span class="token operator">:</span><span class="token number">0</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>hadoopConfig是为了datax往hdfs写数据如何配置高可用</p>
+<h2 id="DataX定制化插件开发与使用"><a href="#DataX定制化插件开发与使用" class="headerlink" title="DataX定制化插件开发与使用"></a>DataX定制化插件开发与使用</h2><h3 id="DataX为什么要使用插件机制？"><a href="#DataX为什么要使用插件机制？" class="headerlink" title="DataX为什么要使用插件机制？"></a>DataX为什么要使用插件机制？</h3><p>从设计之初，DataX就把异构数据源同步作为自身的使命，为了应对不同数据源的差异、同时提供一致的同步原语和扩展能力，DataX自然而然地采用了<code>框架 + 插件</code>的模式：</p>
+<ul>
+<li>插件只需关心数据的读取或者写入本身。</li>
+<li>而同步的共性问题，比如：类型转换、性能、统计，则交由框架来处理。<br>作为插件开发人员，则需要关注两个问题：</li>
+</ul>
+<p>数据源1. 本身的读写数据正确性。<br>如何与2. 框架沟通、合理正确地使用框架。</p>
+<h3 id="插件视角看框架"><a href="#插件视角看框架" class="headerlink" title="插件视角看框架"></a>插件视角看框架</h3><h4 id="逻辑执行模型"><a href="#逻辑执行模型" class="headerlink" title="逻辑执行模型"></a>逻辑执行模型</h4><p>插件开发者不用关心太多，基本只需要关注特定系统读和写，以及自己的代码在逻辑上是怎样被执行的，哪一个方法是在什么时候被调用的。在此之前，需要明确以下概念：</p>
+<ul>
+<li>Job: Job是DataX用以描述从一个源头到一个目的端的同步作业，是DataX数据同步的最小业务单元。比如：从一张mysql的表同步到odps的一个表的特定分区。</li>
+<li>Task: Task是为最大化而把Job拆分得到的最小执行单元。比如：读一张有1024个分表的mysql分库分表的Job，拆分成1024个读Task，用若干个并发执行。</li>
+<li>TaskGroup: 描述的是一组Task集合。在同一个TaskGroupContainer执行下的Task集合称之为TaskGroup</li>
+<li>JobContainer: Job执行器，负责Job全局拆分、调度、前置语句和后置语句等工作的工作单元。类似Yarn中的JobTracker</li>
+<li>TaskGroupContainer: TaskGroup执行器，负责执行一组Task的工作单元，类似Yarn中的TaskTracker。<br>简而言之， Job拆分成Task，在分别在框架提供的容器中执行，插件只需要实现Job和Task两部分逻辑。</li>
+</ul>
+<h4 id="物理执行模型"><a href="#物理执行模型" class="headerlink" title="物理执行模型"></a>物理执行模型</h4><p>框架为插件提供物理上的执行能力（线程）。DataX框架有三种运行模式：</p>
+<ul>
+<li>Standalone: 单进程运行，没有外部依赖。</li>
+<li>Local: 单进程运行，统计信息、错误信息汇报到集中存储。</li>
+<li>Distrubuted: 分布式多进程运行，依赖DataX Service服务。<br>当然，上述三种模式对插件的编写而言没有什么区别，你只需要避开一些小错误，插件就能够在单机/分布式之间无缝切换了。 当JobContainer和TaskGroupContainer运行在同一个进程内时，就是单机模式（Standalone和Local）；当它们分布在不同的进程中执行时，就是分布式（Distributed）模式。</li>
+</ul>
+<h4 id="编程接口"><a href="#编程接口" class="headerlink" title="编程接口"></a>编程接口</h4><p>那么，Job和Task的逻辑应是怎么对应到具体的代码中的？</p>
+<p>首先，插件的入口类必须扩展Reader或Writer抽象类，并且实现分别实现Job和Task两个内部抽象类，Job和Task的实现必须是 内部类 的形式，原因见 加载原理 一节。<br>具体参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/dataxPluginDev.md">DataX插件开发宝典</a></p>
+<h4 id="插件定义"><a href="#插件定义" class="headerlink" title="插件定义"></a>插件定义</h4><p>代码写好了，有没有想过框架是怎么找到插件的入口类的？框架是如何加载插件的呢？</p>
+<p>在每个插件的项目中，都有一个plugin.json文件，这个文件定义了插件的相关信息，包括入口类。例如：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"mysqlwriter"</span><span class="token punctuation">,</span>
+    <span class="token property">"class"</span><span class="token operator">:</span> <span class="token string">"com.alibaba.datax.plugin.writer.mysqlwriter.MysqlWriter"</span><span class="token punctuation">,</span>
+    <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Use Jdbc connect to database, execute insert sql."</span><span class="token punctuation">,</span>
+    <span class="token property">"developer"</span><span class="token operator">:</span> <span class="token string">"alibaba"</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>name: 插件名称，大小写敏感。框架根据用户在配置文件中指定的名称来搜寻插件。 十分重要 。</li>
+<li>class: 入口类的全限定名称，框架通过反射插件入口类的实例。十分重要 。</li>
+<li>description: 描述信息。</li>
+<li>developer: 开发人员。<h4 id="打包发布"><a href="#打包发布" class="headerlink" title="打包发布"></a>打包发布</h4>DataX使用assembly打包，assembly的使用方法请咨询谷哥或者度娘。打包命令如下：<br><code>mvn clean package -DskipTests assembly:assembly</code><br>DataX插件需要遵循统一的目录结构：<pre class="line-numbers language-text" data-language="text"><code class="language-text">$&#123;DATAX_HOME&#125;
+|-- bin       
+|   &#96;-- datax.py
+|-- conf
+|   |-- core.json
+|   &#96;-- logback.xml
+|-- lib
+|   &#96;-- datax-core-dependencies.jar
+&#96;-- plugin
+    |-- reader
+    |   &#96;-- mysqlreader
+    |       |-- libs
+    |       |   &#96;-- mysql-reader-plugin-dependencies.jar
+    |       |-- mysqlreader-0.0.1-SNAPSHOT.jar
+    |       &#96;-- plugin.json
+    &#96;-- writer
+        |-- mysqlwriter
+        |   |-- libs
+        |   |   &#96;-- mysql-writer-plugin-dependencies.jar
+        |   |-- mysqlwriter-0.0.1-SNAPSHOT.jar
+        |   &#96;-- plugin.json
+        |-- oceanbasewriter
+        &#96;-- odpswriter<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>${DATAX_HOME}/bin: 可执行程序目录。</li>
+<li>${DATAX_HOME}/conf: 框架配置目录。</li>
+<li>${DATAX_HOME}/lib: 框架依赖库目录。</li>
+<li>${DATAX_HOME}/plugin: 插件目录。</li>
+</ul>
+<p>插件目录分为reader和writer子目录，读写插件分别存放。插件目录规范如下：</p>
+<ul>
+<li>${PLUGIN_HOME}/libs: 插件的依赖库。</li>
+<li>${PLUGIN_HOME}/plugin-name-version.jar: 插件本身的jar。</li>
+<li>${PLUGIN_HOME}/plugin.json: 插件描述文件。<br>尽管框架加载插件时，会把${PLUGIN_HOME}下所有的jar放到classpath，但还是推荐依赖库的jar和插件本身的jar分开存放。</li>
+</ul>
+<p><strong>注意</strong>： 插件的目录名字必须和plugin.json中定义的插件名称一致。</p>
+<h4 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h4><p>DataX使用json作为配置文件的格式。<br>具体参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/DataX/blob/master/dataxPluginDev.md">DataX插件开发宝典</a></p>
+<h3 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h3><p>hdfswriter写到hdfs只会产生一个文件，是因为并发为1嘛？<br>这里需要确认一下</p>
+<p>公司写hudi的时候，仅在实时用的是spark，在离线初始化的时候使用了datax，这里没有用spark重写datax的writer，用spark写不了data的writer</p>
+<h3 id="抽取本地mysql报如下错误"><a href="#抽取本地mysql报如下错误" class="headerlink" title="抽取本地mysql报如下错误"></a>抽取本地mysql报如下错误</h3><ul>
+<li><p>报mysql链接不上，报错日志如下：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">ERROR RetryUtil - Exception when calling callable, 异常Msg:DataX无法连接对应的数据库，可能原因是：
+1) 配置的ip&#x2F;port&#x2F;database&#x2F;jdbc错误，无法连接。
+2) 配置的username&#x2F;password错误，鉴权失败。请和DBA确认该数据库的连接信息是否正确。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+<li><p>*解决办法：**<br>datax里面的mysql驱动更换成合适的8.x的版本就好了:</p>
+</li>
+<li><p>报值非法</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">com.alibaba.datax.common.exception.DataXException: Code:[Common-00], Describe:[您提供的配置文件存在错误信息，请检查您的作业配置 .] - 任务读取配置文件出错. 配置文件路径[job.setting.speed.channel] 值非法, 期望是整数类型: For input string: &quot;&quot;. 请检查您的配置并作出修改.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li><p>*解决办法：**<br>channel一开始写成了 “”,改成int就可以了</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token property">"setting"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+			<span class="token property">"errorLimit"</span><span class="token operator">:</span><span class="token null keyword">null</span><span class="token punctuation">,</span>
+			<span class="token property">"speed"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+				<span class="token property">"batchSize"</span><span class="token operator">:</span><span class="token number">0</span><span class="token punctuation">,</span>
+				<span class="token property">"channel"</span><span class="token operator">:</span><span class="token number">8</span><span class="token punctuation">,</span>
+				<span class="token property">"record"</span><span class="token operator">:</span><span class="token number">0</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DataX/" rel="tag"># DataX</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/17/FlinkCDC%E4%B8%8E%E5%B8%B8%E7%94%A8CDC%E5%AF%B9%E6%AF%94/" rel="prev" title="FlinkCDC与常用CDC对比">
+      <i class="fa fa-chevron-left"></i> FlinkCDC与常用CDC对比
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#DataX%E6%A6%82%E8%A7%88"><span class="nav-number">1.</span> <span class="nav-text">DataX概览</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DataX-3-0%E6%A6%82%E8%A7%88"><span class="nav-number">1.1.</span> <span class="nav-text">DataX 3.0概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DataX-%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="nav-number">1.2.</span> <span class="nav-text">DataX 的设计理念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A1%86%E6%9E%B6%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.3.</span> <span class="nav-text">框架设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86"><span class="nav-number">1.4.</span> <span class="nav-text">运行原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DataX3-0%E6%8F%92%E4%BB%B6%E4%BD%93%E7%B3%BB"><span class="nav-number">1.5.</span> <span class="nav-text">DataX3.0插件体系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DataX%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="nav-number">2.</span> <span class="nav-text">DataX使用案例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DataX%E5%AE%9A%E5%88%B6%E5%8C%96%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91%E4%B8%8E%E4%BD%BF%E7%94%A8"><span class="nav-number">3.</span> <span class="nav-text">DataX定制化插件开发与使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DataX%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E6%8F%92%E4%BB%B6%E6%9C%BA%E5%88%B6%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">DataX为什么要使用插件机制？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E4%BB%B6%E8%A7%86%E8%A7%92%E7%9C%8B%E6%A1%86%E6%9E%B6"><span class="nav-number">3.2.</span> <span class="nav-text">插件视角看框架</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.2.1.</span> <span class="nav-text">逻辑执行模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.2.2.</span> <span class="nav-text">物理执行模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%96%E7%A8%8B%E6%8E%A5%E5%8F%A3"><span class="nav-number">3.2.3.</span> <span class="nav-text">编程接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E4%BB%B6%E5%AE%9A%E4%B9%89"><span class="nav-number">3.2.4.</span> <span class="nav-text">插件定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%93%E5%8C%85%E5%8F%91%E5%B8%83"><span class="nav-number">3.2.5.</span> <span class="nav-text">打包发布</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">3.2.6.</span> <span class="nav-text">配置文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="nav-number">3.3.</span> <span class="nav-text">问题：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%BD%E5%8F%96%E6%9C%AC%E5%9C%B0mysql%E6%8A%A5%E5%A6%82%E4%B8%8B%E9%94%99%E8%AF%AF"><span class="nav-number">3.4.</span> <span class="nav-text">抽取本地mysql报如下错误</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
