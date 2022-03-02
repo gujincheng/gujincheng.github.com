@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  hudi和iceberg测试比较">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hudi和iceberg测试比较">
+<meta property="og:url" content="https://gujincheng.github.io/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  hudi和iceberg测试比较">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/hudi%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/hudi%E8%A1%A8%E6%A0%BC%E5%BC%8F.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Iceberg%E8%A1%A8%E6%A0%BC%E5%BC%8F.png">
+<meta property="article:published_time" content="2022-02-28T01:28:09.000Z">
+<meta property="article:modified_time" content="2022-03-01T03:11:24.790Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="hudi">
+<meta property="article:tag" content="iceberg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202203/hudi%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>hudi和iceberg测试比较 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          hudi和iceberg测试比较
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-02-28 09:28:09" itemprop="dateCreated datePublished" datetime="2022-02-28T09:28:09+08:00">2022-02-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-01 11:11:24" itemprop="dateModified" datetime="2022-03-01T11:11:24+08:00">2022-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/%E9%87%87%E9%9B%86/" itemprop="url" rel="index"><span itemprop="name">采集</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/" class="post-meta-item leancloud_visitors" data-flag-title="hudi和iceberg测试比较" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>hudi和iceberg测试比较</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="背景和需求"><a href="#背景和需求" class="headerlink" title="背景和需求"></a>背景和需求</h1><p>当前采集系统分为实时采集、定时采集，实时采集当天数据存在Hbase中，当天以前的数据存在Hive中。定时采集只有当天以前的数据。随着业务的要求越来越高，T+1的延时已经无法满足业务的的使用场景，数据实时性是采集系统亟需改善的一个地方。<br>我们也尝试使用了Kudu来解决这个问题，Kudu是一个列式存储的存储引擎，不兼容Hdfs，其次孩子王Kudu系统也不稳定，所以没有把整个表的数据写入Kudu，而是使用Kudu替代了Hbase，解决了Hbase批量查询的性能问题，但还是没有通过一个组件解决采集的实时性问题。<br>总结下来就是，采集系统需要将原系统数据实时采入单个组件，可以达到分钟级的延迟。同时提供高性能的查询方式给业务查询。数据湖很早就进入我们的视野，目前主流的就是Iceberg和Hudi，本文就是从原理、特性、性能上对比两个数据湖组件。</p>
+<h1 id="Hudi介绍"><a href="#Hudi介绍" class="headerlink" title="Hudi介绍"></a>Hudi介绍</h1><h2 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h2><p>Hudi使用Hadoop FileSystem API与湖存储交互，Hudi充分利用了像HDFS之类的存储模式所支持的“append”特性。这有助于Hudi提供流时写入，而不会导致文件计数/表元数据激增。</p>
+<h2 id="文件格式"><a href="#文件格式" class="headerlink" title="文件格式"></a>文件格式</h2><p>Hudi是围绕基本文件和增量日志文件的概念设计的，它们将更新 / 增量数据存储到给定的基本文件（称为文件片，file slice）。基本文件格式包括 Parquet（列访问）和 HFile（索引访问），增量日志以 Avro（面向行）。<br><img src="/uploads/202203/hudi%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F.png" alt="hudi文件格式"></p>
+<h2 id="表格式"><a href="#表格式" class="headerlink" title="表格式"></a>表格式</h2><p>表格式包括表的文件布局、表的schema、表变更的元数据跟踪。Hudi使用Avro模式来存储、管理和演进表的schema。Hudi有意识地将表/分区中的文件分组，并维护记录的键与所有文件组之间的映射，所有更新都记录到特定于文件组的增量日志文件中，Hudi的设计理念基于键的快速upserts/deletes，并且只需要在每个文件组中合并delta日志<br><img src="/uploads/202203/hudi%E8%A1%A8%E6%A0%BC%E5%BC%8F.png" alt="hudi表格式"></p>
+<h2 id="表类型和查询"><a href="#表类型和查询" class="headerlink" title="表类型和查询"></a>表类型和查询</h2><p>Hudi支持两种类型的表，COW（Copy-On-Write），MOR（Merge-On-Read），COW表的写放大问题严重，MOR提供了低延迟、更高效地实时写入，但读取的时候需要更高的延迟</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>COW</th>
+<th>MOR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据延迟</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>查询延迟</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>更新成本</td>
+<td>高（重写整个parquet）</td>
+<td>低（添加到delta日志大小）</td>
+</tr>
+<tr>
+<td>Parquet文件大小</td>
+<td>小</td>
+<td>大</td>
+</tr>
+<tr>
+<td>写放大</td>
+<td>高</td>
+<td>低</td>
+</tr>
+</tbody></table>
+<p>Hudi支持三种类型的查询，快照查询（能够查询到表的最新快照数据，如果是MOR表，会将基本文件和增量文件合并后再提供数据）、增量查询（增量查询只能查看到写入表的新数据）、读优化查询（可以查询到表的最新快照数据，它近查询最新的基本列文件，可以保证查询性能，这种方式保证了性能，但数据可能会有延迟）</p>
+<table>
+<thead>
+<tr>
+<th>表类型</th>
+<th>支持的查询类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>COW</td>
+<td>快照查询、增量查询</td>
+</tr>
+<tr>
+<td>MOR</td>
+<td>快照查询、增量查询、读优化查询</td>
+</tr>
+</tbody></table>
+<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><p>Hudi支持不同的基于主键的索引方案，以快速将采集的记录键映射到他们所在的文件组中。Hudi会自动强制执行文件大小，这有助于降低从Parquet页脚读取统计信息所需的时间。</p>
+<h2 id="并发控制"><a href="#并发控制" class="headerlink" title="并发控制"></a>并发控制</h2><p>定义了不同的写入器/读取器如何协调对表的访问。Hudi确保原子写入，通过将提交原子地发布到时间线，并标记一个即时时间（instant），以标记该操作具体发生的时间。Hudi明确区分了写入进程（执行用户的更新、插入、删除）、表服务（写入数据、元数据以优化执行所需的信息）和读取器（执行查询），Hudi在所有三种类型的进程之间提供快照隔离，他们都对表的一致快照进行操作。</p>
+<h2 id="写入器"><a href="#写入器" class="headerlink" title="写入器"></a>写入器</h2><p>Hudi表可以用作Spark/Flink管道的接收器，upsert、delete操作都会自动处理输入流中具有相同键的记录的预合并，然后查找索引，最后调用二进制打包算法将数据打包到文件中，同时遵循预配置的目标文件大小。</p>
+<h2 id="读取器"><a href="#读取器" class="headerlink" title="读取器"></a>读取器</h2><p>Hudi在写入器和读取器之间提供了快照隔离，并允许所有主流的湖查询引擎（Spark、Hive、Presto）在任何表快照上进行一致的查询，每当Hudi必须为查询合并基础文件和日志文件时，Hudi都会进行控制并采用多种机制来提高合并性能，同时还提供对数据的读优化查询，以权衡数据新鲜度与查询性能。<br>hudi支持建表、写入时将数据同步到hive元数据，生成ro、rt表，支持hive查询，支持presto使用presto连接器查询</p>
+<h2 id="表服务"><a href="#表服务" class="headerlink" title="表服务"></a>表服务</h2><p>为了让Hudi能作为增量数据管道的状态存储，为其设计了内置的表服务和自我管理运行时，可以编排/触发这些服务并在内部优化一切，Hudi有几个内置的表服务，目标都是确保高性能的表存储布局和元数据管理，他们在每次写入操作后同步自动调用，或者作为单独的后台作业异步调用。</p>
+<ul>
+<li>归档服务：一旦事件从时间线上过期，归档服务就会清除湖缓存的任何副作用。</li>
+<li>清理服务：以增量的方式，删除超过保留期限的用于增量查询的文件切片</li>
+<li>压缩服务：将基本文件与一组增量日志文件合并以生成新的基本文件，同时允许对文件组进行并发写入</li>
+<li>聚簇服务：用户可以通过排序键将经常查询的记录组合在一起，或者通过将较小的基本文件合并为较大的文件来控制文件大小</li>
+</ul>
+<h2 id="数据服务"><a href="#数据服务" class="headerlink" title="数据服务"></a>数据服务</h2><p>Hudi能对常见的端到端用例做到开箱即用，最重要的是DeltaStreamer实用程序，可以轻松基于Kafka流以及在湖存储之上的不同格式的文件来构建数据湖。支持检查点的自动管理、跟踪源检查点作为Hudi表元数据的一部分</p>
+<h1 id="Iceberg介绍"><a href="#Iceberg介绍" class="headerlink" title="Iceberg介绍"></a>Iceberg介绍</h1><h2 id="存储-1"><a href="#存储-1" class="headerlink" title="存储"></a>存储</h2><p>Iceberg支持使用Hadoop FileSystem API与湖存储交互，Iceberg需要文件系统支持写、读、删除操作，比如S3。Iceberg不需要随机写，一旦写入，数据文件和元数据文件在被删除之前是不可变的。</p>
+<h2 id="文件格式-1"><a href="#文件格式-1" class="headerlink" title="文件格式"></a>文件格式</h2><p>Iceberg是围绕数据文件和元数据文件的概念设计的，数据文件格式支持parquet, avro, orc，数据文件可以设置大小，减少数据文件重写成本，元数据文件格式支持Json</p>
+<h2 id="表格式-1"><a href="#表格式-1" class="headerlink" title="表格式"></a>表格式</h2><p>Iceerg支持创建表、删除表、修改表名、修改表属性、添加列、修改列名、修改列大小、修改列的顺序、删除列等操作。Iceberg的schema更新是元数据修改，数据文件不需要重写。<br>Iceberg分区每次都正确地生成分区值，并总是在可能的情况下用于加速查询。最重要的是，查询不再依赖于表的物理布局。通过物理和逻辑之间的分离，Iceberg表可以随着数据量的变化而发展分区方案。分区修改是一个元数据操作且不需要重写文件。<br>Iceberg排序顺序也可以在现有表中更新，在修改排序顺序时，使用较早顺序写入的旧数据将保持不变，引擎总是可以选择以最新的排序顺序。<br>快照文件列出清单列表文件。清单列表文件列出组成表快照的清单文件，以及每个分区的范围。清单文件列出组成表快照的数据文件，以及数据文件分区数据和列级别统计信息。Iceberg首先使用清单列表文件分区的范围，然后使用清单文件获取数据文件。通过这种模式，清单列表文件作为清单文件的索引，不需要扫描所有的清单文件。</p>
+<p><img src="/uploads/202203/Iceberg%E8%A1%A8%E6%A0%BC%E5%BC%8F.png" alt="Iceberg表格式"></p>
+<h2 id="并发控制-1"><a href="#并发控制-1" class="headerlink" title="并发控制"></a>并发控制</h2><p>一个表的元数据文件与另一个元数据文件的原子交换为可序列化隔离提供了基础。读取器在加载表元数据时使用当前的快照，并且在刷新元数据位置之前不会受到更改的影响。写入器乐观地创建表元数据文件，假设当前版本不会在写入器提交之前更改，一旦写入器创建了更新，它就通过将表的元数据文件指针从基本版本交换到新版本来提交。</p>
+<h2 id="写入器-1"><a href="#写入器-1" class="headerlink" title="写入器"></a>写入器</h2><p>批量写入：</p>
+<ul>
+<li>insert into：向表中添加新数据</li>
+<li>merge into：实现行级更新，包含更新行的数据文件会被重写</li>
+<li>insert overwrite，分区数据文件会被重写<br>流式写入：Iceberg支持append和complete输出模式</li>
+<li>append：将每个少量的批处理的行追加到表中</li>
+<li>complete：每个少量的批处理替换表内容<br>Iceberg对分区表进行写操作之前，需要对每个任务的数据按照分区进行排序。对于批处理，鼓励执行显示排序来满足需求，但是这种方法会带来额外的延迟，因为排序被认为是流工作负载的繁重操作。为了避免额外的延迟，可以启用fanout写入器来消除这个需求<br>流式写入会快速创建新的表版本，从而创建大量的表元数据来跟踪这些版本。建议通过调优提交速率、过期旧快照和自动清理元数据文件来维护元数据</li>
+</ul>
+<h2 id="读取器-1"><a href="#读取器-1" class="headerlink" title="读取器"></a>读取器</h2><p>Iceberg查询不需要指定分区值查询，支持快照查询，支持表历史元数据、快照元数据、文件元数据、清单元数据查询<br>Iceber查询扫描计划会根据快照文件、清单列表文件、清单文件找出查询需要的数据文件，扫描计划能够在单节点上运行，因此任何一个客户端都可以低延迟的查询<br>Iceberg支持hive表，元数据保存在Iceberg中，支持hive查询，支持presto使用Iceberg链接起查询</p>
+<h2 id="表服务-1"><a href="#表服务-1" class="headerlink" title="表服务"></a>表服务</h2><ul>
+<li>过期快照：Iceberg每次写入会产生一个新的快照，快照可以被用来做时间快照查询，或者回滚，快照会聚集直到过期快照动作执行，推荐定期执行过期快照来删除不再需要数据文件，来保持较小的表元数据</li>
+<li>删除旧的元数据文件：Iceberg使用Json文件跟踪表元数据，对表的每次更改都会生成一个新的元数据文件，以提供原子性，默认情况下，将保留旧的元数据文件作为历史记录。经常提交的表，比如流式任务，需要定期地清除元数据文件。</li>
+<li>删除孤儿文件：在Spark或者其他分布式处理引擎中，任务或作业失败可能会留下不被表元数据引用的文件，而且在某些情况下，正常快照过期可能无法确定某个文件不再需要并删除它</li>
+<li>压缩数据文件：Iceberg在一个表中跟踪每个数据文件，更多的数据文件导致清单文件中存储更多的元数据，而小的数据文件导致不必要的元数据量和文件打开成本的低效率查询，Iceberg可以并行压缩数据文件，这将把小文件合并成大文件，以减少元数据开销和运行时文件打开成本。</li>
+<li>重写清单文件：Iceberg使用清单列表文件和清单文件元数据加快查询计划，并过滤不必要的数据文件，当表写的模式和查询模式不一致，元数据可以被重写。</li>
+</ul>
+<h1 id="Hudi和Iceberg特性对比"><a href="#Hudi和Iceberg特性对比" class="headerlink" title="Hudi和Iceberg特性对比"></a>Hudi和Iceberg特性对比</h1><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th>Iceberg</th>
+<th>Hudi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACID和隔离级别</td>
+<td>ACID</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>隔离级别</td>
+<td>多个写必须严格串行化，读和写可以同时跑</td>
+<td>多个写的数据无交集，可以并发执行，读和写可以同时跑</td>
+<td></td>
+</tr>
+<tr>
+<td>并发多写</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>时间快照查询</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>表格式</td>
+<td>支持schema变更</td>
+<td>支持，添加字段、删除字段、修改字段名称、修改字段长度</td>
+<td>支持，添加、删除</td>
+</tr>
+<tr>
+<td>自定义schema</td>
+<td>有自己的schema，不绑定任何计算引擎层面的schema</td>
+<td>不支持，绑定了spark的schema</td>
+<td></td>
+</tr>
+<tr>
+<td>文件格式</td>
+<td>文件格式</td>
+<td>Parquet, ORC</td>
+<td>Parquet, Avro</td>
+</tr>
+<tr>
+<td>流批接口支持</td>
+<td>批量读</td>
+<td>支持（spark、Hive、presto）</td>
+<td>支持（spark、Hive、presto）</td>
+</tr>
+<tr>
+<td>批量写</td>
+<td>支持（spark）</td>
+<td>支持（spark）</td>
+<td></td>
+</tr>
+<tr>
+<td>流式读</td>
+<td>开发中</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>流式写</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>Upserts/Delete/Merge/Update</td>
+<td>不支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>查询性能</td>
+<td>查询不需要指定分区</td>
+<td>支持</td>
+<td>不支持</td>
+</tr>
+<tr>
+<td>元数据花费</td>
+<td>低</td>
+<td>低</td>
+<td></td>
+</tr>
+<tr>
+<td>分区内索引</td>
+<td>支持</td>
+<td>不支持</td>
+<td></td>
+</tr>
+<tr>
+<td>CopyOnWrite</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>MergeOnRead</td>
+<td>开发中</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>自动压缩</td>
+<td>不支持（需手动调用压缩方法）</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>自动清除</td>
+<td>不支持（需手动调用清除方法）</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>社区现状</td>
+<td>开源时间</td>
+<td>2018.11.6</td>
+<td>2019.1.17</td>
+</tr>
+<tr>
+<td>Github watch</td>
+<td>118</td>
+<td>1.2k</td>
+<td></td>
+</tr>
+<tr>
+<td>Github star</td>
+<td>1.9k</td>
+<td>2.2k</td>
+<td></td>
+</tr>
+<tr>
+<td>Github fork</td>
+<td>710</td>
+<td>979</td>
+<td></td>
+</tr>
+<tr>
+<td>Github Issue</td>
+<td>477</td>
+<td>73</td>
+<td></td>
+</tr>
+<tr>
+<td>Github pull request</td>
+<td>161</td>
+<td>119</td>
+<td></td>
+</tr>
+<tr>
+<td>Commits</td>
+<td>1822</td>
+<td>1864</td>
+<td></td>
+</tr>
+<tr>
+<td>Contributors</td>
+<td>167</td>
+<td>193</td>
+<td></td>
+</tr>
+</tbody></table>
+<ol>
+<li><h1 id="Hudi和Iceberg性能对比"><a href="#Hudi和Iceberg性能对比" class="headerlink" title="Hudi和Iceberg性能对比"></a>Hudi和Iceberg性能对比</h1>生产环境100万数据量对比（Hudi推hive，Iceberg是hive表）</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>初始化插入100万</th>
+<th>新增插入10万条</th>
+<th>插入20万条、更新10万条、删除10万条</th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td></td>
+<td>无分区表</td>
+<td>有分区表</td>
+<td>无分区表</td>
+<td>有分区表</td>
+<td>无分区表</td>
+<td>有分区表</td>
+</tr>
+<tr>
+<td>Iceberg插入耗时</td>
+<td>7503</td>
+<td>9295</td>
+<td>10787</td>
+<td>7983</td>
+<td>14065</td>
+<td>9648</td>
+</tr>
+<tr>
+<td>Iceberg查询总数耗时_spark</td>
+<td>2952</td>
+<td>5970</td>
+<td>2962</td>
+<td>6170</td>
+<td>2906</td>
+<td>6232</td>
+</tr>
+<tr>
+<td>iceberg查询单条耗时_spark</td>
+<td>1019</td>
+<td>852</td>
+<td>1430</td>
+<td>810</td>
+<td>1007</td>
+<td>831</td>
+</tr>
+<tr>
+<td>Iceberg查询总数耗时_hive</td>
+<td>10137</td>
+<td>10581</td>
+<td>13729</td>
+<td>8753</td>
+<td>9950</td>
+<td>7553</td>
+</tr>
+<tr>
+<td>Iceberg查询单条耗时_hive</td>
+<td>934</td>
+<td>239</td>
+<td>183</td>
+<td>160</td>
+<td>170</td>
+<td>168</td>
+</tr>
+<tr>
+<td>Iceberg查询总数耗时_presto</td>
+<td>生产上trino中的iceberg版本很低，查询报错，侧重hudi，所以跳过此测试</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Iceberg查询单条耗时_presto</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Hudi插入耗时</td>
+<td>60255</td>
+<td>59835</td>
+<td>21868</td>
+<td>29383</td>
+<td>155586(96611+155586)</td>
+<td>172115(69477+102638)</td>
+</tr>
+<tr>
+<td>Hudi查询创建视图耗时_spark</td>
+<td>3539</td>
+<td>5213</td>
+<td>3283</td>
+<td>5606</td>
+<td>3169</td>
+<td>4803</td>
+</tr>
+<tr>
+<td>Hudi查询总数耗时_spark</td>
+<td>2660</td>
+<td>2437</td>
+<td>3639</td>
+<td>2003</td>
+<td>5234</td>
+<td>3978</td>
+</tr>
+<tr>
+<td>Hudi查询单条耗时_spark</td>
+<td>4665</td>
+<td>910</td>
+<td>1048</td>
+<td>2758</td>
+<td>2323</td>
+<td>2125</td>
+</tr>
+<tr>
+<td>Hudi查询总数耗时_hive</td>
+<td>11933</td>
+<td>6569</td>
+<td>6390</td>
+<td>10721</td>
+<td>5129</td>
+<td>12573</td>
+</tr>
+<tr>
+<td>Hudi查询单条耗时_hive</td>
+<td>185</td>
+<td>129</td>
+<td>201</td>
+<td>216</td>
+<td>104</td>
+<td>150</td>
+</tr>
+<tr>
+<td>Hudi查询总数耗时_presto</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+</tr>
+<tr>
+<td>Hudi查询单条耗时_presto</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+</tr>
+</tbody></table>
+<h1 id="Hudi和Iceberg总结"><a href="#Hudi和Iceberg总结" class="headerlink" title="Hudi和Iceberg总结"></a>Hudi和Iceberg总结</h1><p>Hudi的最大的特色就是upsert和delete，upsert和delete写入增量文件，一定时间后可以将增量文件合并到基本文件中，通过这种方式可以实现行更新和流式写。<br>Iceberge的最大特色就是查询，通过快照、清单文件列表、清单实现快速过滤，Iceberg通过merge into也可以实现行更新，Iceberg也提供了流式写的接口，但是无论是行更新和流式写都是需要更新行的数据文件，并产生一个快照，这会大大增加元数据量。Iceberge的merge into也有诸多限制，原表和更新表join要有交集，否则会失败；Iceberg的更新表不能出现既更新也删除的同一条记录，否则会失败。<br>虽然在性能对比章节，Iceberg性能比Hudi好很多，但是从原理上分析，Hudi耗时高是有原因的，并且带来的是较少的IO，在Hudi更新时会根据主键合并更新数据，比如一条记录先新增后删除，合并后只留下删除的记录，然后根据主键定位到记录所在的分片，如果没有找到则插入记录，如果找到则添加到增量文件中，如果使用Hbase索引，相信性能会好一些。<br>Iceberg耗时低从原理来看，Iceberg只是将两个表join，然后原表修改的数据所在的数据文件会被重写，这种方式会在某些场景下导致大量的IO和内存消耗，在流式写测场景下支持时间旅行会产生很多文件。Iceberg的行删除目前在开发中。<br>个人觉得Hudi更适合作为采集系统的数据湖组件。Hudi最大的特色upsert和delete就已经是很大的亮点，这个功能和Kudu很相似。此外，目前Hudi功能已经完善，社区反馈的问题也比较少，已经在很多大厂应用，社区比较活跃。Iceberg很多功能还在开发中，社区反馈的问题比较多。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hudi/" rel="tag"># hudi</a>
+              <a href="/tags/iceberg/" rel="tag"># iceberg</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/" rel="prev" title="采集写入hudi设计文档">
+      <i class="fa fa-chevron-left"></i> 采集写入hudi设计文档
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="next" title="Hbase学习笔记">
+      Hbase学习笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E5%92%8C%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">背景和需求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">Hudi介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8"><span class="nav-number">2.1.</span> <span class="nav-text">存储</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">文件格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.3.</span> <span class="nav-text">表格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E7%B1%BB%E5%9E%8B%E5%92%8C%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.4.</span> <span class="nav-text">表类型和查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95"><span class="nav-number">2.5.</span> <span class="nav-text">索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">2.6.</span> <span class="nav-text">并发控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E5%99%A8"><span class="nav-number">2.7.</span> <span class="nav-text">写入器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E5%99%A8"><span class="nav-number">2.8.</span> <span class="nav-text">读取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.9.</span> <span class="nav-text">表服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.10.</span> <span class="nav-text">数据服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Iceberg%E4%BB%8B%E7%BB%8D"><span class="nav-number">3.</span> <span class="nav-text">Iceberg介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8-1"><span class="nav-number">3.1.</span> <span class="nav-text">存储</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F-1"><span class="nav-number">3.2.</span> <span class="nav-text">文件格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%A0%BC%E5%BC%8F-1"><span class="nav-number">3.3.</span> <span class="nav-text">表格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6-1"><span class="nav-number">3.4.</span> <span class="nav-text">并发控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E5%99%A8-1"><span class="nav-number">3.5.</span> <span class="nav-text">写入器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E5%99%A8-1"><span class="nav-number">3.6.</span> <span class="nav-text">读取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%9C%8D%E5%8A%A1-1"><span class="nav-number">3.7.</span> <span class="nav-text">表服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94"><span class="nav-number">4.</span> <span class="nav-text">Hudi和Iceberg特性对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="nav-number">5.</span> <span class="nav-text">Hudi和Iceberg性能对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">Hudi和Iceberg总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

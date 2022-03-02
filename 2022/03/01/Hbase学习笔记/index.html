@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Hbase简介 Hbase安装 HBase命令行操作 Phoenix操作Hbase">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hbase学习笔记">
+<meta property="og:url" content="https://gujincheng.github.io/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Hbase简介 Hbase安装 HBase命令行操作 Phoenix操作Hbase">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Hbase%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/phoenix%E5%88%9B%E5%BB%BAhbase%E8%A7%86%E5%9B%BE.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/phonix%E5%88%9B%E5%BB%BA%E8%A1%A8%E6%98%A0%E5%B0%84hbase%E8%A1%A8.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/phoenix%E6%9B%B4%E6%96%B0hbase%E8%A1%A8%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98.png">
+<meta property="article:published_time" content="2022-03-01T02:21:10.000Z">
+<meta property="article:modified_time" content="2022-03-02T10:23:21.130Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Hbase">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202203/Hbase%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Hbase学习笔记 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hbase学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-03-01 10:21:10" itemprop="dateCreated datePublished" datetime="2022-03-01T10:21:10+08:00">2022-03-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-02 18:23:21" itemprop="dateModified" datetime="2022-03-02T18:23:21+08:00">2022-03-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/" itemprop="url" rel="index"><span itemprop="name">Hbase</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Hbase学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Hbase简介</li>
+<li>Hbase安装</li>
+<li>HBase命令行操作</li>
+<li>Phoenix操作Hbase</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Hbase简介"><a href="#Hbase简介" class="headerlink" title="Hbase简介"></a>Hbase简介</h2><p>HBASE是一个高可靠性、高性能、面向列、可伸缩的分布式存储系统，利用HBASE技术可在廉价PC Server上搭建起大规模结构化存储集群。<br>HBASE的目标是存储并处理大型的数据，更具体来说是仅需使用普通的硬件配置，就能够处理由成千上万的行和列所组成的大型数据。</p>
+<p>它介于nosql和RDBMS之间，仅能通过主键(row key)和主键的range来检索数据，仅支持单行事务(可通过hive支持来实现多表join等复杂操作)。主要用来存储非结构化和半结构化的松散数据。</p>
+<p>Hbase的表模型与关系型数据库的表模型不同：</p>
+<ul>
+<li>Hbase的表没有固定的字段定义；</li>
+<li>Hbase的表中每行存储的都是一些key-value对</li>
+<li>Hbase的表中有列族的划分，用户可以指定将哪些kv插入哪个列族</li>
+<li>Hbase的表在物理存储上，是按照列族来分割的，不同列族的数据一定存储在不同的文件中</li>
+<li>Hbase的表中的每一行都固定有一个行键，而且每一行的行键在表中不能重复</li>
+<li>Hbase中的数据，包含行键，包含key，包含value，都是byte[ ]类型，hbase不负责为用户维护数据类型</li>
+<li>HBASE对事务的支持很差</li>
+</ul>
+<p>HBASE相比于其他nosql数据库(mongodb、redis、cassendra、hazelcast)的特点：<br>Hbase的表数据存储在HDFS文件系统中，所以，hbase具备如下特性：</p>
+<ul>
+<li>海量存储</li>
+<li>列式存储</li>
+<li>数据存储的安全性可靠性极高！</li>
+<li>支持高并发</li>
+<li>存储容量可以线性扩展；</li>
+</ul>
+<h3 id="HBase存储机制"><a href="#HBase存储机制" class="headerlink" title="HBase存储机制"></a>HBase存储机制</h3><p>HBase是一个面向列的数据库，在表中它由行排序。表模式定义只能列族，也就是键值对。一个表有多个列族以及每一个列族可以有任意数量的列。后续列的值连续地存储在磁盘上。表中的每个单元格值都具有时间戳。总之，在一个HBase： - 表是行的集合。 - 行是列族的集合。 - 列族是列的集合。 - 列是键值对的集合。</p>
+<p>下面给出的表中是HBase模式的一个例子。<br><img src="/uploads/202203/Hbase%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6.png" alt="Hbase存储机制"></p>
+<h3 id="名词概念"><a href="#名词概念" class="headerlink" title="名词概念"></a>名词概念</h3><ul>
+<li><p><strong>Rowkey的概念</strong><br>Rowkey的概念和mysql中的主键是完全一样的，Hbase使用Rowkey来唯一的区分某一行的数据。Hbase只支持3种查询方式： - 1、基于Rowkey的单行查询 - 2、基于Rowkey的范围扫描 - 3、全表扫描<br>因此，Rowkey对Hbase的性能影响非常大，Rowkey的设计就显得尤为的重要。设计的时候要兼顾基于Rowkey的单行查询也要键入Rowkey的范围扫描。<br>rowkey 行键可以是任意字符串(最大长度是64KB，实际应用中长度一般为 10-100bytes)，最好是16。在HBase 内部，rowkey 保存为字节数组。HBase会对表中的数据按照 rowkey 排序 (字典顺序)</p>
+</li>
+<li><p><strong>Column的概念</strong><br>列，可理解成MySQL列。</p>
+</li>
+<li><p><strong>ColumnFamily的概念</strong><br>Hbase通过列族划分数据的存储，列族下面可以包含任意多的列，实现灵活的数据存取。列族是由一个一个的列组成（任意多）。</p>
+</li>
+</ul>
+<p>Hbase表的创建的时候就必须指定列族。就像关系型数据库创建的时候必须指定具体的列是一样的。</p>
+<p>Hbase的列族不是越多越好，官方推荐的是列族最好小于或者等于3。我们使用的场景一般是1个列族。</p>
+<ul>
+<li><p><strong>TimeStamp的概念</strong><br>TimeStamp对Hbase来说至关重要，因为它是实现Hbase多版本的关键。在Hbase中使用不同的timestame来标识相同rowkey行对应的不通版本的数据。<br>在写入数据的时候，如果用户没有指定相应的timestamp，HBase会自动添加一个timestamp，timestamp和服务器时间保持一致。<br>HBase 中通过rowkey和columns确定的为一个存储单元称为cell。每个cell都保存着同一份数据的多个版本。版本通过时间戳来索引。时间戳的类型是64位整型。时间戳可以由 hbase(在数据写入时自动)赋值，此时时间戳是精确到毫秒的当前系统时间。时间戳也可以由客户显式赋值。如果应用程序要避免数据版本冲突，就必须自己生成具有唯一性的时间戳。每个cell中，不同版本的数据按照时间倒序排序，即最新的数据排在最前面。<br>为了避免数据存在过多版本造成的的管理(包括存贮和索引)负担，hbase 提供了两种数据版本回收方式： - 保存数据的最后 n 个版本 - 保存最近一段时间内的版本（设置数据的生命周期 TTL）。<br>用户可以针对每个列簇进行设置。</p>
+</li>
+<li><p><strong>单元格（Cell）</strong><br>由{rowkey, column( = +),version}唯一确定的单元。 Cell 中的数据是没有类型的，全部是字节码形式存贮。</p>
+</li>
+<li><p><strong>Region</strong><br>Region的概念和关系型数据库的分区或者分片差不多。<br>Hbase会将一个大表的数据基于Rowkey的不同范围分配到不通的Region中，每个Region负责一定范围的数据访问和存储。这样即使是一张巨大的表，由于被切割到不通的region，访问起来的时延也很低。</p>
+</li>
+</ul>
+<h2 id="Hbase安装"><a href="#Hbase安装" class="headerlink" title="Hbase安装"></a>Hbase安装</h2><p>此处略过，具体可以参考[][]</p>
+<h2 id="HBase命令行操作"><a href="#HBase命令行操作" class="headerlink" title="HBase命令行操作"></a>HBase命令行操作</h2><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>命令表达式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>创建表</td>
+<td>create ‘表名’, ‘列族名1’,’列族名2’,’列族名N’</td>
+</tr>
+<tr>
+<td>查看所有表</td>
+<td>list</td>
+</tr>
+<tr>
+<td>描述表</td>
+<td>describe  ‘表名’</td>
+</tr>
+<tr>
+<td>判断表存在</td>
+<td>exists  ‘表名’</td>
+</tr>
+<tr>
+<td>判断是否禁用启用表</td>
+<td>is_enabled ‘表名’is_disabled ‘表名’</td>
+</tr>
+<tr>
+<td>添加记录</td>
+<td>put  ‘表名’, ‘rowKey’, ‘列族 : 列‘  ,  ‘值’</td>
+</tr>
+<tr>
+<td>查看记录rowkey下的所有数据</td>
+<td>get  ‘表名’ , ‘rowKey’</td>
+</tr>
+<tr>
+<td>查看表中的记录总数</td>
+<td>count  ‘表名’</td>
+</tr>
+<tr>
+<td>获取某个列族</td>
+<td>get ‘表名’,’rowkey’,’列族’</td>
+</tr>
+<tr>
+<td>获取某个列族的某个列</td>
+<td>get ‘表名’,’rowkey’,’列族：列’</td>
+</tr>
+<tr>
+<td>删除记录</td>
+<td>delete  ‘表名’ ,‘行名’ , ‘列族：列’</td>
+</tr>
+<tr>
+<td>删除整行</td>
+<td>deleteall ‘表名’,’rowkey’</td>
+</tr>
+<tr>
+<td>删除一张表</td>
+<td>先要屏蔽该表，才能对该表进行删除第一步 disable ‘表名’ ，第二步  drop ‘表名’</td>
+</tr>
+<tr>
+<td>清空表</td>
+<td>truncate ‘表名’</td>
+</tr>
+<tr>
+<td>查看所有记录</td>
+<td>scan “表名”</td>
+</tr>
+<tr>
+<td>查看某个表某个列中所有数据</td>
+<td>scan “表名” , {COLUMNS=&gt;’列族名:列名’}</td>
+</tr>
+<tr>
+<td>更新记录</td>
+<td>就是重写一遍，进行覆盖，hbase没有修改，都是追加</td>
+</tr>
+</tbody></table>
+<h2 id="Phoenix操作Hbase"><a href="#Phoenix操作Hbase" class="headerlink" title="Phoenix操作Hbase"></a>Phoenix操作Hbase</h2><h3 id="Phoenix安装与配置"><a href="#Phoenix安装与配置" class="headerlink" title="Phoenix安装与配置"></a>Phoenix安装与配置</h3><p>新公司使用的CM来统一管理大数据集群，为了防止软件版本不统一导致各种问题，这里在CM上安装Phoenix</p>
+<p>首先，需要确定CM平台是哪个版本的，在CM的管理页面上可以直接看出，我们的CM的6.2.0版本的<br>那么剩下的，就是要下载一个和6.2.0版本想匹配的phoenix安装包<br>但是，CM从2021.1月份开始收费，通过正常渠道无法下载到这个安装包了。这里是在百度上找了很久才找到<br>具体参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/hell_oword/article/details/119327354?spm=1001.2014.3001.5502">CDH 6.2 安装 Phoenix</a></p>
+<p>安装包已经搞定，下面开始安装</p>
+<ol>
+<li>首先安装 CSD 文件<ol>
+<li>确定 CSD(Custom Service Descriptor) 文件安装路径，公司的安装路径为/opt/cloudera/csd,这里的地址就是server的地址，即ddp1服务器的地址</li>
+<li>将 CSD文件(PHOENIX-1.0.jar) 放到到本地描述符存储库路径，然后重启 Cloudera Manager 服务器</li>
+<li>重启 cloudera-scm-server 服务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl restart cloudera-scm-server
+&#96;&#96;&#96;   
+第一步只要在CM第一次安装的时候初始化一次就够了，如果已经初始化过以后，可以直接从第二步骤开始。
+&gt; 这里不知道对不对，因为没有重启，虽然最终phoenix安装上去了，但是最后在CM上添加不了服务。
+&gt; 这里等我自己搭建一个CM，再手动测试一下看看
+2. 安装Phoenix parcel
+    1. 上传文件到如图 parcel 目录下，PHOENIX-5.0.0-cdh6.2.0.p0.1308267-el7.parcel、PHOENIX-5.0.0-cdh6.2.0.p0.1308267-el7.parcel.sha 、 manifest.json
+    2. 点击检查新 Parcel ，当出现 PHOENIX 后，点击 Distribute
+    3. 点击激活 PHOENIX，并在弹框中点击 确认
+    4. 集群 -&gt; 操作 -&gt; 添加服务，出现 PHOENIX 服务 **这里不知道为什么在服务里没找到PHOENIX，不知道是不是因为CM没有重启**
+    5. 将 PHOENIX 服务添加到每个 Region Server 中
+    6. 重启hbase集群，否则phoenix启动会报错
+
+#### 遇到的问题
+1. Phoenix安装完成以后，在服务里找不到选项，添加不了服务，不知道是不是因为CSD文件配置好以后，CM没有重启，需要测试一下
+2. Phoenix安装完成以后，直接打开phoenix-sqlline，报如下错误
+&#96;&#96;&#96;shell
+Error: org.apache.hadoop.hbase.DoNotRetryIOException: Unable to load configured region split policy &#39;org.apache.phoenix.schema.MetaDataSplitPolicy&#39; for table &#39;SYSTEM.CATALOG&#39; Set hbase.table.sanity.checks to false at conf or table descriptor if you want to bypass sanity checks
+        at org.apache.hadoop.hbase.master.HMaster.warnOrThrowExceptionForFailure(HMaster.java:2232)
+        at org.apache.hadoop.hbase.master.HMaster.sanityCheckTableDescriptor(HMaster.java:2079)
+        at org.apache.hadoop.hbase.master.HMaster.createTable(HMaster.java:1978)
+        at org.apache.hadoop.hbase.master.MasterRpcServices.createTable(MasterRpcServices.java:630)
+        at org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos$MasterService$2.callBlockingMethod(MasterProtos.java)
+        at org.apache.hadoop.hbase.ipc.RpcServer.call(RpcServer.java:413)
+        at org.apache.hadoop.hbase.ipc.CallRunner.run(CallRunner.java:130)
+        at org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:324)
+        at org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:304) (state&#x3D;08000,code&#x3D;101)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+网上的说法是，需要把phoenix的jar包放到hbase的安装路径之下，但是，那应该是自己解压phoenix安装的问题，使用CM安装，CM会把这些配置都设置好的，只需要重启一下Hbase集群即可</li>
+</ol>
+</li>
+<li>phoenix里查不到hbase的表<ol>
+<li>这里不算是问题，phoenix创建的表hbase能看到，但是，hbase的表想要在phoenix里看到，需要做一次映射</li>
+</ol>
+</li>
+</ol>
+<h3 id="phoenix映射HBase"><a href="#phoenix映射HBase" class="headerlink" title="phoenix映射HBase"></a>phoenix映射HBase</h3><p>默认情况下，直接在hbase中创建的表，通过phoenix是查看不到的。<br>如果要在phoenix中操作由hbase创建的表，则需要在phoenix中进行表的映射。<br>映射方式有两种：</p>
+<blockquote>
+<p>视图映射和表映射</p>
+</blockquote>
+<p>两种方式的区别：</p>
+<ul>
+<li>视图只读，不支持新增和修改</li>
+<li>如果删除视图，源数据不会发生改变</li>
+<li>视图的查询效率较低（原因是：表映射会在表中创建一些空的键值对，这些空键值对的存在可以用来提高查询效率，而视图映射没有）</li>
+<li>使用create table创建的关联表，如果对表进行了修改，源数据也会改变，同时如果关联表被删除，源表也会被删除。</li>
+</ul>
+<p>案例：<br>首先在Hbase中创建一个表，并写入几条数据</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create &#39;phoenix&#39;,&#39;info&#39;
+put &#39;phoenix&#39;, &#39;row001&#39;,&#39;info:name&#39;,&#39;phoenix&#39;
+put &#39;phoenix&#39;, &#39;row002&#39;,&#39;info:name&#39;,&#39;hbase&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>创建视图：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create view &quot;phoenix&quot;(empid varchar primary key,&quot;info&quot;.&quot;name&quot; varchar);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>*注意：**</li>
+<li>*这里一定要注意的是表名和列族以及列名需要用双引号括起来，因为HBase是区分大小写的，如果不用双引号括起来的话Phoenix在创建表的时候会自动将小写转换为大写字母，这样HBase中会创建另外一张表PHOENIX。**</li>
+<li>*这里查询表名需要用双引号括起来，强制不转换为大写。**</li>
+</ul>
+<p><img src="/uploads/202203/phoenix%E5%88%9B%E5%BB%BAhbase%E8%A7%86%E5%9B%BE.png" alt="phoenix创建hbase视图"></p>
+<blockquote>
+<p>视图是只读的，不可以修改hbase表的内容</p>
+</blockquote>
+<ul>
+<li>创建关联表：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create table &quot;phoenix&quot;(empid varchar primary key,&quot;info&quot;.&quot;name&quot; varchar);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+直接这么创建，从hbase端修改的数据，在phoenix里是查不到的。<br>经过阅读官方文档发现，phoenix 4.10 版本后，对列映射做了优化，采用一套新的机制，不在基于列名方式映射到 hbase。<br>如果只是想查询hbase数据，那么可以使用创建视图的方式，但是如果必须要映射到表，需要禁用列映射规则(会降低查询性能)<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create table &quot;phoenix&quot;(empid varchar primary key,&quot;info&quot;.&quot;name&quot; varchar) column_encoded_bytes&#x3D;0;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<img src="/uploads/202203/phonix%E5%88%9B%E5%BB%BA%E8%A1%A8%E6%98%A0%E5%B0%84hbase%E8%A1%A8.png" alt="phonix创建表映射hbase表"></li>
+</ul>
+<p>还有一个问题：<br>通过phoenix创建的表，在phoenix侧修改数据后，hbase里的数据是两条<br><img src="/uploads/202203/phoenix%E6%9B%B4%E6%96%B0hbase%E8%A1%A8%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98.png" alt="phoenix更新hbase表存在的问题"><br>不知道这种数据会不会是脏数据</p>
+<h3 id="JDBC链接Phoenix"><a href="#JDBC链接Phoenix" class="headerlink" title="JDBC链接Phoenix"></a>JDBC链接Phoenix</h3><p>添加Maven依赖</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.phoenix<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>phoenix-core<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>5.0.0-HBase-2.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exclusions</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exclusion</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.glassfish<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>javax.el<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exclusion</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exclusions</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-common<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>java代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>escloud<span class="token punctuation">.</span>phoenix</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>sql<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Phoenix</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> driver <span class="token operator">=</span> <span class="token string">"org.apache.phoenix.jdbc.PhoenixDriver"</span><span class="token punctuation">;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">Class</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span>driver<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">ClassNotFoundException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token class-name">Statement</span> stmt <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token class-name">ResultSet</span> rs <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token class-name">Connection</span> con <span class="token operator">=</span> <span class="token class-name">DriverManager</span><span class="token punctuation">.</span><span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token string">"jdbc:phoenix:ddp5.hadoop:2181"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        stmt <span class="token operator">=</span> con<span class="token punctuation">.</span><span class="token function">createStatement</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> sql <span class="token operator">=</span> <span class="token string">"select * from \"phoenix\""</span><span class="token punctuation">;</span>
+        rs <span class="token operator">=</span> stmt<span class="token punctuation">.</span><span class="token function">executeQuery</span><span class="token punctuation">(</span>sql<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>rs<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token string">"rowkey:"</span><span class="token operator">+</span>rs<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"ROWKEY"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">",name:"</span><span class="token operator">+</span>rs<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        stmt<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        con<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h4><ol>
+<li>java.lang.ClassNotFoundException: org.apache.phoenix.jdbc.PhoenixDriver</li>
+</ol>
+<p><strong>问题原因：</strong> maven工程打包不正确，应该把依赖也打到jar包里<br><strong>解决办法：</strong> </p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugins</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-assembly-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.4.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+                    <span class="token comment">&lt;!-- get all project dependencies --></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>descriptorRefs</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>descriptorRef</span><span class="token punctuation">></span></span>jar-with-dependencies<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>descriptorRef</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>descriptorRefs</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>executions</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>make-assembly<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+                        <span class="token comment">&lt;!-- bind to the packaging phase --></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>package<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
+                            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>single<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>executions</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugins</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol start="2">
+<li>报找不到方法，具体报错信息<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.lang.NoSuchMethodError: org.apache.hadoop.security.authentication.util.KerberosUtil.hasKerberosKeyTab(Ljavax&#x2F;security&#x2F;auth&#x2F;Subject;)Z
+        at org.apache.hadoop.security.UserGroupInformation.&lt;init&gt;(UserGroupInformation.java:715)
+        at org.apache.hadoop.security.UserGroupInformation.loginUserFromSubject(UserGroupInformation.java:925)
+        at org.apache.hadoop.security.UserGroupInformation.getLoginUser(UserGroupInformation.java:873)
+        at org.apache.hadoop.security.UserGroupInformation.getCurrentUser(UserGroupInformation.java:740)
+        at org.apache.hadoop.hbase.security.User$SecureHadoopUser.&lt;init&gt;(User.java:266)
+        at org.apache.hadoop.hbase.security.User.getCurrent(User.java:164)
+        at org.apache.phoenix.jdbc.PhoenixEmbeddedDriver$ConnectionInfo.&lt;init&gt;(PhoenixEmbeddedDriver.java:504)
+        at org.apache.phoenix.jdbc.PhoenixEmbeddedDriver$ConnectionInfo.create(PhoenixEmbeddedDriver.java:312)
+        at org.apache.phoenix.jdbc.PhoenixDriver.getConnectionQueryServices(PhoenixDriver.java:232)
+        at org.apache.phoenix.jdbc.PhoenixEmbeddedDriver.createConnection(PhoenixEmbeddedDriver.java:150)
+        at org.apache.phoenix.jdbc.PhoenixDriver.connect(PhoenixDriver.java:221)
+        at java.sql.DriverManager.getConnection(DriverManager.java:664)
+        at java.sql.DriverManager.getConnection(DriverManager.java:270)
+        at com.digiwin.escloud.phoenix.Phoenix.main(Phoenix.java:18)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+解决办法：添加maven依赖<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-common<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Hbase/" rel="tag"># Hbase</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/" rel="prev" title="hudi和iceberg测试比较">
+      <i class="fa fa-chevron-left"></i> hudi和iceberg测试比较
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hbase%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Hbase简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HBase%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6"><span class="nav-number">1.1.</span> <span class="nav-text">HBase存储机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8D%E8%AF%8D%E6%A6%82%E5%BF%B5"><span class="nav-number">1.2.</span> <span class="nav-text">名词概念</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hbase%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Hbase安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HBase%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">HBase命令行操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Phoenix%E6%93%8D%E4%BD%9CHbase"><span class="nav-number">4.</span> <span class="nav-text">Phoenix操作Hbase</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Phoenix%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE"><span class="nav-number">4.1.</span> <span class="nav-text">Phoenix安装与配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#phoenix%E6%98%A0%E5%B0%84HBase"><span class="nav-number">4.2.</span> <span class="nav-text">phoenix映射HBase</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JDBC%E9%93%BE%E6%8E%A5Phoenix"><span class="nav-number">4.3.</span> <span class="nav-text">JDBC链接Phoenix</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.3.1.</span> <span class="nav-text">遇到的问题</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

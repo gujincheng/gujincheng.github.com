@@ -1170,6 +1170,40 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
+    <title>Scala面试题</title>
+    <url>/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Scala面试题总结</li>
+</ul>
+<a id="more"></a>
+
+
+<p><strong><font size = 5>1. 方法和函数的区别？</font></strong><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
+<p><strong><font size = 5>2. Scala类型系统中Nil, Null, None, Nothing四个类型的区别？？</font></strong><br>Null是一个trait（特质），是所以引用类型AnyRef的一个子类型，null是Null唯一的实例。<br>Nothing也是一个trait（特质），是所有类型Any（包括值类型和引用类型）的子类型，它不在有子类型，它也没有实例，实际上为了一个方法抛出异常，通常会设置一个默认返回类型。<br>Nil代表一个List空类型，等同List[Nothing]<br>None是Option monad的空标识（深入了解请参考问题Q11）</p>
+<p><strong><font size = 5>3. 什么是高阶函数？</font></strong><br>高阶函数指能接受或者返回其他函数的函数，scala中的filter map flatMap函数都能接受其他函数作为参数。</p>
+<p><strong><font size = 5>4. 什么是隐式转换？</font></strong><br>通过隐式转换，程序员可以在编写Scala程序时故意漏掉一些信息，让编译器去尝试在编译期间自动推导出这些信息来，这种特性可以极大的减少代码量，忽略那些冗长，过于细节的代码<br>隐式转换必须满足无歧义规则，在声明隐式参数的类型是最好使用特别的或自定义的数据类型，不要使用Int,String这些常用类型，避免碰巧匹配<br>调用方法：</p>
+<ol>
+<li>将方法或变量标记为implicit</li>
+<li>将方法的参数列表标记为implicit</li>
+<li>将类标记为implicit</li>
+</ol>
+<p>Scala支持3种形式的隐式转换：<br>隐式值：用于给方法提供参数<br>隐式视图：用于类型间转换或使针对某类型的方法能调用成功<br>隐式类：使用implicit声明类</p>
+<p><strong><font size = 5>5. scala的模式匹配？</font></strong><br>有点类似于Java语言的 switch，但其实还是有很大的不同的</p>
+<ul>
+<li>java 的 switch 仅仅会做一些基本类型的匹配，然后执行一些动作，并且是没有返回值的。</li>
+<li>scala 的模式匹配除了可以匹配数值，同时它还能匹配类型，同时它还是有返回值的</li>
+</ul>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>Scala</category>
+      </categories>
+      <tags>
+        <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scala杂记（一）</title>
     <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1231,40 +1265,6 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>Scala</category>
-      </categories>
-      <tags>
-        <tag>Scala</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Scala面试题</title>
-    <url>/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Scala面试题总结</li>
-</ul>
-<a id="more"></a>
-
-
-<p><strong><font size = 5>1. 方法和函数的区别？</font></strong><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
-<p><strong><font size = 5>2. Scala类型系统中Nil, Null, None, Nothing四个类型的区别？？</font></strong><br>Null是一个trait（特质），是所以引用类型AnyRef的一个子类型，null是Null唯一的实例。<br>Nothing也是一个trait（特质），是所有类型Any（包括值类型和引用类型）的子类型，它不在有子类型，它也没有实例，实际上为了一个方法抛出异常，通常会设置一个默认返回类型。<br>Nil代表一个List空类型，等同List[Nothing]<br>None是Option monad的空标识（深入了解请参考问题Q11）</p>
-<p><strong><font size = 5>3. 什么是高阶函数？</font></strong><br>高阶函数指能接受或者返回其他函数的函数，scala中的filter map flatMap函数都能接受其他函数作为参数。</p>
-<p><strong><font size = 5>4. 什么是隐式转换？</font></strong><br>通过隐式转换，程序员可以在编写Scala程序时故意漏掉一些信息，让编译器去尝试在编译期间自动推导出这些信息来，这种特性可以极大的减少代码量，忽略那些冗长，过于细节的代码<br>隐式转换必须满足无歧义规则，在声明隐式参数的类型是最好使用特别的或自定义的数据类型，不要使用Int,String这些常用类型，避免碰巧匹配<br>调用方法：</p>
-<ol>
-<li>将方法或变量标记为implicit</li>
-<li>将方法的参数列表标记为implicit</li>
-<li>将类标记为implicit</li>
-</ol>
-<p>Scala支持3种形式的隐式转换：<br>隐式值：用于给方法提供参数<br>隐式视图：用于类型间转换或使针对某类型的方法能调用成功<br>隐式类：使用implicit声明类</p>
-<p><strong><font size = 5>5. scala的模式匹配？</font></strong><br>有点类似于Java语言的 switch，但其实还是有很大的不同的</p>
-<ul>
-<li>java 的 switch 仅仅会做一些基本类型的匹配，然后执行一些动作，并且是没有返回值的。</li>
-<li>scala 的模式匹配除了可以匹配数值，同时它还能匹配类型，同时它还是有返回值的</li>
-</ul>
-]]></content>
-      <categories>
-        <category>面试题</category>
         <category>Scala</category>
       </categories>
       <tags>
@@ -1915,6 +1915,31 @@ org.apache.spark.SparkException: Yarn application has already ended! It might ha
       </tags>
   </entry>
   <entry>
+    <title>spark性能优化之序列化</title>
+    <url>/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/</url>
+    <content><![CDATA[<h3 id="序列化是干什么的？"><a href="#序列化是干什么的？" class="headerlink" title="序列化是干什么的？"></a>序列化是干什么的？</h3><p>序列化简单来说就保存对象在内存中的状态也可以说是实例化变量。这是Java提供的用来保存 Object state，一种保存对象状态的机制。只有实现了serializable接口的类的对象才能被实例化<br>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
+<h3 id="什么情况下会用到序列化？"><a href="#什么情况下会用到序列化？" class="headerlink" title="什么情况下会用到序列化？"></a>什么情况下会用到序列化？</h3><ul>
+<li>当你想把内存中的对象写入到硬盘时</li>
+<li>当你想用套接字在网络上传输对象时</li>
+<li>当你想通过RMI调用对象时(RMI总结来说就是远程调用对象，在一个jvm上调用另一个jvm的对象)</li>
+</ul>
+<h3 id="Spark为什么需要序列化？"><a href="#Spark为什么需要序列化？" class="headerlink" title="Spark为什么需要序列化？"></a>Spark为什么需要序列化？</h3><p>Spark是分布式执行引擎，其核心抽象是弹性分布式数据集RDD，其代表了分布在不同节点的数据。Spark的计算是在executor上分布式执行的，所以对象在执行中需要通过网络传输，或者持久化到本地磁盘的时候必须要经过序列化。</p>
+<h3 id="Spark支持的序列化"><a href="#Spark支持的序列化" class="headerlink" title="Spark支持的序列化"></a>Spark支持的序列化</h3><p>spark默认使用的是java序列化，java序列化的好处是非常灵活，开发起来很简单，缺点是速度较慢，在某些情况下序列化的结果也比较大<br>Spark也能使用Kryo（版本2）序列化对象。Kryo不但速度极快，而且产生的结果更为紧凑（通常能提高10倍）。Kryo的缺点是不支持所有类型，为了更好的性能，你需要提前注册程序中所使用的类（class）。</p>
+<h3 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h3><pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> SparkConf<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>setAppName<span class="token punctuation">(</span><span class="token string">"Test"</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span>set<span class="token punctuation">(</span><span class="token string">"spark.serializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.spark.serializer.KryoSerializer"</span><span class="token punctuation">)</span>   <span class="token comment">//声明序列化器为KryoSerializer</span>
+      <span class="token punctuation">.</span>registerKryoClasses<span class="token punctuation">(</span>Array<span class="token punctuation">(</span>classOf<span class="token punctuation">[</span>MyClass1<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass2<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass3<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment">//注册要序列化的自定义类型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>参考：<a href="https://tech.meituan.com/2016/04/29/spark-tuning-basic.html">https://tech.meituan.com/2016/04/29/spark-tuning-basic.html</a><br>原则八</p>
+<h3 id="spark性能调优"><a href="#spark性能调优" class="headerlink" title="spark性能调优"></a>spark性能调优</h3><p>有篇文章写得很好，可以参考下<br><a href="https://www.cnblogs.com/stillcoolme/p/10576563.html">https://www.cnblogs.com/stillcoolme/p/10576563.html</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spark-sql使用笔记</title>
     <url>/2021/01/18/spark-sql%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2035,46 +2060,6 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </tags>
   </entry>
   <entry>
-    <title>spark性能优化之序列化</title>
-    <url>/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/</url>
-    <content><![CDATA[<h3 id="序列化是干什么的？"><a href="#序列化是干什么的？" class="headerlink" title="序列化是干什么的？"></a>序列化是干什么的？</h3><p>序列化简单来说就保存对象在内存中的状态也可以说是实例化变量。这是Java提供的用来保存 Object state，一种保存对象状态的机制。只有实现了serializable接口的类的对象才能被实例化<br>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
-<h3 id="什么情况下会用到序列化？"><a href="#什么情况下会用到序列化？" class="headerlink" title="什么情况下会用到序列化？"></a>什么情况下会用到序列化？</h3><ul>
-<li>当你想把内存中的对象写入到硬盘时</li>
-<li>当你想用套接字在网络上传输对象时</li>
-<li>当你想通过RMI调用对象时(RMI总结来说就是远程调用对象，在一个jvm上调用另一个jvm的对象)</li>
-</ul>
-<h3 id="Spark为什么需要序列化？"><a href="#Spark为什么需要序列化？" class="headerlink" title="Spark为什么需要序列化？"></a>Spark为什么需要序列化？</h3><p>Spark是分布式执行引擎，其核心抽象是弹性分布式数据集RDD，其代表了分布在不同节点的数据。Spark的计算是在executor上分布式执行的，所以对象在执行中需要通过网络传输，或者持久化到本地磁盘的时候必须要经过序列化。</p>
-<h3 id="Spark支持的序列化"><a href="#Spark支持的序列化" class="headerlink" title="Spark支持的序列化"></a>Spark支持的序列化</h3><p>spark默认使用的是java序列化，java序列化的好处是非常灵活，开发起来很简单，缺点是速度较慢，在某些情况下序列化的结果也比较大<br>Spark也能使用Kryo（版本2）序列化对象。Kryo不但速度极快，而且产生的结果更为紧凑（通常能提高10倍）。Kryo的缺点是不支持所有类型，为了更好的性能，你需要提前注册程序中所使用的类（class）。</p>
-<h3 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h3><pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> SparkConf<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>setAppName<span class="token punctuation">(</span><span class="token string">"Test"</span><span class="token punctuation">)</span>
-      <span class="token punctuation">.</span>set<span class="token punctuation">(</span><span class="token string">"spark.serializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.spark.serializer.KryoSerializer"</span><span class="token punctuation">)</span>   <span class="token comment">//声明序列化器为KryoSerializer</span>
-      <span class="token punctuation">.</span>registerKryoClasses<span class="token punctuation">(</span>Array<span class="token punctuation">(</span>classOf<span class="token punctuation">[</span>MyClass1<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass2<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass3<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment">//注册要序列化的自定义类型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>参考：<a href="https://tech.meituan.com/2016/04/29/spark-tuning-basic.html">https://tech.meituan.com/2016/04/29/spark-tuning-basic.html</a><br>原则八</p>
-<h3 id="spark性能调优"><a href="#spark性能调优" class="headerlink" title="spark性能调优"></a>spark性能调优</h3><p>有篇文章写得很好，可以参考下<br><a href="https://www.cnblogs.com/stillcoolme/p/10576563.html">https://www.cnblogs.com/stillcoolme/p/10576563.html</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>sqoop从mysql导数据到hive报错</title>
-    <url>/2021/01/18/sqoop%E4%BB%8Emysql%E5%AF%BC%E6%95%B0%E6%8D%AE%E5%88%B0hive%E6%8A%A5%E9%94%99/</url>
-    <content><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>   使用sqoop从mysql导数据到hive，从本地服务器是可以访问mysql的（本地服务器是hadoop集群的一个datanode），但是sqoop导数据的时候依然连接不上mysql<br>报错如下：<br><img src="/uploads/20210118/sqoop-import-error.png" alt="sqoop-import-error"><br>从报错可以看出，是数据库连接失败，很常见的问题，但是从本地是可以直连mysql的。</p>
-<p>因为sqoop导数据的时候，默认会启动4个map task，这4个map task会随机启动在不动的datanode上，所以在想，是不是因为其他节点没有权限访问mysql导致。<br>但是需要先搞清楚，sqoop在抽取数据的时候，是不是会把4个map task随机启动在不动的datanode上</p>
-<p>在官网上有如下内容：<br><img src="/uploads/20210118/sqoop-official-website.png" alt="sqoop-official-website"><br>虽然讲的不是我们要找到，但是可以判断出，sqoop导数据就是会把maptask随机启动在不通的datanode上。<br>因此，sqoop在导数据到mysql的时候，要确认，hadoop集群的每个节点都要有mysql的读权限</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Sqoop</category>
-      </categories>
-      <tags>
-        <tag>Sqoop</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>vim使用手册（一）</title>
     <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2161,6 +2146,21 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       </categories>
       <tags>
         <tag>vim</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>sqoop从mysql导数据到hive报错</title>
+    <url>/2021/01/18/sqoop%E4%BB%8Emysql%E5%AF%BC%E6%95%B0%E6%8D%AE%E5%88%B0hive%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>   使用sqoop从mysql导数据到hive，从本地服务器是可以访问mysql的（本地服务器是hadoop集群的一个datanode），但是sqoop导数据的时候依然连接不上mysql<br>报错如下：<br><img src="/uploads/20210118/sqoop-import-error.png" alt="sqoop-import-error"><br>从报错可以看出，是数据库连接失败，很常见的问题，但是从本地是可以直连mysql的。</p>
+<p>因为sqoop导数据的时候，默认会启动4个map task，这4个map task会随机启动在不动的datanode上，所以在想，是不是因为其他节点没有权限访问mysql导致。<br>但是需要先搞清楚，sqoop在抽取数据的时候，是不是会把4个map task随机启动在不动的datanode上</p>
+<p>在官网上有如下内容：<br><img src="/uploads/20210118/sqoop-official-website.png" alt="sqoop-official-website"><br>虽然讲的不是我们要找到，但是可以判断出，sqoop导数据就是会把maptask随机启动在不通的datanode上。<br>因此，sqoop在导数据到mysql的时候，要确认，hadoop集群的每个节点都要有mysql的读权限</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Sqoop</category>
+      </categories>
+      <tags>
+        <tag>Sqoop</tag>
       </tags>
   </entry>
   <entry>
@@ -2783,6 +2783,215 @@ conn<span class="token punctuation">.</span>close<span class="token punctuation"
       </categories>
       <tags>
         <tag>监控</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>采集写入hudi设计文档</title>
+    <url>/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>采集写入hudi设计文档</li>
+</ul>
+<a id="more"></a>
+
+
+<h1 id="采集hudi表结构设计"><a href="#采集hudi表结构设计" class="headerlink" title="采集hudi表结构设计"></a>采集hudi表结构设计</h1><h2 id="采集hudi表目录"><a href="#采集hudi表目录" class="headerlink" title="采集hudi表目录:"></a>采集hudi表目录:</h2><ul>
+<li><p>hudi表目录：/apps/hudi/warehouse/fdm/tableName</p>
+</li>
+<li><p>hudi删除表目录：/apps/hudi/warehouse/fdm/tableName_del</p>
+</li>
+</ul>
+<h2 id="采集hudi表外表hive表"><a href="#采集hudi表外表hive表" class="headerlink" title="采集hudi表外表hive表"></a>采集hudi表外表hive表</h2><ul>
+<li>读优化视图表：tableName_ro</li>
+<li>快照视图：tableName_rt</li>
+</ul>
+<h2 id="按月分区表"><a href="#按月分区表" class="headerlink" title="按月分区表"></a>按月分区表</h2><p>/basePath/tableName/2021-07/</p>
+<p>/basePath/tableName/2021-08/</p>
+<p>/basePath/tableName/…/</p>
+<p>/basePath/tableName/2021-09/</p>
+<p>概述：根据创建日期所在月分区，按月分区表适合大部分业务场景，业务每天数据量不是很大，或者数据变更不是很频繁，按月分区表以dam结尾。<br>优点：减少Hdfs小文件数量，hudi表使用MOR格式。<br>缺点：数据倾斜导致一个分区数据很大，分区内更新效率低</p>
+<h2 id="按日分区表"><a href="#按日分区表" class="headerlink" title="按日分区表"></a>按日分区表</h2><p>/basePath/tableName/2021-08-16/<br>/basePath/tableName/2021-08-17/<br>/basePath/tableName/…/<br>/basePath/tableName/2021-09-14/</p>
+<p>概述：根据创建日期分区，按日分区表适合业务每天数据量很大，或者数据变更频繁，适用于读少写多大表场景，按日分区表以dad结尾。<br>优点：优化写入效率，hudi表使用MOR格式。<br>缺点：分区越来越多，hive查询效率低，数据倾斜导致一个分区数据量很少，带来小文件问题</p>
+<h1 id="采集表元数据管理"><a href="#采集表元数据管理" class="headerlink" title="采集表元数据管理"></a>采集表元数据管理</h1><h2 id="元数据管理流程"><a href="#元数据管理流程" class="headerlink" title="元数据管理流程"></a>元数据管理流程</h2><p><img src="/uploads/202203/%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B.png" alt="元数据管理流程"></p>
+<h2 id="hudi-schema限制"><a href="#hudi-schema限制" class="headerlink" title="hudi schema限制"></a>hudi schema限制</h2><ul>
+<li>hudi支持类型有null、boolean、int、long、float、double、bytes、string、array、map、enum</li>
+<li>不能删除字段，不能修改字段名</li>
+<li>添加字段需要有默认值</li>
+<li>字段类型修改只允许如下变化：int修改成long，int、long修改成float，int、long、float修改成double，bytes修改成string，string修改成bbytes</li>
+</ul>
+<h2 id="mysql-hudi字段类型映射"><a href="#mysql-hudi字段类型映射" class="headerlink" title="mysql hudi字段类型映射"></a>mysql hudi字段类型映射</h2><table>
+<thead>
+<tr>
+<th>序号</th>
+<th>mysql</th>
+<th>hudi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>VARCHAR</td>
+<td>string</td>
+</tr>
+<tr>
+<td>2</td>
+<td>DATE</td>
+<td>string</td>
+</tr>
+<tr>
+<td>3</td>
+<td>CHAR</td>
+<td>string</td>
+</tr>
+<tr>
+<td>4</td>
+<td>TINYINT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>5</td>
+<td>SMALLINT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>6</td>
+<td>DATETIME</td>
+<td>long（string）hudi不支持时间类型，可以存储时间戳</td>
+</tr>
+<tr>
+<td>7</td>
+<td>TEXT</td>
+<td>string</td>
+</tr>
+<tr>
+<td>8</td>
+<td>TIMESTAMP</td>
+<td>long（string）hudi不支持时间类型，可以存储时间戳</td>
+</tr>
+<tr>
+<td>9</td>
+<td>INT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>10</td>
+<td>BIT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>11</td>
+<td>VARBINARY</td>
+<td>string</td>
+</tr>
+<tr>
+<td>12</td>
+<td>LONGTEXT</td>
+<td>string</td>
+</tr>
+<tr>
+<td>13</td>
+<td>DECIMAL</td>
+<td>string</td>
+</tr>
+<tr>
+<td>15</td>
+<td>DOUBLE</td>
+<td>double</td>
+</tr>
+<tr>
+<td>16</td>
+<td>BIGINT</td>
+<td>long</td>
+</tr>
+<tr>
+<td>17</td>
+<td>BLOB</td>
+<td>string</td>
+</tr>
+<tr>
+<td>18</td>
+<td>TINYINT UNSIGNED</td>
+<td>int</td>
+</tr>
+<tr>
+<td>19</td>
+<td>SMALLINT UNSIGNED</td>
+<td>int</td>
+</tr>
+<tr>
+<td>20</td>
+<td>INT UNSIGNED</td>
+<td>long</td>
+</tr>
+<tr>
+<td>21</td>
+<td>BIGINT UNSIGNED</td>
+<td>long</td>
+</tr>
+<tr>
+<td>22</td>
+<td>FLOAT UNSIGNED</td>
+<td>float</td>
+</tr>
+<tr>
+<td>23</td>
+<td>DOUBLE UNSIGNED</td>
+<td>double</td>
+</tr>
+<tr>
+<td>24</td>
+<td>FLOAT</td>
+<td>float</td>
+</tr>
+<tr>
+<td>25</td>
+<td>MEDIUMINT UNSIGNED</td>
+<td>int</td>
+</tr>
+</tbody></table>
+<ol>
+<li><h1 id="采集初始化到hudi"><a href="#采集初始化到hudi" class="headerlink" title="采集初始化到hudi"></a>采集初始化到hudi</h1></li>
+</ol>
+<p>采集初始化根据数据创建日期采集到数据日期所在月份的分区，示意图如3-1：<br><img src="/uploads/202203/%E5%88%9D%E5%A7%8B%E5%8C%96hudi%E5%88%86%E5%8C%BA%E6%A0%BC%E5%BC%8F.png" alt="初始化hudi分区格式"></p>
+<p>采集初始化由采集模块发起，请求调度，调度触发脚本机执行初始化任务，脚本机启动使用spark任务采集关系数据库数据，spark任务使用Datax采集MySQL、MongoDB，使用Hudi-spark-client模块将数据写入Hudi，示意图如3-2<br>这里依然生成了调度任务，只是在初始化的时候用了一次，可以简化成采集直接和脚本机接入，由采集直接触发脚本机执行任务，但是这个改动量比较大。<br><img src="/uploads/202203/%E5%88%9D%E5%A7%8B%E5%8C%96%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B.png" alt="初始化采集流程"></p>
+<h1 id="采集实时写入hudi"><a href="#采集实时写入hudi" class="headerlink" title="采集实时写入hudi"></a>采集实时写入hudi</h1><ul>
+<li>插入数据记录，直接插入到hudi原表</li>
+<li>更新数据记录，直接更新hudi原表记录</li>
+<li>删除数据记录，直接删除hudi原表记录，同时插入hudi删除表</li>
+<li>以分钟频率拉取kafka记录摄入hudi，减少元数据提交次数</li>
+</ul>
+<p><img src="/uploads/202203/%E5%88%86%E9%92%9F%E9%A2%91%E7%8E%87.png" alt="分钟频率"></p>
+<p>采集实时写入hudi由采集模块发起，在启动实时写入任务的时候将采集任务分配到固定的Flink节点，通过ESF和Flink节点通信，在Flink节点启动线程执行实时写入hudi任务，任务以每分钟频率拉取，使用Hudi-flink-client模块将数据写入Hudi，示意图如4-2<br><img src="/uploads/202203/%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B.png" alt="采集流程"></p>
+<h1 id="异步合并parquet任务"><a href="#异步合并parquet任务" class="headerlink" title="异步合并parquet任务"></a>异步合并parquet任务</h1><p>对于Merge-On-Read表，数据使用列式Parquet文件和行式Avro文件存储，更新被记录到增量文件，然后进行同步/异步compaction生成新版本的列式文件。Merge-On-Read表可减少数据写入延迟，因而进行不阻塞摄入的异步Compaction很有意义，流程如下图5-1<br>创建一个调度任务，调度任务每个小时触发一次合并任务<br><img src="/uploads/202203/%E5%BC%82%E6%AD%A5%E5%90%88%E5%B9%B6parquet.png" alt="异步合并parquet"></p>
+<ol>
+<li><h1 id="监控报警"><a href="#监控报警" class="headerlink" title="监控报警"></a>监控报警</h1></li>
+</ol>
+<ul>
+<li>Flink节点心跳检查</li>
+<li>实时摄入任务每分钟（单次）写入耗时、写入insert条数、写入update条数、写入delete条数、写入数据条数、写入数据量，上报统一监控</li>
+<li>异步合并parquet任务合并log文件数、合并耗时，上报统一监控</li>
+<li>实时写入失败情况下报警</li>
+</ul>
+<h1 id="管理界"><a href="#管理界" class="headerlink" title="管理界"></a>管理界</h1><p><img src="/uploads/202203/%E7%AE%A1%E7%90%86%E7%95%8C%E9%9D%A2.png" alt="管理界面"></p>
+<ul>
+<li>存储目标添加hudi存储方式</li>
+<li>提供按月分区、按日分区，根据近半年每日新增数据分析初始值，可修改</li>
+<li>采集频率默认1m，提供30s、2m可选项</li>
+<li>分区时间字段，例如创建时间</li>
+</ul>
+<h1 id="FDM表（hudi）后续使用特点"><a href="#FDM表（hudi）后续使用特点" class="headerlink" title="FDM表（hudi）后续使用特点"></a>FDM表（hudi）后续使用特点</h1><ol>
+<li>实时采集默认都走hudi，全量表，拉链表功能保留，有需要可以用，不建议用</li>
+<li>任务使用建议走spark引擎</li>
+</ol>
+<h1 id="问题列表"><a href="#问题列表" class="headerlink" title="问题列表"></a>问题列表</h1><ol>
+<li>无创建时间表分区问题</li>
+</ol>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>采集</category>
+      </categories>
+      <tags>
+        <tag>hudi</tag>
       </tags>
   </entry>
   <entry>
@@ -4913,6 +5122,321 @@ protected abstract void abort(TXN transaction);</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>Hbase学习笔记</title>
+    <url>/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Hbase简介</li>
+<li>Hbase安装</li>
+<li>HBase命令行操作</li>
+<li>Phoenix操作Hbase</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Hbase简介"><a href="#Hbase简介" class="headerlink" title="Hbase简介"></a>Hbase简介</h2><p>HBASE是一个高可靠性、高性能、面向列、可伸缩的分布式存储系统，利用HBASE技术可在廉价PC Server上搭建起大规模结构化存储集群。<br>HBASE的目标是存储并处理大型的数据，更具体来说是仅需使用普通的硬件配置，就能够处理由成千上万的行和列所组成的大型数据。</p>
+<p>它介于nosql和RDBMS之间，仅能通过主键(row key)和主键的range来检索数据，仅支持单行事务(可通过hive支持来实现多表join等复杂操作)。主要用来存储非结构化和半结构化的松散数据。</p>
+<p>Hbase的表模型与关系型数据库的表模型不同：</p>
+<ul>
+<li>Hbase的表没有固定的字段定义；</li>
+<li>Hbase的表中每行存储的都是一些key-value对</li>
+<li>Hbase的表中有列族的划分，用户可以指定将哪些kv插入哪个列族</li>
+<li>Hbase的表在物理存储上，是按照列族来分割的，不同列族的数据一定存储在不同的文件中</li>
+<li>Hbase的表中的每一行都固定有一个行键，而且每一行的行键在表中不能重复</li>
+<li>Hbase中的数据，包含行键，包含key，包含value，都是byte[ ]类型，hbase不负责为用户维护数据类型</li>
+<li>HBASE对事务的支持很差</li>
+</ul>
+<p>HBASE相比于其他nosql数据库(mongodb、redis、cassendra、hazelcast)的特点：<br>Hbase的表数据存储在HDFS文件系统中，所以，hbase具备如下特性：</p>
+<ul>
+<li>海量存储</li>
+<li>列式存储</li>
+<li>数据存储的安全性可靠性极高！</li>
+<li>支持高并发</li>
+<li>存储容量可以线性扩展；</li>
+</ul>
+<h3 id="HBase存储机制"><a href="#HBase存储机制" class="headerlink" title="HBase存储机制"></a>HBase存储机制</h3><p>HBase是一个面向列的数据库，在表中它由行排序。表模式定义只能列族，也就是键值对。一个表有多个列族以及每一个列族可以有任意数量的列。后续列的值连续地存储在磁盘上。表中的每个单元格值都具有时间戳。总之，在一个HBase： - 表是行的集合。 - 行是列族的集合。 - 列族是列的集合。 - 列是键值对的集合。</p>
+<p>下面给出的表中是HBase模式的一个例子。<br><img src="/uploads/202203/Hbase%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6.png" alt="Hbase存储机制"></p>
+<h3 id="名词概念"><a href="#名词概念" class="headerlink" title="名词概念"></a>名词概念</h3><ul>
+<li><p><strong>Rowkey的概念</strong><br>Rowkey的概念和mysql中的主键是完全一样的，Hbase使用Rowkey来唯一的区分某一行的数据。Hbase只支持3种查询方式： - 1、基于Rowkey的单行查询 - 2、基于Rowkey的范围扫描 - 3、全表扫描<br>因此，Rowkey对Hbase的性能影响非常大，Rowkey的设计就显得尤为的重要。设计的时候要兼顾基于Rowkey的单行查询也要键入Rowkey的范围扫描。<br>rowkey 行键可以是任意字符串(最大长度是64KB，实际应用中长度一般为 10-100bytes)，最好是16。在HBase 内部，rowkey 保存为字节数组。HBase会对表中的数据按照 rowkey 排序 (字典顺序)</p>
+</li>
+<li><p><strong>Column的概念</strong><br>列，可理解成MySQL列。</p>
+</li>
+<li><p><strong>ColumnFamily的概念</strong><br>Hbase通过列族划分数据的存储，列族下面可以包含任意多的列，实现灵活的数据存取。列族是由一个一个的列组成（任意多）。</p>
+</li>
+</ul>
+<p>Hbase表的创建的时候就必须指定列族。就像关系型数据库创建的时候必须指定具体的列是一样的。</p>
+<p>Hbase的列族不是越多越好，官方推荐的是列族最好小于或者等于3。我们使用的场景一般是1个列族。</p>
+<ul>
+<li><p><strong>TimeStamp的概念</strong><br>TimeStamp对Hbase来说至关重要，因为它是实现Hbase多版本的关键。在Hbase中使用不同的timestame来标识相同rowkey行对应的不通版本的数据。<br>在写入数据的时候，如果用户没有指定相应的timestamp，HBase会自动添加一个timestamp，timestamp和服务器时间保持一致。<br>HBase 中通过rowkey和columns确定的为一个存储单元称为cell。每个cell都保存着同一份数据的多个版本。版本通过时间戳来索引。时间戳的类型是64位整型。时间戳可以由 hbase(在数据写入时自动)赋值，此时时间戳是精确到毫秒的当前系统时间。时间戳也可以由客户显式赋值。如果应用程序要避免数据版本冲突，就必须自己生成具有唯一性的时间戳。每个cell中，不同版本的数据按照时间倒序排序，即最新的数据排在最前面。<br>为了避免数据存在过多版本造成的的管理(包括存贮和索引)负担，hbase 提供了两种数据版本回收方式： - 保存数据的最后 n 个版本 - 保存最近一段时间内的版本（设置数据的生命周期 TTL）。<br>用户可以针对每个列簇进行设置。</p>
+</li>
+<li><p><strong>单元格（Cell）</strong><br>由{rowkey, column( = +),version}唯一确定的单元。 Cell 中的数据是没有类型的，全部是字节码形式存贮。</p>
+</li>
+<li><p><strong>Region</strong><br>Region的概念和关系型数据库的分区或者分片差不多。<br>Hbase会将一个大表的数据基于Rowkey的不同范围分配到不通的Region中，每个Region负责一定范围的数据访问和存储。这样即使是一张巨大的表，由于被切割到不通的region，访问起来的时延也很低。</p>
+</li>
+</ul>
+<h2 id="Hbase安装"><a href="#Hbase安装" class="headerlink" title="Hbase安装"></a>Hbase安装</h2><p>此处略过，具体可以参考[][]</p>
+<h2 id="HBase命令行操作"><a href="#HBase命令行操作" class="headerlink" title="HBase命令行操作"></a>HBase命令行操作</h2><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>命令表达式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>创建表</td>
+<td>create ‘表名’, ‘列族名1’,’列族名2’,’列族名N’</td>
+</tr>
+<tr>
+<td>查看所有表</td>
+<td>list</td>
+</tr>
+<tr>
+<td>描述表</td>
+<td>describe  ‘表名’</td>
+</tr>
+<tr>
+<td>判断表存在</td>
+<td>exists  ‘表名’</td>
+</tr>
+<tr>
+<td>判断是否禁用启用表</td>
+<td>is_enabled ‘表名’is_disabled ‘表名’</td>
+</tr>
+<tr>
+<td>添加记录</td>
+<td>put  ‘表名’, ‘rowKey’, ‘列族 : 列‘  ,  ‘值’</td>
+</tr>
+<tr>
+<td>查看记录rowkey下的所有数据</td>
+<td>get  ‘表名’ , ‘rowKey’</td>
+</tr>
+<tr>
+<td>查看表中的记录总数</td>
+<td>count  ‘表名’</td>
+</tr>
+<tr>
+<td>获取某个列族</td>
+<td>get ‘表名’,’rowkey’,’列族’</td>
+</tr>
+<tr>
+<td>获取某个列族的某个列</td>
+<td>get ‘表名’,’rowkey’,’列族：列’</td>
+</tr>
+<tr>
+<td>删除记录</td>
+<td>delete  ‘表名’ ,‘行名’ , ‘列族：列’</td>
+</tr>
+<tr>
+<td>删除整行</td>
+<td>deleteall ‘表名’,’rowkey’</td>
+</tr>
+<tr>
+<td>删除一张表</td>
+<td>先要屏蔽该表，才能对该表进行删除第一步 disable ‘表名’ ，第二步  drop ‘表名’</td>
+</tr>
+<tr>
+<td>清空表</td>
+<td>truncate ‘表名’</td>
+</tr>
+<tr>
+<td>查看所有记录</td>
+<td>scan “表名”</td>
+</tr>
+<tr>
+<td>查看某个表某个列中所有数据</td>
+<td>scan “表名” , {COLUMNS=&gt;’列族名:列名’}</td>
+</tr>
+<tr>
+<td>更新记录</td>
+<td>就是重写一遍，进行覆盖，hbase没有修改，都是追加</td>
+</tr>
+</tbody></table>
+<h2 id="Phoenix操作Hbase"><a href="#Phoenix操作Hbase" class="headerlink" title="Phoenix操作Hbase"></a>Phoenix操作Hbase</h2><h3 id="Phoenix安装与配置"><a href="#Phoenix安装与配置" class="headerlink" title="Phoenix安装与配置"></a>Phoenix安装与配置</h3><p>新公司使用的CM来统一管理大数据集群，为了防止软件版本不统一导致各种问题，这里在CM上安装Phoenix</p>
+<p>首先，需要确定CM平台是哪个版本的，在CM的管理页面上可以直接看出，我们的CM的6.2.0版本的<br>那么剩下的，就是要下载一个和6.2.0版本想匹配的phoenix安装包<br>但是，CM从2021.1月份开始收费，通过正常渠道无法下载到这个安装包了。这里是在百度上找了很久才找到<br>具体参考<a href="https://blog.csdn.net/hell_oword/article/details/119327354?spm=1001.2014.3001.5502">CDH 6.2 安装 Phoenix</a></p>
+<p>安装包已经搞定，下面开始安装</p>
+<ol>
+<li>首先安装 CSD 文件<ol>
+<li>确定 CSD(Custom Service Descriptor) 文件安装路径，公司的安装路径为/opt/cloudera/csd,这里的地址就是server的地址，即ddp1服务器的地址</li>
+<li>将 CSD文件(PHOENIX-1.0.jar) 放到到本地描述符存储库路径，然后重启 Cloudera Manager 服务器</li>
+<li>重启 cloudera-scm-server 服务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl restart cloudera-scm-server
+&#96;&#96;&#96;   
+第一步只要在CM第一次安装的时候初始化一次就够了，如果已经初始化过以后，可以直接从第二步骤开始。
+&gt; 这里不知道对不对，因为没有重启，虽然最终phoenix安装上去了，但是最后在CM上添加不了服务。
+&gt; 这里等我自己搭建一个CM，再手动测试一下看看
+2. 安装Phoenix parcel
+    1. 上传文件到如图 parcel 目录下，PHOENIX-5.0.0-cdh6.2.0.p0.1308267-el7.parcel、PHOENIX-5.0.0-cdh6.2.0.p0.1308267-el7.parcel.sha 、 manifest.json
+    2. 点击检查新 Parcel ，当出现 PHOENIX 后，点击 Distribute
+    3. 点击激活 PHOENIX，并在弹框中点击 确认
+    4. 集群 -&gt; 操作 -&gt; 添加服务，出现 PHOENIX 服务 **这里不知道为什么在服务里没找到PHOENIX，不知道是不是因为CM没有重启**
+    5. 将 PHOENIX 服务添加到每个 Region Server 中
+    6. 重启hbase集群，否则phoenix启动会报错
+
+#### 遇到的问题
+1. Phoenix安装完成以后，在服务里找不到选项，添加不了服务，不知道是不是因为CSD文件配置好以后，CM没有重启，需要测试一下
+2. Phoenix安装完成以后，直接打开phoenix-sqlline，报如下错误
+&#96;&#96;&#96;shell
+Error: org.apache.hadoop.hbase.DoNotRetryIOException: Unable to load configured region split policy &#39;org.apache.phoenix.schema.MetaDataSplitPolicy&#39; for table &#39;SYSTEM.CATALOG&#39; Set hbase.table.sanity.checks to false at conf or table descriptor if you want to bypass sanity checks
+        at org.apache.hadoop.hbase.master.HMaster.warnOrThrowExceptionForFailure(HMaster.java:2232)
+        at org.apache.hadoop.hbase.master.HMaster.sanityCheckTableDescriptor(HMaster.java:2079)
+        at org.apache.hadoop.hbase.master.HMaster.createTable(HMaster.java:1978)
+        at org.apache.hadoop.hbase.master.MasterRpcServices.createTable(MasterRpcServices.java:630)
+        at org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos$MasterService$2.callBlockingMethod(MasterProtos.java)
+        at org.apache.hadoop.hbase.ipc.RpcServer.call(RpcServer.java:413)
+        at org.apache.hadoop.hbase.ipc.CallRunner.run(CallRunner.java:130)
+        at org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:324)
+        at org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:304) (state&#x3D;08000,code&#x3D;101)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+网上的说法是，需要把phoenix的jar包放到hbase的安装路径之下，但是，那应该是自己解压phoenix安装的问题，使用CM安装，CM会把这些配置都设置好的，只需要重启一下Hbase集群即可</li>
+</ol>
+</li>
+<li>phoenix里查不到hbase的表<ol>
+<li>这里不算是问题，phoenix创建的表hbase能看到，但是，hbase的表想要在phoenix里看到，需要做一次映射</li>
+</ol>
+</li>
+</ol>
+<h3 id="phoenix映射HBase"><a href="#phoenix映射HBase" class="headerlink" title="phoenix映射HBase"></a>phoenix映射HBase</h3><p>默认情况下，直接在hbase中创建的表，通过phoenix是查看不到的。<br>如果要在phoenix中操作由hbase创建的表，则需要在phoenix中进行表的映射。<br>映射方式有两种：</p>
+<blockquote>
+<p>视图映射和表映射</p>
+</blockquote>
+<p>两种方式的区别：</p>
+<ul>
+<li>视图只读，不支持新增和修改</li>
+<li>如果删除视图，源数据不会发生改变</li>
+<li>视图的查询效率较低（原因是：表映射会在表中创建一些空的键值对，这些空键值对的存在可以用来提高查询效率，而视图映射没有）</li>
+<li>使用create table创建的关联表，如果对表进行了修改，源数据也会改变，同时如果关联表被删除，源表也会被删除。</li>
+</ul>
+<p>案例：<br>首先在Hbase中创建一个表，并写入几条数据</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create &#39;phoenix&#39;,&#39;info&#39;
+put &#39;phoenix&#39;, &#39;row001&#39;,&#39;info:name&#39;,&#39;phoenix&#39;
+put &#39;phoenix&#39;, &#39;row002&#39;,&#39;info:name&#39;,&#39;hbase&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>创建视图：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create view &quot;phoenix&quot;(empid varchar primary key,&quot;info&quot;.&quot;name&quot; varchar);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>*注意：**</li>
+<li>*这里一定要注意的是表名和列族以及列名需要用双引号括起来，因为HBase是区分大小写的，如果不用双引号括起来的话Phoenix在创建表的时候会自动将小写转换为大写字母，这样HBase中会创建另外一张表PHOENIX。**</li>
+<li>*这里查询表名需要用双引号括起来，强制不转换为大写。**</li>
+</ul>
+<p><img src="/uploads/202203/phoenix%E5%88%9B%E5%BB%BAhbase%E8%A7%86%E5%9B%BE.png" alt="phoenix创建hbase视图"></p>
+<blockquote>
+<p>视图是只读的，不可以修改hbase表的内容</p>
+</blockquote>
+<ul>
+<li>创建关联表：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create table &quot;phoenix&quot;(empid varchar primary key,&quot;info&quot;.&quot;name&quot; varchar);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+直接这么创建，从hbase端修改的数据，在phoenix里是查不到的。<br>经过阅读官方文档发现，phoenix 4.10 版本后，对列映射做了优化，采用一套新的机制，不在基于列名方式映射到 hbase。<br>如果只是想查询hbase数据，那么可以使用创建视图的方式，但是如果必须要映射到表，需要禁用列映射规则(会降低查询性能)<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create table &quot;phoenix&quot;(empid varchar primary key,&quot;info&quot;.&quot;name&quot; varchar) column_encoded_bytes&#x3D;0;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<img src="/uploads/202203/phonix%E5%88%9B%E5%BB%BA%E8%A1%A8%E6%98%A0%E5%B0%84hbase%E8%A1%A8.png" alt="phonix创建表映射hbase表"></li>
+</ul>
+<p>还有一个问题：<br>通过phoenix创建的表，在phoenix侧修改数据后，hbase里的数据是两条<br><img src="/uploads/202203/phoenix%E6%9B%B4%E6%96%B0hbase%E8%A1%A8%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98.png" alt="phoenix更新hbase表存在的问题"><br>不知道这种数据会不会是脏数据</p>
+<h3 id="JDBC链接Phoenix"><a href="#JDBC链接Phoenix" class="headerlink" title="JDBC链接Phoenix"></a>JDBC链接Phoenix</h3><p>添加Maven依赖</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.phoenix<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>phoenix-core<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>5.0.0-HBase-2.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exclusions</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exclusion</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.glassfish<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>javax.el<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exclusion</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exclusions</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-common<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>java代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>escloud<span class="token punctuation">.</span>phoenix</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>sql<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Phoenix</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> driver <span class="token operator">=</span> <span class="token string">"org.apache.phoenix.jdbc.PhoenixDriver"</span><span class="token punctuation">;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">Class</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span>driver<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">ClassNotFoundException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token class-name">Statement</span> stmt <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token class-name">ResultSet</span> rs <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token class-name">Connection</span> con <span class="token operator">=</span> <span class="token class-name">DriverManager</span><span class="token punctuation">.</span><span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token string">"jdbc:phoenix:ddp5.hadoop:2181"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        stmt <span class="token operator">=</span> con<span class="token punctuation">.</span><span class="token function">createStatement</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> sql <span class="token operator">=</span> <span class="token string">"select * from \"phoenix\""</span><span class="token punctuation">;</span>
+        rs <span class="token operator">=</span> stmt<span class="token punctuation">.</span><span class="token function">executeQuery</span><span class="token punctuation">(</span>sql<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>rs<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token string">"rowkey:"</span><span class="token operator">+</span>rs<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"ROWKEY"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">",name:"</span><span class="token operator">+</span>rs<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        stmt<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        con<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h4><ol>
+<li>java.lang.ClassNotFoundException: org.apache.phoenix.jdbc.PhoenixDriver</li>
+</ol>
+<p><strong>问题原因：</strong> maven工程打包不正确，应该把依赖也打到jar包里<br><strong>解决办法：</strong> </p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugins</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-assembly-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.4.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+                    <span class="token comment">&lt;!-- get all project dependencies --></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>descriptorRefs</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>descriptorRef</span><span class="token punctuation">></span></span>jar-with-dependencies<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>descriptorRef</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>descriptorRefs</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>executions</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>make-assembly<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+                        <span class="token comment">&lt;!-- bind to the packaging phase --></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>package<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
+                            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>single<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>executions</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugins</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol start="2">
+<li>报找不到方法，具体报错信息<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.lang.NoSuchMethodError: org.apache.hadoop.security.authentication.util.KerberosUtil.hasKerberosKeyTab(Ljavax&#x2F;security&#x2F;auth&#x2F;Subject;)Z
+        at org.apache.hadoop.security.UserGroupInformation.&lt;init&gt;(UserGroupInformation.java:715)
+        at org.apache.hadoop.security.UserGroupInformation.loginUserFromSubject(UserGroupInformation.java:925)
+        at org.apache.hadoop.security.UserGroupInformation.getLoginUser(UserGroupInformation.java:873)
+        at org.apache.hadoop.security.UserGroupInformation.getCurrentUser(UserGroupInformation.java:740)
+        at org.apache.hadoop.hbase.security.User$SecureHadoopUser.&lt;init&gt;(User.java:266)
+        at org.apache.hadoop.hbase.security.User.getCurrent(User.java:164)
+        at org.apache.phoenix.jdbc.PhoenixEmbeddedDriver$ConnectionInfo.&lt;init&gt;(PhoenixEmbeddedDriver.java:504)
+        at org.apache.phoenix.jdbc.PhoenixEmbeddedDriver$ConnectionInfo.create(PhoenixEmbeddedDriver.java:312)
+        at org.apache.phoenix.jdbc.PhoenixDriver.getConnectionQueryServices(PhoenixDriver.java:232)
+        at org.apache.phoenix.jdbc.PhoenixEmbeddedDriver.createConnection(PhoenixEmbeddedDriver.java:150)
+        at org.apache.phoenix.jdbc.PhoenixDriver.connect(PhoenixDriver.java:221)
+        at java.sql.DriverManager.getConnection(DriverManager.java:664)
+        at java.sql.DriverManager.getConnection(DriverManager.java:270)
+        at com.digiwin.escloud.phoenix.Phoenix.main(Phoenix.java:18)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+解决办法：添加maven依赖<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-common<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hbase</category>
+      </categories>
+      <tags>
+        <tag>Hbase</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Flink面试题总结</title>
     <url>/2021/11/11/Flink%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -5329,6 +5853,447 @@ set mapreduce.job.reduces&#x3D;&lt;number&gt;<span aria-hidden="true" class="lin
       </categories>
       <tags>
         <tag>Hive</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hudi和iceberg测试比较</title>
+    <url>/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>hudi和iceberg测试比较</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="背景和需求"><a href="#背景和需求" class="headerlink" title="背景和需求"></a>背景和需求</h1><p>当前采集系统分为实时采集、定时采集，实时采集当天数据存在Hbase中，当天以前的数据存在Hive中。定时采集只有当天以前的数据。随着业务的要求越来越高，T+1的延时已经无法满足业务的的使用场景，数据实时性是采集系统亟需改善的一个地方。<br>我们也尝试使用了Kudu来解决这个问题，Kudu是一个列式存储的存储引擎，不兼容Hdfs，其次孩子王Kudu系统也不稳定，所以没有把整个表的数据写入Kudu，而是使用Kudu替代了Hbase，解决了Hbase批量查询的性能问题，但还是没有通过一个组件解决采集的实时性问题。<br>总结下来就是，采集系统需要将原系统数据实时采入单个组件，可以达到分钟级的延迟。同时提供高性能的查询方式给业务查询。数据湖很早就进入我们的视野，目前主流的就是Iceberg和Hudi，本文就是从原理、特性、性能上对比两个数据湖组件。</p>
+<h1 id="Hudi介绍"><a href="#Hudi介绍" class="headerlink" title="Hudi介绍"></a>Hudi介绍</h1><h2 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h2><p>Hudi使用Hadoop FileSystem API与湖存储交互，Hudi充分利用了像HDFS之类的存储模式所支持的“append”特性。这有助于Hudi提供流时写入，而不会导致文件计数/表元数据激增。</p>
+<h2 id="文件格式"><a href="#文件格式" class="headerlink" title="文件格式"></a>文件格式</h2><p>Hudi是围绕基本文件和增量日志文件的概念设计的，它们将更新 / 增量数据存储到给定的基本文件（称为文件片，file slice）。基本文件格式包括 Parquet（列访问）和 HFile（索引访问），增量日志以 Avro（面向行）。<br><img src="/uploads/202203/hudi%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F.png" alt="hudi文件格式"></p>
+<h2 id="表格式"><a href="#表格式" class="headerlink" title="表格式"></a>表格式</h2><p>表格式包括表的文件布局、表的schema、表变更的元数据跟踪。Hudi使用Avro模式来存储、管理和演进表的schema。Hudi有意识地将表/分区中的文件分组，并维护记录的键与所有文件组之间的映射，所有更新都记录到特定于文件组的增量日志文件中，Hudi的设计理念基于键的快速upserts/deletes，并且只需要在每个文件组中合并delta日志<br><img src="/uploads/202203/hudi%E8%A1%A8%E6%A0%BC%E5%BC%8F.png" alt="hudi表格式"></p>
+<h2 id="表类型和查询"><a href="#表类型和查询" class="headerlink" title="表类型和查询"></a>表类型和查询</h2><p>Hudi支持两种类型的表，COW（Copy-On-Write），MOR（Merge-On-Read），COW表的写放大问题严重，MOR提供了低延迟、更高效地实时写入，但读取的时候需要更高的延迟</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>COW</th>
+<th>MOR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据延迟</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>查询延迟</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>更新成本</td>
+<td>高（重写整个parquet）</td>
+<td>低（添加到delta日志大小）</td>
+</tr>
+<tr>
+<td>Parquet文件大小</td>
+<td>小</td>
+<td>大</td>
+</tr>
+<tr>
+<td>写放大</td>
+<td>高</td>
+<td>低</td>
+</tr>
+</tbody></table>
+<p>Hudi支持三种类型的查询，快照查询（能够查询到表的最新快照数据，如果是MOR表，会将基本文件和增量文件合并后再提供数据）、增量查询（增量查询只能查看到写入表的新数据）、读优化查询（可以查询到表的最新快照数据，它近查询最新的基本列文件，可以保证查询性能，这种方式保证了性能，但数据可能会有延迟）</p>
+<table>
+<thead>
+<tr>
+<th>表类型</th>
+<th>支持的查询类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>COW</td>
+<td>快照查询、增量查询</td>
+</tr>
+<tr>
+<td>MOR</td>
+<td>快照查询、增量查询、读优化查询</td>
+</tr>
+</tbody></table>
+<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><p>Hudi支持不同的基于主键的索引方案，以快速将采集的记录键映射到他们所在的文件组中。Hudi会自动强制执行文件大小，这有助于降低从Parquet页脚读取统计信息所需的时间。</p>
+<h2 id="并发控制"><a href="#并发控制" class="headerlink" title="并发控制"></a>并发控制</h2><p>定义了不同的写入器/读取器如何协调对表的访问。Hudi确保原子写入，通过将提交原子地发布到时间线，并标记一个即时时间（instant），以标记该操作具体发生的时间。Hudi明确区分了写入进程（执行用户的更新、插入、删除）、表服务（写入数据、元数据以优化执行所需的信息）和读取器（执行查询），Hudi在所有三种类型的进程之间提供快照隔离，他们都对表的一致快照进行操作。</p>
+<h2 id="写入器"><a href="#写入器" class="headerlink" title="写入器"></a>写入器</h2><p>Hudi表可以用作Spark/Flink管道的接收器，upsert、delete操作都会自动处理输入流中具有相同键的记录的预合并，然后查找索引，最后调用二进制打包算法将数据打包到文件中，同时遵循预配置的目标文件大小。</p>
+<h2 id="读取器"><a href="#读取器" class="headerlink" title="读取器"></a>读取器</h2><p>Hudi在写入器和读取器之间提供了快照隔离，并允许所有主流的湖查询引擎（Spark、Hive、Presto）在任何表快照上进行一致的查询，每当Hudi必须为查询合并基础文件和日志文件时，Hudi都会进行控制并采用多种机制来提高合并性能，同时还提供对数据的读优化查询，以权衡数据新鲜度与查询性能。<br>hudi支持建表、写入时将数据同步到hive元数据，生成ro、rt表，支持hive查询，支持presto使用presto连接器查询</p>
+<h2 id="表服务"><a href="#表服务" class="headerlink" title="表服务"></a>表服务</h2><p>为了让Hudi能作为增量数据管道的状态存储，为其设计了内置的表服务和自我管理运行时，可以编排/触发这些服务并在内部优化一切，Hudi有几个内置的表服务，目标都是确保高性能的表存储布局和元数据管理，他们在每次写入操作后同步自动调用，或者作为单独的后台作业异步调用。</p>
+<ul>
+<li>归档服务：一旦事件从时间线上过期，归档服务就会清除湖缓存的任何副作用。</li>
+<li>清理服务：以增量的方式，删除超过保留期限的用于增量查询的文件切片</li>
+<li>压缩服务：将基本文件与一组增量日志文件合并以生成新的基本文件，同时允许对文件组进行并发写入</li>
+<li>聚簇服务：用户可以通过排序键将经常查询的记录组合在一起，或者通过将较小的基本文件合并为较大的文件来控制文件大小</li>
+</ul>
+<h2 id="数据服务"><a href="#数据服务" class="headerlink" title="数据服务"></a>数据服务</h2><p>Hudi能对常见的端到端用例做到开箱即用，最重要的是DeltaStreamer实用程序，可以轻松基于Kafka流以及在湖存储之上的不同格式的文件来构建数据湖。支持检查点的自动管理、跟踪源检查点作为Hudi表元数据的一部分</p>
+<h1 id="Iceberg介绍"><a href="#Iceberg介绍" class="headerlink" title="Iceberg介绍"></a>Iceberg介绍</h1><h2 id="存储-1"><a href="#存储-1" class="headerlink" title="存储"></a>存储</h2><p>Iceberg支持使用Hadoop FileSystem API与湖存储交互，Iceberg需要文件系统支持写、读、删除操作，比如S3。Iceberg不需要随机写，一旦写入，数据文件和元数据文件在被删除之前是不可变的。</p>
+<h2 id="文件格式-1"><a href="#文件格式-1" class="headerlink" title="文件格式"></a>文件格式</h2><p>Iceberg是围绕数据文件和元数据文件的概念设计的，数据文件格式支持parquet, avro, orc，数据文件可以设置大小，减少数据文件重写成本，元数据文件格式支持Json</p>
+<h2 id="表格式-1"><a href="#表格式-1" class="headerlink" title="表格式"></a>表格式</h2><p>Iceerg支持创建表、删除表、修改表名、修改表属性、添加列、修改列名、修改列大小、修改列的顺序、删除列等操作。Iceberg的schema更新是元数据修改，数据文件不需要重写。<br>Iceberg分区每次都正确地生成分区值，并总是在可能的情况下用于加速查询。最重要的是，查询不再依赖于表的物理布局。通过物理和逻辑之间的分离，Iceberg表可以随着数据量的变化而发展分区方案。分区修改是一个元数据操作且不需要重写文件。<br>Iceberg排序顺序也可以在现有表中更新，在修改排序顺序时，使用较早顺序写入的旧数据将保持不变，引擎总是可以选择以最新的排序顺序。<br>快照文件列出清单列表文件。清单列表文件列出组成表快照的清单文件，以及每个分区的范围。清单文件列出组成表快照的数据文件，以及数据文件分区数据和列级别统计信息。Iceberg首先使用清单列表文件分区的范围，然后使用清单文件获取数据文件。通过这种模式，清单列表文件作为清单文件的索引，不需要扫描所有的清单文件。</p>
+<p><img src="/uploads/202203/Iceberg%E8%A1%A8%E6%A0%BC%E5%BC%8F.png" alt="Iceberg表格式"></p>
+<h2 id="并发控制-1"><a href="#并发控制-1" class="headerlink" title="并发控制"></a>并发控制</h2><p>一个表的元数据文件与另一个元数据文件的原子交换为可序列化隔离提供了基础。读取器在加载表元数据时使用当前的快照，并且在刷新元数据位置之前不会受到更改的影响。写入器乐观地创建表元数据文件，假设当前版本不会在写入器提交之前更改，一旦写入器创建了更新，它就通过将表的元数据文件指针从基本版本交换到新版本来提交。</p>
+<h2 id="写入器-1"><a href="#写入器-1" class="headerlink" title="写入器"></a>写入器</h2><p>批量写入：</p>
+<ul>
+<li>insert into：向表中添加新数据</li>
+<li>merge into：实现行级更新，包含更新行的数据文件会被重写</li>
+<li>insert overwrite，分区数据文件会被重写<br>流式写入：Iceberg支持append和complete输出模式</li>
+<li>append：将每个少量的批处理的行追加到表中</li>
+<li>complete：每个少量的批处理替换表内容<br>Iceberg对分区表进行写操作之前，需要对每个任务的数据按照分区进行排序。对于批处理，鼓励执行显示排序来满足需求，但是这种方法会带来额外的延迟，因为排序被认为是流工作负载的繁重操作。为了避免额外的延迟，可以启用fanout写入器来消除这个需求<br>流式写入会快速创建新的表版本，从而创建大量的表元数据来跟踪这些版本。建议通过调优提交速率、过期旧快照和自动清理元数据文件来维护元数据</li>
+</ul>
+<h2 id="读取器-1"><a href="#读取器-1" class="headerlink" title="读取器"></a>读取器</h2><p>Iceberg查询不需要指定分区值查询，支持快照查询，支持表历史元数据、快照元数据、文件元数据、清单元数据查询<br>Iceber查询扫描计划会根据快照文件、清单列表文件、清单文件找出查询需要的数据文件，扫描计划能够在单节点上运行，因此任何一个客户端都可以低延迟的查询<br>Iceberg支持hive表，元数据保存在Iceberg中，支持hive查询，支持presto使用Iceberg链接起查询</p>
+<h2 id="表服务-1"><a href="#表服务-1" class="headerlink" title="表服务"></a>表服务</h2><ul>
+<li>过期快照：Iceberg每次写入会产生一个新的快照，快照可以被用来做时间快照查询，或者回滚，快照会聚集直到过期快照动作执行，推荐定期执行过期快照来删除不再需要数据文件，来保持较小的表元数据</li>
+<li>删除旧的元数据文件：Iceberg使用Json文件跟踪表元数据，对表的每次更改都会生成一个新的元数据文件，以提供原子性，默认情况下，将保留旧的元数据文件作为历史记录。经常提交的表，比如流式任务，需要定期地清除元数据文件。</li>
+<li>删除孤儿文件：在Spark或者其他分布式处理引擎中，任务或作业失败可能会留下不被表元数据引用的文件，而且在某些情况下，正常快照过期可能无法确定某个文件不再需要并删除它</li>
+<li>压缩数据文件：Iceberg在一个表中跟踪每个数据文件，更多的数据文件导致清单文件中存储更多的元数据，而小的数据文件导致不必要的元数据量和文件打开成本的低效率查询，Iceberg可以并行压缩数据文件，这将把小文件合并成大文件，以减少元数据开销和运行时文件打开成本。</li>
+<li>重写清单文件：Iceberg使用清单列表文件和清单文件元数据加快查询计划，并过滤不必要的数据文件，当表写的模式和查询模式不一致，元数据可以被重写。</li>
+</ul>
+<h1 id="Hudi和Iceberg特性对比"><a href="#Hudi和Iceberg特性对比" class="headerlink" title="Hudi和Iceberg特性对比"></a>Hudi和Iceberg特性对比</h1><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th>Iceberg</th>
+<th>Hudi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACID和隔离级别</td>
+<td>ACID</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>隔离级别</td>
+<td>多个写必须严格串行化，读和写可以同时跑</td>
+<td>多个写的数据无交集，可以并发执行，读和写可以同时跑</td>
+<td></td>
+</tr>
+<tr>
+<td>并发多写</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>时间快照查询</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>表格式</td>
+<td>支持schema变更</td>
+<td>支持，添加字段、删除字段、修改字段名称、修改字段长度</td>
+<td>支持，添加、删除</td>
+</tr>
+<tr>
+<td>自定义schema</td>
+<td>有自己的schema，不绑定任何计算引擎层面的schema</td>
+<td>不支持，绑定了spark的schema</td>
+<td></td>
+</tr>
+<tr>
+<td>文件格式</td>
+<td>文件格式</td>
+<td>Parquet, ORC</td>
+<td>Parquet, Avro</td>
+</tr>
+<tr>
+<td>流批接口支持</td>
+<td>批量读</td>
+<td>支持（spark、Hive、presto）</td>
+<td>支持（spark、Hive、presto）</td>
+</tr>
+<tr>
+<td>批量写</td>
+<td>支持（spark）</td>
+<td>支持（spark）</td>
+<td></td>
+</tr>
+<tr>
+<td>流式读</td>
+<td>开发中</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>流式写</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>Upserts/Delete/Merge/Update</td>
+<td>不支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>查询性能</td>
+<td>查询不需要指定分区</td>
+<td>支持</td>
+<td>不支持</td>
+</tr>
+<tr>
+<td>元数据花费</td>
+<td>低</td>
+<td>低</td>
+<td></td>
+</tr>
+<tr>
+<td>分区内索引</td>
+<td>支持</td>
+<td>不支持</td>
+<td></td>
+</tr>
+<tr>
+<td>CopyOnWrite</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>MergeOnRead</td>
+<td>开发中</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>自动压缩</td>
+<td>不支持（需手动调用压缩方法）</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>自动清除</td>
+<td>不支持（需手动调用清除方法）</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>社区现状</td>
+<td>开源时间</td>
+<td>2018.11.6</td>
+<td>2019.1.17</td>
+</tr>
+<tr>
+<td>Github watch</td>
+<td>118</td>
+<td>1.2k</td>
+<td></td>
+</tr>
+<tr>
+<td>Github star</td>
+<td>1.9k</td>
+<td>2.2k</td>
+<td></td>
+</tr>
+<tr>
+<td>Github fork</td>
+<td>710</td>
+<td>979</td>
+<td></td>
+</tr>
+<tr>
+<td>Github Issue</td>
+<td>477</td>
+<td>73</td>
+<td></td>
+</tr>
+<tr>
+<td>Github pull request</td>
+<td>161</td>
+<td>119</td>
+<td></td>
+</tr>
+<tr>
+<td>Commits</td>
+<td>1822</td>
+<td>1864</td>
+<td></td>
+</tr>
+<tr>
+<td>Contributors</td>
+<td>167</td>
+<td>193</td>
+<td></td>
+</tr>
+</tbody></table>
+<ol>
+<li><h1 id="Hudi和Iceberg性能对比"><a href="#Hudi和Iceberg性能对比" class="headerlink" title="Hudi和Iceberg性能对比"></a>Hudi和Iceberg性能对比</h1>生产环境100万数据量对比（Hudi推hive，Iceberg是hive表）</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>初始化插入100万</th>
+<th>新增插入10万条</th>
+<th>插入20万条、更新10万条、删除10万条</th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td></td>
+<td>无分区表</td>
+<td>有分区表</td>
+<td>无分区表</td>
+<td>有分区表</td>
+<td>无分区表</td>
+<td>有分区表</td>
+</tr>
+<tr>
+<td>Iceberg插入耗时</td>
+<td>7503</td>
+<td>9295</td>
+<td>10787</td>
+<td>7983</td>
+<td>14065</td>
+<td>9648</td>
+</tr>
+<tr>
+<td>Iceberg查询总数耗时_spark</td>
+<td>2952</td>
+<td>5970</td>
+<td>2962</td>
+<td>6170</td>
+<td>2906</td>
+<td>6232</td>
+</tr>
+<tr>
+<td>iceberg查询单条耗时_spark</td>
+<td>1019</td>
+<td>852</td>
+<td>1430</td>
+<td>810</td>
+<td>1007</td>
+<td>831</td>
+</tr>
+<tr>
+<td>Iceberg查询总数耗时_hive</td>
+<td>10137</td>
+<td>10581</td>
+<td>13729</td>
+<td>8753</td>
+<td>9950</td>
+<td>7553</td>
+</tr>
+<tr>
+<td>Iceberg查询单条耗时_hive</td>
+<td>934</td>
+<td>239</td>
+<td>183</td>
+<td>160</td>
+<td>170</td>
+<td>168</td>
+</tr>
+<tr>
+<td>Iceberg查询总数耗时_presto</td>
+<td>生产上trino中的iceberg版本很低，查询报错，侧重hudi，所以跳过此测试</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Iceberg查询单条耗时_presto</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Hudi插入耗时</td>
+<td>60255</td>
+<td>59835</td>
+<td>21868</td>
+<td>29383</td>
+<td>155586(96611+155586)</td>
+<td>172115(69477+102638)</td>
+</tr>
+<tr>
+<td>Hudi查询创建视图耗时_spark</td>
+<td>3539</td>
+<td>5213</td>
+<td>3283</td>
+<td>5606</td>
+<td>3169</td>
+<td>4803</td>
+</tr>
+<tr>
+<td>Hudi查询总数耗时_spark</td>
+<td>2660</td>
+<td>2437</td>
+<td>3639</td>
+<td>2003</td>
+<td>5234</td>
+<td>3978</td>
+</tr>
+<tr>
+<td>Hudi查询单条耗时_spark</td>
+<td>4665</td>
+<td>910</td>
+<td>1048</td>
+<td>2758</td>
+<td>2323</td>
+<td>2125</td>
+</tr>
+<tr>
+<td>Hudi查询总数耗时_hive</td>
+<td>11933</td>
+<td>6569</td>
+<td>6390</td>
+<td>10721</td>
+<td>5129</td>
+<td>12573</td>
+</tr>
+<tr>
+<td>Hudi查询单条耗时_hive</td>
+<td>185</td>
+<td>129</td>
+<td>201</td>
+<td>216</td>
+<td>104</td>
+<td>150</td>
+</tr>
+<tr>
+<td>Hudi查询总数耗时_presto</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+</tr>
+<tr>
+<td>Hudi查询单条耗时_presto</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+<td>毫秒级</td>
+</tr>
+</tbody></table>
+<h1 id="Hudi和Iceberg总结"><a href="#Hudi和Iceberg总结" class="headerlink" title="Hudi和Iceberg总结"></a>Hudi和Iceberg总结</h1><p>Hudi的最大的特色就是upsert和delete，upsert和delete写入增量文件，一定时间后可以将增量文件合并到基本文件中，通过这种方式可以实现行更新和流式写。<br>Iceberge的最大特色就是查询，通过快照、清单文件列表、清单实现快速过滤，Iceberg通过merge into也可以实现行更新，Iceberg也提供了流式写的接口，但是无论是行更新和流式写都是需要更新行的数据文件，并产生一个快照，这会大大增加元数据量。Iceberge的merge into也有诸多限制，原表和更新表join要有交集，否则会失败；Iceberg的更新表不能出现既更新也删除的同一条记录，否则会失败。<br>虽然在性能对比章节，Iceberg性能比Hudi好很多，但是从原理上分析，Hudi耗时高是有原因的，并且带来的是较少的IO，在Hudi更新时会根据主键合并更新数据，比如一条记录先新增后删除，合并后只留下删除的记录，然后根据主键定位到记录所在的分片，如果没有找到则插入记录，如果找到则添加到增量文件中，如果使用Hbase索引，相信性能会好一些。<br>Iceberg耗时低从原理来看，Iceberg只是将两个表join，然后原表修改的数据所在的数据文件会被重写，这种方式会在某些场景下导致大量的IO和内存消耗，在流式写测场景下支持时间旅行会产生很多文件。Iceberg的行删除目前在开发中。<br>个人觉得Hudi更适合作为采集系统的数据湖组件。Hudi最大的特色upsert和delete就已经是很大的亮点，这个功能和Kudu很相似。此外，目前Hudi功能已经完善，社区反馈的问题也比较少，已经在很多大厂应用，社区比较活跃。Iceberg很多功能还在开发中，社区反馈的问题比较多。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>采集</category>
+      </categories>
+      <tags>
+        <tag>hudi</tag>
+        <tag>iceberg</tag>
       </tags>
   </entry>
 </search>

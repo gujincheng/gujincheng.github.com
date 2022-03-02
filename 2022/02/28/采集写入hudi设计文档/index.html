@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  采集写入hudi设计文档">
+<meta property="og:type" content="article">
+<meta property="og:title" content="采集写入hudi设计文档">
+<meta property="og:url" content="https://gujincheng.github.io/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  采集写入hudi设计文档">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E5%88%9D%E5%A7%8B%E5%8C%96hudi%E5%88%86%E5%8C%BA%E6%A0%BC%E5%BC%8F.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E5%88%9D%E5%A7%8B%E5%8C%96%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E5%88%86%E9%92%9F%E9%A2%91%E7%8E%87.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E5%BC%82%E6%AD%A5%E5%90%88%E5%B9%B6parquet.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E7%AE%A1%E7%90%86%E7%95%8C%E9%9D%A2.png">
+<meta property="article:published_time" content="2022-02-28T01:19:40.000Z">
+<meta property="article:modified_time" content="2022-03-01T03:11:24.781Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="hudi">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202203/%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>采集写入hudi设计文档 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          采集写入hudi设计文档
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-02-28 09:19:40" itemprop="dateCreated datePublished" datetime="2022-02-28T09:19:40+08:00">2022-02-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-01 11:11:24" itemprop="dateModified" datetime="2022-03-01T11:11:24+08:00">2022-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/%E9%87%87%E9%9B%86/" itemprop="url" rel="index"><span itemprop="name">采集</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/" class="post-meta-item leancloud_visitors" data-flag-title="采集写入hudi设计文档" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>采集写入hudi设计文档</li>
+</ul>
+<a id="more"></a>
+
+
+<h1 id="采集hudi表结构设计"><a href="#采集hudi表结构设计" class="headerlink" title="采集hudi表结构设计"></a>采集hudi表结构设计</h1><h2 id="采集hudi表目录"><a href="#采集hudi表目录" class="headerlink" title="采集hudi表目录:"></a>采集hudi表目录:</h2><ul>
+<li><p>hudi表目录：/apps/hudi/warehouse/fdm/tableName</p>
+</li>
+<li><p>hudi删除表目录：/apps/hudi/warehouse/fdm/tableName_del</p>
+</li>
+</ul>
+<h2 id="采集hudi表外表hive表"><a href="#采集hudi表外表hive表" class="headerlink" title="采集hudi表外表hive表"></a>采集hudi表外表hive表</h2><ul>
+<li>读优化视图表：tableName_ro</li>
+<li>快照视图：tableName_rt</li>
+</ul>
+<h2 id="按月分区表"><a href="#按月分区表" class="headerlink" title="按月分区表"></a>按月分区表</h2><p>/basePath/tableName/2021-07/</p>
+<p>/basePath/tableName/2021-08/</p>
+<p>/basePath/tableName/…/</p>
+<p>/basePath/tableName/2021-09/</p>
+<p>概述：根据创建日期所在月分区，按月分区表适合大部分业务场景，业务每天数据量不是很大，或者数据变更不是很频繁，按月分区表以dam结尾。<br>优点：减少Hdfs小文件数量，hudi表使用MOR格式。<br>缺点：数据倾斜导致一个分区数据很大，分区内更新效率低</p>
+<h2 id="按日分区表"><a href="#按日分区表" class="headerlink" title="按日分区表"></a>按日分区表</h2><p>/basePath/tableName/2021-08-16/<br>/basePath/tableName/2021-08-17/<br>/basePath/tableName/…/<br>/basePath/tableName/2021-09-14/</p>
+<p>概述：根据创建日期分区，按日分区表适合业务每天数据量很大，或者数据变更频繁，适用于读少写多大表场景，按日分区表以dad结尾。<br>优点：优化写入效率，hudi表使用MOR格式。<br>缺点：分区越来越多，hive查询效率低，数据倾斜导致一个分区数据量很少，带来小文件问题</p>
+<h1 id="采集表元数据管理"><a href="#采集表元数据管理" class="headerlink" title="采集表元数据管理"></a>采集表元数据管理</h1><h2 id="元数据管理流程"><a href="#元数据管理流程" class="headerlink" title="元数据管理流程"></a>元数据管理流程</h2><p><img src="/uploads/202203/%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B.png" alt="元数据管理流程"></p>
+<h2 id="hudi-schema限制"><a href="#hudi-schema限制" class="headerlink" title="hudi schema限制"></a>hudi schema限制</h2><ul>
+<li>hudi支持类型有null、boolean、int、long、float、double、bytes、string、array、map、enum</li>
+<li>不能删除字段，不能修改字段名</li>
+<li>添加字段需要有默认值</li>
+<li>字段类型修改只允许如下变化：int修改成long，int、long修改成float，int、long、float修改成double，bytes修改成string，string修改成bbytes</li>
+</ul>
+<h2 id="mysql-hudi字段类型映射"><a href="#mysql-hudi字段类型映射" class="headerlink" title="mysql hudi字段类型映射"></a>mysql hudi字段类型映射</h2><table>
+<thead>
+<tr>
+<th>序号</th>
+<th>mysql</th>
+<th>hudi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>VARCHAR</td>
+<td>string</td>
+</tr>
+<tr>
+<td>2</td>
+<td>DATE</td>
+<td>string</td>
+</tr>
+<tr>
+<td>3</td>
+<td>CHAR</td>
+<td>string</td>
+</tr>
+<tr>
+<td>4</td>
+<td>TINYINT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>5</td>
+<td>SMALLINT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>6</td>
+<td>DATETIME</td>
+<td>long（string）hudi不支持时间类型，可以存储时间戳</td>
+</tr>
+<tr>
+<td>7</td>
+<td>TEXT</td>
+<td>string</td>
+</tr>
+<tr>
+<td>8</td>
+<td>TIMESTAMP</td>
+<td>long（string）hudi不支持时间类型，可以存储时间戳</td>
+</tr>
+<tr>
+<td>9</td>
+<td>INT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>10</td>
+<td>BIT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>11</td>
+<td>VARBINARY</td>
+<td>string</td>
+</tr>
+<tr>
+<td>12</td>
+<td>LONGTEXT</td>
+<td>string</td>
+</tr>
+<tr>
+<td>13</td>
+<td>DECIMAL</td>
+<td>string</td>
+</tr>
+<tr>
+<td>15</td>
+<td>DOUBLE</td>
+<td>double</td>
+</tr>
+<tr>
+<td>16</td>
+<td>BIGINT</td>
+<td>long</td>
+</tr>
+<tr>
+<td>17</td>
+<td>BLOB</td>
+<td>string</td>
+</tr>
+<tr>
+<td>18</td>
+<td>TINYINT UNSIGNED</td>
+<td>int</td>
+</tr>
+<tr>
+<td>19</td>
+<td>SMALLINT UNSIGNED</td>
+<td>int</td>
+</tr>
+<tr>
+<td>20</td>
+<td>INT UNSIGNED</td>
+<td>long</td>
+</tr>
+<tr>
+<td>21</td>
+<td>BIGINT UNSIGNED</td>
+<td>long</td>
+</tr>
+<tr>
+<td>22</td>
+<td>FLOAT UNSIGNED</td>
+<td>float</td>
+</tr>
+<tr>
+<td>23</td>
+<td>DOUBLE UNSIGNED</td>
+<td>double</td>
+</tr>
+<tr>
+<td>24</td>
+<td>FLOAT</td>
+<td>float</td>
+</tr>
+<tr>
+<td>25</td>
+<td>MEDIUMINT UNSIGNED</td>
+<td>int</td>
+</tr>
+</tbody></table>
+<ol>
+<li><h1 id="采集初始化到hudi"><a href="#采集初始化到hudi" class="headerlink" title="采集初始化到hudi"></a>采集初始化到hudi</h1></li>
+</ol>
+<p>采集初始化根据数据创建日期采集到数据日期所在月份的分区，示意图如3-1：<br><img src="/uploads/202203/%E5%88%9D%E5%A7%8B%E5%8C%96hudi%E5%88%86%E5%8C%BA%E6%A0%BC%E5%BC%8F.png" alt="初始化hudi分区格式"></p>
+<p>采集初始化由采集模块发起，请求调度，调度触发脚本机执行初始化任务，脚本机启动使用spark任务采集关系数据库数据，spark任务使用Datax采集MySQL、MongoDB，使用Hudi-spark-client模块将数据写入Hudi，示意图如3-2<br>这里依然生成了调度任务，只是在初始化的时候用了一次，可以简化成采集直接和脚本机接入，由采集直接触发脚本机执行任务，但是这个改动量比较大。<br><img src="/uploads/202203/%E5%88%9D%E5%A7%8B%E5%8C%96%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B.png" alt="初始化采集流程"></p>
+<h1 id="采集实时写入hudi"><a href="#采集实时写入hudi" class="headerlink" title="采集实时写入hudi"></a>采集实时写入hudi</h1><ul>
+<li>插入数据记录，直接插入到hudi原表</li>
+<li>更新数据记录，直接更新hudi原表记录</li>
+<li>删除数据记录，直接删除hudi原表记录，同时插入hudi删除表</li>
+<li>以分钟频率拉取kafka记录摄入hudi，减少元数据提交次数</li>
+</ul>
+<p><img src="/uploads/202203/%E5%88%86%E9%92%9F%E9%A2%91%E7%8E%87.png" alt="分钟频率"></p>
+<p>采集实时写入hudi由采集模块发起，在启动实时写入任务的时候将采集任务分配到固定的Flink节点，通过ESF和Flink节点通信，在Flink节点启动线程执行实时写入hudi任务，任务以每分钟频率拉取，使用Hudi-flink-client模块将数据写入Hudi，示意图如4-2<br><img src="/uploads/202203/%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B.png" alt="采集流程"></p>
+<h1 id="异步合并parquet任务"><a href="#异步合并parquet任务" class="headerlink" title="异步合并parquet任务"></a>异步合并parquet任务</h1><p>对于Merge-On-Read表，数据使用列式Parquet文件和行式Avro文件存储，更新被记录到增量文件，然后进行同步/异步compaction生成新版本的列式文件。Merge-On-Read表可减少数据写入延迟，因而进行不阻塞摄入的异步Compaction很有意义，流程如下图5-1<br>创建一个调度任务，调度任务每个小时触发一次合并任务<br><img src="/uploads/202203/%E5%BC%82%E6%AD%A5%E5%90%88%E5%B9%B6parquet.png" alt="异步合并parquet"></p>
+<ol>
+<li><h1 id="监控报警"><a href="#监控报警" class="headerlink" title="监控报警"></a>监控报警</h1></li>
+</ol>
+<ul>
+<li>Flink节点心跳检查</li>
+<li>实时摄入任务每分钟（单次）写入耗时、写入insert条数、写入update条数、写入delete条数、写入数据条数、写入数据量，上报统一监控</li>
+<li>异步合并parquet任务合并log文件数、合并耗时，上报统一监控</li>
+<li>实时写入失败情况下报警</li>
+</ul>
+<h1 id="管理界"><a href="#管理界" class="headerlink" title="管理界"></a>管理界</h1><p><img src="/uploads/202203/%E7%AE%A1%E7%90%86%E7%95%8C%E9%9D%A2.png" alt="管理界面"></p>
+<ul>
+<li>存储目标添加hudi存储方式</li>
+<li>提供按月分区、按日分区，根据近半年每日新增数据分析初始值，可修改</li>
+<li>采集频率默认1m，提供30s、2m可选项</li>
+<li>分区时间字段，例如创建时间</li>
+</ul>
+<h1 id="FDM表（hudi）后续使用特点"><a href="#FDM表（hudi）后续使用特点" class="headerlink" title="FDM表（hudi）后续使用特点"></a>FDM表（hudi）后续使用特点</h1><ol>
+<li>实时采集默认都走hudi，全量表，拉链表功能保留，有需要可以用，不建议用</li>
+<li>任务使用建议走spark引擎</li>
+</ol>
+<h1 id="问题列表"><a href="#问题列表" class="headerlink" title="问题列表"></a>问题列表</h1><ol>
+<li>无创建时间表分区问题</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hudi/" rel="tag"># hudi</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="DataX学习笔记">
+      <i class="fa fa-chevron-left"></i> DataX学习笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/" rel="next" title="hudi和iceberg测试比较">
+      hudi和iceberg测试比较 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%87%87%E9%9B%86hudi%E8%A1%A8%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.</span> <span class="nav-text">采集hudi表结构设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%87%E9%9B%86hudi%E8%A1%A8%E7%9B%AE%E5%BD%95"><span class="nav-number">1.1.</span> <span class="nav-text">采集hudi表目录:</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%87%E9%9B%86hudi%E8%A1%A8%E5%A4%96%E8%A1%A8hive%E8%A1%A8"><span class="nav-number">1.2.</span> <span class="nav-text">采集hudi表外表hive表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%89%E6%9C%88%E5%88%86%E5%8C%BA%E8%A1%A8"><span class="nav-number">1.3.</span> <span class="nav-text">按月分区表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%89%E6%97%A5%E5%88%86%E5%8C%BA%E8%A1%A8"><span class="nav-number">1.4.</span> <span class="nav-text">按日分区表</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%87%87%E9%9B%86%E8%A1%A8%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">采集表元数据管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B"><span class="nav-number">2.1.</span> <span class="nav-text">元数据管理流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hudi-schema%E9%99%90%E5%88%B6"><span class="nav-number">2.2.</span> <span class="nav-text">hudi schema限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql-hudi%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84"><span class="nav-number">2.3.</span> <span class="nav-text">mysql hudi字段类型映射</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%87%87%E9%9B%86%E5%88%9D%E5%A7%8B%E5%8C%96%E5%88%B0hudi"><span class="nav-number">3.</span> <span class="nav-text">采集初始化到hudi</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%87%87%E9%9B%86%E5%AE%9E%E6%97%B6%E5%86%99%E5%85%A5hudi"><span class="nav-number">4.</span> <span class="nav-text">采集实时写入hudi</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5%E5%90%88%E5%B9%B6parquet%E4%BB%BB%E5%8A%A1"><span class="nav-number">5.</span> <span class="nav-text">异步合并parquet任务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%91%E6%8E%A7%E6%8A%A5%E8%AD%A6"><span class="nav-number">6.</span> <span class="nav-text">监控报警</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%A1%E7%90%86%E7%95%8C"><span class="nav-number">7.</span> <span class="nav-text">管理界</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FDM%E8%A1%A8%EF%BC%88hudi%EF%BC%89%E5%90%8E%E7%BB%AD%E4%BD%BF%E7%94%A8%E7%89%B9%E7%82%B9"><span class="nav-number">8.</span> <span class="nav-text">FDM表（hudi）后续使用特点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%88%97%E8%A1%A8"><span class="nav-number">9.</span> <span class="nav-text">问题列表</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
