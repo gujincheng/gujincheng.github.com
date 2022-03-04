@@ -33,8 +33,13 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/phoenix%E5%88%9B%E5%BB%BAhbase%E8%A7%86%E5%9B%BE.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/phonix%E5%88%9B%E5%BB%BA%E8%A1%A8%E6%98%A0%E5%B0%84hbase%E8%A1%A8.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/phoenix%E6%9B%B4%E6%96%B0hbase%E8%A1%A8%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Hbase%E5%BC%80%E5%90%AFNamespace%E6%98%A0%E5%B0%84%E5%90%8EPhoenixJDBC%E6%8A%A5%E9%94%99.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Phoenix%E5%88%9B%E5%BB%BA%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95%E6%B3%A8%E6%84%8F%E7%82%B9.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Hbase%E5%BC%80%E5%90%AFNamespace%E6%98%A0%E5%B0%84%E5%90%8EPhoenixJDBC%E6%8A%A5%E9%94%99.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Phoenix%E5%88%9B%E5%BB%BAUDF%E6%88%90%E5%8A%9F.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/phoenix%E4%BD%BF%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89UDF.png">
 <meta property="article:published_time" content="2022-03-01T02:21:10.000Z">
-<meta property="article:modified_time" content="2022-03-02T10:23:21.130Z">
+<meta property="article:modified_time" content="2022-03-04T01:59:15.457Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Hbase">
 <meta name="twitter:card" content="summary">
@@ -237,7 +242,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-02 18:23:21" itemprop="dateModified" datetime="2022-03-02T18:23:21+08:00">2022-03-02</time>
+                <time title="修改时间：2022-03-04 09:59:15" itemprop="dateModified" datetime="2022-03-04T09:59:15+08:00">2022-03-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -418,24 +423,26 @@
 <li>首先安装 CSD 文件<ol>
 <li>确定 CSD(Custom Service Descriptor) 文件安装路径，公司的安装路径为/opt/cloudera/csd,这里的地址就是server的地址，即ddp1服务器的地址</li>
 <li>将 CSD文件(PHOENIX-1.0.jar) 放到到本地描述符存储库路径，然后重启 Cloudera Manager 服务器</li>
-<li>重启 cloudera-scm-server 服务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl restart cloudera-scm-server
-&#96;&#96;&#96;   
-第一步只要在CM第一次安装的时候初始化一次就够了，如果已经初始化过以后，可以直接从第二步骤开始。
-&gt; 这里不知道对不对，因为没有重启，虽然最终phoenix安装上去了，但是最后在CM上添加不了服务。
-&gt; 这里等我自己搭建一个CM，再手动测试一下看看
-2. 安装Phoenix parcel
-    1. 上传文件到如图 parcel 目录下，PHOENIX-5.0.0-cdh6.2.0.p0.1308267-el7.parcel、PHOENIX-5.0.0-cdh6.2.0.p0.1308267-el7.parcel.sha 、 manifest.json
-    2. 点击检查新 Parcel ，当出现 PHOENIX 后，点击 Distribute
-    3. 点击激活 PHOENIX，并在弹框中点击 确认
-    4. 集群 -&gt; 操作 -&gt; 添加服务，出现 PHOENIX 服务 **这里不知道为什么在服务里没找到PHOENIX，不知道是不是因为CM没有重启**
-    5. 将 PHOENIX 服务添加到每个 Region Server 中
-    6. 重启hbase集群，否则phoenix启动会报错
-
-#### 遇到的问题
-1. Phoenix安装完成以后，在服务里找不到选项，添加不了服务，不知道是不是因为CSD文件配置好以后，CM没有重启，需要测试一下
-2. Phoenix安装完成以后，直接打开phoenix-sqlline，报如下错误
-&#96;&#96;&#96;shell
-Error: org.apache.hadoop.hbase.DoNotRetryIOException: Unable to load configured region split policy &#39;org.apache.phoenix.schema.MetaDataSplitPolicy&#39; for table &#39;SYSTEM.CATALOG&#39; Set hbase.table.sanity.checks to false at conf or table descriptor if you want to bypass sanity checks
+<li>重启 cloudera-scm-server 服务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl restart cloudera-scm-server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+第一步只要在CM第一次安装的时候初始化一次就够了，如果已经初始化过以后，可以直接从第二步骤开始。<blockquote>
+<p>这里不知道对不对，因为没有重启，虽然最终phoenix安装上去了，但是最后在CM上添加不了服务。<br>这里等我自己搭建一个CM，再手动测试一下看看</p>
+</blockquote>
+</li>
+</ol>
+</li>
+<li>安装Phoenix parcel<ol>
+<li>上传文件到如图 parcel 目录下，PHOENIX-5.0.0-cdh6.2.0.p0.1308267-el7.parcel、PHOENIX-5.0.0-cdh6.2.0.p0.1308267-el7.parcel.sha 、 manifest.json</li>
+<li>点击检查新 Parcel ，当出现 PHOENIX 后，点击 Distribute</li>
+<li>点击激活 PHOENIX，并在弹框中点击 确认</li>
+<li>集群 -&gt; 操作 -&gt; 添加服务，出现 PHOENIX 服务 <strong>这里不知道为什么在服务里没找到PHOENIX，不知道是不是因为CM没有重启</strong></li>
+<li>将 PHOENIX 服务添加到每个 Region Server 中</li>
+<li>重启hbase集群，否则phoenix启动会报错</li>
+</ol>
+</li>
+</ol>
+<h4 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h4><ol>
+<li>Phoenix安装完成以后，在服务里找不到选项，添加不了服务，不知道是不是因为CSD文件配置好以后，CM没有重启，需要测试一下</li>
+<li>Phoenix安装完成以后，直接打开phoenix-sqlline，报如下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Error: org.apache.hadoop.hbase.DoNotRetryIOException: Unable to load configured region split policy &#39;org.apache.phoenix.schema.MetaDataSplitPolicy&#39; for table &#39;SYSTEM.CATALOG&#39; Set hbase.table.sanity.checks to false at conf or table descriptor if you want to bypass sanity checks
         at org.apache.hadoop.hbase.master.HMaster.warnOrThrowExceptionForFailure(HMaster.java:2232)
         at org.apache.hadoop.hbase.master.HMaster.sanityCheckTableDescriptor(HMaster.java:2079)
         at org.apache.hadoop.hbase.master.HMaster.createTable(HMaster.java:1978)
@@ -444,10 +451,8 @@ Error: org.apache.hadoop.hbase.DoNotRetryIOException: Unable to load configured 
         at org.apache.hadoop.hbase.ipc.RpcServer.call(RpcServer.java:413)
         at org.apache.hadoop.hbase.ipc.CallRunner.run(CallRunner.java:130)
         at org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:324)
-        at org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:304) (state&#x3D;08000,code&#x3D;101)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+        at org.apache.hadoop.hbase.ipc.RpcExecutor$Handler.run(RpcExecutor.java:304) (state&#x3D;08000,code&#x3D;101)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 网上的说法是，需要把phoenix的jar包放到hbase的安装路径之下，但是，那应该是自己解压phoenix安装的问题，使用CM安装，CM会把这些配置都设置好的，只需要重启一下Hbase集群即可</li>
-</ol>
-</li>
 <li>phoenix里查不到hbase的表<ol>
 <li>这里不算是问题，phoenix创建的表hbase能看到，但是，hbase的表想要在phoenix里看到，需要做一次映射</li>
 </ol>
@@ -471,9 +476,11 @@ put &#39;phoenix&#39;, &#39;row002&#39;,&#39;info:name&#39;,&#39;hbase&#39;<span
 <ul>
 <li>创建视图：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create view &quot;phoenix&quot;(empid varchar primary key,&quot;info&quot;.&quot;name&quot; varchar);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
 <li>*注意：**</li>
-<li>*这里一定要注意的是表名和列族以及列名需要用双引号括起来，因为HBase是区分大小写的，如果不用双引号括起来的话Phoenix在创建表的时候会自动将小写转换为大写字母，这样HBase中会创建另外一张表PHOENIX。**</li>
-<li>*这里查询表名需要用双引号括起来，强制不转换为大写。**</li>
 </ul>
+<ol>
+<li>这里一定要注意的是表名和列族以及列名需要用双引号括起来，因为HBase是区分大小写的，如果不用双引号括起来的话Phoenix在创建表的时候会自动将小写转换为大写字母，这样HBase中会创建另外一张表PHOENIX。  </li>
+<li>这里查询表名需要用双引号括起来，强制不转换为大写。</li>
+</ol>
 <p><img src="/uploads/202203/phoenix%E5%88%9B%E5%BB%BAhbase%E8%A7%86%E5%9B%BE.png" alt="phoenix创建hbase视图"></p>
 <blockquote>
 <p>视图是只读的，不可以修改hbase表的内容</p>
@@ -530,7 +537,7 @@ put &#39;phoenix&#39;, &#39;row002&#39;,&#39;info:name&#39;,&#39;hbase&#39;<span
     <span class="token punctuation">&#125;</span>
 <span class="token punctuation">&#125;</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h4 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h4><ol>
+<h4 id="遇到的问题-1"><a href="#遇到的问题-1" class="headerlink" title="遇到的问题"></a>遇到的问题</h4><ol>
 <li>java.lang.ClassNotFoundException: org.apache.phoenix.jdbc.PhoenixDriver</li>
 </ol>
 <p><strong>问题原因：</strong> maven工程打包不正确，应该把依赖也打到jar包里<br><strong>解决办法：</strong> </p>
@@ -579,15 +586,153 @@ put &#39;phoenix&#39;, &#39;row002&#39;,&#39;info:name&#39;,&#39;hbase&#39;<span
             <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
             <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-common<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
             <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-
-
-
-
-</li>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>开启<code>phoenix.schema.isNamespaceMappingEnabled=true</code>之后，再用jdbc方式连接phoenix报如下错误：<br><img src="/uploads/202203/Hbase%E5%BC%80%E5%90%AFNamespace%E6%98%A0%E5%B0%84%E5%90%8EPhoenixJDBC%E6%8A%A5%E9%94%99.png" alt="Hbase开启Namespace映射后PhoenixJDBC报错"><br>原因：<br>开启这个配置以后，sqlline的方式可以默认映射过去，但是jdbc方式需要再手动指定一下<br>解决办法：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">// 再代码里加配置条件</span>
+<span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+properties<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"phoenix.schema.isNamespaceMappingEnabled"</span><span class="token punctuation">,</span><span class="token string">"true"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">Connection</span> con <span class="token operator">=</span> <span class="token class-name">DriverManager</span><span class="token punctuation">.</span><span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token string">"jdbc:phoenix:ddp5.hadoop:2181"</span><span class="token punctuation">,</span>properties<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="利用Phoenix创建hbase的二级索引"><a href="#利用Phoenix创建hbase的二级索引" class="headerlink" title="利用Phoenix创建hbase的二级索引"></a>利用Phoenix创建hbase的二级索引</h3>配置:<br>安装完 Phoenix 后，需要做一些必要配置才能使用 Phoenix，CDH HBase 配置界面配置如下两处：</li>
+<li>hbase-site.xml 的 HBase 服务高级配置代码段（安全阀）</li>
+<li>hbase-site.xml 的 HBase 客户端高级配置代码段（安全阀）<br>添加如下参数配置：<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token comment">&lt;!-- 二级索引支持 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hbase.regionserver.wal.codec<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+然后，按照提示重启HBase服务并重新部署客户端配置即可。</li>
 </ol>
+<p>创建二级索引：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">index</span> phoneix_index <span class="token keyword">on</span> <span class="token string">"phoenix"</span> <span class="token punctuation">(</span><span class="token string">"info"</span><span class="token punctuation">.</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>需要注意的是：<br><img src="/uploads/202203/Phoenix%E5%88%9B%E5%BB%BA%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95%E6%B3%A8%E6%84%8F%E7%82%B9.png" alt="Phoenix创建二级索引注意点"><br>所以如果想用hbase的二级索引，只能从phoenix中插入数据</p>
+<h3 id="允许Phoenix创建namespace"><a href="#允许Phoenix创建namespace" class="headerlink" title="允许Phoenix创建namespace"></a>允许Phoenix创建namespace</h3><p>CDH HBase 配置界面配置如下两处：</p>
+<ol>
+<li>hbase-site.xml 的 HBase 服务高级配置代码段（安全阀）</li>
+<li>hbase-site.xml 的 HBase 客户端高级配置代码段（安全阀）<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token comment">&lt;!-- 命名空间映射开启，Phoenix4.8.0开始支持 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>phoenix.schema.isNamespaceMappingEnabled<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>phoenix.schema.mapSystemTablesToNamespace<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+注意：<br>开启了命名空间以后，通过jdbc方式连接phoenix，需要在代码里配置一下这个参数：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">// 再代码里加配置条件</span>
+<span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+properties<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"phoenix.schema.isNamespaceMappingEnabled"</span><span class="token punctuation">,</span><span class="token string">"true"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">Connection</span> con <span class="token operator">=</span> <span class="token class-name">DriverManager</span><span class="token punctuation">.</span><span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token string">"jdbc:phoenix:ddp5.hadoop:2181"</span><span class="token punctuation">,</span>properties<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+如果不添加如上配置，会报如下错误：<br><img src="/uploads/202203/Hbase%E5%BC%80%E5%90%AFNamespace%E6%98%A0%E5%B0%84%E5%90%8EPhoenixJDBC%E6%8A%A5%E9%94%99.png" alt="Hbase开启Namespace映射后PhoenixJDBC报错"></li>
+</ol>
+<h3 id="Phoenix允许自定义UDF"><a href="#Phoenix允许自定义UDF" class="headerlink" title="Phoenix允许自定义UDF"></a>Phoenix允许自定义UDF</h3><p>CDH HBase 配置界面配置如下两处：</p>
+<ol>
+<li>hbase-site.xml 的 HBase 服务高级配置代码段（安全阀）</li>
+<li>hbase-site.xml 的 HBase 客户端高级配置代码段（安全阀）<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token comment">&lt;!-- 启用用户自定义函数（UDF） --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>phoenix.functions.allowUserDefinedFunctions<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>enable UDF functions<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+
+<span class="token comment">&lt;!-- 自定义函数，存储jar的hdfs目录 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hbase.dynamic.jars.dir<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>/hbase/lib/udf<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+下面写一个UDF来实现CRC32加密功能：</li>
+</ol>
+<ul>
+<li><p>添加maven配置</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.phoenix<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>phoenix-core<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>5.0.0-HBase-2.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p>编写java代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>escloud<span class="token punctuation">.</span>phoenix</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hbase<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">ImmutableBytesWritable</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hbase<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Bytes</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>phoenix<span class="token punctuation">.</span>expression<span class="token punctuation">.</span></span><span class="token class-name">Expression</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>phoenix<span class="token punctuation">.</span>expression<span class="token punctuation">.</span>function<span class="token punctuation">.</span></span><span class="token class-name">ScalarFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>phoenix<span class="token punctuation">.</span>parse<span class="token punctuation">.</span></span><span class="token class-name">FunctionParseNode</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>phoenix<span class="token punctuation">.</span>schema<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>phoenix<span class="token punctuation">.</span>schema<span class="token punctuation">.</span>types<span class="token punctuation">.</span></span><span class="token class-name">PDataType</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>phoenix<span class="token punctuation">.</span>schema<span class="token punctuation">.</span>types<span class="token punctuation">.</span></span><span class="token class-name">PVarchar</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>sql<span class="token punctuation">.</span></span><span class="token class-name">SQLException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">List</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>zip<span class="token punctuation">.</span></span>CRC32<span class="token punctuation">;</span>
+
+<span class="token annotation punctuation">@FunctionParseNode</span><span class="token punctuation">.</span><span class="token class-name">BuiltInFunction</span><span class="token punctuation">(</span>
+        name <span class="token operator">=</span> <span class="token class-name">CRC32Function</span><span class="token punctuation">.</span>NAME<span class="token punctuation">,</span>
+        args <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token annotation punctuation">@FunctionParseNode</span><span class="token punctuation">.</span><span class="token class-name">Argument</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">CRC32Function</span> <span class="token keyword">extends</span> <span class="token class-name">ScalarFunction</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> NAME <span class="token operator">=</span> <span class="token string">"CRC32"</span><span class="token punctuation">;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Integer</span> LENGTH <span class="token operator">=</span> <span class="token number">19</span><span class="token punctuation">;</span>
+
+
+    <span class="token keyword">public</span> <span class="token class-name">CRC32Function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">CRC32Function</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Expression</span><span class="token punctuation">></span></span> children<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">SQLException</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span>children<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">CRC32</span> crc32 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token function">CRC32</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        crc32<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token string">"lake"</span><span class="token punctuation">.</span><span class="token function">getBytes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>crc32<span class="token punctuation">.</span><span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">evaluate</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> tuple<span class="token punctuation">,</span> <span class="token class-name">ImmutableBytesWritable</span> ptr<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">getChildExpression</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">evaluate</span><span class="token punctuation">(</span>tuple<span class="token punctuation">,</span> ptr<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>ptr<span class="token punctuation">.</span><span class="token function">getLength</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token class-name">CRC32</span> crc32 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token function">CRC32</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        crc32<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span>ptr<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> ptr<span class="token punctuation">.</span><span class="token function">getOffset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> ptr<span class="token punctuation">.</span><span class="token function">getLength</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        ptr<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token class-name">Bytes</span><span class="token punctuation">.</span><span class="token function">toBytes</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span>crc32<span class="token punctuation">.</span><span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">PDataType</span> <span class="token function">getDataType</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token class-name">PVarchar</span><span class="token punctuation">.</span>INSTANCE<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">Integer</span> <span class="token function">getMaxLength</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> LENGTH<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isNullable</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token function">getChildExpression</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isNullable</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> NAME<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">private</span> <span class="token class-name">Expression</span> <span class="token function">getChildExpression</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> children<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p>上传jar包到hdfs</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs -put CalculationRealtime-1.0-SNAPSHOT-jar-with-dependencies.jar &#x2F;hbase&#x2F;lib&#x2F;udf<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li><p>在sqlline创建udf</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">function</span> CRC32<span class="token punctuation">(</span><span class="token keyword">varchar</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token keyword">varchar</span> <span class="token keyword">as</span> <span class="token string">'com.digiwin.escloud.phoenix.CRC32Function'</span> <span class="token keyword">using</span> jar <span class="token string">'/hbase/lib/udf/CalculationRealtime-1.0-SNAPSHOT-jar-with-dependencies.jar'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="/uploads/202203/Phoenix%E5%88%9B%E5%BB%BAUDF%E6%88%90%E5%8A%9F.png" alt="Phoenix创建UDF成功"><br>注意：<br>这里的路径因为公司hadoop集群配置了hdfs的开头，所以不要以hdfs:///开头</p>
+</li>
+<li><p>使用udf</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> CRC32<span class="token punctuation">(</span><span class="token string">'aaa'</span><span class="token punctuation">)</span> <span class="token keyword">from</span> <span class="token string">"phoenix"</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="/uploads/202203/phoenix%E4%BD%BF%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89UDF.png" alt="phoenix使用自定义UDF"></p>
+</li>
+</ul>
 
     </div>
 
@@ -669,7 +814,7 @@ put &#39;phoenix&#39;, &#39;row002&#39;,&#39;info:name&#39;,&#39;hbase&#39;<span
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hbase%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Hbase简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HBase%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6"><span class="nav-number">1.1.</span> <span class="nav-text">HBase存储机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8D%E8%AF%8D%E6%A6%82%E5%BF%B5"><span class="nav-number">1.2.</span> <span class="nav-text">名词概念</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hbase%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Hbase安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HBase%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">HBase命令行操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Phoenix%E6%93%8D%E4%BD%9CHbase"><span class="nav-number">4.</span> <span class="nav-text">Phoenix操作Hbase</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Phoenix%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE"><span class="nav-number">4.1.</span> <span class="nav-text">Phoenix安装与配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#phoenix%E6%98%A0%E5%B0%84HBase"><span class="nav-number">4.2.</span> <span class="nav-text">phoenix映射HBase</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JDBC%E9%93%BE%E6%8E%A5Phoenix"><span class="nav-number">4.3.</span> <span class="nav-text">JDBC链接Phoenix</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.3.1.</span> <span class="nav-text">遇到的问题</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hbase%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Hbase简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HBase%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6"><span class="nav-number">1.1.</span> <span class="nav-text">HBase存储机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8D%E8%AF%8D%E6%A6%82%E5%BF%B5"><span class="nav-number">1.2.</span> <span class="nav-text">名词概念</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hbase%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Hbase安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HBase%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">HBase命令行操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Phoenix%E6%93%8D%E4%BD%9CHbase"><span class="nav-number">4.</span> <span class="nav-text">Phoenix操作Hbase</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Phoenix%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE"><span class="nav-number">4.1.</span> <span class="nav-text">Phoenix安装与配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.1.1.</span> <span class="nav-text">遇到的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#phoenix%E6%98%A0%E5%B0%84HBase"><span class="nav-number">4.2.</span> <span class="nav-text">phoenix映射HBase</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JDBC%E9%93%BE%E6%8E%A5Phoenix"><span class="nav-number">4.3.</span> <span class="nav-text">JDBC链接Phoenix</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98-1"><span class="nav-number">4.3.1.</span> <span class="nav-text">遇到的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8Phoenix%E5%88%9B%E5%BB%BAhbase%E7%9A%84%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95"><span class="nav-number">4.4.</span> <span class="nav-text">利用Phoenix创建hbase的二级索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%81%E8%AE%B8Phoenix%E5%88%9B%E5%BB%BAnamespace"><span class="nav-number">4.5.</span> <span class="nav-text">允许Phoenix创建namespace</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Phoenix%E5%85%81%E8%AE%B8%E8%87%AA%E5%AE%9A%E4%B9%89UDF"><span class="nav-number">4.6.</span> <span class="nav-text">Phoenix允许自定义UDF</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
