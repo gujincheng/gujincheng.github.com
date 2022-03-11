@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Centos安装Mysql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Centos安装Mysql">
+<meta property="og:url" content="https://gujincheng.github.io/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Centos安装Mysql">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/mysql-yum%E6%BA%90%E9%80%89%E6%8B%A9.png">
+<meta property="article:published_time" content="2022-03-11T02:15:41.000Z">
+<meta property="article:modified_time" content="2022-03-11T02:39:11.370Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202203/mysql-yum%E6%BA%90%E9%80%89%E6%8B%A9.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Centos安装Mysql | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Centos安装Mysql
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-11 10:15:41 / 修改时间：10:39:11" itemprop="dateCreated datePublished" datetime="2022-03-11T10:15:41+08:00">2022-03-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Mysql/" itemprop="url" rel="index"><span itemprop="name">Mysql</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/" class="post-meta-item leancloud_visitors" data-flag-title="Centos安装Mysql" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Centos安装Mysql</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Centos安装Mysql"><a href="#Centos安装Mysql" class="headerlink" title="Centos安装Mysql"></a>Centos安装Mysql</h2><p>本文讲述Centos通过yum安装Mysql,yum本身没有mysql源，需要自己去官网下载</p>
+<ol>
+<li>去官网下载yum仓库文件<br>官网下载连接：<a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/repo/yum/">https://dev.mysql.com/downloads/repo/yum/</a><br><img src="/uploads/202203/mysql-yum%E6%BA%90%E9%80%89%E6%8B%A9.png" alt="mysql-yum源选择"></li>
+</ol>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#将复制的连接地址下载
+[root@localhost ~]# wget https:&#x2F;&#x2F;dev.mysql.com&#x2F;get&#x2F;mysql80-community-release-el7-3.noarch.rpm
+
+[root@localhost ~]# ls
+anaconda-ks.cfg  mysql80-community-release-el7-3.noarch.rpm<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol start="2">
+<li>安装yum仓库文件<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#可是使用rpm -ivh或者是yum localinstall 去安装，两者实质是一样的
+[root@localhost ~]# rpm -ivh mysql80-community-release-el7-3.noarch.rpm
+warning: mysql80-community-release-el7-3.noarch.rpm: Header V3 DSA&#x2F;SHA1 Signature, key ID 5072e1f5: NOKEY
+Preparing...                          ################################# [100%]
+Updating &#x2F; installing...
+   1:mysql80-community-release-el7-3  ################################# [100%]
+
+#安装完成后可以看到mysql的repo文件
+[root@localhost ~]# ls &#x2F;etc&#x2F;yum.repos.d&#x2F;
+CentOS-Base.repo  epel.repo  mysql-community.repo  mysql-community-source.repo<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>版本选择<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 安装 YUM 管理工具包，此包提供了 yum-config-manager 命令工具
+[root@localhost ~]# yum -y install yum-utils
+
+[root@localhost ~]# yum-config-manager --disable mysql80-community
+[root@localhost ~]# yum-config-manager --enable mysql57-community
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+查看默认启动的仓库<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@localhost ~]# yum repolist enabled | grep mysql
+mysql-connectors-community&#x2F;x86_64 MySQL Connectors Community                 185
+mysql-tools-community&#x2F;x86_64      MySQL Tools Community                      123
+mysql57-community&#x2F;x86_64          MySQL 5.7 Community Server                 484<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>安装<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install -y  mysql-community-server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+这里会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Downloading packages:
+warning: &#x2F;var&#x2F;cache&#x2F;yum&#x2F;x86_64&#x2F;7&#x2F;mysql57-community&#x2F;packages&#x2F;mysql-community-devel-5.7.37-1.el7.x86_64.rpm: Header V4 RSA&#x2F;SHA256 Signature, key ID 3a79bd29: NOKEY
+Retrieving key from file:&#x2F;&#x2F;&#x2F;etc&#x2F;pki&#x2F;rpm-gpg&#x2F;RPM-GPG-KEY-mysql
+
+
+The GPG keys listed for the &quot;MySQL 5.7 Community Server&quot; repository are already installed but they are not correct for this package.
+Check that the correct key URLs are configured for this repository.
+
+
+Failing package is: mysql-community-devel-5.7.37-1.el7.x86_64
+GPG Keys are configured as: file:&#x2F;&#x2F;&#x2F;etc&#x2F;pki&#x2F;rpm-gpg&#x2F;RPM-GPG-KEY-mysql<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+报错原因：官方 MySQL 存储库的 GPG 密钥已过期，无法安装或更新 MySQL 包<br>相关报错案例可以在mysql官网查看：<a target="_blank" rel="noopener" href="https://bugs.mysql.com/bug.php?id=106188">https://bugs.mysql.com/bug.php?id=106188</a><br>可以在运行安装程序之前导入密钥：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#Centos
+rpm --import https:&#x2F;&#x2F;repo.mysql.com&#x2F;RPM-GPG-KEY-mysql-2022
+#Ubuntu：
+wget -q -O - https:&#x2F;&#x2F;repo.mysql.com&#x2F;RPM-GPG-KEY-mysql-2022 | apt-key add -<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+之后再执行<code>yum install -y  mysql-community-server</code>就over了</li>
+</ol>
+<ol start="5">
+<li><p>设置默认配置<br>在/etc/my.cnf的文件中设置</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[mysqld]
+#配置文件根据环境自行配置，或者保持默认
+#例如添加下面几行，设置默认引擎编码和排序规则(根据情况设置合适的)
+default-storage-engine&#x3D;INNODB
+character-set-server &#x3D; utf8mb4
+collation-server &#x3D; utf8mb4_general_ci
+skip-character-set-client-handshake
+secure_file_priv&#x3D;&#39;&#39;
+
+
+[client]
+default-character-set&#x3D;utf8mb4
+[mysql]
+default-character-set&#x3D;utf8mb4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p>启动服务</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
+systemctl start mysqld
+
+# 查看状态
+systemctl status mysqld
+
+# 开机自启动
+systemctl enable mysqld
+
+# 查看监听端口，默认 3306
+ss -natl |grep 3306<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p>初始化<br>MySQL服务器初始化（从MySQL 5.7开始）：<br>在 MySQL 服务器初始启动时，如果服务器的数据目录为空，则会发生以下情况：<br>MySQL 服务器已初始化。<br>在数据目录中生成SSL证书和密钥文件。<br>安装并启用该 validate_password 插件。<br>将创建一个超级用户 帐户‘root’@’localhost’。并会设置超级用户的密码，将其存储在错误日志文件/var/log/mysqld.log中。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@localhost ~]# grep &#39;temporary password&#39; &#x2F;var&#x2F;log&#x2F;mysqld.log
+2021-01-25T04:26:33.010077Z 1 [Note] A temporary password is generated for root@localhost: *sH2qhGeN(eB
+
+#本地登录的root密码: *sH2qhGeN(eB<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p>修改初始密码</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mysql&gt; alter user   root@localhost   identified  by  &#39;123456&#39;;
+ERROR 1819 (HY000): Your password does not satisfy the current policy requirements
+
+#太过简单的密码会失败，因为不满足密码复杂度的要求
+
+mysql&gt; alter user   root@localhost   identified  by  &#39;Gjc123!@#&#39;;
+Query OK, 0 rows affected (0.00 sec)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>要设置比较简单的密码就需要取消密码复杂度<br>编辑 my.cnf配置文件, 在 [mysqld]配置块儿中添加如下内容</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">plugin-load&#x3D;validate_password.so
+validate-password&#x3D;OFF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>保存退出后，重启服务, 修改密码</p>
+</li>
+<li><p>远程连接<br>远程登录还需要授权远程登录<br>Mysql默认不允许远程登录，我们需要设置关闭selinux或者防火墙，不关防火墙就开放3306端口；</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mysql&gt; grant all privileges on *.* to root@localhost identified by &#39;Test123!&#39;;
+ Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+#允许任意IP连接
+ mysql&gt; grant all privileges on *.* to root@&#39;%&#39; identified by &#39;Test123!&#39;;
+ Query OK, 0 rows affected, 1 warning (0.00 sec)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>%：匹配任意长度的任意字符，常用于设置允许从任何主机登录<br>_：匹配任意单个字符</p>
+</li>
+</ol>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#放开3306端口
+firewall-cmd --zone&#x3D;public --add-port&#x3D;3306&#x2F;tcp --permanent
+firewall-cmd --reload
+
+#关闭防火墙和selinux一劳永逸<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Mysql/" rel="tag"># Mysql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/10/maven%E7%BC%96%E8%AF%91Hudi%E4%B8%8EFlink%E6%BA%90%E7%A0%81/" rel="prev" title="maven编译Hudi与Flink源码">
+      <i class="fa fa-chevron-left"></i> maven编译Hudi与Flink源码
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos%E5%AE%89%E8%A3%85Mysql"><span class="nav-number">1.</span> <span class="nav-text">Centos安装Mysql</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">50</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">44</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
