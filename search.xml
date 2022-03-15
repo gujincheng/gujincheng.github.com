@@ -142,6 +142,64 @@
       </tags>
   </entry>
   <entry>
+    <title>Elasticsearch学习笔记（一）</title>
+    <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Elasticsearch简介</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="Elasticsearch简介"><a href="#Elasticsearch简介" class="headerlink" title="Elasticsearch简介"></a>Elasticsearch简介</h2><p>Elasticsearch是一个高度可扩展的开源全文搜索和分析引擎，有以下几个特点：</p>
+<ul>
+<li>一个分布式的实时文档存储，每个字段都可被索引</li>
+<li>一个分布式实时搜索引擎</li>
+<li>强大的横向扩展能力，并支持大数据集的结构化/非结构化数据</li>
+<li>Elasticsearch是<code>面向文档</code>的，意味着它存储整个对象或文档(使用<code>JSON</code>作为文档的序列化格式)</li>
+</ul>
+<p>Elasticsearch 是一个开源的搜索引擎，建立在一个全文搜索引擎库 Apache Lucene™ 基础之上。 Lucene 可以说是当下最先进、高性能、全功能的搜索引擎库—​无论是开源还是私有。</p>
+<p>Elasticsearch的安装很简单，直接解压就行，访问使用restAPI，也可以使用kibana<br>kibana的安装也很简单，直接解压，配置一下ES的相关属性就可以<br>安装好后，访问<code>http://localhost:5601/</code>即可使用kibana操作ES</p>
+<h2 id="Elasticsearch使用"><a href="#Elasticsearch使用" class="headerlink" title="Elasticsearch使用"></a>Elasticsearch使用</h2><h3 id="直接通过Curl操作ES"><a href="#直接通过Curl操作ES" class="headerlink" title="直接通过Curl操作ES"></a>直接通过Curl操作ES</h3><p>这种方式，是直接使用 RESTful API 通过端口 9200 和 Elasticsearch 进行通信，不过不太常用，一般都是通过kibana来操作ES</p>
+<ul>
+<li>操作索引<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 创建一个名称为 alibaba 的 Index（索引库）
+curl -X PUT localhost:9200&#x2F;alibaba
+# 删除索引
+curl -X DELETE localhost:9200&#x2F;alibaba
+# 列出每个 Index 包含的 Type
+curl &quot;localhost:9200&#x2F;_mapping?pretty&#x3D;true&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>操作Document 文档</li>
+<li><ul>
+<li>新增文档<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 在 alibaba&#x2F;user 中，新增一条记录（文档），记录的 id 为 1
+curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;
+#  或者
+curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -H &quot;Content-Type: application&#x2F;json&quot; -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+上述示例中，alibaba 代表 Index，user 代表 Type，如果它们不存在，会自动创建。1 代表记录的 id。<br>新增记录时，也可以不指定 id，这时服务器会自动生成一个随机字符串作为该记录的 id。</li>
+</ul>
+</li>
+</ul>
+<p>** 查看记录</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">
+# 查看 alibaba&#x2F;user&#x2F;1 记录
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1
+# 查看 alibaba&#x2F;user&#x2F;1 记录（会对结果进行格式化）
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty
+# 查看 alibaba&#x2F;user 中的所有记录
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>?pretty 表示对返回结果进行格式化，以便更易于阅读。</p>
+<p>** 删除记录</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">curl -X DELETE localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="通过kibana操作ES"><a href="#通过kibana操作ES" class="headerlink" title="通过kibana操作ES"></a>通过kibana操作ES</h3><p>kibana的访问地址：<a href="http://localhost:5601/">http://localhost:5601/</a><br>在kibana侧边栏找到Management -&gt; Dev Tool ,在Dev Tool里就可以操作ES了</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Elasticsearch</category>
+      </categories>
+      <tags>
+        <tag>Elasticsearch</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Centos安装Mysql</title>
     <url>/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -245,12 +303,13 @@ validate-password&#x3D;OFF<span aria-hidden="true" class="line-numbers-rows"><sp
 <p>保存退出后，重启服务, 修改密码</p>
 </li>
 <li><p>远程连接<br>远程登录还需要授权远程登录<br>Mysql默认不允许远程登录，我们需要设置关闭selinux或者防火墙，不关防火墙就开放3306端口；</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mysql&gt; grant all privileges on *.* to root@localhost identified by &#39;Test123!&#39;;
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mysql&gt; grant all privileges on *.* to root@localhost identified by &#39;Gjc123!@#&#39;;
  Query OK, 0 rows affected, 1 warning (0.00 sec)
 
 #允许任意IP连接
- mysql&gt; grant all privileges on *.* to root@&#39;%&#39; identified by &#39;Test123!&#39;;
- Query OK, 0 rows affected, 1 warning (0.00 sec)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+ mysql&gt; grant all privileges on *.* to root@&#39;%&#39; identified by &#39;Gjc123!@#&#39;;
+ Query OK, 0 rows affected, 1 warning (0.00 sec)
+flush privileges;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>%：匹配任意长度的任意字符，常用于设置允许从任何主机登录<br>_：匹配任意单个字符</p>
 </li>
 </ol>
@@ -258,7 +317,9 @@ validate-password&#x3D;OFF<span aria-hidden="true" class="line-numbers-rows"><sp
 firewall-cmd --zone&#x3D;public --add-port&#x3D;3306&#x2F;tcp --permanent
 firewall-cmd --reload
 
-#关闭防火墙和selinux一劳永逸<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
+#关闭防火墙和selinux一劳永逸<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+]]></content>
       <categories>
         <category>Mysql</category>
       </categories>
@@ -267,61 +328,160 @@ firewall-cmd --reload
       </tags>
   </entry>
   <entry>
-    <title>Elasticsearch学习笔记（一）</title>
-    <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>Cloudera Manager CDH离线安装</title>
+    <url>/2022/03/11/Cloudera-Manager-CDH%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
-<li>Elasticsearch简介</li>
-</ul>
-<a id="more"></a>
+<li>CM离线安装<a id="more"></a>
 
-
-<h2 id="Elasticsearch简介"><a href="#Elasticsearch简介" class="headerlink" title="Elasticsearch简介"></a>Elasticsearch简介</h2><p>Elasticsearch是一个高度可扩展的开源全文搜索和分析引擎，有以下几个特点：</p>
-<ul>
-<li>一个分布式的实时文档存储，每个字段都可被索引</li>
-<li>一个分布式实时搜索引擎</li>
-<li>强大的横向扩展能力，并支持大数据集的结构化/非结构化数据</li>
-<li>Elasticsearch是<code>面向文档</code>的，意味着它存储整个对象或文档(使用<code>JSON</code>作为文档的序列化格式)</li>
-</ul>
-<p>Elasticsearch 是一个开源的搜索引擎，建立在一个全文搜索引擎库 Apache Lucene™ 基础之上。 Lucene 可以说是当下最先进、高性能、全功能的搜索引擎库—​无论是开源还是私有。</p>
-<p>Elasticsearch的安装很简单，直接解压就行，访问使用restAPI，也可以使用kibana<br>kibana的安装也很简单，直接解压，配置一下ES的相关属性就可以<br>安装好后，访问<code>http://localhost:5601/</code>即可使用kibana操作ES</p>
-<h2 id="Elasticsearch使用"><a href="#Elasticsearch使用" class="headerlink" title="Elasticsearch使用"></a>Elasticsearch使用</h2><h3 id="直接通过Curl操作ES"><a href="#直接通过Curl操作ES" class="headerlink" title="直接通过Curl操作ES"></a>直接通过Curl操作ES</h3><p>这种方式，是直接使用 RESTful API 通过端口 9200 和 Elasticsearch 进行通信，不过不太常用，一般都是通过kibana来操作ES</p>
-<ul>
-<li>操作索引<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 创建一个名称为 alibaba 的 Index（索引库）
-curl -X PUT localhost:9200&#x2F;alibaba
-# 删除索引
-curl -X DELETE localhost:9200&#x2F;alibaba
-# 列出每个 Index 包含的 Type
-curl &quot;localhost:9200&#x2F;_mapping?pretty&#x3D;true&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>操作Document 文档</li>
-<li><ul>
-<li>新增文档<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 在 alibaba&#x2F;user 中，新增一条记录（文档），记录的 id 为 1
-curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;
-#  或者
-curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -H &quot;Content-Type: application&#x2F;json&quot; -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-上述示例中，alibaba 代表 Index，user 代表 Type，如果它们不存在，会自动创建。1 代表记录的 id。<br>新增记录时，也可以不指定 id，这时服务器会自动生成一个随机字符串作为该记录的 id。</li>
-</ul>
 </li>
 </ul>
-<p>** 查看记录</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">
-# 查看 alibaba&#x2F;user&#x2F;1 记录
-curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1
-# 查看 alibaba&#x2F;user&#x2F;1 记录（会对结果进行格式化）
-curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty
-# 查看 alibaba&#x2F;user 中的所有记录
-curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>?pretty 表示对返回结果进行格式化，以便更易于阅读。</p>
-<p>** 删除记录</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">curl -X DELETE localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="通过kibana操作ES"><a href="#通过kibana操作ES" class="headerlink" title="通过kibana操作ES"></a>通过kibana操作ES</h3><p>kibana的访问地址：<a href="http://localhost:5601/">http://localhost:5601/</a><br>在kibana侧边栏找到Management -&gt; Dev Tool ,在Dev Tool里就可以操作ES了</p>
+<h2 id="CM离线安装"><a href="#CM离线安装" class="headerlink" title="CM离线安装"></a>CM离线安装</h2><h3 id="安装准备"><a href="#安装准备" class="headerlink" title="安装准备"></a>安装准备</h3><p>准备3台虚拟机<br>golden-01<br>golden-02<br>golden-03<br>并设置免秘钥登录，这里忽略</p>
+<p>下载cdh6.2.0，在百度网盘下载：<br><a href="https://pan.baidu.com/s/1QlWyMRSRJNcaStsZMSdmLg">https://pan.baidu.com/s/1QlWyMRSRJNcaStsZMSdmLg</a>  提取码：ietj</p>
+<h3 id="关闭防火墙与关闭-SELINUX"><a href="#关闭防火墙与关闭-SELINUX" class="headerlink" title="关闭防火墙与关闭 SELINUX"></a>关闭防火墙与关闭 SELINUX</h3><ol>
+<li>关闭防火墙<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">systemctl stop firewalld  ## 关闭防火墙
+systemctl disable firewalld ###禁止防火墙开机自启<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>关闭SELINUX，只需要关闭一个需要配置http文件服务的虚拟机就可以<br>vim /etc/selinux/config —&gt; SELINUX=disabled (修改)<br>这里改完了需要重启虚拟机<br>这里如果不关闭SELINUX，下面视同httpd访问文件的时候，会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">You don&#39;t have permission to access upload&#x2F; on this server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+</li>
+</ol>
+<h3 id="配置NTP服务（所有节点）"><a href="#配置NTP服务（所有节点）" class="headerlink" title="配置NTP服务（所有节点）"></a>配置NTP服务（所有节点）</h3><p>修改时区（改为中国标准时区）</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ln -sf &#x2F;usr&#x2F;share&#x2F;zoneinfo&#x2F;Asia&#x2F;Shanghai &#x2F;etc&#x2F;localtime
+## 安装ntp
+yum -y install ntp <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>ntp主机配置 vi /etc/ntp.conf<br>在文件里新增server ntp.aliyun.com，并把原始的server给注释掉<br>重启<code>service ntpd restart</code></p>
+<h3 id="配置本地服务器（选定任意一台主机即可）"><a href="#配置本地服务器（选定任意一台主机即可）" class="headerlink" title="配置本地服务器（选定任意一台主机即可）"></a>配置本地服务器（选定任意一台主机即可）</h3><p>配置的本地文件服务器的目的是为了，让之后其他节点可以从这直接下载</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum install -y httpd  ##安装httpd
+service httpd start 启用htttpd
+cd &#x2F;var&#x2F;www&#x2F;html&#x2F;  &amp;&amp; mkdir cdh6  &amp;&amp; mkdir cm6
+## 把下载的rpm放到文件服务cm6里
+cp &#x2F;home&#x2F;golden&#x2F;cdh6.2.0&#x2F;cm6&#x2F;* &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6&#x2F;
+cp &#x2F;home&#x2F;golden&#x2F;cdh6.2.0&#x2F;oracle-j2sdk1.8-1.8.0+update181-1.x86_64.rpm &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里注意，启用httpd服务以后，防火墙和selinux必须都关闭，否则，就会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">You don&#39;t have permission to access upload&#x2F; on this server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>生成yum源的描述的目录信息 可以让其他节点知道到这里下载</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum install -y createrepo  ##下载createrepo命令
+## 进入到cm6安装包的httpd资源位置
+cd &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6
+##创建yum源的描述meta
+createrepo .<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在<strong>所有节点上</strong>添加yum源的配置文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cat &gt;&gt; &#x2F;etc&#x2F;yum.repos.d&#x2F;cm6.repo &lt;&lt; EOF
+[cm6-local]
+name&#x3D;cm6-local
+baseurl&#x3D;http:&#x2F;&#x2F;192.168.233.133&#x2F;cm6&#x2F;
+enabled&#x3D;1
+gpgcheck&#x3D;0
+EOF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>查看yum配置源是否生效</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum clean all
+yum repolist
+yum makecache<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h3 id="JDK安装"><a href="#JDK安装" class="headerlink" title="JDK安装"></a>JDK安装</h3><p>前面安装了2次，都是使用自己配置JAVA_HOME的方式，都没问题，但是，最后一次使用了CentOS7精简版的，还是使用自己配置JAVA_HOME的方式，发现cloudera-manager-server启动不成功<br>通过<code>journalctl -u cloudera-manager-server</code>以及<code>journalctl -xe</code>来查看启动日志，发现，报找不到java。但是java安装没有问题<br>最后使用了yum安装了jdk问题解决了</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install -y oracle-j2sdk1.8-1.8.0+update181-1.x86_64<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="clouder-server-与agent安装"><a href="#clouder-server-与agent安装" class="headerlink" title="clouder server 与agent安装"></a>clouder server 与agent安装</h3><h4 id="安装cm6相关依赖（所有节点）"><a href="#安装cm6相关依赖（所有节点）" class="headerlink" title="安装cm6相关依赖（所有节点）"></a>安装cm6相关依赖（所有节点）</h4><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum -y install chkconfig python bind-utils psmisc libxslt zlib sqlite cyrus-sasl-plain cyrus-sasl-gssapi fuse fuse-libs redhat-lsb httpd mod_ssl<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h4 id="安装Cloudera-Manager-Server"><a href="#安装Cloudera-Manager-Server" class="headerlink" title="安装Cloudera Manager Server"></a>安装Cloudera Manager Server</h4><p>这一步只需要在CM Server节点上操作。<br>执行下面的命令：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 安装openjdk8
+yum install oracle-j2sdk1.8   ##这里不知道需不需要安装，因为我本机已经安装了java了。这里先不安装，如果报错再重来
+# 安装 cm manager(只需在server节点安装)
+yum install cloudera-manager-daemons cloudera-manager-agent cloudera-manager-server<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="配置本地Parcel存储库"><a href="#配置本地Parcel存储库" class="headerlink" title="配置本地Parcel存储库"></a>配置本地Parcel存储库</h3><p>Cloudera Manager Server安装完成后，进入到本地Parcel存储库目录：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cd &#x2F;opt&#x2F;cloudera&#x2F;parcel-repo  ## Cloudera Manager Server完成以后，该目录就已经生成了<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>将第一部分下载的CDH parcels文件上传至该目录下，然后执行修改sha文件：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">mv &#x2F;data6&#x2F;upload&#x2F;parcels&#x2F;* &#x2F;opt&#x2F;cloudera&#x2F;parcel-repo&#x2F;
+mv CDH-6.3.0-1.cdh6.3.0.p0.1279813-el7.parcel.sha1 CDH-6.3.0-1.cdh6.3.0.p0.1279813-el7.parcel.sha<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h3 id="配置mysql-jdbc驱动"><a href="#配置mysql-jdbc驱动" class="headerlink" title="配置mysql jdbc驱动"></a>配置mysql jdbc驱动</h3><p>从前面下载好的mysql-connector-java-5.1.47.tar.gz包中解压出mysql-connector-java-5.1.47-bin.jar文件，将mysql-connector-java-5.1.47-bin.jar文件上传至CM Server节点上的/usr/share/java/目录下并重命名为mysql-connector-java.jar（如果/usr/share/java/目录不存在，需要手动创建）：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cd &#x2F;usr&#x2F;share&#x2F;java  &amp;&amp; mv &#x2F;home&#x2F;golden&#x2F;mysql-connector-java-5.1.47.jar .<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="创建CDH所需要的数据库"><a href="#创建CDH所需要的数据库" class="headerlink" title="创建CDH所需要的数据库"></a>创建CDH所需要的数据库</h3><p>根据所需要安装的服务参照下表创建对应的数据库以及数据库用户，数据库必须使用utf8编码，创建数据库时要记录好用户名及对应密码：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- scm</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> scm <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> scm<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'scm'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'scm'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- amon</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> amon <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> amon<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'amon'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'amon'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- rman</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> rman <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> rman<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'rman'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'rman'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- hue</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> hue <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span> 
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> hue<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hue'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hue'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- hive</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> metastore <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> metastore<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hive'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hive'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- sentry</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> sentry <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>   
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> sentry<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'sentry'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'sentry'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- nav</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> nav <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>      
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> nav<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'nav'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'nav'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- navms</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> navms <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> navms<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'navms'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'navms'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- oozie</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> oozie <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> oozie<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'oozie'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'oozie'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- hive</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> hive <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> hive<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hive'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hive'</span><span class="token punctuation">;</span>
+<span class="token comment">-- flush</span>
+FLUSH <span class="token keyword">PRIVILEGES</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="设置Cloudera-Manager-数据库"><a href="#设置Cloudera-Manager-数据库" class="headerlink" title="设置Cloudera Manager 数据库"></a>设置Cloudera Manager 数据库</h3><p>Cloudera Manager Server包含一个配置数据库的脚本。</p>
+<ul>
+<li>mysql数据库与CM Server是同一台主机<br>执行命令：<code>/opt/cloudera/cm/schema/scm_prepare_database.sh mysql scm scm</code></li>
+<li>mysql数据库与CM Server不在同一台主机上<br>执行命令：<code>/opt/cloudera/cm/schema/scm_prepare_database.sh mysql -h &lt;mysql-host-ip&gt; --scm-host &lt;cm-server-ip&gt; scm scm</code><br>执行如下命令：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;opt&#x2F;cloudera&#x2F;cm&#x2F;schema&#x2F;scm_prepare_database.sh mysql -uroot -h golden-02 -p&#39;Gjc123!@#&#39; --scm-host golden-01 scm scm scm<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+这里卡了很久，报了如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR Exception when creating&#x2F;dropping database with user &#39;root&#39; and jdbc url &#39;jdbc:mysql:&#x2F;&#x2F;golden-02&#x2F;?useUnicode&#x3D;true&amp;characterEncoding&#x3D;UTF-8&#39;
+com.mysql.jdbc.exceptions.jdbc4.CommunicationsException: Communications link failure
+
+The last packet successfully received from the server was 202 milliseconds ago.  The last packet sent successfully to the server was 197 milliseconds ago.
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)[:1.8.0_321]
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)[:1.8.0_321]
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)[:1.8.0_321]
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)[:1.8.0_321]
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+找了很久的问题，首先是安装的mysql不支持远程连接，需要做如下配置：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">grant</span> <span class="token keyword">all</span> <span class="token keyword">privileges</span> <span class="token keyword">on</span> <span class="token operator">*</span><span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">to</span> root<span class="token variable">@'%'</span> identified <span class="token keyword">by</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">;</span>
+flush <span class="token keyword">privileges</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+配置了以后，还是报错，找了很久，最终找到原因，是因为下载的<code>mysql-connector-java-5.1.47-bin.jar</code>有问题，重新下载了一个，问题解决</li>
+</ul>
+<h3 id="安装CDH节点"><a href="#安装CDH节点" class="headerlink" title="安装CDH节点"></a>安装CDH节点</h3><h4 id="启动Cloudera-Manager-Server服务"><a href="#启动Cloudera-Manager-Server服务" class="headerlink" title="启动Cloudera Manager Server服务"></a>启动Cloudera Manager Server服务</h4><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">systemctl start cloudera-scm-server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>然后等待Cloudera Manager Server启动，可能需要稍等一会儿，可以通过命令<code>tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log</code>去监控服务启动状态。<br>当看到<code>INFO WebServerImpl:com.cloudera.server.cmf.WebServerImpl: Started Jetty server.</code>日志打印出来后，说明服务启动成功，可以通过浏览器访问<code>Cloudera Manager WEB</code>界面了。</p>
+<h4 id="访问Cloudera-Manager-WEB界面"><a href="#访问Cloudera-Manager-WEB界面" class="headerlink" title="访问Cloudera Manager WEB界面"></a>访问Cloudera Manager WEB界面</h4><ul>
+<li>打开浏览器，访问地址：http://<server_host>:7180，默认账号和密码都为admin：</li>
+<li>首先是Cloudera Manager的欢迎页面，点击页面右下角的【继续】按钮进行下一步</li>
+<li>勾选接受条款，点击【继续】进行下一步：</li>
+<li>版本选择,这里我就选择免费版了：</li>
+<li>选择版本以后会出现第二个欢迎界面，不过这个是安装集群的欢迎页：</li>
+<li>选择主机,这一步是要搜索并选择用于安装CDH集群的主机，在主机名称后面的输入框中输入各个节点的hostname，中间使用英文逗号分隔开，然后点击搜索，在结果列表中勾选要安装CDH的节点即可：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E9%85%8D%E7%BD%AE%E4%B8%BB%E6%9C%BA.png" alt="CM离线安装_配置主机"></li>
+<li>指定存储库<code>Cloudera Manager Agent</code>这里选择自定义，填写上面使用httpd搭建好的Cloudera Manager YUM 库URL：</li>
+<li>CDH and other software 如果我们之前的【配置本地Parcel存储库】步骤操作无误的话，这里会自动选择【使用Parcel】，并加载出CDH版本，但是这里一直没有识别出来，还报了如下错误：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E8%AF%86%E5%88%AB%E4%B8%8D%E5%88%B0parcel-repo.png" alt="CM离线安装_识别不到parcel-repo"><br>找到问题原因：是因为parcel文件的<code>.sha1</code>需要改成<code>.sha</code>，修改完以后，就能识别出来了<br>这里一开始还跟着教程先用yum安装了<code>cloudera-manager-agent</code>，安装完了更报错，这里不要安装<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E6%AD%A3%E5%B8%B8%E8%AF%86%E5%88%AB%E5%88%B0parcel-repo.png" alt="CM离线安装_正常识别到parcel-repo"></li>
+<li>JDK安装选项，这里jdk已经安装了，不要勾选</li>
+<li>SSH登录配置，用于配置集群主机之间的SSH登录，填写root用户的密码，根据集群配置填写合适的【同时安装数量】值即可：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E6%8F%90%E4%BE%9BSSH%E7%99%BB%E5%BD%95%E5%87%AD%E6%8D%AE.png" alt="CM离线安装_提供SSH登录凭据"></li>
+<li>安装Agent</li>
+<li>安装Parcels</li>
+<li>主机检查，<code>Inspect Network Performance </code>和<code>Inspect Network Performance</code>需要点击的，一开始以为是自动检查，一直等着<br>然后标黄了几个选项：<br>Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10。当前设置为 30。使用 sysctl 命令在运行时更改该设置并编辑 /etc/sysctl.conf，以在重启后保存该设置。您可以继续进行安装，但 Cloudera Manager 可能会报告您的主机由于交换而运行状况不良。<br>已启用透明大页面压缩，可能会导致重大性能问题。请运行echo never &gt; /sys/kernel/mm/transparent_hugepage/defrag和echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled以禁用此设置，然后将同一命令添加到 /etc/rc.local 等初始化脚本中，以便在系统重启时予以设置。<br>安装上面的提示执行即可；<br>但是有一点，报找不到java，这个有点不知道怎么解决了，这里先跳过了，点击<code>I understand this risks</code></li>
+</ul>
+<h3 id="安装CDH集群"><a href="#安装CDH集群" class="headerlink" title="安装CDH集群"></a>安装CDH集群</h3><h4 id="选择服务类型"><a href="#选择服务类型" class="headerlink" title="选择服务类型"></a>选择服务类型</h4><p>这里我选择自定义服务，然后选择很多组件，hdfs、zk、yarn、hbase、kafka等等</p>
+<h4 id="角色分配"><a href="#角色分配" class="headerlink" title="角色分配"></a>角色分配</h4><p>这里会有默认设置，然后把需要手动设置的手动设置一下，点击继续</p>
+<h4 id="数据库设置"><a href="#数据库设置" class="headerlink" title="数据库设置"></a>数据库设置</h4><p>这里根据要求设置即可<br>后面的步骤就没有什么问题了，可以参考下面的两篇文章。</p>
+<p>这里参考了<br><a href="https://segmentfault.com/a/1190000021809645">CentOS7 Cloudera Manager6 完全离线安装 CDH6 集群</a><br><a href="https://blog.csdn.net/weixin_45682234/article/details/105844209">cdh6.2离线安装（傻瓜式安装教程）</a></p>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>Elasticsearch</category>
+        <category>CM</category>
       </categories>
       <tags>
-        <tag>Elasticsearch</tag>
+        <tag>CM</tag>
       </tags>
   </entry>
   <entry>
@@ -2398,21 +2558,6 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </tags>
   </entry>
   <entry>
-    <title>sqoop从mysql导数据到hive报错</title>
-    <url>/2021/01/18/sqoop%E4%BB%8Emysql%E5%AF%BC%E6%95%B0%E6%8D%AE%E5%88%B0hive%E6%8A%A5%E9%94%99/</url>
-    <content><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>   使用sqoop从mysql导数据到hive，从本地服务器是可以访问mysql的（本地服务器是hadoop集群的一个datanode），但是sqoop导数据的时候依然连接不上mysql<br>报错如下：<br><img src="/uploads/20210118/sqoop-import-error.png" alt="sqoop-import-error"><br>从报错可以看出，是数据库连接失败，很常见的问题，但是从本地是可以直连mysql的。</p>
-<p>因为sqoop导数据的时候，默认会启动4个map task，这4个map task会随机启动在不动的datanode上，所以在想，是不是因为其他节点没有权限访问mysql导致。<br>但是需要先搞清楚，sqoop在抽取数据的时候，是不是会把4个map task随机启动在不动的datanode上</p>
-<p>在官网上有如下内容：<br><img src="/uploads/20210118/sqoop-official-website.png" alt="sqoop-official-website"><br>虽然讲的不是我们要找到，但是可以判断出，sqoop导数据就是会把maptask随机启动在不通的datanode上。<br>因此，sqoop在导数据到mysql的时候，要确认，hadoop集群的每个节点都要有mysql的读权限</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Sqoop</category>
-      </categories>
-      <tags>
-        <tag>Sqoop</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>vim使用手册（一）</title>
     <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2499,6 +2644,21 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       </categories>
       <tags>
         <tag>vim</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>sqoop从mysql导数据到hive报错</title>
+    <url>/2021/01/18/sqoop%E4%BB%8Emysql%E5%AF%BC%E6%95%B0%E6%8D%AE%E5%88%B0hive%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>   使用sqoop从mysql导数据到hive，从本地服务器是可以访问mysql的（本地服务器是hadoop集群的一个datanode），但是sqoop导数据的时候依然连接不上mysql<br>报错如下：<br><img src="/uploads/20210118/sqoop-import-error.png" alt="sqoop-import-error"><br>从报错可以看出，是数据库连接失败，很常见的问题，但是从本地是可以直连mysql的。</p>
+<p>因为sqoop导数据的时候，默认会启动4个map task，这4个map task会随机启动在不动的datanode上，所以在想，是不是因为其他节点没有权限访问mysql导致。<br>但是需要先搞清楚，sqoop在抽取数据的时候，是不是会把4个map task随机启动在不动的datanode上</p>
+<p>在官网上有如下内容：<br><img src="/uploads/20210118/sqoop-official-website.png" alt="sqoop-official-website"><br>虽然讲的不是我们要找到，但是可以判断出，sqoop导数据就是会把maptask随机启动在不通的datanode上。<br>因此，sqoop在导数据到mysql的时候，要确认，hadoop集群的每个节点都要有mysql的读权限</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Sqoop</category>
+      </categories>
+      <tags>
+        <tag>Sqoop</tag>
       </tags>
   </entry>
   <entry>
