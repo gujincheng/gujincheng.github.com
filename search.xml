@@ -417,6 +417,65 @@ flush <span class="token keyword">privileges</span><span class="token punctuatio
 <h4 id="角色分配"><a href="#角色分配" class="headerlink" title="角色分配"></a>角色分配</h4><p>这里会有默认设置，然后把需要手动设置的手动设置一下，点击继续</p>
 <h4 id="数据库设置"><a href="#数据库设置" class="headerlink" title="数据库设置"></a>数据库设置</h4><p>这里根据要求设置即可<br>后面的步骤就没有什么问题了，可以参考下面的两篇文章。</p>
 <p>这里参考了<br><a href="https://segmentfault.com/a/1190000021809645">CentOS7 Cloudera Manager6 完全离线安装 CDH6 集群</a><br><a href="https://blog.csdn.net/weixin_45682234/article/details/105844209">cdh6.2离线安装（傻瓜式安装教程）</a></p>
+<h2 id="CDH日志清理"><a href="#CDH日志清理" class="headerlink" title="CDH日志清理"></a>CDH日志清理</h2><p>随着CM运行的时间越来越长，它所产生的日志文件也越来越大，需要定期去清理这些日志文件<br>在网上找了一个博客，用了他的自动化脚本，然后CM的监控页面都出问题了，无语了<br>以下是脚本：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#!&#x2F;bin&#x2F;bash
+
+# 清理日志
+cd &#x2F;var&#x2F;log&#x2F;hadoop-mapreduce
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;hadoop-hdfs
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;zookeeper
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;hive
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;cloudera-scm-agent
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;audit
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;hadoop-yarn
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;hue-httpd
+rm -rf *.out.* 
+rm -rf *.log.*
+
+# 清理监控日志
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;type&#x2F;partitions
+rm -rf type*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;stream&#x2F;partitions
+rm -rf stream*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;ts_stream_rollup_PT600S&#x2F;partitions&#x2F;
+rm -rf ts_stream*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;ts_type_rollup_PT600S&#x2F;partitions&#x2F;
+rm -rf ts_type*
+
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;stream&#x2F;partitions&#x2F;
+rm -rf stream*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;type&#x2F;partitions&#x2F;
+rm -rf type*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;ts_stream_rollup_PT600S&#x2F;partitions&#x2F;
+rm -rf ts_stream*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;ts_type_rollup_PT600S&#x2F;partitions&#x2F;
+rm -rf ts_type*<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>执行完成之后，监控页面如下图：<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%95%85%E9%9A%9C.png" alt="CM监控页面故障"></p>
+<p>解决办法：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv cloudera-host-monitor&#x2F; cloudera-host-monitor_BAK
+mv  cloudera-service-monitor  cloudera-service-monitor_BAK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>然后重启Cloudera Management Service，然后就不报错了，但是，都是无数据了，也好理解，都删除了嘛<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%97%A0%E6%95%B0%E6%8D%AE.png" alt="CM监控页面无数据"><br>等待了一会，页面现实正常：<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%81%A2%E5%A4%8D%E6%AD%A3%E5%B8%B8.png" alt="CM监控页面恢复正常"></p>
 ]]></content>
       <categories>
         <category>大数据</category>
@@ -1030,6 +1089,56 @@ input
       </tags>
   </entry>
   <entry>
+    <title>Java面试题</title>
+    <url>/2021/11/18/Java%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Java面试题总结</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="Java基础面试题"><a href="#Java基础面试题" class="headerlink" title="Java基础面试题"></a>Java基础面试题</h2><p><strong><font size = 5>1. 抽象类和接口的区别？</font></strong><br><strong>相同点:</strong>  </p>
+<ol>
+<li>都位于继承的顶端,用于被其他类实现或继承;  </li>
+<li>都不能直接实例化对象;  </li>
+<li>都可以包含抽象方法,其子类都必须覆写这些抽象方法;  </li>
+</ol>
+<p><strong>区别:</strong>  </p>
+<ol>
+<li>抽象类为部分方法提供实现,避免子类重复实现这些方法,提高代码重用性;接口只能包含抽象方法,java1.8以后也有default修饰的方法，还有stastic的方法可以有方法体;  </li>
+<li>一个类只能继承一个直接父类(可能是抽象类),却可以实现多个接口;(接口弥补了Java的单继承)  </li>
+<li>抽象类是这个事物中应该具备的内容, 继承体系是一种 is..a关系  </li>
+<li>接口是这个事物中的额外内容,继承体系是一种 like..a关系  </li>
+</ol>
+<h2 id="常见JVM面试题及答案整理"><a href="#常见JVM面试题及答案整理" class="headerlink" title="常见JVM面试题及答案整理"></a>常见JVM面试题及答案整理</h2><p><strong><font size = 5>1. 什么情况下会发生栈内存溢出？</font></strong><br>栈是线程私有的，他的生命周期与线程相同，每个方法在执行的时候都会创建一个栈帧，用来存储局部变量表，操作数栈，动态链接，方法出口等信息。局部变量表又包含基本数据类型，对象引用类型<br>如果线程请求的栈深度大于虚拟机所允许的最大深度，将抛出StackOverflowError异常，方法递归调用产生这种结果。<br>如果Java虚拟机栈可以动态扩展，并且扩展的动作已经尝试过，但是无法申请到足够的内存去完成扩展，或者在新建立线程的时候没有足够的内存去创建对应的虚拟机栈，那么Java虚拟机将抛出一个OutOfMemory 异常。(线程启动过多)<br>参数 -Xss 去调整JVM栈的大小</p>
+<p>可以参考<a href="https://blog.csdn.net/qq_41701956/article/details/100074023">常见JVM面试题及答案整理</a></p>
+<p><strong><font size = 5>2. 你知道哪几种垃圾收集器，各自的优缺点，重点讲下cms和G1，包括原理，流程，优缺点。</font></strong><br>1）几种垃圾收集器：</p>
+<ul>
+<li>Serial收集器： 单线程的收集器，收集垃圾时，必须stop the world，使用复制算法。</li>
+<li>ParNew收集器： Serial收集器的多线程版本，也需要stop the world，复制算法。</li>
+<li>Parallel Scavenge收集器： 新生代收集器，复制算法的收集器，并发的多线程收集器，目标是达到一个可控的吞吐量。如果虚拟机总共运行100分钟，其中垃圾花掉1分钟，吞吐量就是99%。</li>
+<li>Serial Old收集器： 是Serial收集器的老年代版本，单线程收集器，使用标记整理算法。</li>
+<li>Parallel Old收集器： 是Parallel Scavenge收集器的老年代版本，使用多线程，标记-整理算法。</li>
+<li>CMS(Concurrent Mark Sweep) 收集器： 是一种以获得最短回收停顿时间为目标的收集器，标记清除算法，运作过程：初始标记，并发标记，重新标记，并发清除，收集结束会产生大量空间碎片。</li>
+<li>G1收集器： 标记整理算法实现，运作流程主要包括以下：初始标记，并发标记，最终标记，筛选标记。不会产生空间碎片，可以精确地控制停顿。<br>2）CMS收集器和G1收集器的区别：</li>
+<li>CMS收集器是老年代的收集器，可以配合新生代的Serial和ParNew收集器一起使用；</li>
+<li>G1收集器收集范围是老年代和新生代，不需要结合其他收集器使用；</li>
+<li>CMS收集器以最小的停顿时间为目标的收集器；</li>
+<li>G1收集器可预测垃圾回收的停顿时间</li>
+<li>CMS收集器是使用“标记-清除”算法进行的垃圾回收，容易产生内存碎片</li>
+<li>G1收集器使用的是“标记-整理”算法，进行了空间整合，降低了内存空间碎片。 </li>
+</ul>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Kafka学习笔记（一）</title>
     <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1090,56 +1199,6 @@ bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe -
       </categories>
       <tags>
         <tag>Kafka</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java面试题</title>
-    <url>/2021/11/18/Java%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Java面试题总结</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="Java基础面试题"><a href="#Java基础面试题" class="headerlink" title="Java基础面试题"></a>Java基础面试题</h2><p><strong><font size = 5>1. 抽象类和接口的区别？</font></strong><br><strong>相同点:</strong>  </p>
-<ol>
-<li>都位于继承的顶端,用于被其他类实现或继承;  </li>
-<li>都不能直接实例化对象;  </li>
-<li>都可以包含抽象方法,其子类都必须覆写这些抽象方法;  </li>
-</ol>
-<p><strong>区别:</strong>  </p>
-<ol>
-<li>抽象类为部分方法提供实现,避免子类重复实现这些方法,提高代码重用性;接口只能包含抽象方法,java1.8以后也有default修饰的方法，还有stastic的方法可以有方法体;  </li>
-<li>一个类只能继承一个直接父类(可能是抽象类),却可以实现多个接口;(接口弥补了Java的单继承)  </li>
-<li>抽象类是这个事物中应该具备的内容, 继承体系是一种 is..a关系  </li>
-<li>接口是这个事物中的额外内容,继承体系是一种 like..a关系  </li>
-</ol>
-<h2 id="常见JVM面试题及答案整理"><a href="#常见JVM面试题及答案整理" class="headerlink" title="常见JVM面试题及答案整理"></a>常见JVM面试题及答案整理</h2><p><strong><font size = 5>1. 什么情况下会发生栈内存溢出？</font></strong><br>栈是线程私有的，他的生命周期与线程相同，每个方法在执行的时候都会创建一个栈帧，用来存储局部变量表，操作数栈，动态链接，方法出口等信息。局部变量表又包含基本数据类型，对象引用类型<br>如果线程请求的栈深度大于虚拟机所允许的最大深度，将抛出StackOverflowError异常，方法递归调用产生这种结果。<br>如果Java虚拟机栈可以动态扩展，并且扩展的动作已经尝试过，但是无法申请到足够的内存去完成扩展，或者在新建立线程的时候没有足够的内存去创建对应的虚拟机栈，那么Java虚拟机将抛出一个OutOfMemory 异常。(线程启动过多)<br>参数 -Xss 去调整JVM栈的大小</p>
-<p>可以参考<a href="https://blog.csdn.net/qq_41701956/article/details/100074023">常见JVM面试题及答案整理</a></p>
-<p><strong><font size = 5>2. 你知道哪几种垃圾收集器，各自的优缺点，重点讲下cms和G1，包括原理，流程，优缺点。</font></strong><br>1）几种垃圾收集器：</p>
-<ul>
-<li>Serial收集器： 单线程的收集器，收集垃圾时，必须stop the world，使用复制算法。</li>
-<li>ParNew收集器： Serial收集器的多线程版本，也需要stop the world，复制算法。</li>
-<li>Parallel Scavenge收集器： 新生代收集器，复制算法的收集器，并发的多线程收集器，目标是达到一个可控的吞吐量。如果虚拟机总共运行100分钟，其中垃圾花掉1分钟，吞吐量就是99%。</li>
-<li>Serial Old收集器： 是Serial收集器的老年代版本，单线程收集器，使用标记整理算法。</li>
-<li>Parallel Old收集器： 是Parallel Scavenge收集器的老年代版本，使用多线程，标记-整理算法。</li>
-<li>CMS(Concurrent Mark Sweep) 收集器： 是一种以获得最短回收停顿时间为目标的收集器，标记清除算法，运作过程：初始标记，并发标记，重新标记，并发清除，收集结束会产生大量空间碎片。</li>
-<li>G1收集器： 标记整理算法实现，运作流程主要包括以下：初始标记，并发标记，最终标记，筛选标记。不会产生空间碎片，可以精确地控制停顿。<br>2）CMS收集器和G1收集器的区别：</li>
-<li>CMS收集器是老年代的收集器，可以配合新生代的Serial和ParNew收集器一起使用；</li>
-<li>G1收集器收集范围是老年代和新生代，不需要结合其他收集器使用；</li>
-<li>CMS收集器以最小的停顿时间为目标的收集器；</li>
-<li>G1收集器可预测垃圾回收的停顿时间</li>
-<li>CMS收集器是使用“标记-清除”算法进行的垃圾回收，容易产生内存碎片</li>
-<li>G1收集器使用的是“标记-整理”算法，进行了空间整合，降低了内存空间碎片。 </li>
-</ul>
-]]></content>
-      <categories>
-        <category>面试题</category>
-        <category>Java</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -1426,6 +1485,33 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
+    <title>Maven杂记</title>
+    <url>/2022/03/18/Maven%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Maven杂记</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="Maven配置cloudera源下载CDH依赖包"><a href="#Maven配置cloudera源下载CDH依赖包" class="headerlink" title="Maven配置cloudera源下载CDH依赖包"></a>Maven配置cloudera源下载CDH依赖包</h2><p>由于Cloudera Manager自动安装部署的Hadoop、Hbase，Zookeeper等组件与Apache提供的会有差异，所以需要配置为对应CDH版本的依赖包。</p>
+<h3 id="添加cloudera仓库"><a href="#添加cloudera仓库" class="headerlink" title="添加cloudera仓库"></a>添加cloudera仓库</h3><p>在pom.xml，project标签内开头添加如下仓库：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>repositories</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>repository</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>cloudera<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>https://repository.cloudera.com/artifactory/cloudera-repos/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>repository</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>repositories</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>不需要在settings.xml里添加</p>
+]]></content>
+      <categories>
+        <category>Maven</category>
+      </categories>
+      <tags>
+        <tag>Maven</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MongoDB杂记（一）</title>
     <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
@@ -1645,55 +1731,6 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       </tags>
   </entry>
   <entry>
-    <title>Zookeeper学习笔记（一）</title>
-    <url>/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Zookeeper简介</li>
-<li>Zookeeper可以干什么？</li>
-<li>Zookeeper安装与启动</li>
-<li>Zookeeper常用操作<a id="more"></a>
-<h2 id="Zookeeper简介"><a href="#Zookeeper简介" class="headerlink" title="Zookeeper简介"></a>Zookeeper简介</h2></li>
-</ul>
-<h2 id="Zookeeper可以干什么？"><a href="#Zookeeper可以干什么？" class="headerlink" title="Zookeeper可以干什么？"></a>Zookeeper可以干什么？</h2><h2 id="Zookeeper安装与启动"><a href="#Zookeeper安装与启动" class="headerlink" title="Zookeeper安装与启动"></a>Zookeeper安装与启动</h2><h3 id="Zookeeper安装"><a href="#Zookeeper安装" class="headerlink" title="Zookeeper安装"></a>Zookeeper安装</h3><p>Zookeeper需要用到java，安装前需要安装java，这里省略<br>官网下载Zookeeper安装包，并解压</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf zookeeper-3.4.6.tar.gz -C .
-cd zookeeper-3.4.6&#x2F;conf
-cp zoo_sample.cfg zoo.cfg <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>修改zoo.cfg</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># The number of milliseconds of each tick
-tickTime&#x3D;2000
-# The number of ticks that the initial 
-# synchronization phase can take
-initLimit&#x3D;10
-# The number of ticks that can pass between 
-# sending a request and getting an acknowledgement
-syncLimit&#x3D;5
-# the directory where the snapshot is stored.
-# do not use &#x2F;tmp for storage, &#x2F;tmp here is just 
-# example sakes.
-dataDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkData
-dataLogDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkDataLog
-# the port at which the clients will connect
-clientPort&#x3D;2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里设置了dataDir和dataLogDir，手动生成了这两个文件，不知道会不会自动生成<br>最后，设置Zookeeper的环境变量</p>
-<h3 id="Zookeeper启动等操作"><a href="#Zookeeper启动等操作" class="headerlink" title="Zookeeper启动等操作"></a>Zookeeper启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh start
-# 关闭
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh stop
-# 查看ZK服务状态
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh status
-#  重启ZK服务
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh restart<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="Zookeeper操作样例"><a href="#Zookeeper操作样例" class="headerlink" title="Zookeeper操作样例"></a>Zookeeper操作样例</h2>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Zookeeper</category>
-      </categories>
-      <tags>
-        <tag>Zookeeper</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Spark面试题</title>
     <url>/2021/11/18/Spark%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1780,6 +1817,94 @@ cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServe
       </tags>
   </entry>
   <entry>
+    <title>Zookeeper学习笔记（一）</title>
+    <url>/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Zookeeper简介</li>
+<li>Zookeeper可以干什么？</li>
+<li>Zookeeper安装与启动</li>
+<li>Zookeeper常用操作<a id="more"></a>
+<h2 id="Zookeeper简介"><a href="#Zookeeper简介" class="headerlink" title="Zookeeper简介"></a>Zookeeper简介</h2></li>
+</ul>
+<h2 id="Zookeeper可以干什么？"><a href="#Zookeeper可以干什么？" class="headerlink" title="Zookeeper可以干什么？"></a>Zookeeper可以干什么？</h2><h2 id="Zookeeper安装与启动"><a href="#Zookeeper安装与启动" class="headerlink" title="Zookeeper安装与启动"></a>Zookeeper安装与启动</h2><h3 id="Zookeeper安装"><a href="#Zookeeper安装" class="headerlink" title="Zookeeper安装"></a>Zookeeper安装</h3><p>Zookeeper需要用到java，安装前需要安装java，这里省略<br>官网下载Zookeeper安装包，并解压</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf zookeeper-3.4.6.tar.gz -C .
+cd zookeeper-3.4.6&#x2F;conf
+cp zoo_sample.cfg zoo.cfg <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>修改zoo.cfg</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># The number of milliseconds of each tick
+tickTime&#x3D;2000
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit&#x3D;10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit&#x3D;5
+# the directory where the snapshot is stored.
+# do not use &#x2F;tmp for storage, &#x2F;tmp here is just 
+# example sakes.
+dataDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkData
+dataLogDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkDataLog
+# the port at which the clients will connect
+clientPort&#x3D;2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里设置了dataDir和dataLogDir，手动生成了这两个文件，不知道会不会自动生成<br>最后，设置Zookeeper的环境变量</p>
+<h3 id="Zookeeper启动等操作"><a href="#Zookeeper启动等操作" class="headerlink" title="Zookeeper启动等操作"></a>Zookeeper启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
+cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh start
+# 关闭
+cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh stop
+# 查看ZK服务状态
+cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh status
+#  重启ZK服务
+cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh restart<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Zookeeper操作样例"><a href="#Zookeeper操作样例" class="headerlink" title="Zookeeper操作样例"></a>Zookeeper操作样例</h2>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Zookeeper</category>
+      </categories>
+      <tags>
+        <tag>Zookeeper</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>azkban从编译开始安装</title>
+    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>如何下载Azkaban稳定版代码</li>
+<li>如何构建Azkaban源码</li>
+<li>如何配置Azkaban</li>
+<li>启动Azkaban注意点<a id="more"></a>
+<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
+</ul>
+<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
+<p>后来还是直接clone官网上的代码来构建</p>
+<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
+<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
+<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
+<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
+2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
+2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
+<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Azkaban</category>
+      </categories>
+      <tags>
+        <tag>Azkaban</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>emacs手动安装、解决不能使用中文输入法</title>
     <url>/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1832,95 +1957,6 @@ sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<spa
       </categories>
       <tags>
         <tag>emacs</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>azkban从编译开始安装</title>
-    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>如何下载Azkaban稳定版代码</li>
-<li>如何构建Azkaban源码</li>
-<li>如何配置Azkaban</li>
-<li>启动Azkaban注意点<a id="more"></a>
-<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
-</ul>
-<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
-<p>后来还是直接clone官网上的代码来构建</p>
-<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
-<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
-<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
-<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
-2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
-2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
-<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Azkaban</category>
-      </categories>
-      <tags>
-        <tag>Azkaban</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>flink-cdc实时采集数据库入Kafka</title>
-    <url>/2022/03/11/flink-cdc%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%95%B0%E6%8D%AE%E5%BA%93%E5%85%A5Kafka/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink-CDC实时采集Mysql入Kafka</li>
-<li>Flink-CDC实时采集Sqlserver入Kafka</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="Flink-CDC实时采集Mysql入Kafka"><a href="#Flink-CDC实时采集Mysql入Kafka" class="headerlink" title="Flink-CDC实时采集Mysql入Kafka"></a>Flink-CDC实时采集Mysql入Kafka</h2><p>环境信息：<br>flink-1.13.6<br>mysql-5.7.26<br>kafka_2.11-2.1.0-cdh6.2.0</p>
-<h3 id="Mysql开启binlog"><a href="#Mysql开启binlog" class="headerlink" title="Mysql开启binlog"></a>Mysql开启binlog</h3><p>检查binlog开启状态：</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 如果log_bin显示为ON，则代表已开启。</span>
-<span class="token keyword">show</span> variables <span class="token operator">like</span> <span class="token string">'log_%'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>首先找到<code>my.cnf</code>:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp5 tmp]# mysql --help | grep &#39;Default options&#39; -A 1
-Default options are read from the following files in the given order:
-&#x2F;etc&#x2F;my.cnf &#x2F;etc&#x2F;mysql&#x2F;my.cnf &#x2F;usr&#x2F;etc&#x2F;my.cnf ~&#x2F;.my.cnf<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>可以看到mysql优先加载/etc/my.cnf中的配置。<br>所以需要在/etc/my.cnf中mysqld节添加开启binlog的配置：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#设置日志路径，注意路经需要mysql用户有权限写
-## &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;是binlog存储路径，mysql-bin是文件名
-## 在该文件夹下会生成 mysql-bin.000001、 mysql-bin.index文件
-log-bin &#x3D; &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;mysql-bin
-#选择row模式
-binlog_format&#x3D;ROW
-##配置serverid
-server_id&#x3D;1
-#设置binlog清理时间
-expire_logs_days &#x3D; 7
-##binlog每个日志文件大小
-max_binlog_size &#x3D; 100m
-##binlog缓存大小
-binlog_cache_size &#x3D; 4m
-##最大binlog缓存大小
-max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>修改完配置后，重启mysql。执行SHOW VARIABLES LIKE ‘log_bin’; Value 值为 ON即可</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">service mysqld restart<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<h3 id="binlog的三种模式比较"><a href="#binlog的三种模式比较" class="headerlink" title="binlog的三种模式比较"></a>binlog的三种模式比较</h3><p>binlog的格式也有三种：<code>STATEMENT</code>、<code>ROW</code>、<code>MIXED</code>。<br><strong>STATMENT模式：</strong> 基于SQL语句的复制(statement-based replication, SBR)，每一条会修改数据的sql语句会记录到binlog中。<br><strong>优点：</strong> 不需要记录每一条SQL语句与每行的数据变化，这样子binlog的日志也会比较少，减少了磁盘IO，提高性能。<br><strong>缺点：</strong> 在某些情况下会导致master-slave中的数据不一致 。</p>
-<p><strong>ROW基于行的复制(row-based replication, RBR)格式：</strong> 不记录每一条SQL语句的上下文信息，仅需记录哪条数据被修改了，修改成了什么样子了。<br><strong>优点：</strong> 不会出现某些特定情况下的存储过程、或function、或trigger的调用和触发无法被正确复制的问题。<br><strong>缺点：</strong> 会产生大量的日志，尤其是alter table的时候会让日志暴涨。<br>MIXED混合模式复制(mixed-based replication, MBR)：以上两种模式的混合使用，一般的复制使用STATEMENT模式保存binlog，对于STATEMENT模式无法复制的操作使用ROW模式保存binlog，MySQL会根据执行的SQL语句选择日志保存方式。<br>具体参考<a href="https://www.jianshu.com/p/8e7e288c41b1">MySQL如何开启binlog？binlog三种模式的分析</a><br>我们实时采集mysql数据，需要开启<code>ROW</code>模式</p>
-<h3 id="flinkSQL读取mysqlBinlog并写入kafka"><a href="#flinkSQL读取mysqlBinlog并写入kafka" class="headerlink" title="flinkSQL读取mysqlBinlog并写入kafka"></a>flinkSQL读取mysqlBinlog并写入kafka</h3>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink-CDC</category>
-      </categories>
-      <tags>
-        <tag>Flink-CDC</tag>
       </tags>
   </entry>
   <entry>
@@ -2165,47 +2201,6 @@ tar zxvf flink-1.13.6-src.tgz -C .<span aria-hidden="true" class="line-numbers-r
       </tags>
   </entry>
   <entry>
-    <title>python实现scp功能</title>
-    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
-    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
-<span class="token keyword">import</span> sys
-
-<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
-    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
-    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
-    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-
-<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
-    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
-    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
-    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
-    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
-<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
-</ul>
-<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>scp</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
     <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2285,6 +2280,47 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       <tags>
         <tag>Spark</tag>
         <tag>Hive</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python实现scp功能</title>
+    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
+    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
+<span class="token keyword">import</span> sys
+
+<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
+    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
+    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
+    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
+    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
+    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
+<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
+</ul>
+<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>scp</tag>
       </tags>
   </entry>
   <entry>
@@ -6169,6 +6205,388 @@ properties<span class="token punctuation">.</span><span class="token function">p
       </tags>
   </entry>
   <entry>
+    <title>flink-cdc实时采集数据库入Kafka</title>
+    <url>/2022/03/11/flink-cdc%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%95%B0%E6%8D%AE%E5%BA%93%E5%85%A5Kafka/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink-CDC实时采集Mysql入Kafka</li>
+<li>Flink-CDC实时采集Sqlserver入Kafka</li>
+</ul>
+<a id="more"></a>
+
+
+<h1 id="Flink-CDC实时采集Mysql入Kafka"><a href="#Flink-CDC实时采集Mysql入Kafka" class="headerlink" title="Flink-CDC实时采集Mysql入Kafka"></a>Flink-CDC实时采集Mysql入Kafka</h1><p>环境信息：<br>flink-1.13.6<br>mysql-5.7.26<br>kafka_2.11-2.1.0-cdh6.2.0</p>
+<h2 id="Mysql开启binlog"><a href="#Mysql开启binlog" class="headerlink" title="Mysql开启binlog"></a>Mysql开启binlog</h2><h3 id="binlog的三种模式比较"><a href="#binlog的三种模式比较" class="headerlink" title="binlog的三种模式比较"></a>binlog的三种模式比较</h3><p>binlog的格式也有三种：<code>STATEMENT</code>、<code>ROW</code>、<code>MIXED</code>。<br><strong>STATMENT模式：</strong> 基于SQL语句的复制(statement-based replication, SBR)，每一条会修改数据的sql语句会记录到binlog中。<br><strong>优点：</strong> 不需要记录每一条SQL语句与每行的数据变化，这样子binlog的日志也会比较少，减少了磁盘IO，提高性能。<br><strong>缺点：</strong> 在某些情况下会导致master-slave中的数据不一致 。</p>
+<p><strong>ROW基于行的复制(row-based replication, RBR)格式：</strong> 不记录每一条SQL语句的上下文信息，仅需记录哪条数据被修改了，修改成了什么样子了。<br><strong>优点：</strong> 不会出现某些特定情况下的存储过程、或function、或trigger的调用和触发无法被正确复制的问题。<br><strong>缺点：</strong> 会产生大量的日志，尤其是alter table的时候会让日志暴涨。<br>MIXED混合模式复制(mixed-based replication, MBR)：以上两种模式的混合使用，一般的复制使用STATEMENT模式保存binlog，对于STATEMENT模式无法复制的操作使用ROW模式保存binlog，MySQL会根据执行的SQL语句选择日志保存方式。<br>具体参考<a href="https://www.jianshu.com/p/8e7e288c41b1">MySQL如何开启binlog？binlog三种模式的分析</a><br>我们实时采集mysql数据，需要开启<code>ROW</code>模式</p>
+<h3 id="binlog开启步骤"><a href="#binlog开启步骤" class="headerlink" title="binlog开启步骤"></a>binlog开启步骤</h3><p>检查binlog开启状态：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 如果log_bin显示为ON，则代表已开启。</span>
+<span class="token keyword">show</span> variables <span class="token operator">like</span> <span class="token string">'log_%'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>首先找到<code>my.cnf</code>:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp5 tmp]# mysql --help | grep &#39;Default options&#39; -A 1
+Default options are read from the following files in the given order:
+&#x2F;etc&#x2F;my.cnf &#x2F;etc&#x2F;mysql&#x2F;my.cnf &#x2F;usr&#x2F;etc&#x2F;my.cnf ~&#x2F;.my.cnf<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>可以看到mysql优先加载/etc/my.cnf中的配置。<br>所以需要在/etc/my.cnf中mysqld节添加开启binlog的配置：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#设置日志路径，注意路经需要mysql用户有权限写
+## &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;是binlog存储路径，mysql-bin是文件名
+## 在该文件夹下会生成 mysql-bin.000001、 mysql-bin.index文件
+log-bin &#x3D; &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;mysql-bin
+#选择row模式
+binlog_format&#x3D;ROW
+##配置serverid
+server_id&#x3D;1
+#设置binlog清理时间
+expire_logs_days &#x3D; 7
+##binlog每个日志文件大小
+max_binlog_size &#x3D; 100m
+##binlog缓存大小
+binlog_cache_size &#x3D; 4m
+##最大binlog缓存大小
+max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改完配置后，重启mysql。执行SHOW VARIABLES LIKE ‘log_bin’; Value 值为 ON即可</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">service mysqld restart<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="测试案例"><a href="#测试案例" class="headerlink" title="测试案例"></a>测试案例</h2><h3 id="通过简单的sqlClient读取mysqlBinlog数据"><a href="#通过简单的sqlClient读取mysqlBinlog数据" class="headerlink" title="通过简单的sqlClient读取mysqlBinlog数据"></a>通过简单的sqlClient读取mysqlBinlog数据</h3><p>在测试之前，需要把<code>flink-sql-connector-mysql-cdc-2.1.1.jar</code>放到<code>$&#123;FLINK_HOME&#125;\lib</code>下</p>
+<ul>
+<li>首先需要启动flink的集群，因为sqlClient貌似无法提交代码到yarn上，如果不启动集群，会报<code>Connect Refused</code>，找了很久的原因</li>
+<li>在sqlClient创建一个表来映射mysql表<br><img src="/uploads/202203/sqlClient%E8%AF%BB%E5%8F%96mysqlBinlog%E5%BB%BA%E8%A1%A8.png" alt="sqlClient读取mysqlBinlog建表"></li>
+<li>查询数据<br><img src="/uploads/202203/sqlClient%E8%AF%BB%E5%8F%96mysqlBinlog%E6%95%B0%E6%8D%AE.png" alt="sqlClient读取mysqlBinlog数据"><br>验证没问题<h3 id="通过java代码编写Flink代码"><a href="#通过java代码编写Flink代码" class="headerlink" title="通过java代码编写Flink代码"></a>通过java代码编写Flink代码</h3>pom.xml配置如下：<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>project</span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://maven.apache.org/POM/4.0.0<span class="token punctuation">"</span></span>
+         <span class="token attr-name"><span class="token namespace">xmlns:</span>xsi</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2001/XMLSchema-instance<span class="token punctuation">"</span></span>
+         <span class="token attr-name"><span class="token namespace">xsi:</span>schemaLocation</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>modelVersion</span><span class="token punctuation">></span></span>4.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>modelVersion</span><span class="token punctuation">></span></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.example<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>FlinkCDCTest<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.0-SNAPSHOT<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>properties</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>flink.version</span><span class="token punctuation">></span></span>1.13.6<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>flink.version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>java.version</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>java.version</span><span class="token punctuation">></span></span>
+        <span class="token comment">&lt;!--scala版本，用于flink框架内部通信，它自己用        --></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scala.binary.version</span><span class="token punctuation">></span></span>2.12<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scala.binary.version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>cdc.version</span><span class="token punctuation">></span></span>2.1.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>cdc.version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slf4j.version</span><span class="token punctuation">></span></span>1.7.30<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slf4j.version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>properties</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependencies</span><span class="token punctuation">></span></span>
+
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.ververica<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-connector-mysql-cdc<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token comment">&lt;!-- the dependency is available only for stable releases. --></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;cdc.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-java<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-clients_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-streaming-java_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-table-api-scala-bridge_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-table-planner_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-connector-kafka_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependencies</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugins</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-assembly-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.4.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+                    <span class="token comment">&lt;!-- get all project dependencies --></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>descriptorRefs</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>descriptorRef</span><span class="token punctuation">></span></span>jar-with-dependencies<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>descriptorRef</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>descriptorRefs</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>executions</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>make-assembly<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+                        <span class="token comment">&lt;!-- bind to the packaging phase --></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>package<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
+                            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>single<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>executions</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span><span class="token punctuation">></span></span>8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>source</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span><span class="token punctuation">></span></span>8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugins</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>project</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+编写代码如下：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Mysql2Kakfa</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Logger</span> log <span class="token operator">=</span> <span class="token class-name">LoggerFactory</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">Mysql2Kakfa</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> hostName <span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">int</span> yourPort<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> dbName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> tableName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> userName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> password<span class="token punctuation">;</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">boolean</span> isTest <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">parseArgs</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        log<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"begin export data! args=&#123;&#125;"</span><span class="token punctuation">,</span> <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> argsLeft <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> args<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"-isTest"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>args<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                isTest <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                argsLeft<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>args<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>argsLeft<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">2</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            log<span class="token punctuation">.</span><span class="token function">error</span><span class="token punctuation">(</span><span class="token string">"输入参数个数异常，请检查！"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">//判断错误参数的标记，如果有错误参数，异常退出</span>
+        <span class="token keyword">int</span> error <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> argsLeft<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i <span class="token operator">=</span> i <span class="token operator">+</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"-hostName"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                hostName <span class="token operator">=</span> argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"-yourPort"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                yourPort <span class="token operator">=</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">parseInt</span><span class="token punctuation">(</span>argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"-dbName"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                dbName <span class="token operator">=</span> argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"-tableName"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                tableName <span class="token operator">=</span> argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"-userName"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                userName <span class="token operator">=</span> argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token string">"-password"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                password <span class="token operator">=</span> argsLeft<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>error <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">//parseArgs(args);</span>
+        hostName <span class="token operator">=</span> <span class="token string">"localhost"</span><span class="token punctuation">;</span>
+        yourPort <span class="token operator">=</span> <span class="token number">3306</span><span class="token punctuation">;</span>
+        dbName <span class="token operator">=</span> <span class="token string">"test"</span><span class="token punctuation">;</span>
+        tableName <span class="token operator">=</span> <span class="token string">"test.gjc_test_binlog"</span><span class="token punctuation">;</span>
+        userName <span class="token operator">=</span> <span class="token string">"root"</span><span class="token punctuation">;</span>
+        password <span class="token operator">=</span> <span class="token string">"Hive123!@#"</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"hostName:"</span> <span class="token operator">+</span> hostName
+                <span class="token operator">+</span> <span class="token string">",port:"</span> <span class="token operator">+</span> yourPort
+                <span class="token operator">+</span> <span class="token string">",dbName:"</span> <span class="token operator">+</span> dbName
+                <span class="token operator">+</span> <span class="token string">",tableName:"</span> <span class="token operator">+</span> tableName
+                <span class="token operator">+</span> <span class="token string">",userName:"</span> <span class="token operator">+</span> userName
+                <span class="token operator">+</span> <span class="token string">",password:"</span> <span class="token operator">+</span> password
+        <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">MySqlSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> mySqlSource <span class="token operator">=</span> <span class="token class-name">MySqlSource</span><span class="token punctuation">.</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token function">builder</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">hostname</span><span class="token punctuation">(</span>hostName<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">port</span><span class="token punctuation">(</span>yourPort<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">databaseList</span><span class="token punctuation">(</span>dbName<span class="token punctuation">)</span> <span class="token comment">// set captured database</span>
+                <span class="token punctuation">.</span><span class="token function">tableList</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span> <span class="token comment">// set captured table</span>
+                <span class="token punctuation">.</span><span class="token function">username</span><span class="token punctuation">(</span>userName<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">password</span><span class="token punctuation">(</span>password<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">deserializer</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// converts SourceRecord to JSON String</span>
+                <span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+        env<span class="token punctuation">.</span><span class="token function">fromSource</span><span class="token punctuation">(</span>mySqlSource<span class="token punctuation">,</span> <span class="token class-name">WatermarkStrategy</span><span class="token punctuation">.</span><span class="token function">noWatermarks</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"MySQL Source"</span><span class="token punctuation">)</span>
+                <span class="token comment">//.setParallelism(4)</span>
+                <span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"Print MySQL Snapshot + Binlog"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+在idea上执行需要在pom文件里指定<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-clients_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+在idea里可以执行，结果如图：<br><img src="/uploads/202203/Idea%E6%89%A7%E8%A1%8Cflinkcdc%E4%BB%A3%E7%A0%81%E6%88%90%E5%8A%9F.png" alt="Idea执行flinkcdc代码成功"></li>
+</ul>
+<p>但是通过打成jar包上传到集群中，就开始报错了，执行命令如下</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>报错如下：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml">Caused by: java.lang.RuntimeException: Failed to get driver instance for jdbcUrl=jdbc:mysql://ddp5.hadoop:3306/?useInformationSchema=true&amp;nullCatalogMeansCurrent=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;characterSetResults=UTF-8&amp;zeroDateTimeBehavior=CONVERT_TO_NULL
+        at com.zaxxer.hikari.util.DriverDataSource.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(DriverDataSource.java:114)
+        at com.zaxxer.hikari.pool.PoolBase.initializeDataSource(PoolBase.java:331)
+        at com.zaxxer.hikari.pool.PoolBase.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(PoolBase.java:114)
+        at com.zaxxer.hikari.pool.HikariPool.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(HikariPool.java:108)
+        at com.zaxxer.hikari.HikariDataSource.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(HikariDataSource.java:81)
+        at com.ververica.cdc.connectors.mysql.source.connection.PooledDataSourceFactory.createPooledDataSource(PooledDataSourceFactory.java:54)
+        at com.ververica.cdc.connectors.mysql.source.connection.JdbcConnectionPools.getOrCreateConnectionPool(JdbcConnectionPools.java:51)
+        at com.ververica.cdc.connectors.mysql.source.connection.JdbcConnectionFactory.connect(JdbcConnectionFactory.java:53)
+        at io.debezium.jdbc.JdbcConnection.connection(JdbcConnection.java:872)
+        at io.debezium.jdbc.JdbcConnection.connection(JdbcConnection.java:867)
+        at io.debezium.jdbc.JdbcConnection.connect(JdbcConnection.java:413)
+        at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection(DebeziumUtils.java:62)
+        ... 31 more
+Caused by: java.sql.SQLException: No suitable driver
+        at java.sql.DriverManager.getDriver(DriverManager.java:315)
+        at com.zaxxer.hikari.util.DriverDataSource.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(DriverDataSource.java:106)
+        ... 42 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>期间换了cdc的版本，换成2.0.0和2.1.1都可以执行，但是2.1.0就是不行就是报<code>No suitable driver</code><br>最终找到原因：</p>
+<blockquote>
+<p>因为${FLINK_HOME}/lib下我放的cdc jar包是2.1.1的，但是，我pom文件里写的是2.1.0，两个版本不一样导致的</p>
+</blockquote>
+<p>解决方法：</p>
+<ol>
+<li>可以把pom文件里的cdc版本换成2.1.1的</li>
+<li>或者把lib文件夹下的cdc jar包换成2.1.0的（其实，如果要是使用java写代码的方式，lib下不需要放cdc的jar包，配置lib文件夹，主要是为了给sqlClient方式使用，经过测试，不配置lib下的cdc jar也能执行）</li>
+</ol>
+<p>中间还遇到一个问题：<br>因为代码里写了<code>setParallelism(4)</code>,然后使用的又是standalone方式启动任务，然后就报错了：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.CompletionException: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Could not acquire the minimum required resources.
+	at java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:292)
+	at java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:308)
+	at java.util.concurrent.CompletableFuture.uniApply(CompletableFuture.java:607)
+	at java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:591)
+	... 33 more
+Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Could not acquire the minimum required resources.
+	... 29 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>经过测试，把<code>setParallelism(4)</code>去掉就可以了</p>
+<blockquote>
+<p>这里需要测试一下，以yarn的方式，设置多个并行度是否可行，总感觉设置多个并行度是可以的，应该是哪里没配置好</p>
+</blockquote>
+<p>解决了很多问题，终于成功消费到<code>mysql binlog</code>，不容易：<br><img src="/uploads/202203/java%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0flinkcdc%E9%87%87%E9%9B%86mysqlbinlog%E6%88%90%E5%8A%9F.png" alt="java代码实现flinkcdc采集mysqlbinlog成功"></p>
+<h3 id="提交flinkcdc任务到yarn上"><a href="#提交flinkcdc任务到yarn上" class="headerlink" title="提交flinkcdc任务到yarn上"></a>提交flinkcdc任务到yarn上</h3><p>添加checkpoint<br>报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.util.FlinkRuntimeException: Failed to create checkpoint storage at checkpoint coordinator side.
+        at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.&lt;init&gt;(CheckpointCoordinator.java:325)
+Caused by: java.io.IOException: Cannot instantiate file system for URI: hdfs:&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa
+        at org.apache.flink.runtime.fs.hdfs.HadoopFsFactory.create(HadoopFsFactory.java:196)
+        at org.apache.flink.core.fs.FileSystem.getUnguardedFileSystem(FileSystem.java:526)
+Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: flink
+        at org.apache.hadoop.security.SecurityUtil.buildTokenService(SecurityUtil.java:445)
+        at org.apache.hadoop.hdfs.NameNodeProxiesClient.createProxyWithClientProtocol(NameNodeProxiesClient.java:132)
+Caused by: java.net.UnknownHostException: flink
+        ... 34 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.sql.SQLNonTransientConnectionException: Data source rejected establishment of connection,  message from server: &quot;Too many connections&quot;
+        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:110)
+        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:97)
+        at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
+        at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:836)
+        at com.mysql.cj.jdbc.ConnectionImpl.&lt;init&gt;(ConnectionImpl.java:456)
+        at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:246)
+        at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:197)
+        at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:138)
+        at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:364)
+        <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>貌似flinkcdc没有及时关闭mysql链接</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.CompletionException: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Slot request bulk is not fulfillable! Could not allocate the required slot within slot request timeout
+        at java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:292)
+        at java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:308)
+        at java.util.concurrent.CompletableFuture.uniApply(CompletableFuture.java:593)
+        at java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:577)
+        ... 33 more
+Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Slot request bulk is not fulfillable! Could not allocate the required slot within slot request timeout
+        at org.apache.flink.runtime.jobmaster.slotpool.PhysicalSlotRequestBulkCheckerImpl.lambda$schedulePendingRequestBulkWithTimestampCheck$0(PhysicalSlotRequestBulkCheckerImpl.java:86)
+        ... 26 more
+Caused by: java.util.concurrent.TimeoutException: Timeout has occurred: 300000 ms
+        ... 27 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里乍一看，以为是资源不够，然后我加大资源，换资源队列，最后还是解决不了<br>最终在网上找到原因，是因为当时方便在idea里测试代码，在pom文件里添加了如下依赖：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-clients_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里给依赖加上<code>&lt;scope&gt;provided&lt;/scope&gt;</code>,或者去掉clients的依赖即可</p>
+<p>然后又遇到以下问题：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.yarn.YarnClusterDescriptor$YarnDeploymentException: The YARN application unexpectedly switched to state FAILED during deployment.
+Diagnostics from YARN: Application application_1640152414594_2461 failed 1 times (global limit &#x3D;2; local limit is &#x3D;1) due to AM Container for appattempt_1640152414594_2461_000001 exited with  exitCode: 1
+...
+For more detailed output, check the application tracking page: http:&#x2F;&#x2F;ddp2.hadoop:8088&#x2F;cluster&#x2F;app&#x2F;application_1640152414594_2461 Then click on links to logs of each attempt.
+. Failing the application.
+If log aggregation is enabled on your cluster, use this command to further investigate the issue:
+yarn logs -applicationId application_1640152414594_2461<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过查看application_1640152414594_2461的日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.lang.NoSuchMethodError: org.apache.commons.cli.Option.builder(Ljava&#x2F;lang&#x2F;String;)Lorg&#x2F;apache&#x2F;commons&#x2F;cli&#x2F;Option$Builder;
+        at org.apache.flink.runtime.entrypoint.parser.CommandLineOptions.&lt;clinit&gt;(CommandLineOptions.java:27)
+        at org.apache.flink.runtime.entrypoint.DynamicParametersConfigurationParserFactory.options(DynamicParametersConfigurationParserFactory.java:43)
+        at org.apache.flink.runtime.entrypoint.DynamicParametersConfigurationParserFactory.getOptions(DynamicParametersConfigurationParserFactory.java:50)
+        at org.apache.flink.runtime.entrypoint.parser.CommandLineParser.parse(CommandLineParser.java:42)
+        at org.apache.flink.runtime.entrypoint.ClusterEntrypointUtils.parseParametersOrExit(ClusterEntrypointUtils.java:63)
+        at org.apache.flink.yarn.entrypoint.YarnJobClusterEntrypoint.main(YarnJobClusterEntrypoint.java:89)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里在网上查了以下原因，说是因为缺少commons.cli相关的jar，按照网上的说法，去下载了一个commons-cli的jar包放到${FLINK_HOME}\lib下<br>但是，还是没有解决这个问题。<br>最终解决办法：<br>去掉hadoop相关的依赖:</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-common<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;hadoop-common.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里也不知道为什么，需要排除hadoop-common相关的依赖</p>
+<h3 id="添加断点续传"><a href="#添加断点续传" class="headerlink" title="添加断点续传"></a>添加断点续传</h3><p>首先在代码里添加checkpoint相关代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//配置ck的状态后端</span>
+env<span class="token punctuation">.</span><span class="token function">setStateBackend</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">HashMapStateBackend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">//设置系统异常退出或人为 Cancel 掉，不删除checkpoint数据</span>
+env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setExternalizedCheckpointCleanup</span><span class="token punctuation">(</span><span class="token class-name">CheckpointConfig</span><span class="token punctuation">.</span><span class="token class-name">ExternalizedCheckpointCleanup</span><span class="token punctuation">.</span>RETAIN_ON_CANCELLATION<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">//设置checkpoint存储目录</span>
+env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs://flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+env<span class="token punctuation">.</span><span class="token function">enableCheckpointing</span><span class="token punctuation">(</span><span class="token number">3000</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>启动任务后，在hdfs上查看checkpoint文件夹：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp2 ~]# hadoop fs -ls &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;
+Found 3 items
+drwxr-xr-x   - root supergroup          0 2022-03-19 11:51 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27
+drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;shared
+drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol>
+<li>手动取消flink任务</li>
+<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -s hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27 -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar -hostName ddp5.hadoop -yourPort 3306 -dbName gjc_test -tableName gjc_test.gjc_test_binlog -userName root -password root123456<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在mysql中添加数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>在flink监控页面查看日志<br><img src="/uploads/202203/%E4%BB%8ECK%E5%90%AF%E5%8A%A8Flink%E4%BB%BB%E5%8A%A1%E7%BB%93%E6%9E%9C.png" alt="从CK启动Flink任务结果"><br>可以查看到，数据是从8，9开始的。断点续传测试成功</li>
+</ol>
+<h3 id="采集分表分库"><a href="#采集分表分库" class="headerlink" title="采集分表分库"></a>采集分表分库</h3><h3 id="修改mysql字段，检查代码兼容性"><a href="#修改mysql字段，检查代码兼容性" class="headerlink" title="修改mysql字段，检查代码兼容性"></a>修改mysql字段，检查代码兼容性</h3><h3 id="数据写入Kafka"><a href="#数据写入Kafka" class="headerlink" title="数据写入Kafka"></a>数据写入Kafka</h3><h3 id="数据写入Hudi"><a href="#数据写入Hudi" class="headerlink" title="数据写入Hudi"></a>数据写入Hudi</h3><h2 id="Flink-CDC实时采集Sqlserver入Kafka"><a href="#Flink-CDC实时采集Sqlserver入Kafka" class="headerlink" title="Flink-CDC实时采集Sqlserver入Kafka"></a>Flink-CDC实时采集Sqlserver入Kafka</h2><p>在maven里没找到相关<code>flink-connector-sqlserver-cdc</code>的jar包，在github上clone源码，然后自己编译出对应的jar</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink-CDC</category>
+      </categories>
+      <tags>
+        <tag>Flink-CDC</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>hive杂记（一）</title>
     <url>/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -6975,6 +7393,89 @@ set mapreduce.job.reduces&#x3D;&lt;number&gt;<span aria-hidden="true" class="lin
       <tags>
         <tag>hudi</tag>
         <tag>iceberg</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CM宕机问题调查与修复</title>
+    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>CM宕机问题调查与修复</li>
+</ul>
+<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
+<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
+com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
+        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
+        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+        at java.lang.Thread.run(Thread.java:748)
+Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at java.io.RandomAccessFile.open0(Native Method)
+        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
+        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
+        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
+        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
+        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
+        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
+<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
+● cloudera-scm-agent.service - Cloudera Manager Agent Service
+   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
+   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
+  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+ Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
+<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>CM</category>
+      </categories>
+      <tags>
+        <tag>CM</tag>
       </tags>
   </entry>
 </search>
