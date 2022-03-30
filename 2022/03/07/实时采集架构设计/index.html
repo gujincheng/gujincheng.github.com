@@ -22,18 +22,24 @@
     var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="计划推动变化">
+  <meta name="description" content="项目背景随着企业的数字化转型越来越深入，企业生产交付业务对于实时数据的需求在不断膨胀，实时数据能够帮助企业以最快速度收集来自传感器（日志）、传统数据库（业务系统）等的数据，通过管理数据实时变化迅速建立起对市场需求的形势判断，并最终将其转化为能够提升企业业绩的决策工具 当前现状现状描述当前数据采集系统，分为业务数据采集与日志数据采集，日志数据采集已经是实时采集，业务数据采集即传统数据库采集目前采用的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="实时采集架构设计">
 <meta property="og:url" content="https://gujincheng.github.io/2022/03/07/%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/index.html">
 <meta property="og:site_name" content="Golden Blog">
-<meta property="og:description" content="计划推动变化">
+<meta property="og:description" content="项目背景随着企业的数字化转型越来越深入，企业生产交付业务对于实时数据的需求在不断膨胀，实时数据能够帮助企业以最快速度收集来自传感器（日志）、传统数据库（业务系统）等的数据，通过管理数据实时变化迅速建立起对市场需求的形势判断，并最终将其转化为能够提升企业业绩的决策工具 当前现状现状描述当前数据采集系统，分为业务数据采集与日志数据采集，日志数据采集已经是实时采集，业务数据采集即传统数据库采集目前采用的">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E5%BD%93%E5%89%8D%E7%8E%B0%E7%8A%B6.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E5%9B%BE.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E9%BB%98%E8%AE%A4%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E6%B7%BB%E5%8A%A0Kafka%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
 <meta property="article:published_time" content="2022-03-07T02:22:13.000Z">
-<meta property="article:modified_time" content="2022-03-07T02:45:16.848Z">
+<meta property="article:modified_time" content="2022-03-30T01:13:28.260Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="实时架构">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202203/%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E5%BD%93%E5%89%8D%E7%8E%B0%E7%8A%B6.png">
 
 <link rel="canonical" href="https://gujincheng.github.io/2022/03/07/%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/">
 
@@ -224,10 +230,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-03-07 10:22:13 / 修改时间：10:45:16" itemprop="dateCreated datePublished" datetime="2022-03-07T10:22:13+08:00">2022-03-07</time>
+              <time title="创建时间：2022-03-07 10:22:13" itemprop="dateCreated datePublished" datetime="2022-03-07T10:22:13+08:00">2022-03-07</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-30 09:13:28" itemprop="dateModified" datetime="2022-03-30T09:13:28+08:00">2022-03-30</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -274,7 +286,311 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <h2 id="项目背景"><a href="#项目背景" class="headerlink" title="项目背景"></a>项目背景</h2><p>随着企业的数字化转型越来越深入，企业生产交付业务对于实时数据的需求在不断膨胀，实时数据能够帮助企业以最快速度收集来自传感器（日志）、传统数据库（业务系统）等的数据，通过管理数据实时变化迅速建立起对市场需求的形势判断，并最终将其转化为能够提升企业业绩的决策工具</p>
+<h2 id="当前现状"><a href="#当前现状" class="headerlink" title="当前现状"></a>当前现状</h2><h3 id="现状描述"><a href="#现状描述" class="headerlink" title="现状描述"></a>现状描述</h3><p>当前数据采集系统，分为业务数据采集与日志数据采集，日志数据采集已经是实时采集，业务数据采集即传统数据库采集目前采用的是离线采集，技术选用datax，每天凌晨抽取一次数据到hive<br><img src="/uploads/202203/%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E5%BD%93%E5%89%8D%E7%8E%B0%E7%8A%B6.png" alt="数据采集当前现状"></p>
+<h3 id="痛点问题"><a href="#痛点问题" class="headerlink" title="痛点问题"></a>痛点问题</h3><ol>
+<li>离线采集数据更新延迟，无法及时获取业务数据</li>
+<li>凌晨采集任务集中，集群资源消耗大（目前公司还没这个问题，但是任务多了以后，存在隐患）</li>
+</ol>
+<h2 id="设计目标"><a href="#设计目标" class="headerlink" title="设计目标"></a>设计目标</h2><p>通过对现状和痛点问题的分析，实时采集平台的建设应实现以下目标：</p>
+<ol>
+<li>通过页面配置的方式创建采集任务，并支持数据的实时采集</li>
+<li>支持多种数据源，例如Mysql、sqlServer、Oracle、MongoDB、PostgreSQL等</li>
+<li>支持分库分表的数据源</li>
+<li>数据源字段名/字段类型自动映射，并打通元信息管理</li>
+<li>集成监控系统，例如实时监控Kakfa数据消费情况，是否存在堆积、背压等情况</li>
+<li>业务方数据源发生变动，实时采集系统可以自动兼容，或者实时告警。例如，采集的某张Mysql表新增/修改字段，这时候目标HIve可以自动添加/修改，如果mysql表删除字段，采集系统可以及时告警，通知任务创建人员以及时修改</li>
+<li>支持对敏感数据脱敏</li>
+<li>实时采集的任务纳入调度系统</li>
+<li>采集数据源权限管控，有项目权限的人才能创建该数据源的任务</li>
+<li>资源管控，使用实时资源队列</li>
+</ol>
+<h2 id="架构设计原则"><a href="#架构设计原则" class="headerlink" title="架构设计原则"></a>架构设计原则</h2><p>实时采集平台是数据中台的重要组成部分，其建设、设计和系统实现过程中，应遵循如下指导原则：</p>
+<ul>
+<li><strong>高性能：</strong> 从计算和存储等方面考虑，如何达到更高的处理能力，例如采用分布式架构原理</li>
+<li><strong>高可靠：</strong> 设计实现更高的容错能力，例如灰度设计、风险隔离、备份恢复、提供降级方案等等</li>
+<li><strong>高可扩展性：</strong> 架构设计与功能划分模块化，考虑各接口的开放性、可扩展性，便于系统的快速扩展与维护，便于第三方系统的快速接入。并从集群层面对高性能和高可靠性提供支持，例如集群负载、容器化设计等等</li>
+<li><strong>高安全性：</strong> 保证信息安全和系统稳定，例如传输加密、认证授权，还有防DDOS、XSS、SQL注入等等。</li>
+<li><strong>高可维护性：</strong> 产品的开发只是一阵子，上线之后的运维和运营那才是一辈子的。因此，除了功能的设计，还需要考虑监控运营、运维工具、自动化运维能力等方面的设计。</li>
+</ul>
+<h2 id="系统技术架构"><a href="#系统技术架构" class="headerlink" title="系统技术架构"></a>系统技术架构</h2><p>本次项目根据建设目标和设计原则构建实时采集系统，在现有大数据平台基础上，新增实时采集系统，该系统通过Hadoop、Hudi/Iceberg、Kafka来存储数据，用Flink CDC采集业务库数据，集成权限管理系统、监控系统，打通元数据管理系统</p>
+<h3 id="系统架构设计"><a href="#系统架构设计" class="headerlink" title="系统架构设计"></a>系统架构设计</h3><p>本次实时采集平台建设，平台结构上分为业务数据源层、数据中台stage层、以及数据中台贴源层三个层次，规划将一步到位，但具体实施将采用分期方式进行，第一期主要集中在业务数据源层到数据中台stage层的打通，整体规划如下图：<br><img src="/uploads/202203/%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E5%9B%BE.png" alt="实时采集架构设计图"><br>每个层次的主要功能和使用的产品：<br><strong>业务数据源层</strong><br>该层是指业务方各系统数据源，即要采集的数据源，该层数据采用的存储组件不一，包含Mysql、SQLServer、Oracle、MongoDB、PostgreSQL等<br>这里需要考虑一下在采集平台部署采集任务，如何让业务方数据源自动支持CDC？目前还没找到，只能手动操作，后期可以考虑一下</p>
+<p><strong>数据中台stage层</strong><br>该层的主要作用就是缓冲业务数据源与数据中台贴源层之间的数据，以防止数据源波动较大，给上层写数据造成压力，并且可以对上下游解耦，将一个数据源分发给多个下游。考虑到数据的实时性，该层采用Kafka作为存储组件<br>这里讲解一下Kafka层的必要性：<br>业务数据源以Mysql为例，数据中台贴源层以Hudi为例：<br>MySQL 数据通过 Flink CDC 进入到 Kafka。之所以数据先入 Kafka 而不是直接入 Hudi</p>
+<ul>
+<li>实现多个实时任务复用 MySQL 过来的数据，避免多个任务通过 Flink CDC接 MySQL表以及Binlog，对MySQL库的性能造成影响。</li>
+<li>防止数据源波动较大的情况下，会对给上层写数据造成压力</li>
+</ul>
+<p><strong>数据中台贴源层</strong><br>该层是数据中台贴源层，用于存储实时采集过来的数据，由于数据是实时更新，所以存储组件需要支持行级更新，这里考虑引入数据湖组件，Hudi/Iceberg，具体Hudi还是Iceberg还需后期考量<br><strong>采集监控</strong><br>为了保证系统稳定，需要对采集任务做实时监控，例如业务方数据源是否发生变动，是否加字段或者该字段，kafka数据的消费情况，是否背压等<br><strong>元数据管理</strong><br>从大数据平台的角度来看，实时采集系统只是平台的一个功能模块，采集所设计的元数据都需与大数据平台的元数据管理系统交互，例如采集的表的元数据应当被存储在元数据管理系统，上下游依赖关系也需要在元数据管理系统内体现<br><strong>权限管控</strong><br>从数据安全角度来看，业务库的权限不应该对所有人开放，应仅对有项目权限的用户开放对应库/表的权限</p>
+<h3 id="技术方案选型"><a href="#技术方案选型" class="headerlink" title="技术方案选型"></a>技术方案选型</h3><h4 id="采集工具选择"><a href="#采集工具选择" class="headerlink" title="采集工具选择"></a>采集工具选择</h4><p>对于采集工具，这里需要引入一个新的概念，CDC（Change Data Capture），在广义的概念上，只要是能捕获数据变更的技术，我们都 可以称之为 CDC 。目前通常描述的 CDC 技术主要面向数据库的变更，是一种用于捕获数据库中 数据变更的技术，CDC 技术应用场景也非常广泛，包括:</p>
+<ol>
+<li>数据分发，将一个数据源分发给多个下游，常用于业务解耦、微服务。</li>
+<li>数据集成，将分散异构的数据源集成到数据仓库中，消除数据孤岛，便于后续的分析。</li>
+<li>数据迁移，常用于数据库备份、容灾等。</li>
+</ol>
+<p>目前业界主流的 CDC 实现机制可以分为两种:</p>
+<ol>
+<li>基于查询的 CDC:<br>1.1  离线调度查询作业，批处理。依赖表中的更新时间字段，每次执行查询去获取表中最新的数据; 无法捕获删除事件，从而无法保证数据一致性;<br>1.2无法保障实时性，基于离线调度存在天然的延迟。</li>
+<li> 基于日志的 CDC:<br> 2.1  实时消费日志，流处理。例如<code>MySQL</code>的<code>binlog</code>日志完整记录了数据库中的变更，可以把<code>binlog</code>文件当作流的数据源;<br> 2.2 保障数据一致性，因为<code>binlog</code>文件包含了所有历史变更明细;<br> 2.3 保障实时性，因为类似<code>binlog</code>的日志文件是可以流式消费的，提供的是实时数据。<br> 对比常见的开源<code>CDC</code>方案，我们可以发现:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>DataX</th>
+<th>Sqoop</th>
+<th>Kettle</th>
+<th>Canal</th>
+<th>Maxwell</th>
+<th>Flink CDC</th>
+<th>Debezium</th>
+<th>Oracle Goldengate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CDC机制</td>
+<td>查询</td>
+<td>查询</td>
+<td>查询</td>
+<td>日志</td>
+<td>日志</td>
+<td>日志</td>
+<td>日志</td>
+<td>日志</td>
+</tr>
+<tr>
+<td>增量同步</td>
+<td>×</td>
+<td>×</td>
+<td>×</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+</tr>
+<tr>
+<td>断点续传</td>
+<td>×</td>
+<td>×</td>
+<td>×</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+</tr>
+<tr>
+<td>全量同步</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>×</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+</tr>
+<tr>
+<td>架构</td>
+<td>单机</td>
+<td>分布式</td>
+<td>分布式</td>
+<td>单机</td>
+<td>单机</td>
+<td>分布式</td>
+<td>单机</td>
+<td>分布式</td>
+</tr>
+<tr>
+<td>生态</td>
+<td>☆☆☆</td>
+<td>☆☆</td>
+<td>☆</td>
+<td>☆☆</td>
+<td>☆☆☆</td>
+<td>☆☆☆☆☆</td>
+<td>☆☆☆</td>
+<td>☆☆☆</td>
+</tr>
+<tr>
+<td>实时采集不仅需要采集增量数据，也需要在采集之初做一次初始化，为了尽可能的统一技术栈，在采集工具的选择上，需要选择支持全量+增量一体化的工具，而在全量+增量一体化同步方面，只有<code>Flink CDC</code>、<code>Debezium</code>、<code>MaxWell</code>、<code>Oracle Goldengate</code>支持较好。</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<ul>
+<li>而<code>Oracle Goldengate</code>是商业软件，不是开源的，业内使用较少。</li>
+<li><code>MaxWell</code>仅支持<code>Mysql</code>的采集，支持的数据源太少</li>
+<li>而<code>Debezium</code>的锁表操作是一个挺大的痛点，在初始化数据的时候，会影响业务更新<code>Mysql</code>数据<br>综合考虑，选用<code>Flink CDC2.x</code>作为我们的采集工具</li>
+</ul>
+<p><code>Flink CDC</code>底层封装了<code>Debezium</code>，在<code>FlinkCDC2.x</code>出来之前，其实选择<code>Flink CDC</code>还是<code>Debezium</code>都可以，但是，<code>Flink CDC2.x</code>出来之后，解决了3个痛点问题：</p>
+<ol>
+<li>全量 + 增量读取的过程需要保证所有数据的一致性，因此需要通过全局锁保证，但是加锁容易 对在线业务造成影响，且<code>DBA</code>一般不给锁权限。</li>
+<li>不支持水平扩展，因为<code>Flink CDC</code>底层是基于<code>Debezium</code>，其架构是单节点，所以<code>Flink CDC1.x</code>的数据源只支持单并发。在全量阶段读取阶段，如果表非常大 (亿级别)，读取时间在小时甚至天 级别，用户无法通过增加资源去提升作业速度。</li>
+<li>全量读取阶段不支持<code>checkpoint:CDC</code>读取分为两个阶段，全量读取和增量读取，目前全量读取阶段是不支持<code>checkpoint</code>的，因此会存在一个问题:当我们同步全量数据时，假设需要5个小时，当我们同步了4小时的时候作业失败，这时候就需要重新开始，再读取5个小时。<h4 id="Flink-CDC支持的数据源"><a href="#Flink-CDC支持的数据源" class="headerlink" title="Flink CDC支持的数据源"></a><code>Flink CDC</code>支持的数据源</h4></li>
+</ol>
+<h4 id="Stage层技术选型"><a href="#Stage层技术选型" class="headerlink" title="Stage层技术选型"></a>Stage层技术选型</h4><p>考虑到Stage层的主要作用就是缓冲业务数据源与数据中台贴源层之间的数据，并且数据的实时性要求较高，这里采用Kafka作为该层的存储组件</p>
+<h4 id="数据中台贴源层技术选型"><a href="#数据中台贴源层技术选型" class="headerlink" title="数据中台贴源层技术选型"></a>数据中台贴源层技术选型</h4><p>用于存储实时采集过来的数据，由于数据是实时更新，所以存储组件需要支持行级更新，还要支持SQl做ETL分析，这里考虑引入数据湖组件，<code>Hudi/Iceberg</code>，<code>Hudi/Iceberg</code>依托于<code>HDFS</code>以保证整体大数据架构的兼容性，具体<code>Hudi</code>还是<code>Iceberg</code>还需后期考量。<br><code>Hudi</code>对上下游生态的开放、对全局索引的 支持、对<code>Flink 1.13</code>版本的支持比<code>Iceberg</code>更好</p>
+<h3 id="采集流程"><a href="#采集流程" class="headerlink" title="采集流程"></a>采集流程</h3><p>根据是否需要Kafka缓存有两种采集流程：</p>
+<ol>
+<li><p>默认情况下不接入Kafka，数据经FlinkCDC从业务库采集后直接入Hudi，具体流程图如下：<br><img src="/uploads/202203/%E9%BB%98%E8%AE%A4%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="默认采集流程图"><br>这种采集流程有如下<strong>优点：</strong><br>1）减少维护的组件，简化实时链路，减轻部署成本<br>2）减小端到端延迟<br>3）数据不落地，减少存储成本<br>有如下<strong>缺点：</strong><br>1）数据仅能做到分钟级别的准实时。对实时性要求不是特别高的，可以使用这种方式<br>2）数据源波动较大的情况下，会对给上层写数据造成压力<br>3）业务方数据和下游数据中台耦合性比较强</p>
+</li>
+<li><p>当用户指定需要Kafka做数据缓存时，数据经FlinkCDC先写入kafka，之后再有一个FlinkCDC程序实时读取kafka数据写入Hudi中。具体流程图如下：<br><img src="/uploads/202203/%E6%B7%BB%E5%8A%A0Kafka%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="添加Kafka采集流程图"><br>这种采集方案有如下<strong>优点：</strong><br>1）数据纯实时采集，实时性高<br>2）利用<code>Kafka</code>消息队列做解耦，<code>binlog</code>可供任何其他业务系统使用<br>3）数据量大的情况下，不会对上层写数据造成压力<br>有如下<strong>缺点：</strong><br>1）中间多了一层kafka组件，实时链路更长，部署成本稍高<br>2）数据多在kafka中存储一份，增加了存储成本<br>3）kafka的数据需要定期删除，不会存储全量的数据，只能从kafka里读取增量数据，数据源变更频率低的情况，这种不适合，会丢数据</p>
+</li>
+</ol>
+<h3 id="系统流程"><a href="#系统流程" class="headerlink" title="系统流程"></a>系统流程</h3><p>由于本次的采集系统是支持页面可配置的，所以需要和前端页面做交互，具体的流程图如下：<br><img src="/uploads/202203/%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="实时采集整体流程图"></p>
+<ol>
+<li>用户检查是否有目标表所在项目权限，如无先申请项目权限</li>
+<li>用户根据目标表数据波动以及是否存在多个流计算任务消费该目标表选择采集流程</li>
+<li>在页面选择实时采集的必要参数</li>
+<li>前端页面返回参数，在元数据系统记录该表的信息，并启动实时采集程序</li>
+<li>启动监控程序</li>
+</ol>
+<h2 id="方案可行性验证"><a href="#方案可行性验证" class="headerlink" title="方案可行性验证"></a>方案可行性验证</h2><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p><code>Flink CDC2.x</code>需要使用<code>Flink1.13.x</code>及以上的版本，首先需要替换集群的<code>Flink</code>版本，由于公司的大部分软件为<code>CDH</code>版本，这里的<code>Flin</code>k需要下载源码指定<code>CDH</code>版本的<code>Hadoop</code>重新编译</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mvn clean install -DskipTests -Dfast -Drat.skip&#x3D;true -Dhaoop.version&#x3D;3.0.0-cdh6.2.0 -Pvendor-repos -Dinclude-hadoop -Dscala-2.11 -T10C
+
+# -Dfast  #在flink根目录下pom.xml文件中fast配置项目中含快速设置,其中包含了多项构建时的跳过参数. #例如apache的文件头(rat)合法校验，代码风格检查，javadoc生成的跳过等，详细可阅读pom.xml
+# install maven的安装命令
+# -T10C #支持多处理器或者处理器核数参数,加快构建速度,推荐Maven3.3及以上
+# -Pinclude-hadoop  将hadoop的 jar包，打入到lib&#x2F;中
+# -Pvendor-repos   # 如果需要指定hadoop的发行商，如CDH，需要使用-Pvendor-repos
+# -Dscala-2.12     # 指定scala的版本为2.12
+# -Dhadoop.version&#x3D;3.0.0-cdh6.2.0  指定 hadoop 的版本，这里的版本与CDH集群版本的Hadoop一致就行<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在集群安装编译好的Flink软件，并配置环境变量</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export FLINK_HOME&#x3D;&#x2F;opt&#x2F;soft&#x2F;flink-1.13.6
+export PATH&#x3D;$PATH:$&#123;FLINK_HOME&#125;&#x2F;bin
+
+export HADOOP_CLASSPATH&#x3D;&#96;hadoop classpath&#96;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里可以参考我的博客<a href="https://gujincheng.github.io/2022/03/10/maven%E7%BC%96%E8%AF%91Hudi%E4%B8%8EFlink%E6%BA%90%E7%A0%81/">maven编译Hudi与Flink源码</a></p>
+<h3 id="Flink-CDC实时采集Mysql入Kafka"><a href="#Flink-CDC实时采集Mysql入Kafka" class="headerlink" title="Flink CDC实时采集Mysql入Kafka"></a>Flink CDC实时采集Mysql入Kafka</h3><p>这里只是简单介绍一下测试流程和测试结果，具体可以参考我的博客<a href="https://gujincheng.github.io/2022/03/11/flink-cdc%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%95%B0%E6%8D%AE%E5%BA%93%E5%85%A5Kafka/">flink-cdc实时采集数据库入Kafka</a></p>
+<h4 id="Mysql开启binlog"><a href="#Mysql开启binlog" class="headerlink" title="Mysql开启binlog"></a>Mysql开启binlog</h4><p>在/etc/my.cnf中mysqld节添加开启binlog的配置：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#设置日志路径，注意路经需要mysql用户有权限写
+## &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;是binlog存储路径，mysql-bin是文件名
+## 在该文件夹下会生成 mysql-bin.000001、 mysql-bin.index文件
+log-bin &#x3D; &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;mysql-bin
+#选择row模式
+binlog_format&#x3D;ROW
+##配置serverid
+server_id&#x3D;1
+#设置binlog清理时间
+expire_logs_days &#x3D; 7
+##binlog每个日志文件大小
+max_binlog_size &#x3D; 100m
+##binlog缓存大小
+binlog_cache_size &#x3D; 4m
+##最大binlog缓存大小
+max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改完配置后，重启mysql。执行SHOW VARIABLES LIKE ‘log_bin’; Value 值为 ON即可</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">service mysqld restart<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h4 id="通过DataStream方式编写CDC代码"><a href="#通过DataStream方式编写CDC代码" class="headerlink" title="通过DataStream方式编写CDC代码"></a>通过DataStream方式编写CDC代码</h4><ol>
+<li>配置maven依赖<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.ververica<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-connector-mysql-cdc<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- the dependency is available only for stable releases. --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2.1.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>编写java代码<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Mysql2Kakfa</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Logger</span> log <span class="token operator">=</span> <span class="token class-name">LoggerFactory</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">Mysql2Kakfa</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> hostName <span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">int</span> yourPort<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> dbName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> tableName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> userName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> password<span class="token punctuation">;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">//parseArgs(args);</span>
+        hostName <span class="token operator">=</span> <span class="token string">"localhost"</span><span class="token punctuation">;</span>
+        yourPort <span class="token operator">=</span> <span class="token number">3306</span><span class="token punctuation">;</span>
+        dbName <span class="token operator">=</span> <span class="token string">"test"</span><span class="token punctuation">;</span>
+        tableName <span class="token operator">=</span> <span class="token string">"test.gjc_test_binlog"</span><span class="token punctuation">;</span>
+        userName <span class="token operator">=</span> <span class="token string">"root"</span><span class="token punctuation">;</span>
+        password <span class="token operator">=</span> <span class="token string">"Hive123!@#"</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"hostName:"</span> <span class="token operator">+</span> hostName
+                <span class="token operator">+</span> <span class="token string">",port:"</span> <span class="token operator">+</span> yourPort
+                <span class="token operator">+</span> <span class="token string">",dbName:"</span> <span class="token operator">+</span> dbName
+                <span class="token operator">+</span> <span class="token string">",tableName:"</span> <span class="token operator">+</span> tableName
+                <span class="token operator">+</span> <span class="token string">",userName:"</span> <span class="token operator">+</span> userName
+                <span class="token operator">+</span> <span class="token string">",password:"</span> <span class="token operator">+</span> password
+        <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">MySqlSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> mySqlSource <span class="token operator">=</span> <span class="token class-name">MySqlSource</span><span class="token punctuation">.</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token function">builder</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">hostname</span><span class="token punctuation">(</span>hostName<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">port</span><span class="token punctuation">(</span>yourPort<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">databaseList</span><span class="token punctuation">(</span>dbName<span class="token punctuation">)</span> <span class="token comment">// set captured database</span>
+                <span class="token punctuation">.</span><span class="token function">tableList</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span> <span class="token comment">// set captured table</span>
+                <span class="token punctuation">.</span><span class="token function">username</span><span class="token punctuation">(</span>userName<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">password</span><span class="token punctuation">(</span>password<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">startupOptions</span><span class="token punctuation">(</span><span class="token class-name">StartupOptions</span><span class="token punctuation">.</span><span class="token function">initial</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  
+                <span class="token punctuation">.</span><span class="token function">deserializer</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// converts SourceRecord to JSON String</span>
+                <span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+         <span class="token class-name">DataStreamSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> dataStreamSource <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">fromSource</span><span class="token punctuation">(</span>mySqlSource<span class="token punctuation">,</span> <span class="token class-name">WatermarkStrategy</span><span class="token punctuation">.</span><span class="token function">noWatermarks</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"MySQL Source"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	dataStreamSource<span class="token punctuation">.</span><span class="token function">addSink</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlinkKafkaProducer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token string">"golden-02:9092"</span><span class="token punctuation">,</span>
+                <span class="token string">"test.gjc_test_binlog"</span><span class="token punctuation">,</span>
+                <span class="token keyword">new</span> <span class="token class-name">SimpleStringSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"Print MySQL Snapshot + Binlog"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+以per-job方式提交Flink任务到yarn上<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+数据很成功的采集到kafka了</li>
+</ol>
+<h4 id="添加断点续传"><a href="#添加断点续传" class="headerlink" title="添加断点续传"></a>添加断点续传</h4><p>首先在代码里添加checkpoint相关代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//配置ck的状态后端</span>
+env<span class="token punctuation">.</span><span class="token function">setStateBackend</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">HashMapStateBackend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">//设置系统异常退出或人为 Cancel 掉，不删除checkpoint数据</span>
+env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setExternalizedCheckpointCleanup</span><span class="token punctuation">(</span><span class="token class-name">CheckpointConfig</span><span class="token punctuation">.</span><span class="token class-name">ExternalizedCheckpointCleanup</span><span class="token punctuation">.</span>RETAIN_ON_CANCELLATION<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">//设置checkpoint存储目录</span>
+env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs://flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+env<span class="token punctuation">.</span><span class="token function">enableCheckpointing</span><span class="token punctuation">(</span><span class="token number">3000</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>启动任务后，在hdfs上查看checkpoint文件夹：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp2 ~]# hadoop fs -ls &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;
+Found 3 items
+drwxr-xr-x   - root supergroup          0 2022-03-19 11:51 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27
+drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;shared
+drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol>
+<li>手动取消flink任务</li>
+<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -s hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27 -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在mysql中添加数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>在flink监控页面查看日志<br>可以查看到，数据是从8，9开始的。断点续传测试成功</li>
+</ol>
+<h4 id="测试采集没有主键的表"><a href="#测试采集没有主键的表" class="headerlink" title="测试采集没有主键的表"></a>测试采集没有主键的表</h4><p>采集没有主键的表，通过DataStream的方式没找到办法，但是通过StreamTableEnvironment的方式，可以采集<br>主要是通过设置<code>scan.incremental.snapshot.enabled=false</code>来达到这种目的<br>这种方式下，在数据全量采集（初始化）阶段，会锁表，还是有风险的，尽量保证有主键</p>
+<h4 id="采集分表分库"><a href="#采集分表分库" class="headerlink" title="采集分表分库"></a>采集分表分库</h4><p>这里相对简单，只要把表明和库名以正则的方式输入即可</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">dbName <span class="token operator">=</span> <span class="token string">"[a-zA-Z\\d]+_test"</span><span class="token punctuation">;</span>
+tableName <span class="token operator">=</span> <span class="token string">"[a-zA-Z\\d]+_test.gjc_test_binlog_[0-9][0-9]"</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h4 id="修改mysql字段，检查代码兼容性"><a href="#修改mysql字段，检查代码兼容性" class="headerlink" title="修改mysql字段，检查代码兼容性"></a>修改mysql字段，检查代码兼容性</h4><h3 id="Flink-CDC实时采集Mysql入Hudi"><a href="#Flink-CDC实时采集Mysql入Hudi" class="headerlink" title="Flink CDC实时采集Mysql入Hudi"></a>Flink CDC实时采集Mysql入Hudi</h3><p>待验证。。</p>
+<h3 id="Flink-CDC实时采集Sqlserver入Kafka"><a href="#Flink-CDC实时采集Sqlserver入Kafka" class="headerlink" title="Flink CDC实时采集Sqlserver入Kafka"></a>Flink CDC实时采集Sqlserver入Kafka</h3><p>待验证。。。</p>
+<h3 id="Flink-CDC实时采集Sqlserver入Hudi"><a href="#Flink-CDC实时采集Sqlserver入Hudi" class="headerlink" title="Flink CDC实时采集Sqlserver入Hudi"></a>Flink CDC实时采集Sqlserver入Hudi</h3><p>待验证。。。</p>
+<h2 id="开发计划于未来规划"><a href="#开发计划于未来规划" class="headerlink" title="开发计划于未来规划"></a>开发计划于未来规划</h2><h3 id="开发计划"><a href="#开发计划" class="headerlink" title="开发计划"></a>开发计划</h3><ol>
+<li>开发FlinkCDC程序，使其满足实时采集Mysql入Kafka/Hudi、断点续传、分库分表等功能</li>
+<li>和服务端联调，支持可配置化</li>
+<li>支持表结构改变自动同步下游目标表结构，并修改元数据系统信息</li>
+<li>开发实时采集监控程序</li>
+<li>开发程序支持采集SqlServer等数据源实时采集</li>
+</ol>
+<h3 id="未来规划"><a href="#未来规划" class="headerlink" title="未来规划"></a>未来规划</h3><p>未来规划开发FlinkSQL平台，这样采集可以直接通过在页面写SQL的方式直接入数据湖组件，并且可以在采集的过程中就把ETL做了，像一些维表的关联等等</p>
+
     </div>
 
     
@@ -358,6 +674,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">项目背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%93%E5%89%8D%E7%8E%B0%E7%8A%B6"><span class="nav-number">2.</span> <span class="nav-text">当前现状</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%B0%E7%8A%B6%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.1.</span> <span class="nav-text">现状描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%97%9B%E7%82%B9%E9%97%AE%E9%A2%98"><span class="nav-number">2.2.</span> <span class="nav-text">痛点问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87"><span class="nav-number">3.</span> <span class="nav-text">设计目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99"><span class="nav-number">4.</span> <span class="nav-text">架构设计原则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84"><span class="nav-number">5.</span> <span class="nav-text">系统技术架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.1.</span> <span class="nav-text">系统架构设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E9%80%89%E5%9E%8B"><span class="nav-number">5.2.</span> <span class="nav-text">技术方案选型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%87%E9%9B%86%E5%B7%A5%E5%85%B7%E9%80%89%E6%8B%A9"><span class="nav-number">5.2.1.</span> <span class="nav-text">采集工具选择</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Flink-CDC%E6%94%AF%E6%8C%81%E7%9A%84%E6%95%B0%E6%8D%AE%E6%BA%90"><span class="nav-number">5.2.2.</span> <span class="nav-text">Flink CDC支持的数据源</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Stage%E5%B1%82%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B"><span class="nav-number">5.2.3.</span> <span class="nav-text">Stage层技术选型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%8F%B0%E8%B4%B4%E6%BA%90%E5%B1%82%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B"><span class="nav-number">5.2.4.</span> <span class="nav-text">数据中台贴源层技术选型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B"><span class="nav-number">5.3.</span> <span class="nav-text">采集流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%B5%81%E7%A8%8B"><span class="nav-number">5.4.</span> <span class="nav-text">系统流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E5%8F%AF%E8%A1%8C%E6%80%A7%E9%AA%8C%E8%AF%81"><span class="nav-number">6.</span> <span class="nav-text">方案可行性验证</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">6.1.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-CDC%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86Mysql%E5%85%A5Kafka"><span class="nav-number">6.2.</span> <span class="nav-text">Flink CDC实时采集Mysql入Kafka</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Mysql%E5%BC%80%E5%90%AFbinlog"><span class="nav-number">6.2.1.</span> <span class="nav-text">Mysql开启binlog</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E8%BF%87DataStream%E6%96%B9%E5%BC%8F%E7%BC%96%E5%86%99CDC%E4%BB%A3%E7%A0%81"><span class="nav-number">6.2.2.</span> <span class="nav-text">通过DataStream方式编写CDC代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0"><span class="nav-number">6.2.3.</span> <span class="nav-text">添加断点续传</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E9%87%87%E9%9B%86%E6%B2%A1%E6%9C%89%E4%B8%BB%E9%94%AE%E7%9A%84%E8%A1%A8"><span class="nav-number">6.2.4.</span> <span class="nav-text">测试采集没有主键的表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%87%E9%9B%86%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93"><span class="nav-number">6.2.5.</span> <span class="nav-text">采集分表分库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9mysql%E5%AD%97%E6%AE%B5%EF%BC%8C%E6%A3%80%E6%9F%A5%E4%BB%A3%E7%A0%81%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="nav-number">6.2.6.</span> <span class="nav-text">修改mysql字段，检查代码兼容性</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-CDC%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86Mysql%E5%85%A5Hudi"><span class="nav-number">6.3.</span> <span class="nav-text">Flink CDC实时采集Mysql入Hudi</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-CDC%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86Sqlserver%E5%85%A5Kafka"><span class="nav-number">6.4.</span> <span class="nav-text">Flink CDC实时采集Sqlserver入Kafka</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-CDC%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86Sqlserver%E5%85%A5Hudi"><span class="nav-number">6.5.</span> <span class="nav-text">Flink CDC实时采集Sqlserver入Hudi</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%8F%91%E8%AE%A1%E5%88%92%E4%BA%8E%E6%9C%AA%E6%9D%A5%E8%A7%84%E5%88%92"><span class="nav-number">7.</span> <span class="nav-text">开发计划于未来规划</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%8F%91%E8%AE%A1%E5%88%92"><span class="nav-number">7.1.</span> <span class="nav-text">开发计划</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%AA%E6%9D%A5%E8%A7%84%E5%88%92"><span class="nav-number">7.2.</span> <span class="nav-text">未来规划</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -373,20 +690,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-count">56</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-count">48</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

@@ -34,8 +34,13 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Idea%E6%89%A7%E8%A1%8Cflinkcdc%E4%BB%A3%E7%A0%81%E6%88%90%E5%8A%9F.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/java%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0flinkcdc%E9%87%87%E9%9B%86mysqlbinlog%E6%88%90%E5%8A%9F.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E4%BB%8ECK%E5%90%AF%E5%8A%A8Flink%E4%BB%BB%E5%8A%A1%E7%BB%93%E6%9E%9C.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Standalone%E6%A8%A1%E5%BC%8F%E7%9A%84Flink%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E6%83%85%E5%86%B5.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E6%9C%AA%E5%BC%80%E5%90%AFagent%E6%9C%8D%E5%8A%A1CDC%E6%9C%AA%E7%94%9F%E6%95%88.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/%E5%BC%80%E5%90%AFagent%E5%90%8ECDC%E7%94%9F%E6%95%88.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/flinkcdc%E4%BB%A5sqlclient%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%8F%96sqlserver%E6%88%90%E5%8A%9F.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Flinksql%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%8F%96sqlserver%E6%88%90%E5%8A%9F.png">
 <meta property="article:published_time" content="2022-03-11T08:21:51.000Z">
-<meta property="article:modified_time" content="2022-03-19T04:30:11.613Z">
+<meta property="article:modified_time" content="2022-03-30T09:23:13.348Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink-CDC">
 <meta name="twitter:card" content="summary">
@@ -238,7 +243,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-19 12:30:11" itemprop="dateModified" datetime="2022-03-19T12:30:11+08:00">2022-03-19</time>
+                <time title="修改时间：2022-03-30 17:23:13" itemprop="dateModified" datetime="2022-03-30T17:23:13+08:00">2022-03-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -296,39 +301,17 @@
 
 <h1 id="Flink-CDC实时采集Mysql入Kafka"><a href="#Flink-CDC实时采集Mysql入Kafka" class="headerlink" title="Flink-CDC实时采集Mysql入Kafka"></a>Flink-CDC实时采集Mysql入Kafka</h1><p>环境信息：<br>flink-1.13.6<br>mysql-5.7.26<br>kafka_2.11-2.1.0-cdh6.2.0</p>
 <h2 id="Mysql开启binlog"><a href="#Mysql开启binlog" class="headerlink" title="Mysql开启binlog"></a>Mysql开启binlog</h2><h3 id="binlog的三种模式比较"><a href="#binlog的三种模式比较" class="headerlink" title="binlog的三种模式比较"></a>binlog的三种模式比较</h3><p>binlog的格式也有三种：<code>STATEMENT</code>、<code>ROW</code>、<code>MIXED</code>。<br><strong>STATMENT模式：</strong> 基于SQL语句的复制(statement-based replication, SBR)，每一条会修改数据的sql语句会记录到binlog中。<br><strong>优点：</strong> 不需要记录每一条SQL语句与每行的数据变化，这样子binlog的日志也会比较少，减少了磁盘IO，提高性能。<br><strong>缺点：</strong> 在某些情况下会导致master-slave中的数据不一致 。</p>
-<p><strong>ROW基于行的复制(row-based replication, RBR)格式：</strong> 不记录每一条SQL语句的上下文信息，仅需记录哪条数据被修改了，修改成了什么样子了。<br><strong>优点：</strong> 不会出现某些特定情况下的存储过程、或function、或trigger的调用和触发无法被正确复制的问题。<br><strong>缺点：</strong> 会产生大量的日志，尤其是alter table的时候会让日志暴涨。<br>MIXED混合模式复制(mixed-based replication, MBR)：以上两种模式的混合使用，一般的复制使用STATEMENT模式保存binlog，对于STATEMENT模式无法复制的操作使用ROW模式保存binlog，MySQL会根据执行的SQL语句选择日志保存方式。<br>具体参考<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/8e7e288c41b1">MySQL如何开启binlog？binlog三种模式的分析</a><br>我们实时采集mysql数据，需要开启<code>ROW</code>模式</p>
-<h3 id="binlog开启步骤"><a href="#binlog开启步骤" class="headerlink" title="binlog开启步骤"></a>binlog开启步骤</h3><p>检查binlog开启状态：</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 如果log_bin显示为ON，则代表已开启。</span>
-<span class="token keyword">show</span> variables <span class="token operator">like</span> <span class="token string">'log_%'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>首先找到<code>my.cnf</code>:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp5 tmp]# mysql --help | grep &#39;Default options&#39; -A 1
-Default options are read from the following files in the given order:
-&#x2F;etc&#x2F;my.cnf &#x2F;etc&#x2F;mysql&#x2F;my.cnf &#x2F;usr&#x2F;etc&#x2F;my.cnf ~&#x2F;.my.cnf<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>可以看到mysql优先加载/etc/my.cnf中的配置。<br>所以需要在/etc/my.cnf中mysqld节添加开启binlog的配置：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#设置日志路径，注意路经需要mysql用户有权限写
-## &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;是binlog存储路径，mysql-bin是文件名
-## 在该文件夹下会生成 mysql-bin.000001、 mysql-bin.index文件
-log-bin &#x3D; &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;mysql-bin
-#选择row模式
-binlog_format&#x3D;ROW
-##配置serverid
-server_id&#x3D;1
-#设置binlog清理时间
-expire_logs_days &#x3D; 7
-##binlog每个日志文件大小
-max_binlog_size &#x3D; 100m
-##binlog缓存大小
-binlog_cache_size &#x3D; 4m
-##最大binlog缓存大小
-max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>修改完配置后，重启mysql。执行SHOW VARIABLES LIKE ‘log_bin’; Value 值为 ON即可</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">service mysqld restart<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
+<p><strong>ROW基于行的复制(row-based replication, RBR)格式：</strong> 不记录每一条SQL语句的上下文信息，仅需记录哪条数据被修改了，修改成了什么样子了。<br><strong>优点：</strong> 不会出现某些特定情况下的存储过程、或function、或trigger的调用和触发无法被正确复制的问题。<br><strong>缺点：</strong> 会产生大量的日志，尤其是alter table的时候会让日志暴涨。<br>MIXED混合模式复制(mixed-based replication, MBR)：以上两种模式的混合使用，一般的复制使用STATEMENT模式保存binlog，对于STATEMENT模式无法复制的操作使用ROW模式保存binlog，MySQL会根据执行的SQL语句选择日志保存方式。<br>具体参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/woloqun/article/details/105657539">MySQL如何开启binlog？binlog三种模式的分析</a><br>我们实时采集mysql数据，需要开启<code>ROW</code>模式</p>
+<h3 id="binlog开启步骤"><a href="#binlog开启步骤" class="headerlink" title="binlog开启步骤"></a>binlog开启步骤</h3><p>这里参考我的另外一篇博客<a href="https://gujincheng.github.io/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/">Centos安装Mysql</a></p>
 <h2 id="测试案例"><a href="#测试案例" class="headerlink" title="测试案例"></a>测试案例</h2><h3 id="通过简单的sqlClient读取mysqlBinlog数据"><a href="#通过简单的sqlClient读取mysqlBinlog数据" class="headerlink" title="通过简单的sqlClient读取mysqlBinlog数据"></a>通过简单的sqlClient读取mysqlBinlog数据</h3><p>在测试之前，需要把<code>flink-sql-connector-mysql-cdc-2.1.1.jar</code>放到<code>$&#123;FLINK_HOME&#125;\lib</code>下</p>
 <ul>
-<li>首先需要启动flink的集群，因为sqlClient貌似无法提交代码到yarn上，如果不启动集群，会报<code>Connect Refused</code>，找了很久的原因</li>
-<li>在sqlClient创建一个表来映射mysql表<br><img src="/uploads/202203/sqlClient%E8%AF%BB%E5%8F%96mysqlBinlog%E5%BB%BA%E8%A1%A8.png" alt="sqlClient读取mysqlBinlog建表"></li>
-<li>查询数据<br><img src="/uploads/202203/sqlClient%E8%AF%BB%E5%8F%96mysqlBinlog%E6%95%B0%E6%8D%AE.png" alt="sqlClient读取mysqlBinlog数据"><br>验证没问题<h3 id="通过java代码编写Flink代码"><a href="#通过java代码编写Flink代码" class="headerlink" title="通过java代码编写Flink代码"></a>通过java代码编写Flink代码</h3>pom.xml配置如下：<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+<li><p>首先需要启动flink的集群，因为sqlClient貌似无法提交代码到yarn上，如果不启动集群，会报<code>Connect Refused</code>，找了很久的原因</p>
+</li>
+<li><p>在sqlClient创建一个表来映射mysql表<br><img src="/uploads/202203/sqlClient%E8%AF%BB%E5%8F%96mysqlBinlog%E5%BB%BA%E8%A1%A8.png" alt="sqlClient读取mysqlBinlog建表"></p>
+</li>
+<li><p>查询数据<br><img src="/uploads/202203/sqlClient%E8%AF%BB%E5%8F%96mysqlBinlog%E6%95%B0%E6%8D%AE.png" alt="sqlClient读取mysqlBinlog数据"><br>验证没问题</p>
+<h3 id="通过DataStream方式编写CDC代码"><a href="#通过DataStream方式编写CDC代码" class="headerlink" title="通过DataStream方式编写CDC代码"></a>通过DataStream方式编写CDC代码</h3><p>pom.xml配置如下：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>project</span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://maven.apache.org/POM/4.0.0<span class="token punctuation">"</span></span>
          <span class="token attr-name"><span class="token namespace">xmlns:</span>xsi</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2001/XMLSchema-instance<span class="token punctuation">"</span></span>
          <span class="token attr-name"><span class="token namespace">xsi:</span>schemaLocation</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
@@ -421,7 +404,8 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugins</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build</span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>project</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-编写代码如下：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
+<p>编写代码如下：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
 
 <span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span><span class="token punctuation">;</span>
 <span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">;</span>
@@ -506,6 +490,7 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
                 <span class="token punctuation">.</span><span class="token function">tableList</span><span class="token punctuation">(</span>tableName<span class="token punctuation">)</span> <span class="token comment">// set captured table</span>
                 <span class="token punctuation">.</span><span class="token function">username</span><span class="token punctuation">(</span>userName<span class="token punctuation">)</span>
                 <span class="token punctuation">.</span><span class="token function">password</span><span class="token punctuation">(</span>password<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">startupOptions</span><span class="token punctuation">(</span><span class="token class-name">StartupOptions</span><span class="token punctuation">.</span><span class="token function">initial</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  
                 <span class="token punctuation">.</span><span class="token function">deserializer</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// converts SourceRecord to JSON String</span>
                 <span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     
@@ -515,25 +500,39 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
         env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"Print MySQL Snapshot + Binlog"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
     <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-在idea上执行需要在pom文件里指定<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>StartupOptions可选的模式含义:</p>
+</li>
+<li><p>initial:<br>第一次启动时 读取原表已有的历史数据, 操作类型为READ, 之后不断做检查点存储<br>第二次启动时 一定要指明检查点文件的具体位置, 这样就可以断点续传; 即使Flink宕机了, 重启后是从上次offset开始读, 而不是latest<br>检查点在打包部署后才有用, 因为那样才可以指明检查点的具体位置</p>
+<blockquote>
+<p>这种模式下，因为读取的存量数据，数据写入kafka是乱序的，但是这个应该是不受影响的，因为，每条数据都是唯一的，而且数据都是存量的，不会出现数据的值不对的情况</p>
+</blockquote>
+</li>
+<li><p>earliest:<br>从BinLog第一行数据开始读, 最好先给这个数据库加上BinLog后, 再去读取创建数据库</p>
+</li>
+<li><p>latest:<br>读取最新变更数据, 从Flink程序启动后开始算</p>
+</li>
+<li><p>timestamp:<br>可以从BinLog某一时刻的数据开始读</p>
+</li>
+<li><p>specificOffset:<br>指明BinLog文件位置和从哪个offset开始读<br>这个一般来说不怎么用, 因为本地没存offset的信息, 很难知道offset读到哪了</p>
+</li>
+</ul>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token comment">&lt;!--在IDEA里执行需要添加以下依赖，但是，打包到yarn上执行，貌似会有问题，但是，后面又测试了几次，又可以了--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-clients_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-在idea里可以执行，结果如图：<br><img src="/uploads/202203/Idea%E6%89%A7%E8%A1%8Cflinkcdc%E4%BB%A3%E7%A0%81%E6%88%90%E5%8A%9F.png" alt="Idea执行flinkcdc代码成功"></li>
-</ul>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在idea里可以执行，结果如图：<br><img src="/uploads/202203/Idea%E6%89%A7%E8%A1%8Cflinkcdc%E4%BB%A3%E7%A0%81%E6%88%90%E5%8A%9F.png" alt="Idea执行flinkcdc代码成功"></p>
 <p>但是通过打成jar包上传到集群中，就开始报错了，执行命令如下</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>报错如下：</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml">Caused by: java.lang.RuntimeException: Failed to get driver instance for jdbcUrl=jdbc:mysql://ddp5.hadoop:3306/?useInformationSchema=true&amp;nullCatalogMeansCurrent=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;characterSetResults=UTF-8&amp;zeroDateTimeBehavior=CONVERT_TO_NULL
-        at com.zaxxer.hikari.util.DriverDataSource.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(DriverDataSource.java:114)
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.RuntimeException: Failed to get driver instance for jdbcUrl&#x3D;jdbc:mysql:&#x2F;&#x2F;ddp5.hadoop:3306&#x2F;?useInformationSchema&#x3D;true&amp;nullCatalogMeansCurrent&#x3D;false&amp;useUnicode&#x3D;true&amp;characterEncoding&#x3D;UTF-8&amp;characterSetResults&#x3D;UTF-8&amp;zeroDateTimeBehavior&#x3D;CONVERT_TO_NULL
+        at com.zaxxer.hikari.util.DriverDataSource.&lt;init&gt;(DriverDataSource.java:114)
         at com.zaxxer.hikari.pool.PoolBase.initializeDataSource(PoolBase.java:331)
-        at com.zaxxer.hikari.pool.PoolBase.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(PoolBase.java:114)
-        at com.zaxxer.hikari.pool.HikariPool.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(HikariPool.java:108)
-        at com.zaxxer.hikari.HikariDataSource.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(HikariDataSource.java:81)
+        at com.zaxxer.hikari.pool.PoolBase.&lt;init&gt;(PoolBase.java:114)
+        at com.zaxxer.hikari.pool.HikariPool.&lt;init&gt;(HikariPool.java:108)
+        at com.zaxxer.hikari.HikariDataSource.&lt;init&gt;(HikariDataSource.java:81)
         at com.ververica.cdc.connectors.mysql.source.connection.PooledDataSourceFactory.createPooledDataSource(PooledDataSourceFactory.java:54)
         at com.ververica.cdc.connectors.mysql.source.connection.JdbcConnectionPools.getOrCreateConnectionPool(JdbcConnectionPools.java:51)
         at com.ververica.cdc.connectors.mysql.source.connection.JdbcConnectionFactory.connect(JdbcConnectionFactory.java:53)
@@ -544,7 +543,7 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
         ... 31 more
 Caused by: java.sql.SQLException: No suitable driver
         at java.sql.DriverManager.getDriver(DriverManager.java:315)
-        at com.zaxxer.hikari.util.DriverDataSource.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>init</span><span class="token punctuation">></span></span>(DriverDataSource.java:106)
+        at com.zaxxer.hikari.util.DriverDataSource.&lt;init&gt;(DriverDataSource.java:106)
         ... 42 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>期间换了cdc的版本，换成2.0.0和2.1.1都可以执行，但是2.1.0就是不行就是报<code>No suitable driver</code><br>最终找到原因：</p>
 <blockquote>
@@ -569,6 +568,67 @@ Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableExce
 <p>这里需要测试一下，以yarn的方式，设置多个并行度是否可行，总感觉设置多个并行度是可以的，应该是哪里没配置好</p>
 </blockquote>
 <p>解决了很多问题，终于成功消费到<code>mysql binlog</code>，不容易：<br><img src="/uploads/202203/java%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0flinkcdc%E9%87%87%E9%9B%86mysqlbinlog%E6%88%90%E5%8A%9F.png" alt="java代码实现flinkcdc采集mysqlbinlog成功"></p>
+<h3 id="通过FlinkSQL方式编写CDC代码"><a href="#通过FlinkSQL方式编写CDC代码" class="headerlink" title="通过FlinkSQL方式编写CDC代码"></a>通过FlinkSQL方式编写CDC代码</h3><p>Java代码在下文 <strong>测试采集没有主键的表</strong>的位置<br>这里的pom文件需要好好考虑一下</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-connector-kafka_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-table-planner_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>provided<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+
+<span class="token comment">&lt;!-- 在idea里执行任务，需要添加下面的依赖--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-sql-client_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这两个依赖是和其他的依赖是互相冲突的，planner添加provided，kafka的我暂时直接去掉了</p>
+<p>这里如果<code>planner</code>不provided，会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">org.apache.flink.client.program.ProgramInvocationException: The main method caused an error: Unable to instantiate java compiler
+    at org.apache.flink.client.program.PackagedProgram.callMainMethod(PackagedProgram.java:372)
+    at org.apache.flink.client.program.PackagedProgram.invokeInteractiveModeForExecution(PackagedProgram.java:222)
+    at org.apache.flink.client.ClientUtils.executeProgram(ClientUtils.java:114)
+    at org.apache.flink.client.cli.CliFrontend.executeProgram(CliFrontend.java:812)
+    at org.apache.flink.client.cli.CliFrontend.run(CliFrontend.java:246)
+    at org.apache.flink.client.cli.CliFrontend.parseAndRun(CliFrontend.java:1054)
+    at org.apache.flink.client.cli.CliFrontend.lambda$main$10(CliFrontend.java:1132)
+    at java.security.AccessController.doPrivileged(Native Method)
+    at javax.security.auth.Subject.doAs(Subject.java:422)
+    at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1762)
+    at org.apache.flink.runtime.security.contexts.HadoopSecurityContext.runSecured(HadoopSecurityContext.java:41)
+    at org.apache.flink.client.cli.CliFrontend.main(CliFrontend.java:1132)
+Caused by: java.lang.IllegalStateException: Unable to instantiate java compiler
+    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.compile(JaninoRelMetadataProvider.java:428)
+    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.load3(JaninoRelMetadataProvider.java:374)
+    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.lambda$static$0(JaninoRelMetadataProvider.java:109)
+    at org.apache.flink.calcite.shaded.com.google.common.cache.CacheLoader$FunctionToCacheLoader.load(CacheLoader.java:165)
+    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache$LoadingValueReference.loadFuture(LocalCache.java:3529)
+    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache$Segment.loadSync(LocalCache.java:2278)
+    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache$Segment.lockedGetOrLoad(LocalCache.java:2155)
+    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache$Segment.get(LocalCache.java:2045)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>Flink 1.10把客户端的ClassLoader解析顺序调整为了Child优先，这就导致用户的Jar包不能包含Flink框架的classes，比如常见的Calcite、Flink-Planner依赖、Hive依赖等等。用户需要把有冲突classes的jar放到flink-home/lib下，或者调整策略为Parent优先<br>这里参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/woloqun/article/details/105657539">flink sql包冲突异常</a></p>
+<p>如果不去除kafka的依赖，会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.NoClassDefFoundError: org&#x2F;apache&#x2F;kafka&#x2F;common&#x2F;utils&#x2F;ThreadUtils
+	at com.ververica.cdc.debezium.internal.FlinkOffsetBackingStore.start(FlinkOffsetBackingStore.java:152)
+	at com.ververica.cdc.debezium.internal.FlinkOffsetBackingStore.configure(FlinkOffsetBackingStore.java:71)
+	at io.debezium.embedded.EmbeddedEngine.run(EmbeddedEngine.java:690)
+	at io.debezium.embedded.ConvertingEngineBuilder$2.run(ConvertingEngineBuilder.java:188)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: java.lang.ClassNotFoundException: org.apache.kafka.common.utils.ThreadUtils
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:387)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:355)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
 <h3 id="提交flinkcdc任务到yarn上"><a href="#提交flinkcdc任务到yarn上" class="headerlink" title="提交flinkcdc任务到yarn上"></a>提交flinkcdc任务到yarn上</h3><p>添加checkpoint<br>报错如下：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.util.FlinkRuntimeException: Failed to create checkpoint storage at checkpoint coordinator side.
         at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.&lt;init&gt;(CheckpointCoordinator.java:325)
@@ -592,7 +652,7 @@ Caused by: java.net.UnknownHostException: flink
         at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:138)
         at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:364)
         <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>貌似flinkcdc没有及时关闭mysql链接</p>
+<p>貌似flinkcdc没有及时关闭mysql链接,这里把mysql的最大连接数调大了，在<code>my.cnf</code>里添加<code>max_connections = 1000</code>，然后重启mysql服务</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.CompletionException: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Slot request bulk is not fulfillable! Could not allocate the required slot within slot request timeout
         at java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:292)
         at java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:308)
@@ -633,7 +693,19 @@ yarn logs -applicationId application_1640152414594_2461<span aria-hidden="true" 
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-common<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;hadoop-common.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里也不知道为什么，需要排除hadoop-common相关的依赖</p>
+<p>这里的根本原因是，1.11.0版本之后，Flink不用编译flink-shaded包，不需要再把flink-shaded里的<code>flink-shaded-hadoop-XXX.jar</code>放入flink的lib文件夹下了<br>而是直接通过设置export HADOOP_CLASSPATH=<code>hadoop classpath</code>，但是，这种方式里就已经包含了<code>commons-cli</code>,但是，hadoop-common里也有<code>commons-cli</code>，这就导致版本冲突了<br>完美的解决方案是：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-common<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;hadoop-common.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exclusions</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exclusion</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>commons-cli<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>commons-cli<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exclusion</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exclusions</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>原先的依赖不变，但是排除<code>commons-cli</code>，这样就完美解决了</p>
 <h3 id="添加断点续传"><a href="#添加断点续传" class="headerlink" title="添加断点续传"></a>添加断点续传</h3><p>首先在代码里添加checkpoint相关代码：</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//配置ck的状态后端</span>
 env<span class="token punctuation">.</span><span class="token function">setStateBackend</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">HashMapStateBackend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -655,7 +727,347 @@ drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;chec
 <span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
 <li>在flink监控页面查看日志<br><img src="/uploads/202203/%E4%BB%8ECK%E5%90%AF%E5%8A%A8Flink%E4%BB%BB%E5%8A%A1%E7%BB%93%E6%9E%9C.png" alt="从CK启动Flink任务结果"><br>可以查看到，数据是从8，9开始的。断点续传测试成功</li>
 </ol>
-<h3 id="采集分表分库"><a href="#采集分表分库" class="headerlink" title="采集分表分库"></a>采集分表分库</h3><h3 id="修改mysql字段，检查代码兼容性"><a href="#修改mysql字段，检查代码兼容性" class="headerlink" title="修改mysql字段，检查代码兼容性"></a>修改mysql字段，检查代码兼容性</h3><h3 id="数据写入Kafka"><a href="#数据写入Kafka" class="headerlink" title="数据写入Kafka"></a>数据写入Kafka</h3><h3 id="数据写入Hudi"><a href="#数据写入Hudi" class="headerlink" title="数据写入Hudi"></a>数据写入Hudi</h3><h2 id="Flink-CDC实时采集Sqlserver入Kafka"><a href="#Flink-CDC实时采集Sqlserver入Kafka" class="headerlink" title="Flink-CDC实时采集Sqlserver入Kafka"></a>Flink-CDC实时采集Sqlserver入Kafka</h2><p>在maven里没找到相关<code>flink-connector-sqlserver-cdc</code>的jar包，在github上clone源码，然后自己编译出对应的jar</p>
+<h3 id="数据写入Kafka"><a href="#数据写入Kafka" class="headerlink" title="数据写入Kafka"></a>数据写入Kafka</h3><p>给flink代码添加KafkaSink</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//数据写入kafka</span>
+        dataStreamSource<span class="token punctuation">.</span><span class="token function">addSink</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlinkKafkaProducer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token string">"golden-02:9092"</span><span class="token punctuation">,</span>
+        <span class="token string">"test.gjc_test_binlog"</span><span class="token punctuation">,</span>
+        <span class="token keyword">new</span> <span class="token class-name">SimpleStringSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="设置多个并行度"><a href="#设置多个并行度" class="headerlink" title="设置多个并行度"></a>设置多个并行度</h3><p>Flinkcdc任务在standalone模式下（这里只是在一台节点上启动了standalone），设置多并行度，报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.CompletionException: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Could not acquire the minimum required resources.
+	at java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:292)
+	at java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:308)
+	at java.util.concurrent.CompletableFuture.uniApply(CompletableFuture.java:607)
+	at java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:591)
+	... 33 more
+Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Could not acquire the minimum required resources.
+	... 29 more
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/uploads/202203/Standalone%E6%A8%A1%E5%BC%8F%E7%9A%84Flink%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E6%83%85%E5%86%B5.png" alt="Standalone模式的Flink集群资源情况"><br>这是因为，只有一个节点的flink集群，这里只有一个slot，启动不了3个并行度<br>这种情况在yarn上运行的时候不存在这种问题</p>
+<h3 id="测试采集没有主键的表"><a href="#测试采集没有主键的表" class="headerlink" title="测试采集没有主键的表"></a>测试采集没有主键的表</h3><p>采集没有主键的表，通过DataStream的方式没找到办法，但是通过StreamTableEnvironment的方式，可以采集<br>下面是代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStreamSource</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">Table</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span>bridge<span class="token punctuation">.</span>java<span class="token punctuation">.</span></span><span class="token class-name">StreamTableEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>types<span class="token punctuation">.</span></span><span class="token class-name">Row</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">ArrayList</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Arrays</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">List</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * 主要测试FlinkCDC采集Mysql，包含断点续传，提交任务到yarn上
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkSqlMysql2Kakfa</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Logger</span> log <span class="token operator">=</span> <span class="token class-name">LoggerFactory</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">FlinkSqlMysql2Kakfa</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> hostName <span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">int</span> yourPort<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> dbName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> tableName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> userName<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> password<span class="token punctuation">;</span>
+
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        hostName <span class="token operator">=</span> <span class="token string">"golden-01"</span><span class="token punctuation">;</span>
+        yourPort <span class="token operator">=</span> <span class="token number">3306</span><span class="token punctuation">;</span>
+        <span class="token comment">//dbName = "[a-zA-Z\\d]+_test";</span>
+        <span class="token comment">//tableName = "[a-zA-Z\\d]+_test.gjc_test_binlog_[0-9][0-9]";</span>
+        dbName <span class="token operator">=</span> <span class="token string">"test"</span><span class="token punctuation">;</span>
+        tableName <span class="token operator">=</span> <span class="token string">"test.gjc_test_binlog_noprimary"</span><span class="token punctuation">;</span>
+        userName <span class="token operator">=</span> <span class="token string">"root"</span><span class="token punctuation">;</span>
+        password <span class="token operator">=</span> <span class="token string">"123456"</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"hostName:"</span> <span class="token operator">+</span> hostName
+                <span class="token operator">+</span> <span class="token string">",port:"</span> <span class="token operator">+</span> yourPort
+                <span class="token operator">+</span> <span class="token string">",dbName:"</span> <span class="token operator">+</span> dbName
+                <span class="token operator">+</span> <span class="token string">",tableName:"</span> <span class="token operator">+</span> tableName
+                <span class="token operator">+</span> <span class="token string">",userName:"</span> <span class="token operator">+</span> userName
+                <span class="token operator">+</span> <span class="token string">",password:"</span> <span class="token operator">+</span> password
+        <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">StreamTableEnvironment</span> tableEnvironment <span class="token operator">=</span> <span class="token class-name">StreamTableEnvironment</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span>env<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        tableEnvironment<span class="token punctuation">.</span><span class="token function">executeSql</span><span class="token punctuation">(</span>
+                <span class="token string">"CREATE TABLE gjc_test_binlog ( "</span> <span class="token operator">+</span>
+                        <span class="token string">" id INTEGER, "</span> <span class="token operator">+</span>
+                        <span class="token string">" a INTEGER, "</span> <span class="token operator">+</span>
+                        <span class="token string">" t_modified STRING "</span> <span class="token operator">+</span>
+                        <span class="token string">") WITH ( "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'connector' = 'mysql-cdc', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'hostname' = 'golden-01', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'port' = '3306', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'username' = 'root', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'password' = '123456', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'database-name' = 'test', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'table-name' = 'gjc_test_binlog_noprimary', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'scan.incremental.snapshot.enabled'='false'"</span> <span class="token operator">+</span>    <span class="token comment">//主要是这个参数起的作用</span>
+                <span class="token string">") "</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Table</span> table <span class="token operator">=</span> tableEnvironment<span class="token punctuation">.</span><span class="token function">sqlQuery</span><span class="token punctuation">(</span><span class="token string">"select * from gjc_test_binlog"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        tableEnvironment<span class="token punctuation">.</span><span class="token function">toRetractStream</span><span class="token punctuation">(</span>table<span class="token punctuation">,</span> <span class="token class-name">Row</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>主要是通过设置<code>scan.incremental.snapshot.enabled=false</code>来达到这种目的</p>
+<h3 id="采集分表分库"><a href="#采集分表分库" class="headerlink" title="采集分表分库"></a>采集分表分库</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java">dbName <span class="token operator">=</span> <span class="token string">"[a-zA-Z\\d]+_test"</span><span class="token punctuation">;</span>
+tableName <span class="token operator">=</span> <span class="token string">"[a-zA-Z\\d]+_test.gjc_test_binlog_[0-9][0-9]"</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>把表明和库名改成正则表达式即可，这里没啥问题</p>
+<h3 id="修改mysql字段，检查代码兼容性"><a href="#修改mysql字段，检查代码兼容性" class="headerlink" title="修改mysql字段，检查代码兼容性"></a>修改mysql字段，检查代码兼容性</h3><h3 id="手动清理mysqlbinlog，测试cdc全量读取数据的能力"><a href="#手动清理mysqlbinlog，测试cdc全量读取数据的能力" class="headerlink" title="手动清理mysqlbinlog，测试cdc全量读取数据的能力"></a>手动清理mysqlbinlog，测试cdc全量读取数据的能力</h3><p>这里需要测试一下mysqlbinlog全量读取数据库的能力，因为没有清理binlog的话，就不知道程序里的数据到底是从binlog里获取到的还是从mysql里获取到的</p>
+<ol>
+<li>手动删除mysql之前的binlog</li>
+<li>启动任务，测试是否会读取全量数据</li>
+<li>往mysql里写入新的数据<blockquote>
+<p>这里还没测试过，后期手动测试一下看看</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="多并行度测试的各种问题"><a href="#多并行度测试的各种问题" class="headerlink" title="多并行度测试的各种问题"></a>多并行度测试的各种问题</h3><ol>
+<li>把flink的并行度设置大于1，然后数据写入kafka，程序跑起来之后，能把存量的数据写入到kafka，但是，在mysql里新增的数据，貌似flinkcdc就不消费了，这种情况在并行度为1的时候没有</li>
+<li>查看了一下kafka的数据是乱序的</li>
+</ol>
+<h3 id="数据写入Hudi"><a href="#数据写入Hudi" class="headerlink" title="数据写入Hudi"></a>数据写入Hudi</h3><h1 id="Flink-CDC实时采集Sqlserver入Kafka"><a href="#Flink-CDC实时采集Sqlserver入Kafka" class="headerlink" title="Flink-CDC实时采集Sqlserver入Kafka"></a>Flink-CDC实时采集Sqlserver入Kafka</h1><h2 id="在SQLServer上启用CDC"><a href="#在SQLServer上启用CDC" class="headerlink" title="在SQLServer上启用CDC"></a>在SQLServer上启用CDC</h2><p>具体可以参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/lixie0215/p/15243832.html">sqlserver开启cdc功能</a>和<a target="_blank" rel="noopener" href="https://blog.csdn.net/vkingnew/article/details/89508885">SQL server 2016 开启CDC功能 捕获变更数据</a><br>为了让<code>FlinkCDC</code>从<code>SQL Server</code>表中捕获更改事件，需要用<code>SQL Server</code>管理员权限为要采集的每个表开启一下CDC权限<br><code>SQL Server</code>管理员通过运行系统存储过程来启用 CDC。 系统存储过程可以使用 <code>SQL Server Management Studio</code> 或 <code>Transact-SQL</code>运行。<br>先决条件：</p>
+<ul>
+<li>您是 SQL Server 的 sysadmin 固定服务器角色的成员。 </li>
+<li>您是数据库的 db_owner。 </li>
+<li>SQL Server 代理正在运行。<blockquote>
+<p>SQL Server CDC 功能仅处理用户创建的表中发生的更改。您不能在 SQL Server 主数据库上启用 CDC。</p>
+</blockquote>
+</li>
+</ul>
+<p>CDC适用的环境：</p>
+<ol>
+<li>SQL server 2008版本以上的企业版、开发版和评估版中可用；</li>
+<li>需要开启代理服务（作业）。</li>
+<li>CDC需要业务库之外的额外的磁盘空间。</li>
+<li>CDC的表需要主键或者唯一主键。</li>
+</ol>
+<blockquote>
+<p>CDC的表不能truncate操作，truncate是物理删除数据不能捕获变更的数据。</p>
+</blockquote>
+<p>启动步骤：</p>
+<ol>
+<li>确保开启SQL server agent服务：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--若不开启的话会报错：</span>
+SQLServerAgent <span class="token operator">is</span> <span class="token operator">not</span> currently running so it cannot be notified <span class="token keyword">of</span> this <span class="token keyword">action</span><span class="token punctuation">.</span>
+<span class="token comment">--解决办法：</span>
+sp_configure <span class="token string">'show advanced options'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">;</span>   
+GO   
+<span class="token keyword">RECONFIGURE</span><span class="token punctuation">;</span>   
+GO   
+sp_configure <span class="token string">'Agent XPs'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">;</span>   
+GO   
+<span class="token keyword">RECONFIGURE</span>   
+GO<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这里这样设置了没有用，需要用下面的方式设置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#启用SQL Server代理
+sudo &#x2F;opt&#x2F;mssql&#x2F;bin&#x2F;mssql-conf set sqlagent.enabled true
+#需要重启服务生效
+sudo systemctl restart mssql-server<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+也可以通过图形界面操作：<br>开始–&gt; [win + R] –&gt; services.msc – 启动SQL server 代理服务。<blockquote>
+<p>这里实测，如果不开启agent服务，虽然表最终能开启cdc，但是，往表里添加数据等操作，cdc并没有生效<br><img src="/uploads/202203/%E6%9C%AA%E5%BC%80%E5%90%AFagent%E6%9C%8D%E5%8A%A1CDC%E6%9C%AA%E7%94%9F%E6%95%88.png" alt="未开启agent服务CDC未生效"></p>
+</blockquote>
+</li>
+</ol>
+<p>验证agent是否开启：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 查看agent状态</span>
+<span class="token keyword">EXEC</span> master<span class="token punctuation">.</span>dbo<span class="token punctuation">.</span>xp_servicecontrol N<span class="token string">'QUERYSTATE'</span><span class="token punctuation">,</span> N<span class="token string">'SQLSERVERAGENT'</span>
+<span class="token comment">-- 结果为running/Stopped,running就正常了</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<ol start="2">
+<li>开启数据库级别的CDC功能：<blockquote>
+<p>想要开启表的CDC功能，就必须开启该表所在库的CDC功能</p>
+</blockquote>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">if</span> <span class="token keyword">exists</span><span class="token punctuation">(</span><span class="token keyword">select</span> <span class="token number">1</span> <span class="token keyword">from</span> sys<span class="token punctuation">.</span><span class="token keyword">databases</span> <span class="token keyword">where</span> name<span class="token operator">=</span><span class="token string">'ERP'</span> <span class="token operator">and</span> is_cdc_enabled<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span>
+<span class="token keyword">begin</span>
+    <span class="token keyword">exec</span> sys<span class="token punctuation">.</span>sp_cdc_enable_db
+<span class="token keyword">end</span>
+ 
+<span class="token comment">--或者</span>
+<span class="token keyword">USE</span> test
+GO  
+<span class="token comment">-- 开启：</span>
+<span class="token keyword">EXEC</span> sys<span class="token punctuation">.</span>sp_cdc_enable_db  
+<span class="token comment">-- 关闭：</span>
+<span class="token keyword">EXEC</span> sys<span class="token punctuation">.</span>sp_cdc_disable_db
+GO  
+ 
+<span class="token comment">--注释： 如果在禁用变更数据捕获时为数据库定义了很多捕获实例，则长时间运行事务可能导致 sys.sp_cdc_disable_db 的执行失败。</span>
+<span class="token comment">--通过在运行 sys.sp_cdc_disable_db 之前使用 sys.sp_cdc_disable_table 禁用单个捕获实例，可以避免此问题。</span>
+ 
+<span class="token comment">--示例：</span>
+<span class="token keyword">USE</span> AdventureWorks2012<span class="token punctuation">;</span> 
+GO 
+<span class="token keyword">EXECUTE</span> sys<span class="token punctuation">.</span>sp_cdc_disable_table 
+<span class="token variable">@source_schema</span> <span class="token operator">=</span> N<span class="token string">'HumanResources'</span><span class="token punctuation">,</span> 
+<span class="token variable">@source_name</span> <span class="token operator">=</span> N<span class="token string">'Employee'</span><span class="token punctuation">,</span> 
+<span class="token variable">@capture_instance</span> <span class="token operator">=</span> N<span class="token string">'HumanResources_Employee'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>查询验证数据是否开启CDC功能：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--若返回的值是0 表示CDC是禁用的，1表示CDC是开启的。</span>
+<span class="token keyword">select</span> is_cdc_enabled <span class="token keyword">from</span> sys<span class="token punctuation">.</span><span class="token keyword">databases</span> <span class="token keyword">where</span> name<span class="token operator">=</span><span class="token string">'test'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>添加CDC专用的文件组和文件：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 查询某个库的物理文件：</span>
+<span class="token keyword">SELECT</span> name<span class="token punctuation">,</span> physical_name <span class="token keyword">FROM</span> sys<span class="token punctuation">.</span>master_files <span class="token keyword">WHERE</span> database_id <span class="token operator">=</span> DB_ID<span class="token punctuation">(</span><span class="token string">'test'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+go
+<span class="token comment">-----------------------------</span>
+<span class="token comment">--name               physical_name                 </span>
+<span class="token comment">--test               /var/opt/mssql/data/test.mdf                                                                                                         </span>
+<span class="token comment">--test_log           /var/opt/mssql/data/test_log.ldf  </span>
+<span class="token comment">-----------------------------</span>
+<span class="token comment">--1.添加文件组：</span>
+<span class="token keyword">ALTER</span> <span class="token keyword">DATABASE</span> test <span class="token keyword">ADD</span> FILEGROUP CDC<span class="token punctuation">;</span>
+go
+<span class="token keyword">ALTER</span> <span class="token keyword">DATABASE</span> test <span class="token keyword">ADD</span> <span class="token keyword">FILE</span><span class="token punctuation">(</span>NAME<span class="token operator">=</span> <span class="token string">'TEST_CDC'</span><span class="token punctuation">,</span>FILENAME <span class="token operator">=</span> <span class="token string">'/var/opt/mssql/data/TEST_CDC.ndf'</span><span class="token punctuation">)</span> <span class="token keyword">TO</span> FILEGROUP CDC<span class="token punctuation">;</span>
+go 
+<span class="token comment">--再次执行SELECT name, physical_name FROM sys.master_files WHERE database_id = DB_ID('test');结果如下：</span>
+<span class="token comment">--test               /var/opt/mssql/data/test.mdf                                                                                                         </span>
+<span class="token comment">--test_log           /var/opt/mssql/data/test_log.ldf   </span>
+<span class="token comment">--TEST_CDC           /var/opt/mssql/data/TEST_CDC.ndf</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+如果不添加CDC专用的文件组和文件，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Msg 22973, Level 16, State 1, Server golden-02, Procedure sys.sp_cdc_enable_table_internal, Line 361
+The specified filegroup &#39;CDC&#39; is not a valid filegroup for database &#39;test&#39;. Specify a valid existing filegroup or create the named filegroup, and retry the operation.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>开启表级别的CDC：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">EXEC</span> sys<span class="token punctuation">.</span>sp_cdc_enable_table
+        <span class="token variable">@source_schema</span> <span class="token operator">=</span> <span class="token string">'dbo'</span><span class="token punctuation">,</span> <span class="token comment">-- source_schema</span>
+        <span class="token variable">@source_name</span> <span class="token operator">=</span> <span class="token string">'table_name'</span><span class="token punctuation">,</span> <span class="token comment">-- table_name</span>
+        <span class="token variable">@capture_instance</span> <span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span> <span class="token comment">-- capture_instance</span>
+        <span class="token variable">@supports_net_changes</span> <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token comment">-- supports_net_changes</span>
+        <span class="token variable">@role_name</span> <span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span> <span class="token comment">-- role_name</span>
+        <span class="token variable">@index_name</span> <span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span> <span class="token comment">-- index_name</span>
+        <span class="token variable">@captured_column_list</span> <span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span> <span class="token comment">-- captured_column_list</span>
+        <span class="token variable">@filegroup_name</span> <span class="token operator">=</span> <span class="token string">'CDC'</span> <span class="token comment">-- filegroup_name;</span>
+
+<span class="token comment">--由于使用sqlcmd，换行会报错，这里测试的时候都写到一行里：</span>
+<span class="token keyword">EXEC</span> sys<span class="token punctuation">.</span>sp_cdc_enable_table  <span class="token variable">@source_schema</span> <span class="token operator">=</span> <span class="token string">'dbo'</span><span class="token punctuation">,</span><span class="token variable">@source_name</span> <span class="token operator">=</span> <span class="token string">'gjc_test_binlog'</span><span class="token punctuation">,</span><span class="token variable">@capture_instance</span> <span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span> <span class="token variable">@supports_net_changes</span> <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span><span class="token variable">@role_name</span> <span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span> <span class="token variable">@index_name</span> <span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span><span class="token variable">@captured_column_list</span> <span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span> <span class="token variable">@filegroup_name</span> <span class="token operator">=</span> <span class="token string">'CDC'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<p>注意： 这里的source_schema = ‘dbo’，schema不是数据库名称</p>
+</blockquote>
+</li>
+</ol>
+<p>验证cdc成功了没？</p>
+<pre class="line-numbers language-SQL" data-language="SQL"><code class="language-SQL">select * from test.cdc.dbo_gjc_test_binlog_CT;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>开启agent服务后，cdc服务正常启动了<br><img src="/uploads/202203/%E5%BC%80%E5%90%AFagent%E5%90%8ECDC%E7%94%9F%E6%95%88.png" alt="开启agent后CDC生效"></p>
+<h2 id="sql-client方式验证flinkcdc读取sqlserver"><a href="#sql-client方式验证flinkcdc读取sqlserver" class="headerlink" title="sql-client方式验证flinkcdc读取sqlserver"></a>sql-client方式验证flinkcdc读取sqlserver</h2><p>和mysql一样的操作，首先把cdc的jar放到${FLINK_HOME}/lib下，并开启flink-cluster</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> gjc_test_binlog <span class="token punctuation">(</span>
+  id <span class="token keyword">INT</span><span class="token punctuation">,</span>
+  a <span class="token keyword">INT</span><span class="token punctuation">,</span>
+  t_modified STRING
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+  <span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'sqlserver-cdc'</span><span class="token punctuation">,</span>
+  <span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'192.168.233.129'</span><span class="token punctuation">,</span>
+  <span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'1433'</span><span class="token punctuation">,</span>
+  <span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'sa'</span><span class="token punctuation">,</span>
+  <span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
+  <span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
+  <span class="token string">'schema-name'</span> <span class="token operator">=</span> <span class="token string">'dbo'</span><span class="token punctuation">,</span>
+  <span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'gjc_test_binlog'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span>  gjc_test_binlog<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/uploads/202203/flinkcdc%E4%BB%A5sqlclient%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%8F%96sqlserver%E6%88%90%E5%8A%9F.png" alt="flinkcdc以sqlclient方式读取sqlserver成功"></p>
+<h2 id="FlinkSQL方式验证flinkcdc读取sqlserver"><a href="#FlinkSQL方式验证flinkcdc读取sqlserver" class="headerlink" title="FlinkSQL方式验证flinkcdc读取sqlserver"></a>FlinkSQL方式验证flinkcdc读取sqlserver</h2><p>pom文件添加如下依赖</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.ververica<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-connector-sqlserver-cdc<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;cdc.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>JAVA代码如下：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">EnvironmentSettings</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">Table</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span>bridge<span class="token punctuation">.</span>java<span class="token punctuation">.</span></span><span class="token class-name">StreamTableEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>types<span class="token punctuation">.</span></span><span class="token class-name">Row</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+
+
+<span class="token comment">/**
+ * 主要测试FlinkCDC采集Mysql，包含断点续传，提交任务到yarn上
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkSqlServer2Kakfa</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">EnvironmentSettings</span> settings <span class="token operator">=</span> <span class="token class-name">EnvironmentSettings</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">useBlinkPlanner</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">inStreamingMode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">StreamTableEnvironment</span> tenv <span class="token operator">=</span> <span class="token class-name">StreamTableEnvironment</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span>env<span class="token punctuation">,</span> settings<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        tenv<span class="token punctuation">.</span><span class="token function">executeSql</span><span class="token punctuation">(</span>
+                <span class="token string">"CREATE TABLE gjc_test_binlog ( "</span> <span class="token operator">+</span>
+                        <span class="token string">" id INTEGER, "</span> <span class="token operator">+</span>
+                        <span class="token string">" a INTEGER, "</span> <span class="token operator">+</span>
+                        <span class="token string">" t_modified STRING "</span> <span class="token operator">+</span>
+                        <span class="token string">") WITH ( "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'connector' = 'sqlserver-cdc', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'hostname' = '192.168.233.129', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'port' = '1433', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'username' = 'sa', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'password' = 'Gjc123!@#', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'database-name' = 'test', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'schema-name' = 'dbo', "</span> <span class="token operator">+</span>
+                        <span class="token string">" 'table-name' = 'gjc_test_binlog' "</span> <span class="token operator">+</span>
+                <span class="token string">") "</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">Table</span> table <span class="token operator">=</span> tenv<span class="token punctuation">.</span><span class="token function">sqlQuery</span><span class="token punctuation">(</span><span class="token string">"select id,a,t_modified  from gjc_test_binlog "</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        tenv<span class="token punctuation">.</span><span class="token function">toRetractStream</span><span class="token punctuation">(</span>table<span class="token punctuation">,</span> <span class="token class-name">Row</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>提交的standalone报如下错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"> The program finished with the following exception:
+org.apache.flink.client.program.ProgramInvocationException: The main method caused an error: Unable to create a source for reading table &#39;default_catalog.default_database.gjc_test_binlog&#39;.
+Table options are:
+&#39;connector&#39;&#x3D;&#39;sqlserver-cdc&#39;
+&#39;database-name&#39;&#x3D;&#39;test&#39;
+&#39;hostname&#39;&#x3D;&#39;192.168.233.129&#39;
+&#39;password&#39;&#x3D;&#39;Gjc123!@#&#39;
+&#39;port&#39;&#x3D;&#39;1433&#39;
+&#39;schema-name&#39;&#x3D;&#39;dbo&#39;
+&#39;table-name&#39;&#x3D;&#39;gjc_test_binlog&#39;
+&#39;username&#39;&#x3D;&#39;sa&#39;
+	at org.apache.flink.client.program.PackagedProgram.callMainMethod(PackagedProgram.java:372)
+Caused by: org.apache.flink.table.api.ValidationException: Unable to create a source for reading table &#39;default_catalog.default_database.gjc_test_binlog&#39;.
+	at org.apache.flink.table.factories.FactoryUtil.createTableSource(FactoryUtil.java:137)
+	... 8 more
+Caused by: org.apache.flink.table.api.ValidationException: Cannot discover a connector using option: &#39;connector&#39;&#x3D;&#39;sqlserver-cdc&#39;
+Caused by: org.apache.flink.table.api.ValidationException: Could not find any factory for identifier &#39;sqlserver-cdc&#39; that implements &#39;org.apache.flink.table.factories.DynamicTableFactory&#39; in the classpath.
+
+Available factory identifiers are:
+blackhole
+datagen
+filesystem
+mysql-cdc
+print
+	at org.apache.flink.table.factories.FactoryUtil.discoverFactory(FactoryUtil.java:319)
+	at org.apache.flink.table.factories.FactoryUtil.enrichNoMatchingConnectorError(FactoryUtil.java:463)
+	... 34 more
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里很奇怪，在idea里能直接执行，以sqlClient的方式也能正常执行，但是，写java代码就不能执行了<br>数据库配置已经读取到了，但是，还是报<code> Unable to create a source for reading table &#39;default_catalog.default_database.gjc_test_binlog&#39;.</code></p>
+<p>这里开启了sqlserver的angent服务以后，就成功了<br><img src="/uploads/202203/Flinksql%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%8F%96sqlserver%E6%88%90%E5%8A%9F.png" alt="Flinksql方式读取sqlserver成功"></p>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><ol>
+<li>以flinksql方式测试mysql8.0.x,报错<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.util.FlinkException: Global failure triggered by OperatorCoordinator for &#39;Source: TableSourceScan(table&#x3D;[[default_catalog, default_database, gjc_test_binlog]], fields&#x3D;[id, a, t_modified]) -&gt; SinkConversionToTuple2 -&gt; Sink: Print to Std. Out&#39; (operator cbc357ccb763df2852fee8c4fc7d55f2).
+	at org.apache.flink.runtime.operators.coordination.OperatorCoordinatorHolder$LazyInitializedCoordinatorContext.failJob(OperatorCoordinatorHolder.java:553)
+	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator$QuiesceableContext.failJob(RecreateOnResetOperatorCoordinator.java:223)
+	at org.apache.flink.runtime.source.coordinator.SourceCoordinatorContext.failJob(SourceCoordinatorContext.java:285)
+	at org.apache.flink.runtime.source.coordinator.SourceCoordinator.start(SourceCoordinator.java:133)
+	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator$DeferrableCoordinator.applyCall(RecreateOnResetOperatorCoordinator.java:291)
+	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator.start(RecreateOnResetOperatorCoordinator.java:70)
+	... 13 more
+Caused by: org.apache.flink.util.FlinkRuntimeException: com.zaxxer.hikari.pool.HikariPool$PoolInitializationException: Failed to initialize pool: Access denied for user &#39;root&#39;@&#39;localhost&#39; (using password: YES)
+	at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection(DebeziumUtils.java:65)
+	at com.ververica.cdc.connectors.mysql.MySqlValidator.validate(MySqlValidator.java:68)
+	at com.ververica.cdc.connectors.mysql.source.MySqlSource.createEnumerator(MySqlSource.java:174)
+	at org.apache.flink.runtime.source.coordinator.SourceCoordinator.start(SourceCoordinator.java:129)
+	... 30 more
+Caused by: com.zaxxer.hikari.pool.HikariPool$PoolInitializationException: Failed to initialize pool: Access denied for user &#39;root&#39;@&#39;localhost&#39; (using password: YES)
+	at com.zaxxer.hikari.pool.HikariPool.throwPoolInitializationException(HikariPool.java:596)
+	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:582)
+	at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection(DebeziumUtils.java:62)
+	... 33 more
+Caused by: java.sql.SQLException: Access denied for user &#39;root&#39;@&#39;localhost&#39; (using password: YES)
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:129)
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:97)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+但是，明明已经指定了数据库ip等信息，</li>
+</ol>
 
     </div>
 
@@ -740,7 +1152,7 @@ drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;chec
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink-CDC%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86Mysql%E5%85%A5Kafka"><span class="nav-number">1.</span> <span class="nav-text">Flink-CDC实时采集Mysql入Kafka</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mysql%E5%BC%80%E5%90%AFbinlog"><span class="nav-number">1.1.</span> <span class="nav-text">Mysql开启binlog</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog%E7%9A%84%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E6%AF%94%E8%BE%83"><span class="nav-number">1.1.1.</span> <span class="nav-text">binlog的三种模式比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog%E5%BC%80%E5%90%AF%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.1.2.</span> <span class="nav-text">binlog开启步骤</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E6%A1%88%E4%BE%8B"><span class="nav-number">1.2.</span> <span class="nav-text">测试案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E7%AE%80%E5%8D%95%E7%9A%84sqlClient%E8%AF%BB%E5%8F%96mysqlBinlog%E6%95%B0%E6%8D%AE"><span class="nav-number">1.2.1.</span> <span class="nav-text">通过简单的sqlClient读取mysqlBinlog数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87java%E4%BB%A3%E7%A0%81%E7%BC%96%E5%86%99Flink%E4%BB%A3%E7%A0%81"><span class="nav-number">1.2.2.</span> <span class="nav-text">通过java代码编写Flink代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%90%E4%BA%A4flinkcdc%E4%BB%BB%E5%8A%A1%E5%88%B0yarn%E4%B8%8A"><span class="nav-number">1.2.3.</span> <span class="nav-text">提交flinkcdc任务到yarn上</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0"><span class="nav-number">1.2.4.</span> <span class="nav-text">添加断点续传</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%87%E9%9B%86%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93"><span class="nav-number">1.2.5.</span> <span class="nav-text">采集分表分库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9mysql%E5%AD%97%E6%AE%B5%EF%BC%8C%E6%A3%80%E6%9F%A5%E4%BB%A3%E7%A0%81%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="nav-number">1.2.6.</span> <span class="nav-text">修改mysql字段，检查代码兼容性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%86%99%E5%85%A5Kafka"><span class="nav-number">1.2.7.</span> <span class="nav-text">数据写入Kafka</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%86%99%E5%85%A5Hudi"><span class="nav-number">1.2.8.</span> <span class="nav-text">数据写入Hudi</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink-CDC%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86Sqlserver%E5%85%A5Kafka"><span class="nav-number">1.3.</span> <span class="nav-text">Flink-CDC实时采集Sqlserver入Kafka</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink-CDC%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86Mysql%E5%85%A5Kafka"><span class="nav-number">1.</span> <span class="nav-text">Flink-CDC实时采集Mysql入Kafka</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mysql%E5%BC%80%E5%90%AFbinlog"><span class="nav-number">1.1.</span> <span class="nav-text">Mysql开启binlog</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog%E7%9A%84%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E6%AF%94%E8%BE%83"><span class="nav-number">1.1.1.</span> <span class="nav-text">binlog的三种模式比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog%E5%BC%80%E5%90%AF%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.1.2.</span> <span class="nav-text">binlog开启步骤</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E6%A1%88%E4%BE%8B"><span class="nav-number">1.2.</span> <span class="nav-text">测试案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E7%AE%80%E5%8D%95%E7%9A%84sqlClient%E8%AF%BB%E5%8F%96mysqlBinlog%E6%95%B0%E6%8D%AE"><span class="nav-number">1.2.1.</span> <span class="nav-text">通过简单的sqlClient读取mysqlBinlog数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87DataStream%E6%96%B9%E5%BC%8F%E7%BC%96%E5%86%99CDC%E4%BB%A3%E7%A0%81"><span class="nav-number">1.2.2.</span> <span class="nav-text">通过DataStream方式编写CDC代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87FlinkSQL%E6%96%B9%E5%BC%8F%E7%BC%96%E5%86%99CDC%E4%BB%A3%E7%A0%81"><span class="nav-number">1.2.3.</span> <span class="nav-text">通过FlinkSQL方式编写CDC代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%90%E4%BA%A4flinkcdc%E4%BB%BB%E5%8A%A1%E5%88%B0yarn%E4%B8%8A"><span class="nav-number">1.2.4.</span> <span class="nav-text">提交flinkcdc任务到yarn上</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0"><span class="nav-number">1.2.5.</span> <span class="nav-text">添加断点续传</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%86%99%E5%85%A5Kafka"><span class="nav-number">1.2.6.</span> <span class="nav-text">数据写入Kafka</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E5%A4%9A%E4%B8%AA%E5%B9%B6%E8%A1%8C%E5%BA%A6"><span class="nav-number">1.2.7.</span> <span class="nav-text">设置多个并行度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E9%87%87%E9%9B%86%E6%B2%A1%E6%9C%89%E4%B8%BB%E9%94%AE%E7%9A%84%E8%A1%A8"><span class="nav-number">1.2.8.</span> <span class="nav-text">测试采集没有主键的表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%87%E9%9B%86%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93"><span class="nav-number">1.2.9.</span> <span class="nav-text">采集分表分库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9mysql%E5%AD%97%E6%AE%B5%EF%BC%8C%E6%A3%80%E6%9F%A5%E4%BB%A3%E7%A0%81%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="nav-number">1.2.10.</span> <span class="nav-text">修改mysql字段，检查代码兼容性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%8B%E5%8A%A8%E6%B8%85%E7%90%86mysqlbinlog%EF%BC%8C%E6%B5%8B%E8%AF%95cdc%E5%85%A8%E9%87%8F%E8%AF%BB%E5%8F%96%E6%95%B0%E6%8D%AE%E7%9A%84%E8%83%BD%E5%8A%9B"><span class="nav-number">1.2.11.</span> <span class="nav-text">手动清理mysqlbinlog，测试cdc全量读取数据的能力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%B9%B6%E8%A1%8C%E5%BA%A6%E6%B5%8B%E8%AF%95%E7%9A%84%E5%90%84%E7%A7%8D%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.12.</span> <span class="nav-text">多并行度测试的各种问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%86%99%E5%85%A5Hudi"><span class="nav-number">1.2.13.</span> <span class="nav-text">数据写入Hudi</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink-CDC%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86Sqlserver%E5%85%A5Kafka"><span class="nav-number">2.</span> <span class="nav-text">Flink-CDC实时采集Sqlserver入Kafka</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8SQLServer%E4%B8%8A%E5%90%AF%E7%94%A8CDC"><span class="nav-number">2.1.</span> <span class="nav-text">在SQLServer上启用CDC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sql-client%E6%96%B9%E5%BC%8F%E9%AA%8C%E8%AF%81flinkcdc%E8%AF%BB%E5%8F%96sqlserver"><span class="nav-number">2.2.</span> <span class="nav-text">sql-client方式验证flinkcdc读取sqlserver</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FlinkSQL%E6%96%B9%E5%BC%8F%E9%AA%8C%E8%AF%81flinkcdc%E8%AF%BB%E5%8F%96sqlserver"><span class="nav-number">2.3.</span> <span class="nav-text">FlinkSQL方式验证flinkcdc读取sqlserver</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F"><span class="nav-number">2.4.</span> <span class="nav-text">注意</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -756,20 +1168,20 @@ drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;chec
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-count">56</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-count">48</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

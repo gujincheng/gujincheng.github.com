@@ -43,8 +43,9 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/%E6%B6%88%E8%B4%B9Flink%E5%86%99%E5%85%A5Kafka%E5%8F%A6%E4%B8%80%E4%B8%AAtopic%E6%95%B0%E6%8D%AE.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/Flink%E6%9C%89%E6%B6%88%E8%B4%B9%E6%97%A0%E8%BE%93%E5%87%BA.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210125/offset%E6%B6%88%E8%B4%B9%E6%83%85%E5%86%B5.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Standalone%E6%A8%A1%E5%BC%8F%E5%90%AF%E5%8A%A8%E4%B8%8D%E6%88%90%E5%8A%9F%E5%8E%9F%E5%9B%A0.png">
 <meta property="article:published_time" content="2021-01-19T09:35:20.000Z">
-<meta property="article:modified_time" content="2021-04-29T09:48:42.000Z">
+<meta property="article:modified_time" content="2022-03-30T01:13:28.255Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -247,7 +248,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
+                <time title="修改时间：2022-03-30 09:13:28" itemprop="dateModified" datetime="2022-03-30T09:13:28+08:00">2022-03-30</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -643,10 +644,50 @@ Caused by: java.lang.ClassCastException: cannot assign instance of org.apache.co
         wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
         env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="Flink-Standalone集群模式部署"><a href="#Flink-Standalone集群模式部署" class="headerlink" title="Flink Standalone集群模式部署"></a>Flink Standalone集群模式部署</h3><p>Flink Standalone模式部署集群是最简单的一种部署方式，不依赖于其他的组件，另外还支持YARN/Mesos/Docker等模式下的部署<br>老规矩，配置flink前必须做下面的基础准备：</p>
+<ol>
+<li>JDK环境，1.8.x或者更高，Oracle JDK或者OpenJDK都可以，二进制包解压的方式安装要配置好JAVA_HOME</li>
+<li>主机名和hosts配置文件集群内完全对应，准确配置. </li>
+<li>集群之间保证通信正常，关闭防火墙或者提前设置好规则.</li>
+<li>集群所有节点配置ssh免密，否则后续启动集群的时候还需要输入密码. </li>
+<li>集群配置时间同步服务，ntp或者chrony服务，这个应该是大数据组件集群的标配<br>然后准备安装flink，flink的安装目录为了便于维护所有的安装位置都要一致</li>
+</ol>
+<p>编辑配置文件：conf/flink-conf.yaml</p>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml"><span class="token key atrule">jobmanager.rpc.address</span><span class="token punctuation">:</span> golden<span class="token punctuation">-</span><span class="token number">01</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>编辑master、worker文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## master文件
+golden-01:8081
+## worker文件
+golden-01
+golden-02                      
+golden-03<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>三台节点都需要配置<br>然后启动<code>bin/start-cluster.sh</code>,启动以后发现，还是只在golden-01节点启动了taskmanager，找了很久才发现，golden-02和golden-03节点的bin下的启动脚本没有添加执行权限<br><img src="/uploads/202203/Standalone%E6%A8%A1%E5%BC%8F%E5%90%AF%E5%8A%A8%E4%B8%8D%E6%88%90%E5%8A%9F%E5%8E%9F%E5%9B%A0.png" alt="Standalone模式启动不成功原因"><br>这里给bin下的脚本添加可执行权限，集群启动成功</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[golden@golden-01 flink-1.13.6]$ bin&#x2F;start-cluster.sh 
+Starting cluster.
+Starting standalonesession daemon on host golden-01.
+Starting taskexecutor daemon on host golden-01.
+Starting taskexecutor daemon on host golden-02.
+Starting taskexecutor daemon on host golden-03.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="Flink-sql-client交互式命令行"><a href="#Flink-sql-client交互式命令行" class="headerlink" title="Flink sql-client交互式命令行"></a>Flink sql-client交互式命令行</h3><p>一开始以为，sql-client方式，只支持standalone模式，后来才知道，它也支持yarn-session模式<br>可以有2中方式启动：</p>
+<ul>
+<li><p>standalone方式启动</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 首先启动standalone集群
+cd &#x2F;opt&#x2F;modules&#x2F;flink-1.13.6 &amp;&amp; .&#x2F;bin&#x2F;start-cluster.sh
+## 启动sql-client
+.&#x2F;bin&#x2F;sql-client.sh embedded<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>embedded模式是默认的，不加也可以，不过，建议加上规范点</p>
+</li>
+<li><p>yarn-session方式启动<br>如果想要把任务提交给yarn，则需要启动一个yarn-session任务，yarn-session模式其实就是在yarn上生成一个standalone集群</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;bin&#x2F;yarn-session.sh -s 4  -nm cool -d<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>然后flink-sql客户端连接这个集群提交SQL任务</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;bin&#x2F;sql-client.sh embedded -s yarn-session<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>因为yarn-session模式默认会在/tmp/目录下维护一个会话信息，此时启动客户端指定yarn-session他会自动寻找到当前的session会话然后提交任务<br>但是，提交到yarn上只能使用yarn-session模式，无法使用per-job的方式，感觉不太实用，一般也就是测试的时候用一下，生产上肯定不会用它的</p>
+</li>
+</ul>
+
     </div>
 
     
@@ -730,7 +771,7 @@ Caused by: java.lang.ClassCastException: cannot assign instance of org.apache.co
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Flink简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">Flink是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E5%BC%8F%E8%AE%A1%E7%AE%97%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94"><span class="nav-number">1.2.</span> <span class="nav-text">流式计算框架对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E4%B8%AD%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E5%AE%9E%E6%97%B6%E8%AE%A1%E7%AE%97%E6%A1%86%E6%9E%B6"><span class="nav-number">1.3.</span> <span class="nav-text">工作中如何选择实时计算框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85"><span class="nav-number">1.4.</span> <span class="nav-text">Flink下载安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%A6%82%E4%BD%95%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0Yarn"><span class="nav-number">2.</span> <span class="nav-text">Flink如何提交任务到Yarn</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E4%BB%BB%E5%8A%A1%E6%A1%88%E4%BE%8B"><span class="nav-number">3.</span> <span class="nav-text">Flink任务案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEFlink%E7%9A%84Maven%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="nav-number">3.1.</span> <span class="nav-text">配置Flink的Maven开发环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E5%8A%9F%E8%83%BD%EF%BC%9AFlink%E6%B6%88%E8%B4%B9Kafka%E6%95%B0%E6%8D%AE%E5%90%8E%E5%86%8D%E5%86%99%E5%85%A5Kafka"><span class="nav-number">3.2.</span> <span class="nav-text">实现简单功能：Flink消费Kafka数据后再写入Kafka</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IDEA%E6%9C%AC%E5%9C%B0%E8%B0%83%E8%AF%95Flink%E7%A8%8B%E5%BA%8F%E6%8A%A5%E9%94%99"><span class="nav-number">3.3.</span> <span class="nav-text">IDEA本地调试Flink程序报错</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E5%8A%9F%E8%83%BD%EF%BC%9AFlink%E6%B6%88%E8%B4%B9Kafka%E6%95%B0%E6%8D%AE%E5%B9%B6%E5%AE%9E%E7%8E%B0wordCount"><span class="nav-number">3.4.</span> <span class="nav-text">实现简单功能：Flink消费Kafka数据并实现wordCount</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8Echeckpoint%E7%82%B9%E9%87%8D%E6%96%B0%E6%B6%88%E8%B4%B9kafka%E6%95%B0%E6%8D%AE"><span class="nav-number">3.5.</span> <span class="nav-text">从checkpoint点重新消费kafka数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-kafka-consumer%E7%9A%84%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">3.6.</span> <span class="nav-text">Flink kafka consumer的消费模式设置</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Flink简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">Flink是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E5%BC%8F%E8%AE%A1%E7%AE%97%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94"><span class="nav-number">1.2.</span> <span class="nav-text">流式计算框架对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E4%B8%AD%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E5%AE%9E%E6%97%B6%E8%AE%A1%E7%AE%97%E6%A1%86%E6%9E%B6"><span class="nav-number">1.3.</span> <span class="nav-text">工作中如何选择实时计算框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85"><span class="nav-number">1.4.</span> <span class="nav-text">Flink下载安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%A6%82%E4%BD%95%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0Yarn"><span class="nav-number">2.</span> <span class="nav-text">Flink如何提交任务到Yarn</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E4%BB%BB%E5%8A%A1%E6%A1%88%E4%BE%8B"><span class="nav-number">3.</span> <span class="nav-text">Flink任务案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEFlink%E7%9A%84Maven%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="nav-number">3.1.</span> <span class="nav-text">配置Flink的Maven开发环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E5%8A%9F%E8%83%BD%EF%BC%9AFlink%E6%B6%88%E8%B4%B9Kafka%E6%95%B0%E6%8D%AE%E5%90%8E%E5%86%8D%E5%86%99%E5%85%A5Kafka"><span class="nav-number">3.2.</span> <span class="nav-text">实现简单功能：Flink消费Kafka数据后再写入Kafka</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IDEA%E6%9C%AC%E5%9C%B0%E8%B0%83%E8%AF%95Flink%E7%A8%8B%E5%BA%8F%E6%8A%A5%E9%94%99"><span class="nav-number">3.3.</span> <span class="nav-text">IDEA本地调试Flink程序报错</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E5%8A%9F%E8%83%BD%EF%BC%9AFlink%E6%B6%88%E8%B4%B9Kafka%E6%95%B0%E6%8D%AE%E5%B9%B6%E5%AE%9E%E7%8E%B0wordCount"><span class="nav-number">3.4.</span> <span class="nav-text">实现简单功能：Flink消费Kafka数据并实现wordCount</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8Echeckpoint%E7%82%B9%E9%87%8D%E6%96%B0%E6%B6%88%E8%B4%B9kafka%E6%95%B0%E6%8D%AE"><span class="nav-number">3.5.</span> <span class="nav-text">从checkpoint点重新消费kafka数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-kafka-consumer%E7%9A%84%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">3.6.</span> <span class="nav-text">Flink kafka consumer的消费模式设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-Standalone%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%E9%83%A8%E7%BD%B2"><span class="nav-number">3.7.</span> <span class="nav-text">Flink Standalone集群模式部署</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-sql-client%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%91%BD%E4%BB%A4%E8%A1%8C"><span class="nav-number">3.8.</span> <span class="nav-text">Flink sql-client交互式命令行</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -746,20 +787,20 @@ Caused by: java.lang.ClassCastException: cannot assign instance of org.apache.co
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-count">56</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-count">48</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

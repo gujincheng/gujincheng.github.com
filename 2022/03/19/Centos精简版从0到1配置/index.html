@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  系统安装与配置网络">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Centos精简版从0到1配置">
+<meta property="og:url" content="https://gujincheng.github.io/2022/03/19/Centos%E7%B2%BE%E7%AE%80%E7%89%88%E4%BB%8E0%E5%88%B01%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  系统安装与配置网络">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202203/namenode%E5%88%9D%E5%A7%8B%E5%8C%96%E5%A4%B1%E8%B4%A5%E5%8E%9F%E5%9B%A0.png">
+<meta property="article:published_time" content="2022-03-19T12:36:30.000Z">
+<meta property="article:modified_time" content="2022-03-30T01:13:28.253Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Centos">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202203/namenode%E5%88%9D%E5%A7%8B%E5%8C%96%E5%A4%B1%E8%B4%A5%E5%8E%9F%E5%9B%A0.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2022/03/19/Centos%E7%B2%BE%E7%AE%80%E7%89%88%E4%BB%8E0%E5%88%B01%E9%85%8D%E7%BD%AE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Centos精简版从0到1配置 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2022/03/19/Centos%E7%B2%BE%E7%AE%80%E7%89%88%E4%BB%8E0%E5%88%B01%E9%85%8D%E7%BD%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Centos精简版从0到1配置
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-03-19 20:36:30" itemprop="dateCreated datePublished" datetime="2022-03-19T20:36:30+08:00">2022-03-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-30 09:13:28" itemprop="dateModified" datetime="2022-03-30T09:13:28+08:00">2022-03-30</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Centos/" itemprop="url" rel="index"><span itemprop="name">Centos</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/03/19/Centos%E7%B2%BE%E7%AE%80%E7%89%88%E4%BB%8E0%E5%88%B01%E9%85%8D%E7%BD%AE/" class="post-meta-item leancloud_visitors" data-flag-title="Centos精简版从0到1配置" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/03/19/Centos%E7%B2%BE%E7%AE%80%E7%89%88%E4%BB%8E0%E5%88%B01%E9%85%8D%E7%BD%AE/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/03/19/Centos%E7%B2%BE%E7%AE%80%E7%89%88%E4%BB%8E0%E5%88%B01%E9%85%8D%E7%BD%AE/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>系统安装与配置网络</li>
+</ul>
+<a id="more"></a>
+
+<p>之前使用的Centos7，系统太大了，放到虚拟机里感觉都带不动，而且，也不需要图形化界面，这里就下载一下精简版</p>
+<h2 id="系统安装与配置网络"><a href="#系统安装与配置网络" class="headerlink" title="系统安装与配置网络"></a>系统安装与配置网络</h2><p>下载Centos7精简版，<a target="_blank" rel="noopener" href="http://mirror.hostlink.com.hk/centos/7.9.2009/isos/x86_64/CentOS-7-x86_64-Minimal-2009.iso">下载地址</a><br>然后使用VMware安装3台虚拟机。<br>但是，新安装的Centos7什么东西都没有，连最基本的<code>ifconfig</code>都用不了，网络也不同，所以，配置的第一步是先配置网络</p>
+<h3 id="配置网络"><a href="#配置网络" class="headerlink" title="配置网络"></a>配置网络</h3><p><code>ip addr</code>之后发现<code>ens33</code>这块网卡没有ip地址</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd  &#x2F;etc&#x2F;sysconfig&#x2F;network-scripts &amp;&amp; vi ifcfg-ens33
+
+TYPE&#x3D;Ethernet
+PROXY_METHOD&#x3D;none
+BROWSER_ONLY&#x3D;no
+BOOTPROTO&#x3D;static    ##这里变了
+DEFROUTE&#x3D;yes
+IPV4_FAILURE_FATAL&#x3D;no
+IPV6INIT&#x3D;yes
+IPV6_AUTOCONF&#x3D;yes
+IPV6_DEFROUTE&#x3D;yes
+IPV6_FAILURE_FATAL&#x3D;no
+IPV6_ADDR_GEN_MODE&#x3D;stable-privacy
+NAME&#x3D;ens33
+UUID&#x3D;cd6473a5-142f-4890-b4ba-5a711764a1d9
+DEVICE&#x3D;ens33
+ONBOOT&#x3D;yes      ## 这里便也
+
+## 一下变了
+IPADDR&#x3D;192.168.233.130
+GATEWAY&#x3D;192.168.233.2
+DNS1&#x3D;192.168.233.2<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>改完之后重启网络</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl restart network<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>如果还是没有网络，就是因为没有配置DNS解析服务,可以添加DNS配置</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">
+cd &#x2F;etc
+vi resolv.conf
+添加如下的配置
+-------------------------------------------------------------------------------------------
+search localdomain                                                          
+nameserver 8.8.8.8                                                          
+nameserver 8.8.4.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>再次重启网络服务</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl restart network<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="配置时间相关"><a href="#配置时间相关" class="headerlink" title="配置时间相关"></a>配置时间相关</h3><p>可以看到，时间是不对的<br>修改如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 修改时区
+ln -sf &#x2F;usr&#x2F;share&#x2F;zoneinfo&#x2F;Asia&#x2F;Shanghai &#x2F;etc&#x2F;localtime
+## 安装ntp
+yum -y install ntp<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>ntp主机配置 vi /etc/ntp.conf<br>在文件里新增server ntp.aliyun.com，并把原始的server给注释掉<br>重启service ntpd restart</p>
+<h3 id="SSH免秘钥并关闭防火墙"><a href="#SSH免秘钥并关闭防火墙" class="headerlink" title="SSH免秘钥并关闭防火墙"></a>SSH免秘钥并关闭防火墙</h3><ul>
+<li>SSH免秘钥<br>通过<code>ssh-keygen -t rsa</code>命令，然后一直回车<br>然后把<code>id_rsa.pub</code>内容的复制到3个节点的<code>authorized_keys</code><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cd ~ &amp;&amp; chmod 700 .ssh &amp;&amp; chmod 600 .ssh&#x2F;authorized_keys<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+然后每台节点都ssh一遍，一共9次</li>
+<li>关闭防火墙<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">systemctl stop firewalld  ## 关闭防火墙
+systemctl disable firewalld ###禁止防火墙开机自启
+&#96;&#96;&#96;    
+
+### 安装必备软件
+* 通过yum安装必备软件
+&#96;&#96;&#96;shell
+yum install net-tools.x86_64  ## 是为了安装ifconfig，没有这个包，是在net-tools里的
+yum install vim
+yum install <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>安装Mysql，具体参考<a href="https://gujincheng.github.io/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/">Centos安装Mysql</a></li>
+<li>安装Java、Scala、Maven，这个都比较简单，这里略过<h4 id="安装Hadoop"><a href="#安装Hadoop" class="headerlink" title="安装Hadoop"></a>安装Hadoop</h4></li>
+<li>配置hadoop-env.sh里的JAVA_HOME使用绝对路径<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export JAVA_HOME&#x3D;&#x2F;opt&#x2F;modules&#x2F;jdk1.8.0_321<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>配置core-site.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span> <span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>fs.default.name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>hdfs://golden-01:9000<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>Specify the IP address and port number of the namenode<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>配置hdfs-site.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>dfs.replication<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>replications<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>dfs.namenode.name.dir<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>file:/opt/modules/hadoop-3.2.2/yarn/yarn_data/hdfs/namenode<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>dfs.datanode.data.dir<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>file:/opt/modules/hadoop-3.2.2/yarn/yarn_data/hdfs/datanode<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>配置mapred-site.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span> 
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>mapreduce.framework.name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span> 
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>yarn<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>mapreduce.jobhistory.address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>golden-01:10020<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>mapreduce.jobhistory.webapp.address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>golden-01:19888<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>    <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>配置yarn-site.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- Site specific YARN configuration properties --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.resourcemanager.address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>golden-01:8032<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.resourcemanager.scheduler.address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>golden-01:8030<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.resourcemanager.resource-tracker.address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>golden-01:8031<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>   
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.resourcemanager.admin.address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>golden-01:8033<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>   
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.resourcemanager.webapp.address<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    　　<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>golden-01:8088<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.nodemanager.aux-services<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>mapreduce_shuffle<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>   
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.nodemanager.aux-services.mapreduce.shuffle.class<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>org.apache.hadoop.mapred.ShuffleHandler<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>配置workers<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">golden-01
+golden-02
+golden-03<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+<li>将配置好的hadoop-3.2.2分发同步到各个数据节点</li>
+<li>格式化NameNode<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs namenode –format<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+出现<code>namenode has been successfully formatted.</code>就证明成功了<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-20 03:47:54,102 INFO common.Storage: Storage directory &#x2F;opt&#x2F;modules&#x2F;hadoop-3.2.2&#x2F;yarn&#x2F;yarn_data&#x2F;hdfs&#x2F;namenode has been successfully formatted.
+2022-03-20 03:47:54,124 INFO namenode.FSImageFormatProtobuf: Saving image file &#x2F;opt&#x2F;modules&#x2F;hadoop-3.2.2&#x2F;yarn&#x2F;yarn_data&#x2F;hdfs&#x2F;namenode&#x2F;current&#x2F;fsimage.ckpt_0000000000000000000 using no compression
+2022-03-20 03:47:54,220 INFO namenode.FSImageFormatProtobuf: Image file &#x2F;opt&#x2F;modules&#x2F;hadoop-3.2.2&#x2F;yarn&#x2F;yarn_data&#x2F;hdfs&#x2F;namenode&#x2F;current&#x2F;fsimage.ckpt_0000000000000000000 of size 399 bytes saved in 0 seconds .
+2022-03-20 03:47:54,226 INFO namenode.NNStorageRetentionManager: Going to retain 1 images with txid &gt;&#x3D; 0
+2022-03-20 03:47:54,230 INFO namenode.FSImage: FSImageSaver clean checkpoint: txid&#x3D;0 when meet shutdown.
+2022-03-20 03:47:54,231 INFO namenode.NameNode: SHUTDOWN_MSG: 
+&#x2F;************************************************************
+SHUTDOWN_MSG: Shutting down NameNode at golden-01&#x2F;192.168.233.130
+************************************************************&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这里一开始出现一个情况，我刚启动<code>hdfs namenode -format</code>，就失败了，直接就报<code>SHUTDOWN_MSG: Shutting down NameNode at golden-01/192.168.233.130</code><br>问题的原因：<blockquote>
+<p>从网上复制过来的<code>hdfs namenode -format</code>，这个-format其实是减号，是不对的<br><img src="/uploads/202203/namenode%E5%88%9D%E5%A7%8B%E5%8C%96%E5%A4%B1%E8%B4%A5%E5%8E%9F%E5%9B%A0.png" alt="namenode初始化失败原因"></p>
+</blockquote>
+</li>
+</ul>
+<p>还有一种猜想，会不会是因为我用的root用户来做初始化导致的？因为，我启动集群的时候，也报错了：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Starting namenodes on [master]
+ERROR: Attempting to operate on hdfs namenode as root
+ERROR: but there is no HDFS_NAMENODE_USER defined. Aborting operation.
+Starting datanodes
+ERROR: Attempting to operate on hdfs datanode as root
+ERROR: but there is no HDFS_DATANODE_USER defined. Aborting operation.
+Starting secondary namenodes [slave1]
+ERROR: Attempting to operate on hdfs secondarynamenode as root
+ERROR: but there is no HDFS_SECONDARYNAMENODE_USER defined. Aborting operation.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里我切换到普通用户来启动了<br>也可以将start-dfs.sh，stop-dfs.sh两个文件顶部添加以下参数</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#!&#x2F;usr&#x2F;bin&#x2F;env bash
+HDFS_DATANODE_USER&#x3D;root
+HADOOP_SECURE_DN_USER&#x3D;hdfs
+HDFS_NAMENODE_USER&#x3D;root
+HDFS_SECONDARYNAMENODE_USER&#x3D;root<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>还有，start-yarn.sh，stop-yarn.sh顶部也需添加以下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#!&#x2F;usr&#x2F;bin&#x2F;env bash
+YARN_RESOURCEMANAGER_USER&#x3D;root
+HADOOP_SECURE_DN_USER&#x3D;yarn
+YARN_NODEMANAGER_USER&#x3D;root<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这个猜想不是这个问题的原因。</p>
+<h4 id="安装zookeper"><a href="#安装zookeper" class="headerlink" title="安装zookeper"></a>安装zookeper</h4><p>复制zoo.cfg<br>在zkk.cfg里修改如下内容</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">dataDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.8.0&#x2F;zkData                                                                                   
+dataLogDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.8.0&#x2F;zkDataLog
+server.1&#x3D;golden-01:2888:3888                                                                                                  
+server.2&#x3D;golden-02:2888:3888                                                                                                  
+server.3&#x3D;golden-03:2888:3888   <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>分别在三台服务上面依次执行 echo id &gt; /opt/modules/zookeeper-3.8.0/zkData/myid 命令创建zookeeper编号的myid文件<br>(notice:这里的myid要建在自己zoo.cfg文件的dataDir中)<br>zookeeper启动：<code>zkServer.sh start</code></p>
+<blockquote>
+<p>需要注意的是，<strong>需要在每台几点都启动一下</strong>，否则的话，会报如下错误：</p>
+</blockquote>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ZooKeeper JMX enabled by default
+Using config: &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.8.0&#x2F;bin&#x2F;..&#x2F;conf&#x2F;zoo.cfg
+Client port found: 2181. Client address: localhost. Client SSL: false.
+Error contacting service. It is probably not running.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>./zkServer.sh start-foreground</code>查看日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-20 08:29:37,669 [myid:] - WARN  [QuorumConnectionThread-[myid&#x3D;1]-1:o.a.z.s.q.QuorumCnxManager@401] - Cannot open channel to 2 at election address &#x2F;192.168.233.131:3888
+java.net.ConnectException: Connection refused (Connection refused)
+	at java.net.PlainSocketImpl.socketConnect(Native Method)
+	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:476)
+	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:218)
+	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:200)
+	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:394)
+	at java.net.Socket.connect(Socket.java:606)
+	at org.apache.zookeeper.server.quorum.QuorumCnxManager.initiateConnection(QuorumCnxManager.java:384)
+	at org.apache.zookeeper.server.quorum.QuorumCnxManager$QuorumConnectionReqThread.run(QuorumCnxManager.java:458)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:750)
+2022-03-20 08:29:37,669 [myid:] - WARN  [QuorumConnectionThread-[myid&#x3D;1]-2:o.a.z.s.q.QuorumCnxManager@401] - Cannot open channel to 3 at election address &#x2F;192.168.233.132:3888
+java.net.ConnectException: Connection refused (Connection refused)
+	at java.net.PlainSocketImpl.socketConnect(Native Method)
+	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:476)
+	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:218)
+	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:200)
+	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:394)
+	at java.net.Socket.connect(Socket.java:606)
+	at org.apache.zookeeper.server.quorum.QuorumCnxManager.initiateConnection(QuorumCnxManager.java:384)
+	at org.apache.zookeeper.server.quorum.QuorumCnxManager$QuorumConnectionReqThread.run(QuorumCnxManager.java:458)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:750)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其实就是需要在每台节点都启动一下zk服务，否则的话，端口不同</p>
+<h4 id="安装Kafka"><a href="#安装Kafka" class="headerlink" title="安装Kafka"></a>安装Kafka</h4><p>编辑<code>config/server.properties</code></p>
+<pre class="line-numbers language-properties" data-language="properties"><code class="language-properties"><span class="token attr-name">broker.id</span><span class="token punctuation">=</span><span class="token attr-value">1</span>
+<span class="token attr-name">log.dirs</span><span class="token punctuation">=</span><span class="token attr-value">/opt/modules/kafka-3.1.0/kafka-logs  ## 需要自己创建出来</span>
+<span class="token attr-name">zookeeper.connect</span><span class="token punctuation">=</span><span class="token attr-value">golden-01:2181,golden-02:2181,golden-03:2181</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>kafka启动：<br><strong>需要在每台节点都启动一下</strong>：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">nohup bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &gt;&gt; output.log 2&gt;&amp;1 &amp;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里编写自动化脚本来实现每台节点都启动的操作</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo &quot;############# 正在启动 golden-01 kafka服务 ###########&quot;
+ssh -Tq golden@golden-01&lt;&lt;EOF
+source &#x2F;etc&#x2F;profile 
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-3.1.0 
+nohup bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &gt;output.log 2&gt;&amp;1 &amp; 
+EOF
+
+echo &quot;############# 正在启动 golden-02 kafka服务 ###########&quot;
+ssh -Tq golden@golden-02&lt;&lt;EOF
+source &#x2F;etc&#x2F;profile 
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-3.1.0 
+nohup bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &gt;output.log 2&gt;&amp;1 &amp;
+EOF
+
+echo &quot;############# 正在启动 golden-03 kafka服务 ###########&quot;
+ssh -Tq golden@golden-03&lt;&lt;EOF
+source &#x2F;etc&#x2F;profile 
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-3.1.0
+nohup bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &gt;output.log 2&gt;&amp;1 &amp;
+EOF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里如果不添加<code>-Tq</code>，就会报<code>Pseudo-terminal will not be allocated because stdin is not a terminal</code><br>字面意思是伪终端将无法分配，因为标准输入不是终端。<br>所以需要增加<code>-tt</code>参数来强制伪终端分配，即使标准输入不是终端。<br>或者加上<code>-Tq</code>这个参数也可以。<br><code>-tt</code>会把命令打印出来，<code>-Tq</code>只会执行命令，不会打印具体执行了什么</p>
+<h4 id="安装Flink"><a href="#安装Flink" class="headerlink" title="安装Flink"></a>安装Flink</h4><h4 id="安装Hive"><a href="#安装Hive" class="headerlink" title="安装Hive"></a>安装Hive</h4><h4 id="安装SQLServer"><a href="#安装SQLServer" class="headerlink" title="安装SQLServer"></a>安装SQLServer</h4><ul>
+<li>安装sqlserver<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">curl -o &#x2F;etc&#x2F;yum.repos.d&#x2F;mssql-server.repo https:&#x2F;&#x2F;packages.microsoft.com&#x2F;config&#x2F;rhel&#x2F;7&#x2F;mssql-server-2019.repo
+yum install -y mssql-server
+&#x2F;opt&#x2F;mssql&#x2F;bin&#x2F;mssql-conf setup <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+这里在Centos精简版一直失败，最后在Centos7完整版里安装成功了，精简版的缺少太多基础软件了。<br>可以参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/gered/p/12509367.html">sql server for linux 安装（yum、静默安装、环境变量安装、docker安装） </a></li>
+<li>启用SQL Server代理<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#启用SQL Server代理
+sudo &#x2F;opt&#x2F;mssql&#x2F;bin&#x2F;mssql-conf set sqlagent.enabled true
+#需要重启服务生效
+sudo systemctl restart mssql-server<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+</li>
+</ul>
+<h4 id="Centos如何访问sqlserver"><a href="#Centos如何访问sqlserver" class="headerlink" title="Centos如何访问sqlserver"></a>Centos如何访问sqlserver</h4><ol>
+<li><p>安装sqlcmd</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">curl -o &#x2F;etc&#x2F;yum.repos.d&#x2F;msprod.repo https:&#x2F;&#x2F;packages.microsoft.com&#x2F;config&#x2F;rhel&#x2F;7&#x2F;prod.repo
+yum remove unixODBC-utf16 unixODBC-utf16-devel
+yum install -y mssql-tools unixODBC-devel
+echo &#39;export PATH&#x3D;&quot;$PATH:&#x2F;opt&#x2F;mssql-tools&#x2F;bin&quot;&#39; &gt;&gt; ~&#x2F;.bash_profile
+echo &#39;export PATH&#x3D;&quot;$PATH:&#x2F;opt&#x2F;mssql-tools&#x2F;bin&quot;&#39; &gt;&gt; ~&#x2F;.bashrc
+source ~&#x2F;.bashrc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p>使用 SQL Server 名称 (-S)，用户名 (-U) 和密码 (-P) 的参数运行 sqlcmd 。 在本教程中，用户进行本地连接，因此服务器名称为 localhost。 用户名为 SA，密码是在安装过程中为 SA 帐户提供的密码。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sqlcmd -S localhost -U SA -P &#39;&lt;YourPassword&gt;&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这个工具sql不能换行，后期再看看如何调整参数</p>
+</li>
+<li><p>sqlserver的语法和mysql有很大的不一样，执行sql需要<code>GO</code>一下才能执行</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Centos/" rel="tag"># Centos</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/18/Maven%E6%9D%82%E8%AE%B0/" rel="prev" title="Maven杂记">
+      <i class="fa fa-chevron-left"></i> Maven杂记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="next" title="FlinkCDC原理">
+      FlinkCDC原理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE%E7%BD%91%E7%BB%9C"><span class="nav-number">1.</span> <span class="nav-text">系统安装与配置网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E7%BD%91%E7%BB%9C"><span class="nav-number">1.1.</span> <span class="nav-text">配置网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%97%B6%E9%97%B4%E7%9B%B8%E5%85%B3"><span class="nav-number">1.2.</span> <span class="nav-text">配置时间相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH%E5%85%8D%E7%A7%98%E9%92%A5%E5%B9%B6%E5%85%B3%E9%97%AD%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-number">1.3.</span> <span class="nav-text">SSH免秘钥并关闭防火墙</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Hadoop"><span class="nav-number">1.3.1.</span> <span class="nav-text">安装Hadoop</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85zookeper"><span class="nav-number">1.3.2.</span> <span class="nav-text">安装zookeper</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Kafka"><span class="nav-number">1.3.3.</span> <span class="nav-text">安装Kafka</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Flink"><span class="nav-number">1.3.4.</span> <span class="nav-text">安装Flink</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Hive"><span class="nav-number">1.3.5.</span> <span class="nav-text">安装Hive</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85SQLServer"><span class="nav-number">1.3.6.</span> <span class="nav-text">安装SQLServer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Centos%E5%A6%82%E4%BD%95%E8%AE%BF%E9%97%AEsqlserver"><span class="nav-number">1.3.7.</span> <span class="nav-text">Centos如何访问sqlserver</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">44</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
