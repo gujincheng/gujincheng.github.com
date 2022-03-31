@@ -879,8 +879,8 @@ mv  cloudera-service-monitor  cloudera-service-monitor_BAK<span aria-hidden="tru
       </tags>
   </entry>
   <entry>
-    <title>Elasticsearch学习笔记（一）</title>
-    <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>Elasticsearch学习笔记</title>
+    <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>Elasticsearch简介</li>
@@ -1273,6 +1273,39 @@ input
       </tags>
   </entry>
   <entry>
+    <title>Hadoop杂记</title>
+    <url>/2022/03/31/Hadoop%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>hdfs的url在什么情况下指定ip:port</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="hdfs的url在什么情况下指定ip-port"><a href="#hdfs的url在什么情况下指定ip-port" class="headerlink" title="hdfs的url在什么情况下指定ip:port"></a>hdfs的url在什么情况下指定ip:port</h2><p>我们在使用hdfs的时候，一般情况下都是不指定ip:port的，原因是，在hadoop的core-site.xml里，我们配置了如下的参数</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&lt;property&gt;
+  &lt;name&gt;fs.defaultFS&lt;&#x2F;name&gt;
+  &lt;value&gt;hdfs:&#x2F;&#x2F;golden-02:9000&lt;&#x2F;value&gt;
+&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在我们指定hdfs的路径的时候，hadoop会自动代入<code>golden-02:9000</code>，例如：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs -ls &#x2F;flink&#x2F;checkpoint&#x2F;cdc<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这时候我们不需要指定<code>hdfs://golden-02:9000/flink/checkpoint/cdc</code>也能访问</p>
+<p>但是，如果不使用hadoop，例如使用flink访问hdfs上的文件，那么，hdfs://就是必须要添加的了，这里有2中指定方式：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs://golden-02:9000/flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs:///flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>可以指定以<code>hdfs://golden-02:9000</code>开头，也就是我们<code>fs.defaultFS</code>里配置的内容<br>也可以直接以<code>hdfs:///</code>开头，注意，这里是3个<code>/</code>，这两个都是一样的，因为flink程序会加载hadoop相关的配置的<br>这里推荐使用<code>hdfs:///</code>，因为namenode有可能会切换standby，切换了standby不知道还能不能访问到<br>如果不知道<code>fs.defaultFS</code>里的配置在哪里找，可以直接打开hive客户端，执行如下语句</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">hive<span class="token operator">></span> <span class="token keyword">set</span> fs<span class="token punctuation">.</span>defaultFS<span class="token punctuation">;</span>
+<span class="token number">22</span><span class="token operator">/</span><span class="token number">03</span><span class="token operator">/</span><span class="token number">31</span> <span class="token number">15</span>:<span class="token number">36</span>:<span class="token number">26</span> INFO conf<span class="token punctuation">.</span>HiveConf: <span class="token keyword">Using</span> the <span class="token keyword">default</span> <span class="token keyword">value</span> passed <span class="token operator">in</span> <span class="token keyword">for</span> log id: <span class="token number">488</span>dc8a0<span class="token operator">-</span>b332<span class="token operator">-</span><span class="token number">4854</span><span class="token operator">-</span>b2a1<span class="token operator">-</span><span class="token number">585</span>b69a15bf6
+fs<span class="token punctuation">.</span>defaultFS<span class="token operator">=</span>hdfs:<span class="token comment">//digiwin-hdfs2</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hadoop集群扩容</title>
     <url>/2022/03/08/Hadoop%E9%9B%86%E7%BE%A4%E6%89%A9%E5%AE%B9/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1592,8 +1625,8 @@ chown -R hdfs:hadoop dfs<span aria-hidden="true" class="line-numbers-rows"><span
       </tags>
   </entry>
   <entry>
-    <title>Kafka学习笔记（一）</title>
-    <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>Kafka学习笔记</title>
+    <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>Kafka简介（后补）</li>
@@ -1959,6 +1992,25 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
+    <title>Mac下docker使用记录</title>
+    <url>/2022/03/30/Mac%E4%B8%8BDocker%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Mac下Docker安装</li>
+<li>Docker安装Mysql</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Mac下Docker安装"><a href="#Mac下Docker安装" class="headerlink" title="Mac下Docker安装"></a>Mac下Docker安装</h2><p>安装docker很简单，直接到官网下载即可：<br><a href="https://docs.docker.com/desktop/mac/install/">Docker下载地址</a><br>然后使用dmg包安装即可</p>
+]]></content>
+      <categories>
+        <category>Docker</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Maven杂记</title>
     <url>/2022/03/18/Maven%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1986,8 +2038,8 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
-    <title>MongoDB杂记（一）</title>
-    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>MongoDB杂记</title>
+    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 ]]></content>
@@ -2000,8 +2052,8 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
-    <title>Redis杂记（一）</title>
-    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>Redis杂记</title>
+    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>什么是Redis</li>
@@ -2033,8 +2085,8 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
-    <title>Scala杂记（一）</title>
-    <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>Scala杂记</title>
+    <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>使用Scala解析Json</li>
@@ -2291,8 +2343,8 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       </tags>
   </entry>
   <entry>
-    <title>Zookeeper学习笔记（一）</title>
-    <url>/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>Zookeeper学习笔记</title>
+    <url>/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>Zookeeper简介</li>
@@ -2492,8 +2544,8 @@ find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下�
       </tags>
   </entry>
   <entry>
-    <title>linux杂记（一）</title>
-    <url>/2021/01/16/linux%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>linux杂记</title>
+    <url>/2021/01/16/linux%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>shell常用语法</li>
@@ -2588,88 +2640,6 @@ get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-
       </tags>
   </entry>
   <entry>
-    <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
-    <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查<a id="more"></a>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2>最近在整合pyspark与hive，新安装spark-2.3.3以客户端的方式访问hive数据，运行方式使用spark on yarn，但是在配置spark读取hive数据的时候，这里直接把hive下的hive-site.xml复制到spark目录下，启动了一次spark，上面的问题就出现了。</li>
-</ul>
-<h2 id="网上的说法："><a href="#网上的说法：" class="headerlink" title="网上的说法："></a>网上的说法：</h2><p>hive元数据问题，需要重新初始化hive的元数据<br>但是这个方法肯定不适合我，因为仓库里的表不能受影响，上千张表呢，如果初始化了，所有表都要重新创建。</p>
-<h2 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h2><ul>
-<li><p>首先查看服务器上/tmp/${user}/hive.log文件，这个是公司服务器当时配置的详细的hive执行日志。<br>在日志中，有一段报错：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019-07-06T10:01:53,737 ERROR [370c0a81-c922-4c61-8315-264c39b372c3 main] metastore.RetryingHMSHandler: MetaException(message:Hive Schema version 3.1.0 does not match metastore&#39;s schema version 1.2.0 Metastore is not upgraded or corrupt)
-        at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:9063)
-        at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:9027)
-        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里的意思是，hive的版本是3.1.0，但是元数据中的版本信息是1.2.0，因此报错。</p>
-</li>
-<li><p>到hive的元数据库里查了下version表里的数据，确实版本是1.2.0</p>
-<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>这里猜测，spark在读取hive元数据的时候，因为spark是直接从官网上下载的，可能官网上的spark是用hive1.2.0版本编译的，所以，它默认使用的1.2.0，导致在启动的时候，修改了hive的元数据<br>但是具体的原因还不知道<br>下面会拿官网上的spark源码手动编译测试一下</p>
-<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2></li>
-</ul>
-<ol>
-<li>直接修改version表的数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> version<span class="token punctuation">;</span>
-<span class="token keyword">update</span> VERSION <span class="token keyword">set</span> SCHEMA_VERSION<span class="token operator">=</span><span class="token string">'2.1.1'</span> <span class="token keyword">where</span>  VER_ID<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-2、在hvie-site.xml中关闭版本验证<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<img src="/uploads/20210116/ive-metadata.png" alt="hive-metadata"></li>
-</ol>
-<h2 id="深入研究"><a href="#深入研究" class="headerlink" title="深入研究"></a>深入研究</h2><p>   在spark官网上查看了相关的资料，发现，在官网上下载的spark安装包，默认编译的hive版本是1.2.1的，所以每次启动spark的时候，会检查hive的版本。如果采用hive的默认配置，如果不一样，<br>就会修改version<br>    <img src="/uploads/20210116/hive-version-official-website.png" alt="hive-version-official-website"><br>一开始尝试着下载spark源码重新编译spark安装包，编译执行hive的版本为3.1.1，但是，发现每次指定hive的版本，maven下载依赖的时候，都会报错。<br>报错信息如下：</p>
-<p>后来想了个折中的办法，spark还是使用原始版本，但是修改一下hive-site.xml文件。<br>    注意：这里修改的是spark的conf下的hive-site.xml，原始的hive里的不需要修改</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
-    Enforce metastore schema version consistency.
-    True: Verify that version information stored in metastore matches with one from Hive jars.  Also disable automatic
-          schema migration attempt. Users are required to manually migrate schema after Hive upgrade which ensures
-          proper metastore schema migration. (Default)
-    False: Warn if the version information stored in metastore doesn't match with one from in Hive jars.
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification.record.version<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
-    When true the current MS version is recorded in the VERSION table. If this is disabled and verification is
-     enabled the MS will be unusable.
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这两个配置的具体含义：</p>
-<ul>
-<li><code>hive.metastore.schema.verification</code> 如果设置为true，那么每次启动hive或者spark的时候，都会检查hive的版本。如果为false，则会告警  </li>
-<li><code>hive.metastore.schema.verification.record.version</code> 如果设置为true，每次启动spark的时候，如果检查了hive的版本和spark编译的版本不一致，那么就会修改hive的元数据</li>
-</ul>
-<p>这里的修改需要设置</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hive.metastore.schema.verification&#x3D;false   
-hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>以下有3个反例：</p>
-<ul>
-<li>如过这两个都为true，那么spark会修改hive元数据</li>
-<li>如果<code>hive.metastore.schema.verification=true</code>，<br>并且<code>hive.metastore.schema.verification.record.version=false</code>，这时候启动spark就会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: MetaException(message:Hive Schema version 1.2.0 does not match metastore&#39;s schema version 3.1.0 Metastore is not upgraded or corrupt)
-	at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:6679)
-	at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:6645)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>如果设置<code>hive.metastore.schema.verification=false</code><br>且<code>hive.metastore.schema.verification.record.version=true</code>，spark还是会修改hive的元数据</li>
-</ul>
-<p><img src="/uploads/20210116/hive-metastore-schema-verification.png" alt="hive-metastore-schema-verification"><br><img src="/uploads/20210116/hive-metastore-latest-effect.png" alt="hive-metastore-latest-effect"></p>
-<p>所以，只要设置<code>hive.metastore.schema.verification.record.version=false</code>就可以了，但是为了保险起见，我两个都设置成false了</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Hive</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>maven编译Hudi与Flink源码</title>
     <url>/2022/03/10/maven%E7%BC%96%E8%AF%91Hudi%E4%B8%8EFlink%E6%BA%90%E7%A0%81/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2757,6 +2727,88 @@ tar zxvf flink-1.13.6-src.tgz -C .<span aria-hidden="true" class="line-numbers-r
       </tags>
   </entry>
   <entry>
+    <title>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查</title>
+    <url>/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2>最近在整合pyspark与hive，新安装spark-2.3.3以客户端的方式访问hive数据，运行方式使用spark on yarn，但是在配置spark读取hive数据的时候，这里直接把hive下的hive-site.xml复制到spark目录下，启动了一次spark，上面的问题就出现了。</li>
+</ul>
+<h2 id="网上的说法："><a href="#网上的说法：" class="headerlink" title="网上的说法："></a>网上的说法：</h2><p>hive元数据问题，需要重新初始化hive的元数据<br>但是这个方法肯定不适合我，因为仓库里的表不能受影响，上千张表呢，如果初始化了，所有表都要重新创建。</p>
+<h2 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h2><ul>
+<li><p>首先查看服务器上/tmp/${user}/hive.log文件，这个是公司服务器当时配置的详细的hive执行日志。<br>在日志中，有一段报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019-07-06T10:01:53,737 ERROR [370c0a81-c922-4c61-8315-264c39b372c3 main] metastore.RetryingHMSHandler: MetaException(message:Hive Schema version 3.1.0 does not match metastore&#39;s schema version 1.2.0 Metastore is not upgraded or corrupt)
+        at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:9063)
+        at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:9027)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里的意思是，hive的版本是3.1.0，但是元数据中的版本信息是1.2.0，因此报错。</p>
+</li>
+<li><p>到hive的元数据库里查了下version表里的数据，确实版本是1.2.0</p>
+<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>这里猜测，spark在读取hive元数据的时候，因为spark是直接从官网上下载的，可能官网上的spark是用hive1.2.0版本编译的，所以，它默认使用的1.2.0，导致在启动的时候，修改了hive的元数据<br>但是具体的原因还不知道<br>下面会拿官网上的spark源码手动编译测试一下</p>
+<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2></li>
+</ul>
+<ol>
+<li>直接修改version表的数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> version<span class="token punctuation">;</span>
+<span class="token keyword">update</span> VERSION <span class="token keyword">set</span> SCHEMA_VERSION<span class="token operator">=</span><span class="token string">'2.1.1'</span> <span class="token keyword">where</span>  VER_ID<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+2、在hvie-site.xml中关闭版本验证<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<img src="/uploads/20210116/ive-metadata.png" alt="hive-metadata"></li>
+</ol>
+<h2 id="深入研究"><a href="#深入研究" class="headerlink" title="深入研究"></a>深入研究</h2><p>   在spark官网上查看了相关的资料，发现，在官网上下载的spark安装包，默认编译的hive版本是1.2.1的，所以每次启动spark的时候，会检查hive的版本。如果采用hive的默认配置，如果不一样，<br>就会修改version<br>    <img src="/uploads/20210116/hive-version-official-website.png" alt="hive-version-official-website"><br>一开始尝试着下载spark源码重新编译spark安装包，编译执行hive的版本为3.1.1，但是，发现每次指定hive的版本，maven下载依赖的时候，都会报错。<br>报错信息如下：</p>
+<p>后来想了个折中的办法，spark还是使用原始版本，但是修改一下hive-site.xml文件。<br>    注意：这里修改的是spark的conf下的hive-site.xml，原始的hive里的不需要修改</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
+    Enforce metastore schema version consistency.
+    True: Verify that version information stored in metastore matches with one from Hive jars.  Also disable automatic
+          schema migration attempt. Users are required to manually migrate schema after Hive upgrade which ensures
+          proper metastore schema migration. (Default)
+    False: Warn if the version information stored in metastore doesn't match with one from in Hive jars.
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.schema.verification.record.version<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
+    When true the current MS version is recorded in the VERSION table. If this is disabled and verification is
+     enabled the MS will be unusable.
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这两个配置的具体含义：</p>
+<ul>
+<li><code>hive.metastore.schema.verification</code> 如果设置为true，那么每次启动hive或者spark的时候，都会检查hive的版本。如果为false，则会告警  </li>
+<li><code>hive.metastore.schema.verification.record.version</code> 如果设置为true，每次启动spark的时候，如果检查了hive的版本和spark编译的版本不一致，那么就会修改hive的元数据</li>
+</ul>
+<p>这里的修改需要设置</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hive.metastore.schema.verification&#x3D;false   
+hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>以下有3个反例：</p>
+<ul>
+<li>如过这两个都为true，那么spark会修改hive元数据</li>
+<li>如果<code>hive.metastore.schema.verification=true</code>，<br>并且<code>hive.metastore.schema.verification.record.version=false</code>，这时候启动spark就会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: MetaException(message:Hive Schema version 1.2.0 does not match metastore&#39;s schema version 3.1.0 Metastore is not upgraded or corrupt)
+	at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:6679)
+	at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:6645)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>如果设置<code>hive.metastore.schema.verification=false</code><br>且<code>hive.metastore.schema.verification.record.version=true</code>，spark还是会修改hive的元数据</li>
+</ul>
+<p><img src="/uploads/20210116/hive-metastore-schema-verification.png" alt="hive-metastore-schema-verification"><br><img src="/uploads/20210116/hive-metastore-latest-effect.png" alt="hive-metastore-latest-effect"></p>
+<p>所以，只要设置<code>hive.metastore.schema.verification.record.version=false</code>就可以了，但是为了保险起见，我两个都设置成false了</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Hive</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>python实现scp功能</title>
     <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
     <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
@@ -2798,8 +2850,8 @@ tar zxvf flink-1.13.6-src.tgz -C .<span aria-hidden="true" class="line-numbers-r
       </tags>
   </entry>
   <entry>
-    <title>python杂记（一）</title>
-    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>python杂记</title>
+    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
 ]]></content>
       <categories>
@@ -2850,8 +2902,8 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       </tags>
   </entry>
   <entry>
-    <title>spark on yarn遇到的问题（一）</title>
-    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>spark on yarn遇到的问题</title>
+    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
@@ -3083,8 +3135,8 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </tags>
   </entry>
   <entry>
-    <title>vim使用手册（一）</title>
-    <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>vim使用手册</title>
+    <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>vim使用手册<a id="more"></a>
@@ -3533,85 +3585,6 @@ search:
       </tags>
   </entry>
   <entry>
-    <title>日常工具软件问题</title>
-    <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>VMWare常见问题</li>
-<li>IDEA常见问题<a id="more"></a>
-<h2 id="VMWare常见问题"><a href="#VMWare常见问题" class="headerlink" title="VMWare常见问题"></a>VMWare常见问题</h2><h3 id="VMWare开启虚拟机黑屏"><a href="#VMWare开启虚拟机黑屏" class="headerlink" title="VMWare开启虚拟机黑屏"></a>VMWare开启虚拟机黑屏</h3>解决办法：</li>
-<li>在windows下搜索cmd，并以管理员身份打开，输入：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netsh winsock reset<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>重启电脑</li>
-</ul>
-<h2 id="IDEA常见问题"><a href="#IDEA常见问题" class="headerlink" title="IDEA常见问题"></a>IDEA常见问题</h2><h3 id="maven编译报错-source-1-5-中不支持-lambda-表达式"><a href="#maven编译报错-source-1-5-中不支持-lambda-表达式" class="headerlink" title="maven编译报错 -source 1.5 中不支持 lambda 表达式"></a>maven编译报错 -source 1.5 中不支持 lambda 表达式</h3><p><img src="/uploads/20210124/IDEA%E4%B8%AD%E7%BC%96%E8%AF%91Maven%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99.png" alt="IDEA中编译Maven项目报错"><br>解决办法：<br>在pom文件中添加:</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.7.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>source</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>encoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>encoding</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="Maven编译时报：编码GBK的不可映射字符"><a href="#Maven编译时报：编码GBK的不可映射字符" class="headerlink" title="Maven编译时报：编码GBK的不可映射字符"></a>Maven编译时报：编码GBK的不可映射字符</h3><p>解决办法：<br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_1.png" alt="编码GBK的不可映射字符_1"><br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_2.png" alt="编码GBK的不可映射字符_2"></p>
-<h3 id="IDEA常用快捷键（windows）"><a href="#IDEA常用快捷键（windows）" class="headerlink" title="IDEA常用快捷键（windows）"></a>IDEA常用快捷键（windows）</h3><ul>
-<li><code>Alt + 1</code> 项目视图，可以自动关闭左边侧边栏</li>
-<li><code>Crl + E</code> 最近文件列表</li>
-<li>快速按两下<code>Shift</code>，全局文件搜索</li>
-<li><code>Crl + Shift + N</code> 跳转到某个文件，可以直接搜索</li>
-<li><code>Alt+Insert</code> 可以生成构造器/Getter/Setter等</li>
-<li><code>Ctrl + W</code> 按一个word来进行选择操作，在IDEA里的这个快捷键功能是先选择光标所在字符处的单词，然后是选择源代码的扩展区域</li>
-<li><code>shift + F6</code>修改文件名</li>
-</ul>
-<h2 id="IDEA常用快捷键（mac）"><a href="#IDEA常用快捷键（mac）" class="headerlink" title="IDEA常用快捷键（mac）"></a>IDEA常用快捷键（mac）</h2><ul>
-<li>当前行注释： ctrl+/</li>
-<li>撤销行注释： ctrl+/</li>
-<li>块状注释： ctrl+shift+/</li>
-<li>撤销块注释： ctrl+shift+/</li>
-<li>实现/重写方法：command + N</li>
-<li>全局查找： shift + command + f</li>
-<li>全局替换： shift + command + r</li>
-<li>当前文件查找： command + f</li>
-<li>当前文件替换： command + r</li>
-<li>最近查看过的文件： command + e</li>
-<li>打开类结构： command + 7</li>
-<li>前往父类/父类方法： command + u</li>
-<li>呼出文件列表： command + 上方向键</li>
-</ul>
-<p>当用IDEA写java的时候，写匿名函数的时候，如果不知道new什么，可以在方法()里使用<code>option + /</code>会自动提示创建什么对象<br><img src="/uploads/20210520/IDEA%E7%BC%96%E5%86%99JAVA.png" alt="IDEA编写JAVA"><br>鼠标悬浮在提醒的对象名上，会提醒这个对象是什么类的，直接new就可以</p>
-<h2 id="IDEA常用插件"><a href="#IDEA常用插件" class="headerlink" title="IDEA常用插件"></a>IDEA常用插件</h2><ul>
-<li>leetcode editor  刷算法</li>
-<li>codota ai aotocomplete for java   自动补全java，从githup上找相似的</li>
-<li>easy code  自动写java实体类</li>
-<li>translation  在线翻译，看源码可以使用</li>
-<li>key promoter  提醒快捷键的，用的功能会自动提示</li>
-<li>maven helper  解决maven依赖冲突</li>
-<li>alibaba java coding   代码规范</li>
-<li>codeglance  类似sublime的代码缩影。可以替代下拉框</li>
-<li>GsonFormat   自动根据json创建实体类</li>
-<li>ignore    git过滤</li>
-<li>rainbow brackets  括号变成彩虹颜色</li>
-<li>acejump  类似vim快速定位</li>
-</ul>
-<p>在IDEA写java的时候，如果不知道是什么类型，可以使用<code>option + shift + enter</code>来自动补全<br>例如：<br><code>map = mapState.iterator().next();</code><br>把鼠标悬浮在map变量上，然后可以点击<code>create local variable &#39;map&#39;</code>,或者<code>option + shift + enter</code>来自动补全</p>
-<p><code>option + shift + enter</code>： 鼠标悬浮在倒入的无用的包上（import变灰色的），使用这个快捷键，可以自动清除无用的包</p>
-<blockquote>
-<p>在写java或者scala的时候，直接写=号右边的内容，然后加一个.var,然后enter，就可以自动补全左边的定义变量的操作<br>在编辑java的时候，在调用类和正在编辑的类中来回切换： option + command + 方向键</p>
-</blockquote>
-<h2 id="github网页可以访问，但是ping不通"><a href="#github网页可以访问，但是ping不通" class="headerlink" title="github网页可以访问，但是ping不通"></a>github网页可以访问，但是ping不通</h2><p>最近从github上拉取代码，总是报超时，ping github.com后连不通<br>一开始以为是国外ip访问不了，翻墙试了一下，还是不行<br>最后解决方法，修改hosts文件<br>原因是直接ping github.com返回的服务器ip ping不通，但是github本身是有很多ip的，我们挑一个可以ping的通的ip</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>问题解决</p>
-]]></content>
-      <categories>
-        <category>工具箱</category>
-      </categories>
-      <tags>
-        <tag>VMWare</tag>
-        <tag>IDEA</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>获取yarn上application资源占用情况</title>
     <url>/2021/12/09/%E8%8E%B7%E5%8F%96yarn%E4%B8%8Aapplication%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3804,6 +3777,85 @@ yarn logs -applicationId application_1641525781336_0011 -size 1000000000 &gt; ap
       </categories>
       <tags>
         <tag>监控</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>日常工具软件问题</title>
+    <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>VMWare常见问题</li>
+<li>IDEA常见问题<a id="more"></a>
+<h2 id="VMWare常见问题"><a href="#VMWare常见问题" class="headerlink" title="VMWare常见问题"></a>VMWare常见问题</h2><h3 id="VMWare开启虚拟机黑屏"><a href="#VMWare开启虚拟机黑屏" class="headerlink" title="VMWare开启虚拟机黑屏"></a>VMWare开启虚拟机黑屏</h3>解决办法：</li>
+<li>在windows下搜索cmd，并以管理员身份打开，输入：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netsh winsock reset<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>重启电脑</li>
+</ul>
+<h2 id="IDEA常见问题"><a href="#IDEA常见问题" class="headerlink" title="IDEA常见问题"></a>IDEA常见问题</h2><h3 id="maven编译报错-source-1-5-中不支持-lambda-表达式"><a href="#maven编译报错-source-1-5-中不支持-lambda-表达式" class="headerlink" title="maven编译报错 -source 1.5 中不支持 lambda 表达式"></a>maven编译报错 -source 1.5 中不支持 lambda 表达式</h3><p><img src="/uploads/20210124/IDEA%E4%B8%AD%E7%BC%96%E8%AF%91Maven%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99.png" alt="IDEA中编译Maven项目报错"><br>解决办法：<br>在pom文件中添加:</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.7.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>source</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>encoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>encoding</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="Maven编译时报：编码GBK的不可映射字符"><a href="#Maven编译时报：编码GBK的不可映射字符" class="headerlink" title="Maven编译时报：编码GBK的不可映射字符"></a>Maven编译时报：编码GBK的不可映射字符</h3><p>解决办法：<br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_1.png" alt="编码GBK的不可映射字符_1"><br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_2.png" alt="编码GBK的不可映射字符_2"></p>
+<h3 id="IDEA常用快捷键（windows）"><a href="#IDEA常用快捷键（windows）" class="headerlink" title="IDEA常用快捷键（windows）"></a>IDEA常用快捷键（windows）</h3><ul>
+<li><code>Alt + 1</code> 项目视图，可以自动关闭左边侧边栏</li>
+<li><code>Crl + E</code> 最近文件列表</li>
+<li>快速按两下<code>Shift</code>，全局文件搜索</li>
+<li><code>Crl + Shift + N</code> 跳转到某个文件，可以直接搜索</li>
+<li><code>Alt+Insert</code> 可以生成构造器/Getter/Setter等</li>
+<li><code>Ctrl + W</code> 按一个word来进行选择操作，在IDEA里的这个快捷键功能是先选择光标所在字符处的单词，然后是选择源代码的扩展区域</li>
+<li><code>shift + F6</code>修改文件名</li>
+</ul>
+<h2 id="IDEA常用快捷键（mac）"><a href="#IDEA常用快捷键（mac）" class="headerlink" title="IDEA常用快捷键（mac）"></a>IDEA常用快捷键（mac）</h2><ul>
+<li>当前行注释： ctrl+/</li>
+<li>撤销行注释： ctrl+/</li>
+<li>块状注释： ctrl+shift+/</li>
+<li>撤销块注释： ctrl+shift+/</li>
+<li>实现/重写方法：command + N</li>
+<li>全局查找： shift + command + f</li>
+<li>全局替换： shift + command + r</li>
+<li>当前文件查找： command + f</li>
+<li>当前文件替换： command + r</li>
+<li>最近查看过的文件： command + e</li>
+<li>打开类结构： command + 7</li>
+<li>前往父类/父类方法： command + u</li>
+<li>呼出文件列表： command + 上方向键</li>
+</ul>
+<p>当用IDEA写java的时候，写匿名函数的时候，如果不知道new什么，可以在方法()里使用<code>option + /</code>会自动提示创建什么对象<br><img src="/uploads/20210520/IDEA%E7%BC%96%E5%86%99JAVA.png" alt="IDEA编写JAVA"><br>鼠标悬浮在提醒的对象名上，会提醒这个对象是什么类的，直接new就可以</p>
+<h2 id="IDEA常用插件"><a href="#IDEA常用插件" class="headerlink" title="IDEA常用插件"></a>IDEA常用插件</h2><ul>
+<li>leetcode editor  刷算法</li>
+<li>codota ai aotocomplete for java   自动补全java，从githup上找相似的</li>
+<li>easy code  自动写java实体类</li>
+<li>translation  在线翻译，看源码可以使用</li>
+<li>key promoter  提醒快捷键的，用的功能会自动提示</li>
+<li>maven helper  解决maven依赖冲突</li>
+<li>alibaba java coding   代码规范</li>
+<li>codeglance  类似sublime的代码缩影。可以替代下拉框</li>
+<li>GsonFormat   自动根据json创建实体类</li>
+<li>ignore    git过滤</li>
+<li>rainbow brackets  括号变成彩虹颜色</li>
+<li>acejump  类似vim快速定位</li>
+</ul>
+<p>在IDEA写java的时候，如果不知道是什么类型，可以使用<code>option + shift + enter</code>来自动补全<br>例如：<br><code>map = mapState.iterator().next();</code><br>把鼠标悬浮在map变量上，然后可以点击<code>create local variable &#39;map&#39;</code>,或者<code>option + shift + enter</code>来自动补全</p>
+<p><code>option + shift + enter</code>： 鼠标悬浮在倒入的无用的包上（import变灰色的），使用这个快捷键，可以自动清除无用的包</p>
+<blockquote>
+<p>在写java或者scala的时候，直接写=号右边的内容，然后加一个.var,然后enter，就可以自动补全左边的定义变量的操作<br>在编辑java的时候，在调用类和正在编辑的类中来回切换： option + command + 方向键</p>
+</blockquote>
+<h2 id="github网页可以访问，但是ping不通"><a href="#github网页可以访问，但是ping不通" class="headerlink" title="github网页可以访问，但是ping不通"></a>github网页可以访问，但是ping不通</h2><p>最近从github上拉取代码，总是报超时，ping github.com后连不通<br>一开始以为是国外ip访问不了，翻墙试了一下，还是不行<br>最后解决方法，修改hosts文件<br>原因是直接ping github.com返回的服务器ip ping不通，但是github本身是有很多ip的，我们挑一个可以ping的通的ip</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>问题解决</p>
+]]></content>
+      <categories>
+        <category>工具箱</category>
+      </categories>
+      <tags>
+        <tag>VMWare</tag>
+        <tag>IDEA</tag>
       </tags>
   </entry>
   <entry>
@@ -4016,8 +4068,8 @@ yarn logs -applicationId application_1641525781336_0011 -size 1000000000 &gt; ap
       </tags>
   </entry>
   <entry>
-    <title>面试题总结（一）</title>
-    <url>/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>面试题总结</title>
+    <url>/2021/06/30/%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>spark面试题</li>
@@ -5631,172 +5683,6 @@ canal.mq.partition&#x3D;0
       </tags>
   </entry>
   <entry>
-    <title>Flink学习笔记（三）</title>
-    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink状态管理</li>
-<li>Flink Checkpoint机制</li>
-<li>Flink精准一次探究</li>
-</ul>
-<a id="more"></a>
-<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
-<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
-<ul>
-<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
-<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
-<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
-<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
-</ul>
-<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
-<p><img src="/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
-<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
-<ul>
-<li>数据的产出要保证实时性，延迟不能太高。</li>
-<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
-<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
-</ul>
-<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
-<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Managed State</th>
-<th>Raw State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>状态管理方式</td>
-<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
-<td>用户自己管理</td>
-</tr>
-<tr>
-<td>状态数据结构</td>
-<td>Flink提供的常用数据结构，如ListState、MapState等</td>
-<td>字节数组：byte[]</td>
-</tr>
-<tr>
-<td>使用场景</td>
-<td>绝大多数Flink算子</td>
-<td>用户自定义算子</td>
-</tr>
-</tbody></table>
-<p>两者的具体区别有：</p>
-<ul>
-<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
-<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
-<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
-</ul>
-<p>下文将重点介绍Managed State。</p>
-<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
-<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
-<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Keyed State</th>
-<th>Operator State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>适用算子类型</td>
-<td>只适用于KeyedStream上的算子</td>
-<td>可以用于所有算子</td>
-</tr>
-<tr>
-<td>状态分配</td>
-<td>每个Key对应一个状态</td>
-<td>一个算子子任务对应一个状态</td>
-</tr>
-<tr>
-<td>创建和访问方式</td>
-<td>重写Rich Function，通过里面的RuntimeContext访问</td>
-<td>实现CheckpointedFunction等接口</td>
-</tr>
-<tr>
-<td>横向扩展</td>
-<td>状态随着Key自动在多个算子子任务上迁移</td>
-<td>有多种状态重新分配的方式</td>
-</tr>
-<tr>
-<td>支持的数据结构</td>
-<td>ValueState、ListState、MapState等</td>
-<td>ListState、BroadcastState等</td>
-</tr>
-</tbody></table>
-<p>上表总结了Keyed State和Operator State的区别。</p>
-<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
-<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
-<p>这几个状态的具体区别在于：</p>
-<ul>
-<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
-<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
-<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
-<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
-</ul>
-<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
-<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h3 id="如何理解flink中state-状态"><a href="#如何理解flink中state-状态" class="headerlink" title="如何理解flink中state(状态)"></a>如何理解flink中state(状态)</h3><p>state泛指：flink中有状态函数和运算符在各个元素(element)/事件(event)的处理过程中存储的数据（注意：状态数据可以修改和查询，可以自己维护，根据自己的业务场景，保存历史数据或者中间结果到状态(state)中）；<br>使用状态计算的例子：</p>
-<ul>
-<li>当应用程序搜索某些事件模式时，状态将存储到目前为止遇到的事件序列。</li>
-<li>在每分钟/小时/天聚合事件时，状态保存待处理的聚合。</li>
-<li>当在数据点流上训练机器学习模型时，状态保持模型参数的当前版本。</li>
-<li>当需要管理历史数据时，状态允许有效访问过去发生的事件。</li>
-</ul>
-<p>无状态计算指的是数据进入Flink后经过算子时只需要对当前数据进行处理就能得到想要的结果；<br>有状态计算就是需要和历史的一些状态或进行相关操作，才能计算出正确的结果；</p>
-<h3 id="flink中checkpoint执行流程"><a href="#flink中checkpoint执行流程" class="headerlink" title="flink中checkpoint执行流程"></a>flink中checkpoint执行流程</h3><ul>
-<li>checkpoint机制是Flink可靠性的基石，可以保证Flink集群在某个算子因为某些原因(如 异常退出)出现故障时，能够将整个应用流图的状态恢复到故障之前的某一状态，保 证应用流图状态的一致性。Flink的checkpoint机制原理来自“Chandy-Lamport algorithm”算法。 (分布式快照算)</li>
-<li>每个需要checkpoint的应用在启动时，Flink的JobManager为其创建一个 CheckpointCoordinator，CheckpointCoordinator全权负责本应用的快照制作。</li>
-<li>CheckpointCoordinator周期性的向该流应用的所有source算子发送barrier。</li>
-<li>当某个source算子收到一个barrier时，便暂停数据处理过程，然后将自己的当前状 态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告 自己快照制作情况，同时向自身所有下游算子广播该barrier，恢复数据处理</li>
-<li>下游算子收到barrier之后，会暂停自己的数据处理过程，然后将自身的相关状态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告自身 快照情况，同时向自身所有下游算子广播该barrier，恢复数据处理。</li>
-<li>每个算子按照步骤3不断制作快照并向下游广播，直到最后barrier传递到sink算子，快照制作完成。</li>
-<li>当CheckpointCoordinator收到所有算子的报告之后，认为该周期的快照制作成功; 否则，如果在规定的时间内没有收到所有算子的报告，则认为本周期快照制作失败 ;</li>
-</ul>
-<p>整个过程如下：</p>
-<ol>
-<li>JobManager端的 CheckPointCoordinator向 所有SourceTask发送CheckPointTrigger，Source Task会在数据流中安插CheckPoint barrier</li>
-<li>当task收到所有的barrier后，向自己的下游继续传递barrier，然后自身执行快照，并将自己的状态异步写入到持久化存储中。增量CheckPoint只是把最新的一部分更新写入到 外部存储；为了下游尽快做CheckPoint，所以会先发送barrier到下游，自身再同步进行快照</li>
-<li>当task完成备份后，会将备份数据的地址（state handle）通知给JobManager的CheckPointCoordinator；如果CheckPoint的持续时长超过 了CheckPoint设定的超时时间，CheckPointCoordinator 还没有收集完所有的 State Handle，CheckPointCoordinator就会认为本次CheckPoint失败，会把这次CheckPoint产生的所有 状态数据全部删除。</li>
-<li>最后 CheckPoint Coordinator 会把整个 StateHandle 封装成 completed CheckPoint Meta，写入到hdfs。</li>
-</ol>
-<h3 id="什么是barrier对齐？"><a href="#什么是barrier对齐？" class="headerlink" title="什么是barrier对齐？"></a>什么是barrier对齐？</h3><p><img src="/uploads/20211109/barrier%E5%AF%B9%E9%BD%90.png" alt="barrier对齐"></p>
-<ul>
-<li>一旦Operator从输入流接收到CheckPoint barrier n，它就不能处理来自该流的任何数据记录，直到它从其他所有输入接收到barrier n为止。否则，它会混合属于快照n的记录和属于快照n + 1的记录；</li>
-<li>接收到barrier n的流暂时被搁置。从这些流接收的记录不会被处理，而是放入输入缓冲区。</li>
-<li>上图中第2个图，虽然数字流对应的barrier已经到达了，但是barrier之后的1、2、3这些数据只能放到buffer中，等待字母流的barrier到达；</li>
-<li>一旦最后所有输入流都接收到barrier n，Operator就会把缓冲区中pending 的输出数据发出去，然后把CheckPoint barrier n接着往下游发送</li>
-<li>这里还会对自身进行快照；之后，Operator将继续处理来自所有输入流的记录，在处理来自流的记录之前先处理来自输入缓冲区的记录。</li>
-</ul>
-<h3 id="什么是barrier不对齐？"><a href="#什么是barrier不对齐？" class="headerlink" title="什么是barrier不对齐？"></a>什么是barrier不对齐？</h3><p>checkpoint 是要等到所有的barrier全部都到才算完成</p>
-<ul>
-<li>上述图2中，当还有其他输入流的barrier还没有到达时，会把已到达的barrier之后的数据1、2、3搁置在缓冲区，等待其他流的barrier到达后才能处理</li>
-<li>barrier不对齐就是指当还有其他流的barrier还没到达时，为了不影响性能，也不用理会，直接处理barrier之后的数据。等到所有流的barrier的都到达后，就可以对该Operator做CheckPoint了；</li>
-</ul>
-<p>为什么要进行barrier对齐？不对齐到底行不行？<br>Exactly Once时必须barrier对齐，如果barrier不对齐就变成了At Least Once；</p>
-<h3 id="checkpoint中保存的是什么信息"><a href="#checkpoint中保存的是什么信息" class="headerlink" title="checkpoint中保存的是什么信息"></a>checkpoint中保存的是什么信息</h3><p>快照里面到底保存着什么信息呢？以flink消费kafka数据wordcount为例：<br>我们从Kafka读取到一条条的日志，从日志中解析出app_id，然后将统计的结果放到内存中一个Map集合，app_id做为key，对应的pv做为value，每次只需要将相应app_id 的pv值+1后put到Map中即可；<br>kafka topic：test；<br>flink运算流程如下：<br>kakfa的testtopic的分区 —&gt; Flink的source task —&gt; flink的pv计算task</p>
-<h2 id="Flink-Exactly-once语义探究"><a href="#Flink-Exactly-once语义探究" class="headerlink" title="Flink Exactly-once语义探究"></a>Flink Exactly-once语义探究</h2><p>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义;<br>Flink不是默认就有EOS的，flink 官方推荐所有需要保证EOS的sink 逻辑都继承TwoPhaseCommitSinkFunction抽象类。它具体定义如下四个抽象方法。需要我们去在子类中实现。</p>
-<pre><code class="java">protected abstract TXN beginTransaction() throws Exception;
-protected abstract void preCommit(TXN transaction) throws Exception;
-protected abstract void commit(TXN transaction);
-protected abstract void abort(TXN transaction);</code></pre>
-<p>beginTransaction(): 开始一个事务，返回事务信息的句柄。<br>preCommit :预提交（即提交请求）阶段的逻辑<br>commit():正式提交阶段的逻辑<br>abort():取消事务</p>
-<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作(继承TwoPhaseCommitSinkFunction抽象类)<br>使用kafka的sink已经自动实现了，但是，自己写的sink，需要自己继承TwoPhaseCommitSinkFunction抽象类</p>
-<h3 id="flink的二阶段提交"><a href="#flink的二阶段提交" class="headerlink" title="flink的二阶段提交"></a>flink的二阶段提交</h3><p>两阶段提交（two-phase commit, 2PC）是最基础的分布式一致性协议，应用广泛<br>2PC 在分布式系统中，为了让每个节点能够感知其他所有节点的事务执行情况，需要我们引入一个中心节点的凡是统一所有节点的执行逻辑和进度。这个中心节点叫做协调者（coordinator），而其中向中心节点汇报或者被中心节点调度的其他节点叫做参与者。</p>
-<h4 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h4><p><strong>请求阶段</strong><br>1、协调者向所有参与者发送准备请求与事务内容，询问是否可以准备事务提交，并等待参与者的响应。<br>2、参与者执行事务中的包含操作，并记录undo日志（用于回滚）和redo日志（用于重放），但是不真正提交。<br>3、参与者向协调者返回事务才做的执行结果，执行陈工返回yes,否则返回no.<br><strong>提交阶段（分成成功和失败两种情况）</strong><br>若所有的参与者都返回yes,说明事务可以提交。<br>1、协调者向所有参与者发送commit请求。<br>2、参与者收到commit 请求后，将事务真正的提交上去，并释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者ack消息，事务成功完成。<br><strong>事务回滚</strong><br>若有参与者返回no或者超时未返回，说明事务终端，需要回滚。<br>1、协调者向所有参与者发送rollback请求。<br>2、参与者收到rollback请求后，根据undo日志回滚到事务执行前的状态，释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者的ack消息，事务回滚完成。</p>
-<h4 id="2PC-的优缺点"><a href="#2PC-的优缺点" class="headerlink" title="2PC 的优缺点"></a>2PC 的优缺点</h4><p><strong>优点</strong><br>2PC的优点在于原理非常简单，容易理解及实现。<br><strong>缺点</strong><br>缺点主要有3个，列举如下：<br>（1）协调者存在单点问题。如果协调者挂了，整个2PC逻辑就彻底不能运行。<br>（2）、执行过程是完全同步的。各参与者在等待其他参与者响应的过程中都处于阻塞状态，大并发下有性能问题。<br>（3）、仍然存在不一致风险。如果由于网络异常等意外导致只有部分参与者收到了commit请求，就会造成部分参与者提交了事务而其他参与者未提交的情况。</p>
-<p>具体可以参考<a href="https://www.cnblogs.com/zhipeng-wang/p/14082806.html">flink的二阶段提交</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Flink学习笔记（一）</title>
     <url>/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -6200,6 +6086,172 @@ cd &#x2F;opt&#x2F;modules&#x2F;flink-1.13.6 &amp;&amp; .&#x2F;bin&#x2F;start-clu
       </tags>
   </entry>
   <entry>
+    <title>Flink学习笔记（三）</title>
+    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink状态管理</li>
+<li>Flink Checkpoint机制</li>
+<li>Flink精准一次探究</li>
+</ul>
+<a id="more"></a>
+<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
+<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
+<ul>
+<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
+<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
+<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
+<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
+</ul>
+<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
+<p><img src="/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
+<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
+<ul>
+<li>数据的产出要保证实时性，延迟不能太高。</li>
+<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
+<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
+</ul>
+<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
+<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Managed State</th>
+<th>Raw State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态管理方式</td>
+<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
+<td>用户自己管理</td>
+</tr>
+<tr>
+<td>状态数据结构</td>
+<td>Flink提供的常用数据结构，如ListState、MapState等</td>
+<td>字节数组：byte[]</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>绝大多数Flink算子</td>
+<td>用户自定义算子</td>
+</tr>
+</tbody></table>
+<p>两者的具体区别有：</p>
+<ul>
+<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
+<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
+<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
+</ul>
+<p>下文将重点介绍Managed State。</p>
+<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
+<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
+<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Keyed State</th>
+<th>Operator State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用算子类型</td>
+<td>只适用于KeyedStream上的算子</td>
+<td>可以用于所有算子</td>
+</tr>
+<tr>
+<td>状态分配</td>
+<td>每个Key对应一个状态</td>
+<td>一个算子子任务对应一个状态</td>
+</tr>
+<tr>
+<td>创建和访问方式</td>
+<td>重写Rich Function，通过里面的RuntimeContext访问</td>
+<td>实现CheckpointedFunction等接口</td>
+</tr>
+<tr>
+<td>横向扩展</td>
+<td>状态随着Key自动在多个算子子任务上迁移</td>
+<td>有多种状态重新分配的方式</td>
+</tr>
+<tr>
+<td>支持的数据结构</td>
+<td>ValueState、ListState、MapState等</td>
+<td>ListState、BroadcastState等</td>
+</tr>
+</tbody></table>
+<p>上表总结了Keyed State和Operator State的区别。</p>
+<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
+<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
+<p>这几个状态的具体区别在于：</p>
+<ul>
+<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
+<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
+<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
+<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
+</ul>
+<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
+<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h3 id="如何理解flink中state-状态"><a href="#如何理解flink中state-状态" class="headerlink" title="如何理解flink中state(状态)"></a>如何理解flink中state(状态)</h3><p>state泛指：flink中有状态函数和运算符在各个元素(element)/事件(event)的处理过程中存储的数据（注意：状态数据可以修改和查询，可以自己维护，根据自己的业务场景，保存历史数据或者中间结果到状态(state)中）；<br>使用状态计算的例子：</p>
+<ul>
+<li>当应用程序搜索某些事件模式时，状态将存储到目前为止遇到的事件序列。</li>
+<li>在每分钟/小时/天聚合事件时，状态保存待处理的聚合。</li>
+<li>当在数据点流上训练机器学习模型时，状态保持模型参数的当前版本。</li>
+<li>当需要管理历史数据时，状态允许有效访问过去发生的事件。</li>
+</ul>
+<p>无状态计算指的是数据进入Flink后经过算子时只需要对当前数据进行处理就能得到想要的结果；<br>有状态计算就是需要和历史的一些状态或进行相关操作，才能计算出正确的结果；</p>
+<h3 id="flink中checkpoint执行流程"><a href="#flink中checkpoint执行流程" class="headerlink" title="flink中checkpoint执行流程"></a>flink中checkpoint执行流程</h3><ul>
+<li>checkpoint机制是Flink可靠性的基石，可以保证Flink集群在某个算子因为某些原因(如 异常退出)出现故障时，能够将整个应用流图的状态恢复到故障之前的某一状态，保 证应用流图状态的一致性。Flink的checkpoint机制原理来自“Chandy-Lamport algorithm”算法。 (分布式快照算)</li>
+<li>每个需要checkpoint的应用在启动时，Flink的JobManager为其创建一个 CheckpointCoordinator，CheckpointCoordinator全权负责本应用的快照制作。</li>
+<li>CheckpointCoordinator周期性的向该流应用的所有source算子发送barrier。</li>
+<li>当某个source算子收到一个barrier时，便暂停数据处理过程，然后将自己的当前状 态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告 自己快照制作情况，同时向自身所有下游算子广播该barrier，恢复数据处理</li>
+<li>下游算子收到barrier之后，会暂停自己的数据处理过程，然后将自身的相关状态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告自身 快照情况，同时向自身所有下游算子广播该barrier，恢复数据处理。</li>
+<li>每个算子按照步骤3不断制作快照并向下游广播，直到最后barrier传递到sink算子，快照制作完成。</li>
+<li>当CheckpointCoordinator收到所有算子的报告之后，认为该周期的快照制作成功; 否则，如果在规定的时间内没有收到所有算子的报告，则认为本周期快照制作失败 ;</li>
+</ul>
+<p>整个过程如下：</p>
+<ol>
+<li>JobManager端的 CheckPointCoordinator向 所有SourceTask发送CheckPointTrigger，Source Task会在数据流中安插CheckPoint barrier</li>
+<li>当task收到所有的barrier后，向自己的下游继续传递barrier，然后自身执行快照，并将自己的状态异步写入到持久化存储中。增量CheckPoint只是把最新的一部分更新写入到 外部存储；为了下游尽快做CheckPoint，所以会先发送barrier到下游，自身再同步进行快照</li>
+<li>当task完成备份后，会将备份数据的地址（state handle）通知给JobManager的CheckPointCoordinator；如果CheckPoint的持续时长超过 了CheckPoint设定的超时时间，CheckPointCoordinator 还没有收集完所有的 State Handle，CheckPointCoordinator就会认为本次CheckPoint失败，会把这次CheckPoint产生的所有 状态数据全部删除。</li>
+<li>最后 CheckPoint Coordinator 会把整个 StateHandle 封装成 completed CheckPoint Meta，写入到hdfs。</li>
+</ol>
+<h3 id="什么是barrier对齐？"><a href="#什么是barrier对齐？" class="headerlink" title="什么是barrier对齐？"></a>什么是barrier对齐？</h3><p><img src="/uploads/20211109/barrier%E5%AF%B9%E9%BD%90.png" alt="barrier对齐"></p>
+<ul>
+<li>一旦Operator从输入流接收到CheckPoint barrier n，它就不能处理来自该流的任何数据记录，直到它从其他所有输入接收到barrier n为止。否则，它会混合属于快照n的记录和属于快照n + 1的记录；</li>
+<li>接收到barrier n的流暂时被搁置。从这些流接收的记录不会被处理，而是放入输入缓冲区。</li>
+<li>上图中第2个图，虽然数字流对应的barrier已经到达了，但是barrier之后的1、2、3这些数据只能放到buffer中，等待字母流的barrier到达；</li>
+<li>一旦最后所有输入流都接收到barrier n，Operator就会把缓冲区中pending 的输出数据发出去，然后把CheckPoint barrier n接着往下游发送</li>
+<li>这里还会对自身进行快照；之后，Operator将继续处理来自所有输入流的记录，在处理来自流的记录之前先处理来自输入缓冲区的记录。</li>
+</ul>
+<h3 id="什么是barrier不对齐？"><a href="#什么是barrier不对齐？" class="headerlink" title="什么是barrier不对齐？"></a>什么是barrier不对齐？</h3><p>checkpoint 是要等到所有的barrier全部都到才算完成</p>
+<ul>
+<li>上述图2中，当还有其他输入流的barrier还没有到达时，会把已到达的barrier之后的数据1、2、3搁置在缓冲区，等待其他流的barrier到达后才能处理</li>
+<li>barrier不对齐就是指当还有其他流的barrier还没到达时，为了不影响性能，也不用理会，直接处理barrier之后的数据。等到所有流的barrier的都到达后，就可以对该Operator做CheckPoint了；</li>
+</ul>
+<p>为什么要进行barrier对齐？不对齐到底行不行？<br>Exactly Once时必须barrier对齐，如果barrier不对齐就变成了At Least Once；</p>
+<h3 id="checkpoint中保存的是什么信息"><a href="#checkpoint中保存的是什么信息" class="headerlink" title="checkpoint中保存的是什么信息"></a>checkpoint中保存的是什么信息</h3><p>快照里面到底保存着什么信息呢？以flink消费kafka数据wordcount为例：<br>我们从Kafka读取到一条条的日志，从日志中解析出app_id，然后将统计的结果放到内存中一个Map集合，app_id做为key，对应的pv做为value，每次只需要将相应app_id 的pv值+1后put到Map中即可；<br>kafka topic：test；<br>flink运算流程如下：<br>kakfa的testtopic的分区 —&gt; Flink的source task —&gt; flink的pv计算task</p>
+<h2 id="Flink-Exactly-once语义探究"><a href="#Flink-Exactly-once语义探究" class="headerlink" title="Flink Exactly-once语义探究"></a>Flink Exactly-once语义探究</h2><p>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义;<br>Flink不是默认就有EOS的，flink 官方推荐所有需要保证EOS的sink 逻辑都继承TwoPhaseCommitSinkFunction抽象类。它具体定义如下四个抽象方法。需要我们去在子类中实现。</p>
+<pre><code class="java">protected abstract TXN beginTransaction() throws Exception;
+protected abstract void preCommit(TXN transaction) throws Exception;
+protected abstract void commit(TXN transaction);
+protected abstract void abort(TXN transaction);</code></pre>
+<p>beginTransaction(): 开始一个事务，返回事务信息的句柄。<br>preCommit :预提交（即提交请求）阶段的逻辑<br>commit():正式提交阶段的逻辑<br>abort():取消事务</p>
+<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作(继承TwoPhaseCommitSinkFunction抽象类)<br>使用kafka的sink已经自动实现了，但是，自己写的sink，需要自己继承TwoPhaseCommitSinkFunction抽象类</p>
+<h3 id="flink的二阶段提交"><a href="#flink的二阶段提交" class="headerlink" title="flink的二阶段提交"></a>flink的二阶段提交</h3><p>两阶段提交（two-phase commit, 2PC）是最基础的分布式一致性协议，应用广泛<br>2PC 在分布式系统中，为了让每个节点能够感知其他所有节点的事务执行情况，需要我们引入一个中心节点的凡是统一所有节点的执行逻辑和进度。这个中心节点叫做协调者（coordinator），而其中向中心节点汇报或者被中心节点调度的其他节点叫做参与者。</p>
+<h4 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h4><p><strong>请求阶段</strong><br>1、协调者向所有参与者发送准备请求与事务内容，询问是否可以准备事务提交，并等待参与者的响应。<br>2、参与者执行事务中的包含操作，并记录undo日志（用于回滚）和redo日志（用于重放），但是不真正提交。<br>3、参与者向协调者返回事务才做的执行结果，执行陈工返回yes,否则返回no.<br><strong>提交阶段（分成成功和失败两种情况）</strong><br>若所有的参与者都返回yes,说明事务可以提交。<br>1、协调者向所有参与者发送commit请求。<br>2、参与者收到commit 请求后，将事务真正的提交上去，并释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者ack消息，事务成功完成。<br><strong>事务回滚</strong><br>若有参与者返回no或者超时未返回，说明事务终端，需要回滚。<br>1、协调者向所有参与者发送rollback请求。<br>2、参与者收到rollback请求后，根据undo日志回滚到事务执行前的状态，释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者的ack消息，事务回滚完成。</p>
+<h4 id="2PC-的优缺点"><a href="#2PC-的优缺点" class="headerlink" title="2PC 的优缺点"></a>2PC 的优缺点</h4><p><strong>优点</strong><br>2PC的优点在于原理非常简单，容易理解及实现。<br><strong>缺点</strong><br>缺点主要有3个，列举如下：<br>（1）协调者存在单点问题。如果协调者挂了，整个2PC逻辑就彻底不能运行。<br>（2）、执行过程是完全同步的。各参与者在等待其他参与者响应的过程中都处于阻塞状态，大并发下有性能问题。<br>（3）、仍然存在不一致风险。如果由于网络异常等意外导致只有部分参与者收到了commit请求，就会造成部分参与者提交了事务而其他参与者未提交的情况。</p>
+<p>具体可以参考<a href="https://www.cnblogs.com/zhipeng-wang/p/14082806.html">flink的二阶段提交</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Flink面试题总结</title>
     <url>/2021/11/11/Flink%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -6251,8 +6303,8 @@ cd &#x2F;opt&#x2F;modules&#x2F;flink-1.13.6 &amp;&amp; .&#x2F;bin&#x2F;start-clu
       </tags>
   </entry>
   <entry>
-    <title>hive杂记（一）</title>
-    <url>/2021/01/15/hive%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <title>hive杂记</title>
+    <url>/2021/01/15/hive%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
 <li>hive中的复杂数据类型数据如何导入(array)</li>
@@ -7062,7 +7114,14 @@ set mapreduce.job.reduces&#x3D;&lt;number&gt;<span aria-hidden="true" class="lin
   <entry>
     <title>实时采集架构设计</title>
     <url>/2022/03/07/%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/</url>
-    <content><![CDATA[<h2 id="项目背景"><a href="#项目背景" class="headerlink" title="项目背景"></a>项目背景</h2><p>随着企业的数字化转型越来越深入，企业生产交付业务对于实时数据的需求在不断膨胀，实时数据能够帮助企业以最快速度收集来自传感器（日志）、传统数据库（业务系统）等的数据，通过管理数据实时变化迅速建立起对市场需求的形势判断，并最终将其转化为能够提升企业业绩的决策工具</p>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>实时架构方案设计</li>
+<li>实时架构方案可行性验证</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="项目背景"><a href="#项目背景" class="headerlink" title="项目背景"></a>项目背景</h2><p>随着企业的数字化转型越来越深入，企业生产交付业务对于实时数据的需求在不断膨胀，实时数据能够帮助企业以最快速度收集来自传感器（日志）、传统数据库（业务系统）等的数据，通过管理数据实时变化迅速建立起对市场需求的形势判断，并最终将其转化为能够提升企业业绩的决策工具</p>
 <h2 id="当前现状"><a href="#当前现状" class="headerlink" title="当前现状"></a>当前现状</h2><h3 id="现状描述"><a href="#现状描述" class="headerlink" title="现状描述"></a>现状描述</h3><p>当前数据采集系统，分为业务数据采集与日志数据采集，日志数据采集已经是实时采集，业务数据采集即传统数据库采集目前采用的是离线采集，技术选用datax，每天凌晨抽取一次数据到hive<br><img src="/uploads/202203/%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E5%BD%93%E5%89%8D%E7%8E%B0%E7%8A%B6.png" alt="数据采集当前现状"></p>
 <h3 id="痛点问题"><a href="#痛点问题" class="headerlink" title="痛点问题"></a>痛点问题</h3><ol>
 <li>离线采集数据更新延迟，无法及时获取业务数据</li>
@@ -8475,7 +8534,11 @@ drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;chec
 drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <ol>
 <li>手动取消flink任务</li>
-<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -s hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27 -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar -hostName ddp5.hadoop -yourPort 3306 -dbName gjc_test -tableName gjc_test.gjc_test_binlog -userName root -password root123456<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -s hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27 -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar -hostName ddp5.hadoop -yourPort 3306 -dbName gjc_test -tableName gjc_test.gjc_test_binlog -userName root -password root123456<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<blockquote>
+<p>这里注意：-s 需要在jar包之前指定，在jar包之后指定就不生效了</p>
+</blockquote>
+</li>
 <li>在mysql中添加数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
 <li>在flink监控页面查看日志<br><img src="/uploads/202203/%E4%BB%8ECK%E5%90%AF%E5%8A%A8Flink%E4%BB%BB%E5%8A%A1%E7%BB%93%E6%9E%9C.png" alt="从CK启动Flink任务结果"><br>可以查看到，数据是从8，9开始的。断点续传测试成功</li>

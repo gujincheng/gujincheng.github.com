@@ -22,20 +22,20 @@
     var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="collection表名包含特殊字符   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内例如：   db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()">
+  <meta name="description" content="本文主要包括：  Mac下Docker安装 Docker安装Mysql">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MongoDB杂记（一）">
-<meta property="og:url" content="https://gujincheng.github.io/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:title" content="Mac下docker使用记录">
+<meta property="og:url" content="https://gujincheng.github.io/2022/03/30/Mac%E4%B8%8BDocker%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/index.html">
 <meta property="og:site_name" content="Golden Blog">
-<meta property="og:description" content="collection表名包含特殊字符   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内例如：   db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()">
+<meta property="og:description" content="本文主要包括：  Mac下Docker安装 Docker安装Mysql">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-01-18T09:46:13.000Z">
-<meta property="article:modified_time" content="2021-04-29T09:48:42.000Z">
+<meta property="article:published_time" content="2022-03-30T09:53:51.000Z">
+<meta property="article:modified_time" content="2022-03-30T09:57:29.532Z">
 <meta property="article:author" content="Golden">
-<meta property="article:tag" content="MongoDB">
+<meta property="article:tag" content="Docker">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://gujincheng.github.io/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">
+<link rel="canonical" href="https://gujincheng.github.io/2022/03/30/Mac%E4%B8%8BDocker%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/">
 
 
 <script id="page-configurations">
@@ -48,7 +48,7 @@
   };
 </script>
 
-  <title>MongoDB杂记（一） | Golden Blog</title>
+  <title>Mac下docker使用记录 | Golden Blog</title>
   
 
 
@@ -202,7 +202,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2022/03/30/Mac%E4%B8%8BDocker%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.jpg">
@@ -215,7 +215,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          MongoDB杂记（一）
+          Mac下docker使用记录
         </h1>
 
         <div class="post-meta">
@@ -224,32 +224,22 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-01-18 17:46:13" itemprop="dateCreated datePublished" datetime="2021-01-18T17:46:13+08:00">2021-01-18</time>
+              <time title="创建时间：2022-03-30 17:53:51 / 修改时间：17:57:29" itemprop="dateCreated datePublished" datetime="2022-03-30T17:53:51+08:00">2022-03-30</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/MongoDB/" itemprop="url" rel="index"><span itemprop="name">MongoDB</span></a>
+                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
                 </span>
             </span>
 
           
-            <span id="/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-meta-item leancloud_visitors" data-flag-title="MongoDB杂记（一）" title="阅读次数">
+            <span id="/2022/03/30/Mac%E4%B8%8BDocker%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/" class="post-meta-item leancloud_visitors" data-flag-title="Mac下docker使用记录" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -264,8 +254,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" itemprop="commentCount"></span>
+    <a title="valine" href="/2022/03/30/Mac%E4%B8%8BDocker%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/03/30/Mac%E4%B8%8BDocker%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -280,8 +270,14 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+        <p>本文主要包括：</p>
+<ul>
+<li>Mac下Docker安装</li>
+<li>Docker安装Mysql</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Mac下Docker安装"><a href="#Mac下Docker安装" class="headerlink" title="Mac下Docker安装"></a>Mac下Docker安装</h2><p>安装docker很简单，直接到官网下载即可：<br><a target="_blank" rel="noopener" href="https://docs.docker.com/desktop/mac/install/">Docker下载地址</a><br>然后使用dmg包安装即可</p>
 
     </div>
 
@@ -291,7 +287,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/MongoDB/" rel="tag"># MongoDB</a>
+              <a href="/tags/Docker/" rel="tag"># Docker</a>
           </div>
 
         
@@ -300,12 +296,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/01/18/python%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" rel="prev" title="python杂记（一）">
-      <i class="fa fa-chevron-left"></i> python杂记（一）
+    <a href="/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="FlinkCDC原理">
+      <i class="fa fa-chevron-left"></i> FlinkCDC原理
     </a></div>
       <div class="post-nav-item">
-    <a href="/2021/01/18/Redis%E6%9D%82%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/" rel="next" title="Redis杂记（一）">
-      Redis杂记（一） <i class="fa fa-chevron-right"></i>
+    <a href="/2022/03/31/Hadoop%E6%9D%82%E8%AE%B0/" rel="next" title="Hadoop杂记">
+      Hadoop杂记 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -366,7 +362,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#collection%E8%A1%A8%E5%90%8D%E5%8C%85%E5%90%AB%E7%89%B9%E6%AE%8A%E5%AD%97%E7%AC%A6"><span class="nav-number">1.</span> <span class="nav-text">collection表名包含特殊字符</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac%E4%B8%8BDocker%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">Mac下Docker安装</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -382,20 +378,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-count">49</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">44</span>
+        <span class="site-state-item-count">45</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

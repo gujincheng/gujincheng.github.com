@@ -40,7 +40,7 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/flinkcdc%E4%BB%A5sqlclient%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%8F%96sqlserver%E6%88%90%E5%8A%9F.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Flinksql%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%8F%96sqlserver%E6%88%90%E5%8A%9F.png">
 <meta property="article:published_time" content="2022-03-11T08:21:51.000Z">
-<meta property="article:modified_time" content="2022-03-30T09:23:13.348Z">
+<meta property="article:modified_time" content="2022-03-31T07:15:35.050Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink-CDC">
 <meta name="twitter:card" content="summary">
@@ -243,7 +243,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-30 17:23:13" itemprop="dateModified" datetime="2022-03-30T17:23:13+08:00">2022-03-30</time>
+                <time title="修改时间：2022-03-31 15:15:35" itemprop="dateModified" datetime="2022-03-31T15:15:35+08:00">2022-03-31</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -722,7 +722,11 @@ drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;chec
 drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <ol>
 <li>手动取消flink任务</li>
-<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -s hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27 -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar -hostName ddp5.hadoop -yourPort 3306 -dbName gjc_test -tableName gjc_test.gjc_test_binlog -userName root -password root123456<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -s hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27 -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar -hostName ddp5.hadoop -yourPort 3306 -dbName gjc_test -tableName gjc_test.gjc_test_binlog -userName root -password root123456<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<blockquote>
+<p>这里注意：-s 需要在jar包之前指定，在jar包之后指定就不生效了</p>
+</blockquote>
+</li>
 <li>在mysql中添加数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
 <li>在flink监控页面查看日志<br><img src="/uploads/202203/%E4%BB%8ECK%E5%90%AF%E5%8A%A8Flink%E4%BB%BB%E5%8A%A1%E7%BB%93%E6%9E%9C.png" alt="从CK启动Flink任务结果"><br>可以查看到，数据是从8，9开始的。断点续传测试成功</li>
@@ -1168,20 +1172,20 @@ Caused by: java.sql.SQLException: Access denied for user &#39;root&#39;@&#39;loc
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-count">49</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">44</span>
+        <span class="site-state-item-count">45</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
