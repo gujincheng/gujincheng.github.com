@@ -1,3 +1,4 @@
+https://gujincheng.github.io/2022/04/01/%E6%95%B0%E6%8D%AE%E6%B9%96%E4%B8%8E%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/
 https://gujincheng.github.io/2022/03/31/Hadoop%E6%9D%82%E8%AE%B0/
 https://gujincheng.github.io/2022/03/30/Mac%E4%B8%8BDocker%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/
 https://gujincheng.github.io/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/
@@ -17,4 +18,3 @@ https://gujincheng.github.io/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi
 https://gujincheng.github.io/2021/12/27/DataX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/
 https://gujincheng.github.io/2021/12/17/FlinkCDC%E4%B8%8E%E5%B8%B8%E7%94%A8CDC%E5%AF%B9%E6%AF%94/
 https://gujincheng.github.io/2021/12/09/%E8%8E%B7%E5%8F%96yarn%E4%B8%8Aapplication%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/
-https://gujincheng.github.io/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/
