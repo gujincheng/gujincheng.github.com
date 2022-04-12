@@ -142,91 +142,6 @@
       </tags>
   </entry>
   <entry>
-    <title>CM宕机问题调查与修复</title>
-    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>CM宕机问题调查与修复</li>
-</ul>
-<a id="more"></a>
-
-<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
-<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
-com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
-        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
-        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
-        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-        at java.lang.Thread.run(Thread.java:748)
-Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at java.io.RandomAccessFile.open0(Native Method)
-        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
-        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
-        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
-        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
-        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
-        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
-<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
-● cloudera-scm-agent.service - Cloudera Manager Agent Service
-   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
-   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
-  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
- Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
-
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
-<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>CM</category>
-      </categories>
-      <tags>
-        <tag>CM</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Centos安装Mysql</title>
     <url>/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -378,6 +293,91 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
       </categories>
       <tags>
         <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CM宕机问题调查与修复</title>
+    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>CM宕机问题调查与修复</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
+<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
+com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
+        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
+        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+        at java.lang.Thread.run(Thread.java:748)
+Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at java.io.RandomAccessFile.open0(Native Method)
+        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
+        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
+        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
+        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
+        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
+        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
+<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
+● cloudera-scm-agent.service - Cloudera Manager Agent Service
+   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
+   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
+  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+ Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
+<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>CM</category>
+      </categories>
+      <tags>
+        <tag>CM</tag>
       </tags>
   </entry>
   <entry>
@@ -2667,79 +2667,6 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       </tags>
   </entry>
   <entry>
-    <title>spark on yarn遇到的问题</title>
-    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
-<li>spark on yarn任务提交缓慢解决</li>
-</ul>
-<a id="more"></a>
-<h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
-<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
-<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
-        --master yarn \
-        --deploy-mode client \
-        --num-executors 2 \
-        --executor-memory 1G \
-        --executor-cores 1 \
-        --conf spark.driver.host&#x3D;192.168.72.129\
-         dmp_broadcast_data_day.py
- &#96;&#96;&#96;   
-   2、在集群其他节点上都把driver服务器的IP加上去。
-
-# spark on yarn任务提交缓慢解决
-## 问题背景
-   在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
-   在提交任务的时候，有一个WARN的日志：
-&#96;&#96;&#96;shell
-    WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
-<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
-<li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
-<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
-org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
-    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
-    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
-    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
-    at scala.Option.getOrElse(Option.scala:121)
-    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
-    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
-<li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
-<li>yarn的虚拟内存超限，contrainer被干杀死</li>
-</ul>
-<p>这里查了一下，我的是spark-end.sh配置没问题，问题出现在第二点<br>我的<code>yarn-site.xml</code>的<code>yarn.nodemanager.vmem-pmem-ratio=2.1</code>，虚拟内存最大是2.1，查看yarn上的日志，发现实际内存是2.2，所以，这里把它设置成了3.1</p>
-<pre class="line-numbers language-none"><code class="language-none">&lt;!--2个配置只用配置一个即可解决问题，当然都配置也没问题--&gt;
-&lt;!--虚拟内存设置是否生效,若实际虚拟内存大于设置值 &quot;--&gt;
-&lt;property&gt;
-    &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;&#x2F;name&gt;
-    &lt;value&gt;false&lt;&#x2F;value&gt;
-    &lt;description&gt;Whether virtual memory limits will be enforced for containers&lt;&#x2F;description&gt;
-&lt;&#x2F;property&gt;
-&lt;!--配置虚拟内存&#x2F;物理内存的值，默认为2.1,物理内存默认应该是1g，所以虚拟内存是2.1g--&gt;
-&lt;property&gt;
-    &lt;name&gt;yarn.nodemanager.vmem-pmem-ratio&lt;&#x2F;name&gt;
-    &lt;value&gt;3.1&lt;&#x2F;value&gt;
-    &lt;description&gt;Ratio between virtual memory to physical memory when setting memory limits for containers&lt;&#x2F;description&gt;
-&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Yarn</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>spark-sql使用笔记</title>
     <url>/2021/01/18/spark-sql%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2857,6 +2784,79 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </categories>
       <tags>
         <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark on yarn遇到的问题</title>
+    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
+<li>spark on yarn任务提交缓慢解决</li>
+</ul>
+<a id="more"></a>
+<h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
+<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
+<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
+        --master yarn \
+        --deploy-mode client \
+        --num-executors 2 \
+        --executor-memory 1G \
+        --executor-cores 1 \
+        --conf spark.driver.host&#x3D;192.168.72.129\
+         dmp_broadcast_data_day.py
+ &#96;&#96;&#96;   
+   2、在集群其他节点上都把driver服务器的IP加上去。
+
+# spark on yarn任务提交缓慢解决
+## 问题背景
+   在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
+   在提交任务的时候，有一个WARN的日志：
+&#96;&#96;&#96;shell
+    WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
+<li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
+<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
+org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
+    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
+    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
+    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
+    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
+    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
+    at scala.Option.getOrElse(Option.scala:121)
+    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
+    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
+<li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
+<li>yarn的虚拟内存超限，contrainer被干杀死</li>
+</ul>
+<p>这里查了一下，我的是spark-end.sh配置没问题，问题出现在第二点<br>我的<code>yarn-site.xml</code>的<code>yarn.nodemanager.vmem-pmem-ratio=2.1</code>，虚拟内存最大是2.1，查看yarn上的日志，发现实际内存是2.2，所以，这里把它设置成了3.1</p>
+<pre class="line-numbers language-none"><code class="language-none">&lt;!--2个配置只用配置一个即可解决问题，当然都配置也没问题--&gt;
+&lt;!--虚拟内存设置是否生效,若实际虚拟内存大于设置值 &quot;--&gt;
+&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;&#x2F;name&gt;
+    &lt;value&gt;false&lt;&#x2F;value&gt;
+    &lt;description&gt;Whether virtual memory limits will be enforced for containers&lt;&#x2F;description&gt;
+&lt;&#x2F;property&gt;
+&lt;!--配置虚拟内存&#x2F;物理内存的值，默认为2.1,物理内存默认应该是1g，所以虚拟内存是2.1g--&gt;
+&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.vmem-pmem-ratio&lt;&#x2F;name&gt;
+    &lt;value&gt;3.1&lt;&#x2F;value&gt;
+    &lt;description&gt;Ratio between virtual memory to physical memory when setting memory limits for containers&lt;&#x2F;description&gt;
+&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Yarn</tag>
       </tags>
   </entry>
   <entry>
@@ -9047,7 +9047,7 @@ LOCATION 'hdfs://golden-02:9000/user/hive/warehouse/test/iceberg_hive';
 
 INSERT INTO test.iceberg_hive values(2, 'b');
 select * from test.iceberg_hive;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里测试了一下，iceberg与hive整合，不支持行级别更新，iceberg支持行级别更新的，只在spark3.x里支持了，在flink中也不支持行级别更新，只支持insert into<br>insert overwrite 只支持批写入，流式写入不支持<br>所以，这里放弃iceberg了，还是转为使用hudi</p>
+<p>这里测试了一下，iceberg与hive整合，不支持行级别更新，<br>iceberg在spark3.x 里支持行级别更新<br>在flink中支持行级别更新，需要指定主键，如果是分区表，改主键必须得包含分区字段，只支持insert into<br>insert overwrite 只支持批写入，流式写入不支持<br>这里因为技术选型最终选择了hudi，我们就不进一步测试了，具体的可以参考网上的博客<br><a href="https://github.com/gujincheng/FlinkCDCTest/blob/main/src/main/java/com/digiwin/flink/cdc2kafka/FlinkMysqlCDC2Hudi.java">Iceberg +Flink+CDH+Trino+Hive</a><br>写的很详细</p>
 <h1 id="Hudi和Iceberg特性对比"><a href="#Hudi和Iceberg特性对比" class="headerlink" title="Hudi和Iceberg特性对比"></a>Hudi和Iceberg特性对比</h1><ol>
 <li>ACID和隔离级别</li>
 </ol>
@@ -9396,7 +9396,7 @@ select * from test.iceberg_hive;<span aria-hidden="true" class="line-numbers-row
 <td>毫秒级</td>
 </tr>
 </tbody></table>
-<h1 id="Hudi和Iceberg总结"><a href="#Hudi和Iceberg总结" class="headerlink" title="Hudi和Iceberg总结"></a>Hudi和Iceberg总结</h1><p>Hudi的最大的特色就是upsert和delete，upsert和delete写入增量文件，一定时间后可以将增量文件合并到基本文件中，通过这种方式可以实现行更新和流式写。<br>Iceberge的最大特色就是查询，通过快照、清单文件列表、清单实现快速过滤，Iceberg通过merge into也可以实现行更新，Iceberg也提供了流式写的接口，但是无论是行更新和流式写都是需要更新行的数据文件，并产生一个快照，这会大大增加元数据量。Iceberge的merge into也有诸多限制，原表和更新表join要有交集，否则会失败；Iceberg的更新表不能出现既更新也删除的同一条记录，否则会失败。<br>虽然在性能对比章节，Iceberg性能比Hudi好很多，但是从原理上分析，Hudi耗时高是有原因的，并且带来的是较少的IO，在Hudi更新时会根据主键合并更新数据，比如一条记录先新增后删除，合并后只留下删除的记录，然后根据主键定位到记录所在的分片，如果没有找到则插入记录，如果找到则添加到增量文件中，如果使用Hbase索引，相信性能会好一些。<br>另外，iceberg的merge into操作目前只在spark里有，flink和hive里都没有这个功能，所以，flink只能insert into，连insert overwrite也只能在批操作里实现，局限性很大<br>Iceberg耗时低从原理来看，Iceberg只是将两个表join，然后原表修改的数据所在的数据文件会被重写，这种方式会在某些场景下导致大量的IO和内存消耗，在流式写测场景下支持时间旅行会产生很多文件。Iceberg的行删除目前在开发中。<br>个人觉得Hudi更适合作为采集系统的数据湖组件。Hudi最大的特色upsert和delete就已经是很大的亮点，这个功能和Kudu很相似。此外，目前Hudi功能已经完善，社区反馈的问题也比较少，已经在很多大厂应用，社区比较活跃。Iceberg很多功能还在开发中，社区反馈的问题比较多。</p>
+<h1 id="Hudi和Iceberg总结"><a href="#Hudi和Iceberg总结" class="headerlink" title="Hudi和Iceberg总结"></a>Hudi和Iceberg总结</h1><p>Hudi的最大的特色就是upsert和delete，upsert和delete写入增量文件，一定时间后可以将增量文件合并到基本文件中，通过这种方式可以实现行更新和流式写。<br>Iceberge的最大特色就是查询，通过快照、清单文件列表、清单实现快速过滤，Iceberg通过merge into也可以实现行更新，Iceberg也提供了流式写的接口，但是无论是行更新和流式写都是需要更新行的数据文件，并产生一个快照，这会大大增加元数据量。Iceberge的merge into也有诸多限制，原表和更新表join要有交集，否则会失败；Iceberg的更新表不能出现既更新也删除的同一条记录，否则会失败。<br>虽然在性能对比章节，Iceberg性能比Hudi好很多，但是从原理上分析，Hudi耗时高是有原因的，并且带来的是较少的IO，在Hudi更新时会根据主键合并更新数据，比如一条记录先新增后删除，合并后只留下删除的记录，然后根据主键定位到记录所在的分片，如果没有找到则插入记录，如果找到则添加到增量文件中，如果使用Hbase索引，相信性能会好一些。<br>Iceberg耗时低从原理来看，Iceberg只是将两个表join，然后原表修改的数据所在的数据文件会被重写，这种方式会在某些场景下导致大量的IO和内存消耗，在流式写测场景下支持时间旅行会产生很多文件。Iceberg的行删除目前在开发中。<br>个人觉得Hudi更适合作为采集系统的数据湖组件。Hudi最大的特色upsert和delete就已经是很大的亮点，这个功能和Kudu很相似。此外，目前Hudi功能已经完善，社区反馈的问题也比较少，已经在很多大厂应用，社区比较活跃。Iceberg很多功能还在开发中，社区反馈的问题比较多。</p>
 ]]></content>
       <categories>
         <category>大数据</category>
