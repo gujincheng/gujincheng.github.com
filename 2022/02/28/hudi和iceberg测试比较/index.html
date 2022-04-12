@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202204/hudi%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95-flink%E7%BC%BA%E5%B0%91hadoop%E7%9B%B8%E5%85%B3jar.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Iceberg%E8%A1%A8%E6%A0%BC%E5%BC%8F.png">
 <meta property="article:published_time" content="2022-02-28T01:28:09.000Z">
-<meta property="article:modified_time" content="2022-04-08T14:15:08.014Z">
+<meta property="article:modified_time" content="2022-04-12T07:25:30.304Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="hudi">
 <meta property="article:tag" content="iceberg">
@@ -238,7 +238,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-08 22:15:08" itemprop="dateModified" datetime="2022-04-08T22:15:08+08:00">2022-04-08</time>
+                <time title="修改时间：2022-04-12 15:25:30" itemprop="dateModified" datetime="2022-04-12T15:25:30+08:00">2022-04-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -420,11 +420,85 @@ nohup .&#x2F;bin&#x2F;hive --service hiveserver2 &amp;
   <span class="token punctuation">(</span><span class="token string">'id3'</span><span class="token punctuation">,</span><span class="token string">'Julian'</span><span class="token punctuation">,</span><span class="token number">53</span><span class="token punctuation">,</span><span class="token keyword">TIMESTAMP</span> <span class="token string">'1970-01-01 00:00:03'</span><span class="token punctuation">,</span><span class="token string">'par2'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
   <span class="token punctuation">(</span><span class="token string">'id4'</span><span class="token punctuation">,</span><span class="token string">'Fabian'</span><span class="token punctuation">,</span><span class="token number">31</span><span class="token punctuation">,</span><span class="token keyword">TIMESTAMP</span> <span class="token string">'1970-01-01 00:00:04'</span><span class="token punctuation">,</span><span class="token string">'par2'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
   <span class="token punctuation">(</span><span class="token string">'id5'</span><span class="token punctuation">,</span><span class="token string">'Sophia'</span><span class="token punctuation">,</span><span class="token number">18</span><span class="token punctuation">,</span><span class="token keyword">TIMESTAMP</span> <span class="token string">'1970-01-01 00:00:05'</span><span class="token punctuation">,</span><span class="token string">'par3'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-
-</li>
+<h4 id="flinkcdc-读取mysql并写入hudi"><a href="#flinkcdc-读取mysql并写入hudi" class="headerlink" title="flinkcdc 读取mysql并写入hudi"></a>flinkcdc 读取mysql并写入hudi</h4></li>
+<li>创建mysql表<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--- 创建mysql表</span>
+  <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
+  uuid <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token punctuation">,</span>
+  name <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  age <span class="token keyword">int</span><span class="token punctuation">,</span>
+  ts <span class="token keyword">timestamp</span><span class="token punctuation">,</span>
+  part <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">-- 向表中插入数据</span>
+<span class="token keyword">INSERT</span> <span class="token keyword">INTO</span> users_source_mysql <span class="token keyword">VALUES</span>
+<span class="token punctuation">(</span><span class="token string">'id1'</span><span class="token punctuation">,</span><span class="token string">'Danny'</span><span class="token punctuation">,</span><span class="token number">23</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:00'</span><span class="token punctuation">,</span><span class="token string">'par1'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id2'</span><span class="token punctuation">,</span><span class="token string">'Stephen'</span><span class="token punctuation">,</span><span class="token number">33</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:02'</span><span class="token punctuation">,</span><span class="token string">'par1'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id3'</span><span class="token punctuation">,</span><span class="token string">'Julian'</span><span class="token punctuation">,</span><span class="token number">53</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:03'</span><span class="token punctuation">,</span><span class="token string">'par2'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id4'</span><span class="token punctuation">,</span><span class="token string">'Fabian'</span><span class="token punctuation">,</span><span class="token number">31</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:04'</span><span class="token punctuation">,</span><span class="token string">'par2'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id5'</span><span class="token punctuation">,</span><span class="token string">'Sophia'</span><span class="token punctuation">,</span><span class="token number">18</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:05'</span><span class="token punctuation">,</span><span class="token string">'par3'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id6'</span><span class="token punctuation">,</span><span class="token string">'Danny'</span><span class="token punctuation">,</span><span class="token number">23</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:01'</span><span class="token punctuation">,</span><span class="token string">'par1'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id7'</span><span class="token punctuation">,</span><span class="token string">'Stephen'</span><span class="token punctuation">,</span><span class="token number">33</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:02'</span><span class="token punctuation">,</span><span class="token string">'par1'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id8'</span><span class="token punctuation">,</span><span class="token string">'Julian'</span><span class="token punctuation">,</span><span class="token number">53</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:03'</span><span class="token punctuation">,</span><span class="token string">'par2'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id9'</span><span class="token punctuation">,</span><span class="token string">'Fabian'</span><span class="token punctuation">,</span><span class="token number">31</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:04'</span><span class="token punctuation">,</span><span class="token string">'par2'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">(</span><span class="token string">'id10'</span><span class="token punctuation">,</span><span class="token string">'Sophia'</span><span class="token punctuation">,</span><span class="token number">18</span><span class="token punctuation">,</span> <span class="token string">'2021-01-01 00:00:05'</span><span class="token punctuation">,</span><span class="token string">'par3'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>在flinksql中创建映射表<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> <span class="token keyword">sql</span><span class="token operator">-</span>client<span class="token punctuation">.</span>execution<span class="token punctuation">.</span>result<span class="token operator">-</span><span class="token keyword">mode</span><span class="token operator">=</span>tableau<span class="token punctuation">;</span>
+<span class="token comment">-- 因为是流式写数据，所以，必须得开启ck，否则会报错</span>
+<span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
+  id <span class="token keyword">BIGINT</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
+  name STRING<span class="token punctuation">,</span>
+  birthday <span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'10.150.21.241'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'123456'</span><span class="token punctuation">,</span>
+<span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'tbl_users'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>写数据到hudi<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--创建hudi表</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> t2_tmp<span class="token punctuation">(</span>
+    uuid <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
+    name <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    age <span class="token keyword">INT</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    part <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+    <span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'hudi'</span><span class="token punctuation">,</span>
+    <span class="token string">'path'</span> <span class="token operator">=</span> <span class="token string">'hdfs://golden-02:9000/user/hive/warehouse/hudi.db/t2'</span><span class="token punctuation">,</span>
+    <span class="token string">'table.type'</span> <span class="token operator">=</span> <span class="token string">'MERGE_ON_READ'</span><span class="token punctuation">,</span>
+    <span class="token string">'hoodie.datasource.write.recordkey.field'</span><span class="token operator">=</span> <span class="token string">'uuid'</span><span class="token punctuation">,</span>
+    <span class="token string">'write.precombine.field'</span><span class="token operator">=</span> <span class="token string">'ts'</span><span class="token punctuation">,</span>
+    <span class="token string">'write.tasks'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+    <span class="token string">'write.rate.limit'</span> <span class="token operator">=</span> <span class="token string">'2000'</span><span class="token punctuation">,</span>
+    <span class="token string">'compaction.tasks'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+    <span class="token string">'compaction.async.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+    <span class="token string">'compaction.trigger.strategy'</span> <span class="token operator">=</span> <span class="token string">'num_commits'</span><span class="token punctuation">,</span>
+    <span class="token string">'compaction.delta_commits'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+    <span class="token string">'changleog.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+    <span class="token string">'read.streaming.enabled'</span><span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+    <span class="token string">'read.streaming.check-interval'</span><span class="token operator">=</span> <span class="token string">'3'</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.enable'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>     <span class="token comment">-- Required. To enable hive synchronization</span>
+    <span class="token string">'hive_sync.mode'</span> <span class="token operator">=</span> <span class="token string">'hms'</span><span class="token punctuation">,</span>        <span class="token comment">-- Required. Setting hive sync mode to hms, default jdbc</span>
+    <span class="token string">'hive_sync.metastore.uris'</span> <span class="token operator">=</span> <span class="token string">'thrift://golden-02:9083'</span><span class="token punctuation">,</span> <span class="token comment">-- Required. The port need set on hive-site.xml</span>
+    <span class="token string">'hive_sync.jdbc_url'</span> <span class="token operator">=</span> <span class="token string">'jdbc://hive2://golden-02:10000'</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.table'</span><span class="token operator">=</span><span class="token string">'t2'</span><span class="token punctuation">,</span>                  <span class="token comment">-- required, hive table name</span>
+    <span class="token string">'hive_sync.db'</span><span class="token operator">=</span><span class="token string">'hudi'</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.username'</span> <span class="token operator">=</span> <span class="token string">'gujincheng'</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.password'</span> <span class="token operator">=</span> <span class="token string">'980071'</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.support_timstamp'</span> <span class="token operator">=</span> <span class="token string">'true'</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">--读取视图数据并写入hudi表</span>
+<span class="token keyword">INSERT</span> <span class="token keyword">INTO</span> t2_tmp <span class="token keyword">SELECT</span> uuid<span class="token punctuation">,</span> name<span class="token punctuation">,</span> age<span class="token punctuation">,</span> ts<span class="token punctuation">,</span> part <span class="token keyword">FROM</span> users_source_mysql <span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+数据在hive和spark中都能查询到数据</li>
 </ol>
+<h4 id="编写java实现flinkcdc入hudi"><a href="#编写java实现flinkcdc入hudi" class="headerlink" title="编写java实现flinkcdc入hudi"></a>编写java实现flinkcdc入hudi</h4><p>具体代码看githup，<a target="_blank" rel="noopener" href="https://github.com/gujincheng/FlinkCDCTest/blob/main/src/main/java/com/digiwin/flink/cdc2kafka/FlinkMysqlCDC2Hudi.java">FlinkMysqlCDC2Hudi</a><br>这里遇到一个注意点，tenv.executeSql就是触发执行的操作，不需要再使用env.execute()再次触发一次</p>
+<p>这里测试了一下，提交到standalone和提交到yarn上都是可以正常执行的。</p>
 <h4 id="hudi踩坑记录"><a href="#hudi踩坑记录" class="headerlink" title="hudi踩坑记录"></a>hudi踩坑记录</h4><ol>
 <li>hadoop 环境不对</li>
 <li>报<code>Caused by:java.lanq.NoClassDefFoundError:org/apache/hadoop/mapred/JobConf</code>，具体信息如下：<br><img src="/uploads/202204/hudi%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95-flink%E7%BC%BA%E5%B0%91hadoop%E7%9B%B8%E5%85%B3jar.png" alt="hudi踩坑记录-flink缺少hadoop相关jar"><br>问题原因：flink缺少hadoop相关依赖<br>解决办法：把hadoop-mapreduce相关jar放到flink lib下<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 确保如下几个jar包放在了flink的lib文件夹下
@@ -495,8 +569,16 @@ at java.security.AccessController.doPrivileged(Native Method)
 at javax.security.auth.Subject.doAs(Subject.java:422)
 at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1875)
 at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-这里分析原因，hive在解析hudi的数据时候，解析失败了，导致parquet文件的元信息与hive的元信息对应不上，所以，<code>select *</code>没有数据<br>解决办法：<br>需要再查查。。。。暂时没有解决办法</li>
+问题原因：<br>因为没有生成parquet文件，因为测试的时候，是直接insert into values的方式写入数据的，不管写入多少，hudi都没有生成parquet<br>文件<br>这里换成使用<code>insert into tablename1 select * from tablename2;</code>的方式，发现有parquet文件了</li>
 </ol>
+<h3 id="hudi与spark的整合"><a href="#hudi与spark的整合" class="headerlink" title="hudi与spark的整合"></a>hudi与spark的整合</h3><p>首先修改hudi源码，把pom文件夹下的spark.version改成3.1.1，然后重新编译hudi源码</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">nohup mvn clean install -DskipTests -Dmaven.test.skip&#x3D;true -Dscala-2.12 -Dhadoop.version&#x3D;3.0.0-cdh6.2.0  -Dspark3 -Pflink-bundle-shade-hive2 &gt; nohup.log 2&gt;&amp;1 &amp;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里加了-Dspark3<br>复制packaging/hudi-spark-bundle/target/hudi-spark-bundle_2.12-0.10.1.jar<br>spark首先要与hive集成的，就是把hive-site.xml复制到spark/conf文件夹即可<br>spark-sql启动：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-sql --jars hudi-spark3.1.1-bundle_2.12-0.10.1.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>spark-sql查询hudi表：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">use hudi;
+select * from t2_rt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>经过检验，spark-sql可以查询flink写入hudi的表</p>
 <h1 id="Iceberg介绍"><a href="#Iceberg介绍" class="headerlink" title="Iceberg介绍"></a>Iceberg介绍</h1><h2 id="存储-1"><a href="#存储-1" class="headerlink" title="存储"></a>存储</h2><p>Iceberg支持使用Hadoop FileSystem API与湖存储交互，Iceberg需要文件系统支持写、读、删除操作，比如S3。Iceberg不需要随机写，一旦写入，数据文件和元数据文件在被删除之前是不可变的。</p>
 <h2 id="文件格式-1"><a href="#文件格式-1" class="headerlink" title="文件格式"></a>文件格式</h2><p>Iceberg是围绕数据文件和元数据文件的概念设计的，数据文件格式支持parquet, avro, orc，数据文件可以设置大小，减少数据文件重写成本，元数据文件格式支持Json</p>
 <h2 id="表格式-1"><a href="#表格式-1" class="headerlink" title="表格式"></a>表格式</h2><p>Iceerg支持创建表、删除表、修改表名、修改表属性、添加列、修改列名、修改列大小、修改列的顺序、删除列等操作。Iceberg的schema更新是元数据修改，数据文件不需要重写。<br>Iceberg分区每次都正确地生成分区值，并总是在可能的情况下用于加速查询。最重要的是，查询不再依赖于表的物理布局。通过物理和逻辑之间的分离，Iceberg表可以随着数据量的变化而发展分区方案。分区修改是一个元数据操作且不需要重写文件。<br>Iceberg排序顺序也可以在现有表中更新，在修改排序顺序时，使用较早顺序写入的旧数据将保持不变，引擎总是可以选择以最新的排序顺序。<br>快照文件列出清单列表文件。清单列表文件列出组成表快照的清单文件，以及每个分区的范围。清单文件列出组成表快照的数据文件，以及数据文件分区数据和列级别统计信息。Iceberg首先使用清单列表文件分区的范围，然后使用清单文件获取数据文件。通过这种模式，清单列表文件作为清单文件的索引，不需要扫描所有的清单文件。</p>
@@ -518,17 +600,31 @@ at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden=
 <li>压缩数据文件：Iceberg在一个表中跟踪每个数据文件，更多的数据文件导致清单文件中存储更多的元数据，而小的数据文件导致不必要的元数据量和文件打开成本的低效率查询，Iceberg可以并行压缩数据文件，这将把小文件合并成大文件，以减少元数据开销和运行时文件打开成本。</li>
 <li>重写清单文件：Iceberg使用清单列表文件和清单文件元数据加快查询计划，并过滤不必要的数据文件，当表写的模式和查询模式不一致，元数据可以被重写。</li>
 </ul>
-<h1 id="Hudi和Iceberg特性对比"><a href="#Hudi和Iceberg特性对比" class="headerlink" title="Hudi和Iceberg特性对比"></a>Hudi和Iceberg特性对比</h1><table>
+<h2 id="iceberg测试案例"><a href="#iceberg测试案例" class="headerlink" title="iceberg测试案例"></a>iceberg测试案例</h2><h3 id="iceberg与hive整合"><a href="#iceberg与hive整合" class="headerlink" title="iceberg与hive整合"></a>iceberg与hive整合</h3><p>这个比较简单，首先到官网下载<code>iceberg-hive-runtime-0.13.1.jar</code><br>在hive-cli执行如下命令：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml">add jar /Users/gujincheng/Downloads/iceberg-hive-runtime-0.13.1.jar;
+SET iceberg.engine.hive.enabled=true;
+
+CREATE EXTERNAL TABLE test.iceberg_hive(
+`id` int,
+`name` string)
+STORED BY 'org.apache.iceberg.mr.hive.HiveIcebergStorageHandler'
+LOCATION 'hdfs://golden-02:9000/user/hive/warehouse/test/iceberg_hive';
+
+INSERT INTO test.iceberg_hive values(2, 'b');
+select * from test.iceberg_hive;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里测试了一下，iceberg与hive整合，不支持行级别更新，iceberg支持行级别更新的，只在spark3.x里支持了，在flink中也不支持行级别更新，只支持insert into<br>insert overwrite 只支持批写入，流逝写入不支持<br>所以，这里放弃iceberg了，还是转为使用hudi</p>
+<h1 id="Hudi和Iceberg特性对比"><a href="#Hudi和Iceberg特性对比" class="headerlink" title="Hudi和Iceberg特性对比"></a>Hudi和Iceberg特性对比</h1><ol>
+<li>ACID和隔离级别</li>
+</ol>
+<table>
 <thead>
 <tr>
-<th></th>
 <th></th>
 <th>Iceberg</th>
 <th>Hudi</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>ACID和隔离级别</td>
 <td>ACID</td>
 <td>支持</td>
 <td>支持</td>
@@ -537,40 +633,52 @@ at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden=
 <td>隔离级别</td>
 <td>多个写必须严格串行化，读和写可以同时跑</td>
 <td>多个写的数据无交集，可以并发执行，读和写可以同时跑</td>
-<td></td>
 </tr>
 <tr>
 <td>并发多写</td>
 <td>支持</td>
 <td>支持</td>
-<td></td>
 </tr>
 <tr>
 <td>时间快照查询</td>
 <td>支持</td>
 <td>支持</td>
-<td></td>
 </tr>
+</tbody></table>
+<ol start="2">
+<li>表格式  </li>
+</ol>
+<table>
+<thead>
 <tr>
-<td>表格式</td>
+<th></th>
+<th>Iceberg</th>
+<th>Hudi</th>
+</tr>
+</thead>
+<tbody><tr>
 <td>支持schema变更</td>
 <td>支持，添加字段、删除字段、修改字段名称、修改字段长度</td>
 <td>支持，添加、删除</td>
 </tr>
 <tr>
-<td>自定义schema</td>
-<td>有自己的schema，不绑定任何计算引擎层面的schema</td>
-<td>不支持，绑定了spark的schema</td>
-<td></td>
-</tr>
-<tr>
-<td>文件格式</td>
 <td>文件格式</td>
 <td>Parquet, ORC</td>
 <td>Parquet, Avro</td>
 </tr>
+</tbody></table>
+<ol start="3">
+<li>流批接口支持</li>
+</ol>
+<table>
+<thead>
 <tr>
-<td>流批接口支持</td>
+<th></th>
+<th>Iceberg</th>
+<th>Hudi</th>
+</tr>
+</thead>
+<tbody><tr>
 <td>批量读</td>
 <td>支持（spark、Hive、presto）</td>
 <td>支持（spark、Hive、presto）</td>
@@ -579,28 +687,35 @@ at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden=
 <td>批量写</td>
 <td>支持（spark）</td>
 <td>支持（spark）</td>
-<td></td>
 </tr>
 <tr>
 <td>流式读</td>
 <td>开发中</td>
 <td>支持</td>
-<td></td>
 </tr>
 <tr>
 <td>流式写</td>
 <td>支持</td>
 <td>支持</td>
-<td></td>
 </tr>
 <tr>
 <td>Upserts/Delete/Merge/Update</td>
 <td>不支持</td>
 <td>支持</td>
-<td></td>
 </tr>
+</tbody></table>
+<ol start="4">
+<li>查询性能</li>
+</ol>
+<table>
+<thead>
 <tr>
-<td>查询性能</td>
+<th></th>
+<th>Iceberg</th>
+<th>Hudi</th>
+</tr>
+</thead>
+<tbody><tr>
 <td>查询不需要指定分区</td>
 <td>支持</td>
 <td>不支持</td>
@@ -609,40 +724,45 @@ at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden=
 <td>元数据花费</td>
 <td>低</td>
 <td>低</td>
-<td></td>
 </tr>
 <tr>
 <td>分区内索引</td>
 <td>支持</td>
 <td>不支持</td>
-<td></td>
 </tr>
 <tr>
 <td>CopyOnWrite</td>
 <td>支持</td>
 <td>支持</td>
-<td></td>
 </tr>
 <tr>
 <td>MergeOnRead</td>
 <td>开发中</td>
 <td>支持</td>
-<td></td>
 </tr>
 <tr>
 <td>自动压缩</td>
 <td>不支持（需手动调用压缩方法）</td>
 <td>支持</td>
-<td></td>
 </tr>
 <tr>
 <td>自动清除</td>
 <td>不支持（需手动调用清除方法）</td>
 <td>支持</td>
-<td></td>
 </tr>
+</tbody></table>
+<ol start="5">
+<li>社区现状</li>
+</ol>
+<table>
+<thead>
 <tr>
-<td>社区现状</td>
+<th></th>
+<th>Iceberg</th>
+<th>Hudi</th>
+</tr>
+</thead>
+<tbody><tr>
 <td>开源时间</td>
 <td>2018.11.6</td>
 <td>2019.1.17</td>
@@ -651,48 +771,39 @@ at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden=
 <td>Github watch</td>
 <td>118</td>
 <td>1.2k</td>
-<td></td>
 </tr>
 <tr>
 <td>Github star</td>
 <td>1.9k</td>
 <td>2.2k</td>
-<td></td>
 </tr>
 <tr>
 <td>Github fork</td>
 <td>710</td>
 <td>979</td>
-<td></td>
 </tr>
 <tr>
 <td>Github Issue</td>
 <td>477</td>
 <td>73</td>
-<td></td>
 </tr>
 <tr>
 <td>Github pull request</td>
 <td>161</td>
 <td>119</td>
-<td></td>
 </tr>
 <tr>
 <td>Commits</td>
 <td>1822</td>
 <td>1864</td>
-<td></td>
 </tr>
 <tr>
 <td>Contributors</td>
 <td>167</td>
 <td>193</td>
-<td></td>
 </tr>
 </tbody></table>
-<ol>
-<li><h1 id="Hudi和Iceberg性能对比"><a href="#Hudi和Iceberg性能对比" class="headerlink" title="Hudi和Iceberg性能对比"></a>Hudi和Iceberg性能对比</h1>生产环境100万数据量对比（Hudi推hive，Iceberg是hive表）</li>
-</ol>
+<h1 id="Hudi和Iceberg性能对比"><a href="#Hudi和Iceberg性能对比" class="headerlink" title="Hudi和Iceberg性能对比"></a>Hudi和Iceberg性能对比</h1><p>生产环境100万数据量对比（Hudi推hive，Iceberg是hive表）</p>
 <table>
 <thead>
 <tr>
@@ -850,7 +961,7 @@ at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden=
 <td>毫秒级</td>
 </tr>
 </tbody></table>
-<h1 id="Hudi和Iceberg总结"><a href="#Hudi和Iceberg总结" class="headerlink" title="Hudi和Iceberg总结"></a>Hudi和Iceberg总结</h1><p>Hudi的最大的特色就是upsert和delete，upsert和delete写入增量文件，一定时间后可以将增量文件合并到基本文件中，通过这种方式可以实现行更新和流式写。<br>Iceberge的最大特色就是查询，通过快照、清单文件列表、清单实现快速过滤，Iceberg通过merge into也可以实现行更新，Iceberg也提供了流式写的接口，但是无论是行更新和流式写都是需要更新行的数据文件，并产生一个快照，这会大大增加元数据量。Iceberge的merge into也有诸多限制，原表和更新表join要有交集，否则会失败；Iceberg的更新表不能出现既更新也删除的同一条记录，否则会失败。<br>虽然在性能对比章节，Iceberg性能比Hudi好很多，但是从原理上分析，Hudi耗时高是有原因的，并且带来的是较少的IO，在Hudi更新时会根据主键合并更新数据，比如一条记录先新增后删除，合并后只留下删除的记录，然后根据主键定位到记录所在的分片，如果没有找到则插入记录，如果找到则添加到增量文件中，如果使用Hbase索引，相信性能会好一些。<br>Iceberg耗时低从原理来看，Iceberg只是将两个表join，然后原表修改的数据所在的数据文件会被重写，这种方式会在某些场景下导致大量的IO和内存消耗，在流式写测场景下支持时间旅行会产生很多文件。Iceberg的行删除目前在开发中。<br>个人觉得Hudi更适合作为采集系统的数据湖组件。Hudi最大的特色upsert和delete就已经是很大的亮点，这个功能和Kudu很相似。此外，目前Hudi功能已经完善，社区反馈的问题也比较少，已经在很多大厂应用，社区比较活跃。Iceberg很多功能还在开发中，社区反馈的问题比较多。</p>
+<h1 id="Hudi和Iceberg总结"><a href="#Hudi和Iceberg总结" class="headerlink" title="Hudi和Iceberg总结"></a>Hudi和Iceberg总结</h1><p>Hudi的最大的特色就是upsert和delete，upsert和delete写入增量文件，一定时间后可以将增量文件合并到基本文件中，通过这种方式可以实现行更新和流式写。<br>Iceberge的最大特色就是查询，通过快照、清单文件列表、清单实现快速过滤，Iceberg通过merge into也可以实现行更新，Iceberg也提供了流式写的接口，但是无论是行更新和流式写都是需要更新行的数据文件，并产生一个快照，这会大大增加元数据量。Iceberge的merge into也有诸多限制，原表和更新表join要有交集，否则会失败；Iceberg的更新表不能出现既更新也删除的同一条记录，否则会失败。<br>虽然在性能对比章节，Iceberg性能比Hudi好很多，但是从原理上分析，Hudi耗时高是有原因的，并且带来的是较少的IO，在Hudi更新时会根据主键合并更新数据，比如一条记录先新增后删除，合并后只留下删除的记录，然后根据主键定位到记录所在的分片，如果没有找到则插入记录，如果找到则添加到增量文件中，如果使用Hbase索引，相信性能会好一些。<br>另外，iceberg的merge into操作目前只在spark里有，flink和hive里都没有这个功能，所以，flink只能insert into，连insert overwrite也只能在批操作里实现，局限性很大<br>Iceberg耗时低从原理来看，Iceberg只是将两个表join，然后原表修改的数据所在的数据文件会被重写，这种方式会在某些场景下导致大量的IO和内存消耗，在流式写测场景下支持时间旅行会产生很多文件。Iceberg的行删除目前在开发中。<br>个人觉得Hudi更适合作为采集系统的数据湖组件。Hudi最大的特色upsert和delete就已经是很大的亮点，这个功能和Kudu很相似。此外，目前Hudi功能已经完善，社区反馈的问题也比较少，已经在很多大厂应用，社区比较活跃。Iceberg很多功能还在开发中，社区反馈的问题比较多。</p>
 
     </div>
 
@@ -936,7 +1047,7 @@ at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden=
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E5%92%8C%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">背景和需求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">Hudi介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8"><span class="nav-number">2.1.</span> <span class="nav-text">存储</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">文件格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.3.</span> <span class="nav-text">表格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E7%B1%BB%E5%9E%8B%E5%92%8C%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.4.</span> <span class="nav-text">表类型和查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95"><span class="nav-number">2.5.</span> <span class="nav-text">索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">2.6.</span> <span class="nav-text">并发控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E5%99%A8"><span class="nav-number">2.7.</span> <span class="nav-text">写入器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E5%99%A8"><span class="nav-number">2.8.</span> <span class="nav-text">读取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.9.</span> <span class="nav-text">表服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.10.</span> <span class="nav-text">数据服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hudi%E6%B5%8B%E8%AF%95%E6%A1%88%E4%BE%8B"><span class="nav-number">2.11.</span> <span class="nav-text">hudi测试案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flinksql%E5%86%99%E6%95%B0%E6%8D%AE%E5%85%A5hudi"><span class="nav-number">2.11.1.</span> <span class="nav-text">Flinksql写数据入hudi</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#hive%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">2.11.1.1.</span> <span class="nav-text">hive环境准备</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#flinksql%E8%87%AA%E5%8A%A8%E5%90%8C%E6%AD%A5hive%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-number">2.11.1.2.</span> <span class="nav-text">flinksql自动同步hive元数据</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#hudi%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95"><span class="nav-number">2.11.1.3.</span> <span class="nav-text">hudi踩坑记录</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Iceberg%E4%BB%8B%E7%BB%8D"><span class="nav-number">3.</span> <span class="nav-text">Iceberg介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8-1"><span class="nav-number">3.1.</span> <span class="nav-text">存储</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F-1"><span class="nav-number">3.2.</span> <span class="nav-text">文件格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%A0%BC%E5%BC%8F-1"><span class="nav-number">3.3.</span> <span class="nav-text">表格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6-1"><span class="nav-number">3.4.</span> <span class="nav-text">并发控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E5%99%A8-1"><span class="nav-number">3.5.</span> <span class="nav-text">写入器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E5%99%A8-1"><span class="nav-number">3.6.</span> <span class="nav-text">读取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%9C%8D%E5%8A%A1-1"><span class="nav-number">3.7.</span> <span class="nav-text">表服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94"><span class="nav-number">4.</span> <span class="nav-text">Hudi和Iceberg特性对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="nav-number">5.</span> <span class="nav-text">Hudi和Iceberg性能对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">Hudi和Iceberg总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E5%92%8C%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">背景和需求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">Hudi介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8"><span class="nav-number">2.1.</span> <span class="nav-text">存储</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">文件格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.3.</span> <span class="nav-text">表格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E7%B1%BB%E5%9E%8B%E5%92%8C%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.4.</span> <span class="nav-text">表类型和查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95"><span class="nav-number">2.5.</span> <span class="nav-text">索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">2.6.</span> <span class="nav-text">并发控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E5%99%A8"><span class="nav-number">2.7.</span> <span class="nav-text">写入器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E5%99%A8"><span class="nav-number">2.8.</span> <span class="nav-text">读取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.9.</span> <span class="nav-text">表服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.10.</span> <span class="nav-text">数据服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hudi%E6%B5%8B%E8%AF%95%E6%A1%88%E4%BE%8B"><span class="nav-number">2.11.</span> <span class="nav-text">hudi测试案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flinksql%E5%86%99%E6%95%B0%E6%8D%AE%E5%85%A5hudi"><span class="nav-number">2.11.1.</span> <span class="nav-text">Flinksql写数据入hudi</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#hive%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">2.11.1.1.</span> <span class="nav-text">hive环境准备</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#flinksql%E8%87%AA%E5%8A%A8%E5%90%8C%E6%AD%A5hive%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-number">2.11.1.2.</span> <span class="nav-text">flinksql自动同步hive元数据</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#flinkcdc-%E8%AF%BB%E5%8F%96mysql%E5%B9%B6%E5%86%99%E5%85%A5hudi"><span class="nav-number">2.11.1.3.</span> <span class="nav-text">flinkcdc 读取mysql并写入hudi</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%96%E5%86%99java%E5%AE%9E%E7%8E%B0flinkcdc%E5%85%A5hudi"><span class="nav-number">2.11.1.4.</span> <span class="nav-text">编写java实现flinkcdc入hudi</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#hudi%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95"><span class="nav-number">2.11.1.5.</span> <span class="nav-text">hudi踩坑记录</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hudi%E4%B8%8Espark%E7%9A%84%E6%95%B4%E5%90%88"><span class="nav-number">2.11.2.</span> <span class="nav-text">hudi与spark的整合</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Iceberg%E4%BB%8B%E7%BB%8D"><span class="nav-number">3.</span> <span class="nav-text">Iceberg介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8-1"><span class="nav-number">3.1.</span> <span class="nav-text">存储</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F-1"><span class="nav-number">3.2.</span> <span class="nav-text">文件格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%A0%BC%E5%BC%8F-1"><span class="nav-number">3.3.</span> <span class="nav-text">表格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6-1"><span class="nav-number">3.4.</span> <span class="nav-text">并发控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E5%99%A8-1"><span class="nav-number">3.5.</span> <span class="nav-text">写入器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E5%99%A8-1"><span class="nav-number">3.6.</span> <span class="nav-text">读取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%9C%8D%E5%8A%A1-1"><span class="nav-number">3.7.</span> <span class="nav-text">表服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iceberg%E6%B5%8B%E8%AF%95%E6%A1%88%E4%BE%8B"><span class="nav-number">3.8.</span> <span class="nav-text">iceberg测试案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#iceberg%E4%B8%8Ehive%E6%95%B4%E5%90%88"><span class="nav-number">3.8.1.</span> <span class="nav-text">iceberg与hive整合</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94"><span class="nav-number">4.</span> <span class="nav-text">Hudi和Iceberg特性对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="nav-number">5.</span> <span class="nav-text">Hudi和Iceberg性能对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hudi%E5%92%8CIceberg%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">Hudi和Iceberg总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
