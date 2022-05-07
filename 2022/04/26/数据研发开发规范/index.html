@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  代码开发规范 调度系统使用规范 任务上线流程 数仓分层与命名规范">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据研发开发规范">
+<meta property="og:url" content="https://gujincheng.github.io/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  代码开发规范 调度系统使用规范 任务上线流程 数仓分层与命名规范">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202204/%E6%95%B0%E4%BB%93%E9%A1%B9%E7%9B%AE%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B.png">
+<meta property="article:published_time" content="2022-04-26T09:11:49.000Z">
+<meta property="article:modified_time" content="2022-05-05T02:02:29.102Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="数据仓库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202204/%E6%95%B0%E4%BB%93%E9%A1%B9%E7%9B%AE%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据研发开发规范 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据研发开发规范
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-04-26 17:11:49" itemprop="dateCreated datePublished" datetime="2022-04-26T17:11:49+08:00">2022-04-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-05-05 10:02:29" itemprop="dateModified" datetime="2022-05-05T10:02:29+08:00">2022-05-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据仓库</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/" itemprop="url" rel="index"><span itemprop="name">开发规范</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/" class="post-meta-item leancloud_visitors" data-flag-title="数据研发开发规范" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>代码开发规范</li>
+<li>调度系统使用规范</li>
+<li>任务上线流程</li>
+<li>数仓分层与命名规范<a id="more"></a>
+
+
+
+</li>
+</ul>
+<p>众所周知，制订交通法规表面上是要限制行车权，实际上是保障公众的人身安全。试想如果没有限速，没有红绿灯，没有靠右行驶条款，谁还敢上路。消防局最主要的工作不是灭火，而是为了不发生火灾建立很多规范。如果发生火灾，说明前面的工作没有做到位。<br>同理，对于数仓开发来说，开发规范不是消灭开发的创造性、优雅性，而是限制过度个性化，推行相对标准化，以一种普遍认可的方式一起做事。<br>为此，针对数据研发而言，整理以下开发规范：</p>
+<ul>
+<li>代码开发规范</li>
+<li>调度系统使用规范</li>
+<li>任务上线流程</li>
+</ul>
+<p>设计开发规范的长远目标是从有到无，因为人人自觉遵守，规范和谐地融入开发整个流程，规范似乎消失了，但又无处不在。</p>
+<h2 id="代码开发规范"><a href="#代码开发规范" class="headerlink" title="代码开发规范"></a>代码开发规范</h2><p>数据研发分为离线任务和实时任务，两种任务的开发流程完全不同，故开发规范需要分别定制</p>
+<h3 id="离线任务"><a href="#离线任务" class="headerlink" title="离线任务"></a>离线任务</h3><h4 id="通用规范"><a href="#通用规范" class="headerlink" title="通用规范"></a>通用规范</h4><p>离线数仓的开发，主要是开发sql任务（hive sql/impala sql）,针对sql任务，制定以下规范：</p>
+<ol>
+<li>通过编写shell脚本来开发sql任务，一个shell脚本最终只输出一个结果表。中间生成的临时表需要在脚本最后删除</li>
+<li>任务的调度使用DolphinScheduler，每天定时启动</li>
+<li>默认情况下，执行引擎使用Hive-MR，除非对实效性要求很高，可以切换到Impala</li>
+<li>一个hive-cli只能执行一个sql，即一个sql语句不能含有多个<code>;</code></li>
+<li>脚本统一在自己本地开发，后上传到gitlab，通过DolphinScheduler的代码发布项目(projectDeploy)发布到线上</li>
+<li>如果引用的hive表是分区表，必须指定分区范围，如dt = ‘20220420’</li>
+<li>禁止使用<code>select *</code></li>
+<li>所有的报表和模型开发必须先出设计再进行开发</li>
+</ol>
+<h4 id="注释规范"><a href="#注释规范" class="headerlink" title="注释规范"></a>注释规范</h4><p>脚本的开头以及每个sql语句都必须有注视</p>
+<ol>
+<li>注释内容要清晰明了，含义准确，避免歧义 </li>
+<li>字段注释紧跟在字段后面 </li>
+<li>应对不易理解的分支条件表达式加注释 </li>
+<li>对重要的计算应说明其功能 </li>
+<li>过长的函数实现，应将其语句按实现的功能分段加以概括性说明 </li>
+<li>原则上所有表、字段、任务都需要添加注释，任务有特定的注释规范，见下文任务注释说明</li>
+</ol>
+<p>任务注释说明：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># # # # # # -CopyRight# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -
+#   AppName: offline_ods_bm_cust_info
+#   Description: 计算售前商机_客户基本信息表，保留历史与最新的数据
+#   Source Table:
+#        pom.stg_bm_cust_info
+#   Output Table:
+#        pom.ods_bm_cust_info
+#   Version 1.00
+#   Language:bash shell
+#   CreateDate: 2022&#x2F;04&#x2F;14 14:43
+#   Author: gujc
+#   ITCode: 17405
+#   Email: gujc@digiwin.com
+# # # # # # Update Log# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#   2022-04-15 修改history分区数据不全的问题
+# # # # # # Environment# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol>
+<li>提供任务名，方便任务创建时任务的获取以及平台中任务查询 </li>
+<li>提供创建者、创建日期、功能描述等信息，方便后期维护跟踪 </li>
+<li>提供代码变更历史，便于了解代码演进历史及依据 </li>
+<li>提供脚本依赖表清单，方便后续任务依赖配置 </li>
+<li>提供输出表清单，方便确认是否单个目标表</li>
+</ol>
+<h4 id="SQL编写规范"><a href="#SQL编写规范" class="headerlink" title="SQL编写规范"></a>SQL编写规范</h4><ol>
+<li>关键字最好大写，如SELECT、FROM、WHERE等，字段名不做要求</li>
+<li>字段排列要求</li>
+</ol>
+<ul>
+<li>SELECT 语句选择的字段按每行一个字段方式编排；</li>
+<li>SELECT 单词后面一个空格后直接跟首个选择的字段，其他字段前”,”点后放字段名</li>
+<li>建议每个SELECT的字段后面都有注释，至少在SQL的最外层的SELECT必须要有，并且多个字段的注释对其在同一列上<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> first_name               <span class="token comment">--第一个名字</span>
+      <span class="token punctuation">,</span>last_name                <span class="token comment">--最后一个名字</span>
+      <span class="token punctuation">,</span>salary                   <span class="token comment">--工资</span>
+      <span class="token punctuation">,</span>itcode                   <span class="token comment">--工号</span>
+<span class="token keyword">FROM</span> employee
+<span class="token keyword">WHERE</span> salary <span class="token operator">></span> <span class="token number">35000</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ul>
+<ol start="3">
+<li>SELECT子句排列要求<br>SELECT语句中所用到的FROM、WHERE、GROUP BY、HAVING、JOIN、UNION等子句</li>
+</ol>
+<ul>
+<li>换行编写</li>
+<li>与相应的SELECT语句对齐</li>
+<li>WHERE子句下面的逻辑判断符AND、OR等与WHERE左对齐编排<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> cust_id
+      <span class="token punctuation">,</span>num
+<span class="token keyword">FROM</span> cust 
+<span class="token keyword">WHERE</span> num <span class="token operator">>=</span> <span class="token number">100</span> 
+  <span class="token operator">AND</span> num <span class="token operator">&lt;=</span> <span class="token number">200</span>
+   <span class="token operator">OR</span> proname <span class="token operator">=</span> <span class="token string">'ORANGE'</span>
+<span class="token keyword">ORDER</span> <span class="token keyword">BY</span> num<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ul>
+<ol start="3">
+<li>算术运算符、逻辑运算符前后至少保留一个空格<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> <span class="token function">SUM</span><span class="token punctuation">(</span>t1<span class="token punctuation">.</span>num <span class="token operator">*</span> t2<span class="token punctuation">.</span>price<span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token number">2</span> <span class="token keyword">AS</span> total_amt
+<span class="token keyword">FROM</span> fruit_orders t1 
+<span class="token keyword">INNER</span> <span class="token keyword">JOIN</span> fruit_inventory t2 
+<span class="token keyword">ON</span> t1<span class="token punctuation">.</span>proid <span class="token operator">=</span> t2<span class="token punctuation">.</span>proid
+<span class="token keyword">WHERE</span> t2<span class="token punctuation">.</span>proname <span class="token operator">=</span> <span class="token string">'ORANGE'</span>
+  <span class="token operator">AND</span> num <span class="token operator">&lt;=</span> <span class="token number">200</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>一个sql语句最多join 3次，大于3次的，先创建临时表，关联临时表，这样可以使逻辑更清晰，并且方便调查数据问题</li>
+</ol>
+<p>其他规范可以参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/453180860">HQL过程体开发规范</a></p>
+<h4 id="任务脚本案例"><a href="#任务脚本案例" class="headerlink" title="任务脚本案例"></a>任务脚本案例</h4><p>数仓脚本开发统一提交到<a target="_blank" rel="noopener" href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a><br>为了方便编码，让数据研发人员专注于业务逻辑，这里对shell异常捕捉、执行引擎的选择等做了封装，开发人员只要按照固定的模版填充sql即可：</p>
+<ol>
+<li>删除hive临时表：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot; clear Temporary table $&#123;TABLE_TMP_01&#125;,write into Temporary table&quot;
+drop_tmp_table -tbn &quot;$&#123;TABLE_TMP_01&#125;&quot; -engine hive -env hwCloud<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+参数说明：</li>
+</ol>
+<p>-tbn：表名<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云</p>
+<ol start="2">
+<li>执行sql语句：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot;INSERT OVERWRITE TABLE partition active&quot;
+V_SQL&#x3D;&quot;
+INSERT OVERWRITE TABLE $&#123;TABLE_TMP_01&#125; partition(dp &#x3D; &#39;active&#39;,end_date &#x3D; &#39;99991231&#39;)
+SELECT activity_id          --活动id
+      ,activity_no          --活动编号
+      ,activity_name        --活动名称
+      ,transaction_times    --交易次数
+      ,contact_times        --接触次数
+      ,manage_status        --状态
+      ,tenantsid            --租户id
+FROM $&#123;TABLE_INPUT_01&#125; -- 因为每天取得数据都是最新的数据，所以，stg表就是最新的数据
+;
+&quot;
+runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -engine hive -env hwCloud || return $?<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+参数说明：</li>
+</ol>
+<p>-sql：要执行的sql语句<br>-msg：执行sql提示信息<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云<br>|| return $? : 获取代码执行状态 </p>
+<p>hive脚本案例可以查看DataWarehose/public/hive_templete.sh<br>impala脚本案例可以查看DataWarehose/public/impala_templete.sh</p>
+<h2 id="调度系统使用规范"><a href="#调度系统使用规范" class="headerlink" title="调度系统使用规范"></a>调度系统使用规范</h2><ul>
+<li>工作流按照项目划分，理论上，一个项目的所有任务都在一个工作流内</li>
+<li>一个job输出一个结果表，需要配置前置和后置依赖</li>
+<li>job名称统一按照时间粒度 + 输出结果表名来命名，例如offline_ods_pom_business_work_record,代表离线计算ods_pom_business_work_record<br>具体的项目案例，可以参考华为云上的pom项目</li>
+</ul>
+<h2 id="任务上线流程"><a href="#任务上线流程" class="headerlink" title="任务上线流程"></a>任务上线流程</h2><ul>
+<li>代码在本地开发完成后，需统一提交到<a target="_blank" rel="noopener" href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a></li>
+<li>经由管理员codeReview之后合并到master分支</li>
+<li>在数据中台-项目管理-projectDeploy，选择相应的job执行代码分发<br><img src="/uploads/202204/%E6%95%B0%E4%BB%93%E9%A1%B9%E7%9B%AE%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B.png" alt="数仓项目上线流程"></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/" rel="tag"># 数据仓库</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/04/01/%E6%95%B0%E6%8D%AE%E6%B9%96%E4%B8%8E%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/" rel="prev" title="数据湖与数据仓库">
+      <i class="fa fa-chevron-left"></i> 数据湖与数据仓库
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/05/impala3-4%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" rel="next" title="impala3.4源码编译">
+      impala3.4源码编译 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83"><span class="nav-number">1.</span> <span class="nav-text">代码开发规范</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E4%BB%BB%E5%8A%A1"><span class="nav-number">1.1.</span> <span class="nav-text">离线任务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E7%94%A8%E8%A7%84%E8%8C%83"><span class="nav-number">1.1.1.</span> <span class="nav-text">通用规范</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%A8%E9%87%8A%E8%A7%84%E8%8C%83"><span class="nav-number">1.1.2.</span> <span class="nav-text">注释规范</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SQL%E7%BC%96%E5%86%99%E8%A7%84%E8%8C%83"><span class="nav-number">1.1.3.</span> <span class="nav-text">SQL编写规范</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E8%84%9A%E6%9C%AC%E6%A1%88%E4%BE%8B"><span class="nav-number">1.1.4.</span> <span class="nav-text">任务脚本案例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8%E8%A7%84%E8%8C%83"><span class="nav-number">2.</span> <span class="nav-text">调度系统使用规范</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">任务上线流程</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">51</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

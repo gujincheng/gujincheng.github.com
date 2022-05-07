@@ -142,6 +142,91 @@
       </tags>
   </entry>
   <entry>
+    <title>CM宕机问题调查与修复</title>
+    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>CM宕机问题调查与修复</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
+<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
+com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
+        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
+        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+        at java.lang.Thread.run(Thread.java:748)
+Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at java.io.RandomAccessFile.open0(Native Method)
+        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
+        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
+        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
+        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
+        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
+        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
+<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
+● cloudera-scm-agent.service - Cloudera Manager Agent Service
+   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
+   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
+  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+ Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
+<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>CM</category>
+      </categories>
+      <tags>
+        <tag>CM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Centos安装Mysql</title>
     <url>/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -296,89 +381,90 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
       </tags>
   </entry>
   <entry>
-    <title>CM宕机问题调查与修复</title>
-    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
+    <title>Elasticsearch学习笔记</title>
+    <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
-<li>CM宕机问题调查与修复</li>
+<li>Elasticsearch简介</li>
 </ul>
 <a id="more"></a>
 
-<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
-<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
-com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
-        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
-        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
-        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-        at java.lang.Thread.run(Thread.java:748)
-Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at java.io.RandomAccessFile.open0(Native Method)
-        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
-        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
-        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
-        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
-        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
-        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
-<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
-● cloudera-scm-agent.service - Cloudera Manager Agent Service
-   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
-   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
-  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
- Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
 
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
-<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
+<h2 id="Elasticsearch简介"><a href="#Elasticsearch简介" class="headerlink" title="Elasticsearch简介"></a>Elasticsearch简介</h2><p>Elasticsearch是一个高度可扩展的开源全文搜索和分析引擎，有以下几个特点：</p>
+<ul>
+<li>一个分布式的实时文档存储，每个字段都可被索引</li>
+<li>一个分布式实时搜索引擎</li>
+<li>强大的横向扩展能力，并支持大数据集的结构化/非结构化数据</li>
+<li>Elasticsearch是<code>面向文档</code>的，意味着它存储整个对象或文档(使用<code>JSON</code>作为文档的序列化格式)</li>
+</ul>
+<p>Elasticsearch 是一个开源的搜索引擎，建立在一个全文搜索引擎库 Apache Lucene™ 基础之上。 Lucene 可以说是当下最先进、高性能、全功能的搜索引擎库—​无论是开源还是私有。</p>
+<p>Elasticsearch的安装很简单，直接解压就行，访问使用restAPI，也可以使用kibana<br>kibana的安装也很简单，直接解压，配置一下ES的相关属性就可以<br>安装好后，访问<code>http://localhost:5601/</code>即可使用kibana操作ES</p>
+<h2 id="Elasticsearch使用"><a href="#Elasticsearch使用" class="headerlink" title="Elasticsearch使用"></a>Elasticsearch使用</h2><h3 id="直接通过Curl操作ES"><a href="#直接通过Curl操作ES" class="headerlink" title="直接通过Curl操作ES"></a>直接通过Curl操作ES</h3><p>这种方式，是直接使用 RESTful API 通过端口 9200 和 Elasticsearch 进行通信，不过不太常用，一般都是通过kibana来操作ES</p>
+<ul>
+<li>操作索引<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 创建一个名称为 alibaba 的 Index（索引库）
+curl -X PUT localhost:9200&#x2F;alibaba
+# 删除索引
+curl -X DELETE localhost:9200&#x2F;alibaba
+# 列出每个 Index 包含的 Type
+curl &quot;localhost:9200&#x2F;_mapping?pretty&#x3D;true&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>操作Document 文档</li>
+<li><ul>
+<li>新增文档<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 在 alibaba&#x2F;user 中，新增一条记录（文档），记录的 id 为 1
+curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;
+#  或者
+curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -H &quot;Content-Type: application&#x2F;json&quot; -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+上述示例中，alibaba 代表 Index，user 代表 Type，如果它们不存在，会自动创建。1 代表记录的 id。<br>新增记录时，也可以不指定 id，这时服务器会自动生成一个随机字符串作为该记录的 id。</li>
+</ul>
+</li>
+</ul>
+<p>** 查看记录</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">
+# 查看 alibaba&#x2F;user&#x2F;1 记录
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1
+# 查看 alibaba&#x2F;user&#x2F;1 记录（会对结果进行格式化）
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty
+# 查看 alibaba&#x2F;user 中的所有记录
+curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>?pretty 表示对返回结果进行格式化，以便更易于阅读。</p>
+<p>** 删除记录</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">curl -X DELETE localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="通过kibana操作ES"><a href="#通过kibana操作ES" class="headerlink" title="通过kibana操作ES"></a>通过kibana操作ES</h3><p>kibana的访问地址：<a href="http://localhost:5601/">http://localhost:5601/</a><br>在kibana侧边栏找到Management -&gt; Dev Tool ,在Dev Tool里就可以操作ES了</p>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>CM</category>
+        <category>Elasticsearch</category>
       </categories>
       <tags>
-        <tag>CM</tag>
+        <tag>Elasticsearch</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
+    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
+<li>确认键盘的电源接通。 </li>
+<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
+<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
+</ol>
+<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
+<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
+<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
+<li>此时先在本机键盘上输入任意六位PIN</li>
+<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
+</ol>
+<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
+<ol>
+<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
+<li>键盘背面的清除键，拿笔点住2秒。</li>
+<li>再按数字键1-4的任意一个想清除配置的数字。</li>
+<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
+<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
+</ol>
+<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
+]]></content>
+      <categories>
+        <category>工具箱</category>
+      </categories>
   </entry>
   <entry>
     <title>Cloudera Manager CDH离线安装</title>
@@ -595,92 +681,6 @@ mv  cloudera-service-monitor  cloudera-service-monitor_BAK<span aria-hidden="tru
       <tags>
         <tag>CM</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Elasticsearch学习笔记</title>
-    <url>/2021/06/25/Elasticsearch%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Elasticsearch简介</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="Elasticsearch简介"><a href="#Elasticsearch简介" class="headerlink" title="Elasticsearch简介"></a>Elasticsearch简介</h2><p>Elasticsearch是一个高度可扩展的开源全文搜索和分析引擎，有以下几个特点：</p>
-<ul>
-<li>一个分布式的实时文档存储，每个字段都可被索引</li>
-<li>一个分布式实时搜索引擎</li>
-<li>强大的横向扩展能力，并支持大数据集的结构化/非结构化数据</li>
-<li>Elasticsearch是<code>面向文档</code>的，意味着它存储整个对象或文档(使用<code>JSON</code>作为文档的序列化格式)</li>
-</ul>
-<p>Elasticsearch 是一个开源的搜索引擎，建立在一个全文搜索引擎库 Apache Lucene™ 基础之上。 Lucene 可以说是当下最先进、高性能、全功能的搜索引擎库—​无论是开源还是私有。</p>
-<p>Elasticsearch的安装很简单，直接解压就行，访问使用restAPI，也可以使用kibana<br>kibana的安装也很简单，直接解压，配置一下ES的相关属性就可以<br>安装好后，访问<code>http://localhost:5601/</code>即可使用kibana操作ES</p>
-<h2 id="Elasticsearch使用"><a href="#Elasticsearch使用" class="headerlink" title="Elasticsearch使用"></a>Elasticsearch使用</h2><h3 id="直接通过Curl操作ES"><a href="#直接通过Curl操作ES" class="headerlink" title="直接通过Curl操作ES"></a>直接通过Curl操作ES</h3><p>这种方式，是直接使用 RESTful API 通过端口 9200 和 Elasticsearch 进行通信，不过不太常用，一般都是通过kibana来操作ES</p>
-<ul>
-<li>操作索引<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 创建一个名称为 alibaba 的 Index（索引库）
-curl -X PUT localhost:9200&#x2F;alibaba
-# 删除索引
-curl -X DELETE localhost:9200&#x2F;alibaba
-# 列出每个 Index 包含的 Type
-curl &quot;localhost:9200&#x2F;_mapping?pretty&#x3D;true&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>操作Document 文档</li>
-<li><ul>
-<li>新增文档<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 在 alibaba&#x2F;user 中，新增一条记录（文档），记录的 id 为 1
-curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;
-#  或者
-curl -X PUT localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1 -H &quot;Content-Type: application&#x2F;json&quot; -d &#123;\&quot;name\&quot;:\&quot;rose\&quot;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-上述示例中，alibaba 代表 Index，user 代表 Type，如果它们不存在，会自动创建。1 代表记录的 id。<br>新增记录时，也可以不指定 id，这时服务器会自动生成一个随机字符串作为该记录的 id。</li>
-</ul>
-</li>
-</ul>
-<p>** 查看记录</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">
-# 查看 alibaba&#x2F;user&#x2F;1 记录
-curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1
-# 查看 alibaba&#x2F;user&#x2F;1 记录（会对结果进行格式化）
-curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty
-# 查看 alibaba&#x2F;user 中的所有记录
-curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>?pretty 表示对返回结果进行格式化，以便更易于阅读。</p>
-<p>** 删除记录</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">curl -X DELETE localhost:9200&#x2F;alibaba&#x2F;user&#x2F;1?pretty<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="通过kibana操作ES"><a href="#通过kibana操作ES" class="headerlink" title="通过kibana操作ES"></a>通过kibana操作ES</h3><p>kibana的访问地址：<a href="http://localhost:5601/">http://localhost:5601/</a><br>在kibana侧边栏找到Management -&gt; Dev Tool ,在Dev Tool里就可以操作ES了</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Elasticsearch</category>
-      </categories>
-      <tags>
-        <tag>Elasticsearch</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
-    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
-<li>确认键盘的电源接通。 </li>
-<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
-<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
-</ol>
-<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
-<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
-<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
-<li>此时先在本机键盘上输入任意六位PIN</li>
-<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
-</ol>
-<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
-<ol>
-<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
-<li>键盘背面的清除键，拿笔点住2秒。</li>
-<li>再按数字键1-4的任意一个想清除配置的数字。</li>
-<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
-<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
-</ol>
-<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
-]]></content>
-      <categories>
-        <category>工具箱</category>
-      </categories>
   </entry>
   <entry>
     <title>FlinkCDC原理</title>
@@ -1488,6 +1488,47 @@ ccc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span>
       </tags>
   </entry>
   <entry>
+    <title>Maven杂记</title>
+    <url>/2022/03/18/Maven%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Maven杂记</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="Maven配置cloudera源下载CDH依赖包"><a href="#Maven配置cloudera源下载CDH依赖包" class="headerlink" title="Maven配置cloudera源下载CDH依赖包"></a>Maven配置cloudera源下载CDH依赖包</h2><p>由于Cloudera Manager自动安装部署的Hadoop、Hbase，Zookeeper等组件与Apache提供的会有差异，所以需要配置为对应CDH版本的依赖包。</p>
+<h3 id="添加cloudera仓库"><a href="#添加cloudera仓库" class="headerlink" title="添加cloudera仓库"></a>添加cloudera仓库</h3><p>在pom.xml，project标签内开头添加如下仓库：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>repositories</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>repository</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>cloudera<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>https://repository.cloudera.com/artifactory/cloudera-repos/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>repository</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>repositories</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>不需要在settings.xml里添加</p>
+]]></content>
+      <categories>
+        <category>Maven</category>
+      </categories>
+      <tags>
+        <tag>Maven</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MongoDB杂记</title>
+    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>MongoDB</category>
+      </categories>
+      <tags>
+        <tag>MongoDB</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mac使用笔记（一）</title>
     <url>/2021/05/20/Mac%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1773,47 +1814,6 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       <tags>
         <tag>Mac</tag>
         <tag>Sublime</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Maven杂记</title>
-    <url>/2022/03/18/Maven%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Maven杂记</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="Maven配置cloudera源下载CDH依赖包"><a href="#Maven配置cloudera源下载CDH依赖包" class="headerlink" title="Maven配置cloudera源下载CDH依赖包"></a>Maven配置cloudera源下载CDH依赖包</h2><p>由于Cloudera Manager自动安装部署的Hadoop、Hbase，Zookeeper等组件与Apache提供的会有差异，所以需要配置为对应CDH版本的依赖包。</p>
-<h3 id="添加cloudera仓库"><a href="#添加cloudera仓库" class="headerlink" title="添加cloudera仓库"></a>添加cloudera仓库</h3><p>在pom.xml，project标签内开头添加如下仓库：</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>repositories</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>repository</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>cloudera<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>https://repository.cloudera.com/artifactory/cloudera-repos/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>repository</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>repositories</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>不需要在settings.xml里添加</p>
-]]></content>
-      <categories>
-        <category>Maven</category>
-      </categories>
-      <tags>
-        <tag>Maven</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MongoDB杂记</title>
-    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>MongoDB</category>
-      </categories>
-      <tags>
-        <tag>MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -2309,6 +2309,123 @@ find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下�
       </tags>
   </entry>
   <entry>
+    <title>impala3.4源码编译</title>
+    <url>/2022/05/05/impala3-4%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>impala3.4源码编译<a id="more"></a>
+
+
+
+</li>
+</ul>
+<h2 id="impala3-4源码编译"><a href="#impala3-4源码编译" class="headerlink" title="impala3.4源码编译"></a>impala3.4源码编译</h2><p>最近在集成impala与hudi，但是impala需要在3.4版本以后才支持hudi的读取，所以这里尝试升级impala，废话不多说，下面是编译步骤：</p>
+<p>Apache Impala是以源码的形式release的，因此需要自行在对应的平台上编译。找一个跟集群环境一致的机器。<br>根据文档中的“Building Impala without Test Data (for testing Impala)”章节来编译Impala:<br><a href="https://cwiki.apache.org/confluence/display/IMPALA/Building+Impala">https://cwiki.apache.org/confluence/display/IMPALA/Building+Impala</a></p>
+<h3 id="下载impala源码"><a href="#下载impala源码" class="headerlink" title="下载impala源码"></a>下载impala源码</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone --single-branch --branch 3.4.1 https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;impala.git impala-3.4
+cd impala-3.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="bin-bootstrap-system-sh-脚本安装编译依赖："><a href="#bin-bootstrap-system-sh-脚本安装编译依赖：" class="headerlink" title="bin/bootstrap_system.sh 脚本安装编译依赖："></a>bin/bootstrap_system.sh 脚本安装编译依赖：</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export IMPALA_HOME&#x3D;&#96;pwd&#96;
+.&#x2F;bin&#x2F;bootstrap_system.sh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h4 id="bin-bootstrap-system-sh-踩坑记录"><a href="#bin-bootstrap-system-sh-踩坑记录" class="headerlink" title="bin/bootstrap_system.sh 踩坑记录"></a>bin/bootstrap_system.sh 踩坑记录</h4><ul>
+<li>package make-1:3.82-24.el7.x86_64 is already installed<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 很明显，这个包已经安装过，remove之后重新执行
+yum remove make-1:3.82-24.el7.x86_64<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>apache-ant-1.9.14-bin.tar.gz下载失败<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">正在清理软件源： base docker-ce-stable epel extras updates
+Cleaning up list of fastest mirrors
+++ redhat sudo wget -nv https:&#x2F;&#x2F;downloads.apache.org&#x2F;ant&#x2F;binaries&#x2F;apache-ant-1.9.14-bin.tar.gz
+++ [[ true &#x3D;&#x3D; true ]]
+++ sudo wget -nv https:&#x2F;&#x2F;downloads.apache.org&#x2F;ant&#x2F;binaries&#x2F;apache-ant-1.9.14-bin.tar.gz
+https:&#x2F;&#x2F;downloads.apache.org&#x2F;ant&#x2F;binaries&#x2F;apache-ant-1.9.14-bin.tar.gz:
+2022-05-05 13:36:24 错误 404：Not Found。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+解决方法是：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 修改bootstrap_system.sh ant下载地址
+vim $IMPALA_HOME&#x2F;bin&#x2F;bootstrap_system.sh
+
+244   https:&#x2F;&#x2F;downloads.apache.org&#x2F;ant&#x2F;binaries&#x2F;apache-ant-1.10.12-bin.tar.gz
+245 redhat sha512sum -c - &lt;&lt;&lt; &#39;2287dc5cfc21043c14e5413f9afb1c87c9f266ec2a9ba2d3bf2285446f6e4ccb59b558bf2e5c57911a05dfa293c7d5c7ad60ac9f744ba11406f4e6f9a27b2403  apache-ant-1.10.12-bin.tar.gz&#39;
+246 redhat sudo tar -C &#x2F;usr&#x2F;local -xzf apache-ant-1.10.12-bin.tar.gz
+247 redhat sudo ln -s &#x2F;usr&#x2F;local&#x2F;apache-ant-1.10.12&#x2F;bin&#x2F;ant &#x2F;usr&#x2F;local&#x2F;bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>Data directory is not empty!<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Hint: the preferred way to do this is now &quot;postgresql-setup initdb&quot;
+Data directory is not empty!<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+这个问题是因为多次执行了bin/bootstrap_system.sh，导致初始化postgresql多次，这里只需要删除<code>/var/lib/pgsql</code>下的data文件夹和<code>initdb.log</code><br>然后重新执行bin/bootstrap_system.sh即可</li>
+</ul>
+<p>如果之前在这台机器上编译过Impala，也可以跳过上面这一步。直接进行编译：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">source $IMPALA_HOME&#x2F;bin&#x2F;impala-config.sh
+$IMPALA_HOME&#x2F;buildall.sh -noclean -notests -release<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="编译成功查看"><a href="#编译成功查看" class="headerlink" title="编译成功查看"></a>编译成功查看</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@V-NJ-2-220 impala]# ll -h be&#x2F;build&#x2F;latest&#x2F;service&#x2F;impalad fe&#x2F;target&#x2F;impala-frontend-0.1-SNAPSHOT.jar
+-rwxr-xr-x. 1 root root 530M 5月   6 16:39 be&#x2F;build&#x2F;latest&#x2F;service&#x2F;impalad
+-rw-r--r--. 1 root root 7.5M 5月   6 16:41 fe&#x2F;target&#x2F;impala-frontend-0.1-SNAPSHOT.jar
+[root@V-NJ-2-220 impala]# strings be&#x2F;build&#x2F;latest&#x2F;service&#x2F;impalad | grep 3.4.1-
+3.4.1-RELEASE<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>impala默认使用静态编译，但还是有一些动态依赖，用 ldd 指令查看：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@V-NJ-2-220 impala]# ldd be&#x2F;build&#x2F;latest&#x2F;service&#x2F;impalad
+	linux-vdso.so.1 &#x3D;&gt;  (0x00007fff13bda000)
+	&#x2F;usr&#x2F;lib&#x2F;jvm&#x2F;java-1.8.0-openjdk-1.8.0.322.b06-1.el7_9.x86_64&#x2F;jre&#x2F;lib&#x2F;amd64&#x2F;libjsig.so (0x00007f03f6fbe000)
+	libpthread.so.0 &#x3D;&gt; &#x2F;lib64&#x2F;libpthread.so.0 (0x00007f03f6da2000)
+	libsasl2.so.3 &#x3D;&gt; &#x2F;lib64&#x2F;libsasl2.so.3 (0x00007f03f6b85000)
+	libjvm.so &#x3D;&gt; &#x2F;usr&#x2F;lib&#x2F;jvm&#x2F;java-1.8.0-openjdk-1.8.0.322.b06-1.el7_9.x86_64&#x2F;jre&#x2F;lib&#x2F;amd64&#x2F;server&#x2F;libjvm.so (0x00007f03f5ada000)
+	libkudu_client.so.0 &#x3D;&gt; &#x2F;root&#x2F;gujc&#x2F;impala&#x2F;toolchain&#x2F;kudu-4ed0dbbd1&#x2F;release&#x2F;lib64&#x2F;libkudu_client.so.0 (0x00007f03f53f7000)
+	librt.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;librt.so.1 (0x00007f03f51ef000)
+	libdl.so.2 &#x3D;&gt; &#x2F;lib64&#x2F;libdl.so.2 (0x00007f03f4feb000)
+	libssl.so.10 &#x3D;&gt; &#x2F;lib64&#x2F;libssl.so.10 (0x00007f03f4d79000)
+	libcrypto.so.10 &#x3D;&gt; &#x2F;lib64&#x2F;libcrypto.so.10 (0x00007f03f4916000)
+	libkrb5.so.3 &#x3D;&gt; &#x2F;lib64&#x2F;libkrb5.so.3 (0x00007f03f462d000)
+	libgssapi_krb5.so.2 &#x3D;&gt; &#x2F;lib64&#x2F;libgssapi_krb5.so.2 (0x00007f03f43e0000)
+	libstdc++.so.6 &#x3D;&gt; &#x2F;root&#x2F;gujc&#x2F;impala&#x2F;toolchain&#x2F;snappy-1.1.4&#x2F;lib&#x2F;libstdc++.so.6 (0x00007f03f40d6000)
+	libm.so.6 &#x3D;&gt; &#x2F;lib64&#x2F;libm.so.6 (0x00007f03f3dd4000)
+	libgcc_s.so.1 &#x3D;&gt; &#x2F;root&#x2F;gujc&#x2F;impala&#x2F;toolchain&#x2F;snappy-1.1.4&#x2F;lib&#x2F;libgcc_s.so.1 (0x00007f03f3bbd000)
+	libc.so.6 &#x3D;&gt; &#x2F;lib64&#x2F;libc.so.6 (0x00007f03f37ef000)
+	&#x2F;lib64&#x2F;ld-linux-x86-64.so.2 (0x00007f03f71c2000)
+	libresolv.so.2 &#x3D;&gt; &#x2F;lib64&#x2F;libresolv.so.2 (0x00007f03f35d5000)
+	libcrypt.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libcrypt.so.1 (0x00007f03f339e000)
+	libk5crypto.so.3 &#x3D;&gt; &#x2F;lib64&#x2F;libk5crypto.so.3 (0x00007f03f316b000)
+	libcom_err.so.2 &#x3D;&gt; &#x2F;lib64&#x2F;libcom_err.so.2 (0x00007f03f2f67000)
+	libkrb5support.so.0 &#x3D;&gt; &#x2F;lib64&#x2F;libkrb5support.so.0 (0x00007f03f2d57000)
+	libz.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libz.so.1 (0x00007f03f2b41000)
+	libkeyutils.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libkeyutils.so.1 (0x00007f03f293d000)
+	libfreebl3.so &#x3D;&gt; &#x2F;lib64&#x2F;libfreebl3.so (0x00007f03f273a000)
+	libselinux.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libselinux.so.1 (0x00007f03f2513000)
+	libpcre.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libpcre.so.1 (0x00007f03f22b1000)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这些 so 文件大部分是系统自带的或者已安装的，我们只要复制跟Impala版本相关的就好，比如说 libkudu_client.so.0，其它的不需要一并复制。<br>这里说的复制，是指，需要把非系统安装的依赖，复制到CM的安装文件夹内，可以看出，只有libkudu_client是放在新编译的源码内的，其他的都是引用的系统安装的依赖</p>
+<h2 id="新版本impala部署"><a href="#新版本impala部署" class="headerlink" title="新版本impala部署"></a>新版本impala部署</h2><p>我们来生成一个和 /opt/cloudera/parcels/CDH/lib/impala 目录结构一样的目录，然后通过在 CM 里设置 IMPALA_HOME 环境变量来使用它<br>具体的文件结构这里就不细看了，可以参考<a href="https://www.freesion.com/article/8587908372/">在CDH6.3中单独升级IMPALA到APACHE IMPALA 3.4</a></p>
+<h3 id="生成新Impala目录"><a href="#生成新Impala目录" class="headerlink" title="生成新Impala目录"></a>生成新Impala目录</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;opt&#x2F;cloudera&#x2F;parcels&#x2F;CDH&#x2F;lib
+cp -r impala impala-3.4
+cd impala-3.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>下面按照一下步骤操作：</p>
+<ol>
+<li>把lib目录里的jar包都删了，剩下so文件</li>
+<li>libkudu_client.so.0 替换为我们编译Impala 3.4时用的，从前面ldd的输出可以看到在 /root/gujc/impala/toolchain/kudu-4ed0dbbd1/release/lib64/libkudu_client.so.0,其它so文件不用管</li>
+<li>impala-3.4依赖的jar包也都复制进这个lib目录，它们在编译目录里能找到，具体路径是 $IMPALA_HOME/fe/target/dependency/</li>
+<li>impala-3.4编译出来的 impala-frontend-0.1-SNAPSHOT.jar 放进lib目录，在编译目录里的路径是 fe/target/impala-frontend-0.1-SNAPSHOT.jar</li>
+<li>把 impala-3.4编译出来的 impala-data-source-api-1.0-SNAPSHOT.jar 放进lib目录，在编译目录里的路径是 ext-data-source/api/target/impala-data-source-api-1.0-SNAPSHOT.jar。</li>
+<li>把sbin-retail目录的impalad换成apache impala 3.4编译后的impalad，在编译目录里的路径是 be/build/latest/service/impalad</li>
+<li>把新的Impala目录放到所有机器上，确保它们一致</li>
+<li>更改CM配置并重启,在CM中去到Impala -&gt; 配置 -&gt; env，加一个环境变量 IMPALA_HOME=/opt/cloudera/parcels/CDH/lib/impala-3.4</li>
+<li>然后重启整个Impala集群</li>
+</ol>
+<p>通过beeline链接impala，查看输出日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@V-NJ-2-220 ~]# beeline -u &quot;jdbc:impala:&#x2F;&#x2F;172.16.2.205:21050;AuthMech&#x3D;3;UID&#x3D;root;PWD&#x3D;;UseSasl&#x3D;0&quot;
+WARNING: Use &quot;yarn jar&quot; to launch YARN applications.
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:&#x2F;opt&#x2F;cloudera&#x2F;parcels&#x2F;CDH-6.2.0-1.cdh6.2.0.p0.967373&#x2F;jars&#x2F;log4j-slf4j-impl-2.8.2.jar!&#x2F;org&#x2F;slf4j&#x2F;impl&#x2F;StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:&#x2F;opt&#x2F;cloudera&#x2F;parcels&#x2F;CDH-6.2.0-1.cdh6.2.0.p0.967373&#x2F;jars&#x2F;slf4j-log4j12-1.7.25.jar!&#x2F;org&#x2F;slf4j&#x2F;impl&#x2F;StaticLoggerBinder.class]
+SLF4J: See http:&#x2F;&#x2F;www.slf4j.org&#x2F;codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.apache.logging.slf4j.Log4jLoggerFactory]
+Connecting to jdbc:impala:&#x2F;&#x2F;172.16.2.205:21050;AuthMech&#x3D;3;UID&#x3D;root;PWD&#x3D;;UseSasl&#x3D;0
+Connected to: Impala (version 3.4.1-RELEASE)
+Driver: ImpalaJDBC (version 02.06.03.1004)
+Error: [Cloudera][JDBC](11975) Unsupported transaction isolation level: 4. (state&#x3D;HY000,code&#x3D;11975)
+Beeline version 2.1.1-cdh6.2.0 by Apache Hive
+0: jdbc:impala:&#x2F;&#x2F;172.16.2.205:21050&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看出，现在的impala是3.4.1-RELEASE版本的了<br>具体可以参考<a href="https://blog.csdn.net/weixin_45104537/article/details/121487197">CDH6.3.2升级impala3.2至impala3.4详细步骤</a></p>
+<p>impala的源码里默认制定的hudi版本是<code>0.5.0-incubating</code>,这里测试了一下，把hudi的版本改成了0.10.1编译不通过<br>之后impala还会不会维护3.x版本？因为4.x不支持hive2，仅支持hive3，这样升级的代价更大</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">IMPALA_HBASE_VERSION    &#x3D; 2.1.0-cdh6.x-SNAPSHOT
+IMPALA_HUDI_VERSION     &#x3D; 0.5.0-incubating
+IMPALA_SENTRY_VERSION   &#x3D; 2.1.0-cdh6.x-SNAPSHOT
+IMPALA_KUDU_VERSION     &#x3D; 4ed0dbbd1
+IMPALA_KUDU_JAVA_VERSION&#x3D; 1.12.0-SNAPSHOT
+IMPALA_RANGER_VERSION   &#x3D; 2.0.0.7.0.2.0-212<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+]]></content>
+  </entry>
+  <entry>
     <title>linux杂记</title>
     <url>/2021/01/16/linux%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2396,7 +2513,17 @@ get aaa.dat    # 下载指定文件<span aria-hidden="true" class="line-numbers-
 <p>具体可以参考<br><a href="https://www.jb51.net/article/94599.htm">https://www.jb51.net/article/94599.htm</a></p>
 <h3 id="awk实现sql中group-by，count的功能"><a href="#awk实现sql中group-by，count的功能" class="headerlink" title="awk实现sql中group by，count的功能"></a>awk实现sql中group by，count的功能</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">awk -F &quot; &quot; &#39;&#123; w[$2]+&#x3D;1&#125; END&#123; for (a in w)  print a, w[a]&#125;&#39; detail.csv  &gt; aaa.txt<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>可以参考<br><a href="https://www.cnblogs.com/ginvip/p/6352157.html">https://www.cnblogs.com/ginvip/p/6352157.html</a><br><a href="http://www.blogjava.net/henry14/archive/2012/01/15/368560.html">http://www.blogjava.net/henry14/archive/2012/01/15/368560.html</a></p>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>]]></content>
+<h3 id="自动输入账号密码"><a href="#自动输入账号密码" class="headerlink" title="自动输入账号密码"></a>自动输入账号密码</h3><p>借助exact<br>公司的gitlab禁用了ssh协议，每次pull代码都需要输入账号密码，这里写个脚本自动输入：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#!&#x2F;usr&#x2F;bin&#x2F;expect
+set timeout 30
+spawn git pull origin master
+expect &quot;Username for &#39;https:&#x2F;&#x2F;xxxx.xxxx.com.cn&#39;:&quot;
+send &quot;aaa\r&quot;
+expect &quot;Password for &#39;https:&#x2F;&#x2F;xxxx@xxxx.xxxx.com.cn&#39;:&quot;
+send &quot;**********\r&quot;
+interact<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里注意，不用sh这个脚本，需要给这个脚本执行权限，然后./pull.sh</p>
+]]></content>
       <categories>
         <category>Linux</category>
       </categories>
@@ -2667,6 +2794,79 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       </tags>
   </entry>
   <entry>
+    <title>spark on yarn遇到的问题</title>
+    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
+<li>spark on yarn任务提交缓慢解决</li>
+</ul>
+<a id="more"></a>
+<h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
+<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
+<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
+        --master yarn \
+        --deploy-mode client \
+        --num-executors 2 \
+        --executor-memory 1G \
+        --executor-cores 1 \
+        --conf spark.driver.host&#x3D;192.168.72.129\
+         dmp_broadcast_data_day.py
+ &#96;&#96;&#96;   
+   2、在集群其他节点上都把driver服务器的IP加上去。
+
+# spark on yarn任务提交缓慢解决
+## 问题背景
+   在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
+   在提交任务的时候，有一个WARN的日志：
+&#96;&#96;&#96;shell
+    WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
+<li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
+<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
+org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
+    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
+    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
+    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
+    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
+    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
+    at scala.Option.getOrElse(Option.scala:121)
+    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
+    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
+<li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
+<li>yarn的虚拟内存超限，contrainer被干杀死</li>
+</ul>
+<p>这里查了一下，我的是spark-end.sh配置没问题，问题出现在第二点<br>我的<code>yarn-site.xml</code>的<code>yarn.nodemanager.vmem-pmem-ratio=2.1</code>，虚拟内存最大是2.1，查看yarn上的日志，发现实际内存是2.2，所以，这里把它设置成了3.1</p>
+<pre class="line-numbers language-none"><code class="language-none">&lt;!--2个配置只用配置一个即可解决问题，当然都配置也没问题--&gt;
+&lt;!--虚拟内存设置是否生效,若实际虚拟内存大于设置值 &quot;--&gt;
+&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;&#x2F;name&gt;
+    &lt;value&gt;false&lt;&#x2F;value&gt;
+    &lt;description&gt;Whether virtual memory limits will be enforced for containers&lt;&#x2F;description&gt;
+&lt;&#x2F;property&gt;
+&lt;!--配置虚拟内存&#x2F;物理内存的值，默认为2.1,物理内存默认应该是1g，所以虚拟内存是2.1g--&gt;
+&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.vmem-pmem-ratio&lt;&#x2F;name&gt;
+    &lt;value&gt;3.1&lt;&#x2F;value&gt;
+    &lt;description&gt;Ratio between virtual memory to physical memory when setting memory limits for containers&lt;&#x2F;description&gt;
+&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Yarn</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spark-sql使用笔记</title>
     <url>/2021/01/18/spark-sql%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2784,79 +2984,6 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </categories>
       <tags>
         <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>spark on yarn遇到的问题</title>
-    <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</li>
-<li>spark on yarn任务提交缓慢解决</li>
-</ul>
-<a id="more"></a>
-<h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
-<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
-<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
-        --master yarn \
-        --deploy-mode client \
-        --num-executors 2 \
-        --executor-memory 1G \
-        --executor-cores 1 \
-        --conf spark.driver.host&#x3D;192.168.72.129\
-         dmp_broadcast_data_day.py
- &#96;&#96;&#96;   
-   2、在集群其他节点上都把driver服务器的IP加上去。
-
-# spark on yarn任务提交缓慢解决
-## 问题背景
-   在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
-   在提交任务的时候，有一个WARN的日志：
-&#96;&#96;&#96;shell
-    WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
-<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
-<li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
-<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
-org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
-    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
-    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
-    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
-    at scala.Option.getOrElse(Option.scala:121)
-    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
-    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
-<li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
-<li>yarn的虚拟内存超限，contrainer被干杀死</li>
-</ul>
-<p>这里查了一下，我的是spark-end.sh配置没问题，问题出现在第二点<br>我的<code>yarn-site.xml</code>的<code>yarn.nodemanager.vmem-pmem-ratio=2.1</code>，虚拟内存最大是2.1，查看yarn上的日志，发现实际内存是2.2，所以，这里把它设置成了3.1</p>
-<pre class="line-numbers language-none"><code class="language-none">&lt;!--2个配置只用配置一个即可解决问题，当然都配置也没问题--&gt;
-&lt;!--虚拟内存设置是否生效,若实际虚拟内存大于设置值 &quot;--&gt;
-&lt;property&gt;
-    &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;&#x2F;name&gt;
-    &lt;value&gt;false&lt;&#x2F;value&gt;
-    &lt;description&gt;Whether virtual memory limits will be enforced for containers&lt;&#x2F;description&gt;
-&lt;&#x2F;property&gt;
-&lt;!--配置虚拟内存&#x2F;物理内存的值，默认为2.1,物理内存默认应该是1g，所以虚拟内存是2.1g--&gt;
-&lt;property&gt;
-    &lt;name&gt;yarn.nodemanager.vmem-pmem-ratio&lt;&#x2F;name&gt;
-    &lt;value&gt;3.1&lt;&#x2F;value&gt;
-    &lt;description&gt;Ratio between virtual memory to physical memory when setting memory limits for containers&lt;&#x2F;description&gt;
-&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Yarn</tag>
       </tags>
   </entry>
   <entry>
@@ -3442,6 +3569,155 @@ search:
       <categories>
         <category>数据仓库</category>
         <category>数据湖</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据研发开发规范</title>
+    <url>/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>代码开发规范</li>
+<li>调度系统使用规范</li>
+<li>任务上线流程</li>
+<li>数仓分层与命名规范<a id="more"></a>
+
+
+
+</li>
+</ul>
+<p>众所周知，制订交通法规表面上是要限制行车权，实际上是保障公众的人身安全。试想如果没有限速，没有红绿灯，没有靠右行驶条款，谁还敢上路。消防局最主要的工作不是灭火，而是为了不发生火灾建立很多规范。如果发生火灾，说明前面的工作没有做到位。<br>同理，对于数仓开发来说，开发规范不是消灭开发的创造性、优雅性，而是限制过度个性化，推行相对标准化，以一种普遍认可的方式一起做事。<br>为此，针对数据研发而言，整理以下开发规范：</p>
+<ul>
+<li>代码开发规范</li>
+<li>调度系统使用规范</li>
+<li>任务上线流程</li>
+</ul>
+<p>设计开发规范的长远目标是从有到无，因为人人自觉遵守，规范和谐地融入开发整个流程，规范似乎消失了，但又无处不在。</p>
+<h2 id="代码开发规范"><a href="#代码开发规范" class="headerlink" title="代码开发规范"></a>代码开发规范</h2><p>数据研发分为离线任务和实时任务，两种任务的开发流程完全不同，故开发规范需要分别定制</p>
+<h3 id="离线任务"><a href="#离线任务" class="headerlink" title="离线任务"></a>离线任务</h3><h4 id="通用规范"><a href="#通用规范" class="headerlink" title="通用规范"></a>通用规范</h4><p>离线数仓的开发，主要是开发sql任务（hive sql/impala sql）,针对sql任务，制定以下规范：</p>
+<ol>
+<li>通过编写shell脚本来开发sql任务，一个shell脚本最终只输出一个结果表。中间生成的临时表需要在脚本最后删除</li>
+<li>任务的调度使用DolphinScheduler，每天定时启动</li>
+<li>默认情况下，执行引擎使用Hive-MR，除非对实效性要求很高，可以切换到Impala</li>
+<li>一个hive-cli只能执行一个sql，即一个sql语句不能含有多个<code>;</code></li>
+<li>脚本统一在自己本地开发，后上传到gitlab，通过DolphinScheduler的代码发布项目(projectDeploy)发布到线上</li>
+<li>如果引用的hive表是分区表，必须指定分区范围，如dt = ‘20220420’</li>
+<li>禁止使用<code>select *</code></li>
+<li>所有的报表和模型开发必须先出设计再进行开发</li>
+</ol>
+<h4 id="注释规范"><a href="#注释规范" class="headerlink" title="注释规范"></a>注释规范</h4><p>脚本的开头以及每个sql语句都必须有注视</p>
+<ol>
+<li>注释内容要清晰明了，含义准确，避免歧义 </li>
+<li>字段注释紧跟在字段后面 </li>
+<li>应对不易理解的分支条件表达式加注释 </li>
+<li>对重要的计算应说明其功能 </li>
+<li>过长的函数实现，应将其语句按实现的功能分段加以概括性说明 </li>
+<li>原则上所有表、字段、任务都需要添加注释，任务有特定的注释规范，见下文任务注释说明</li>
+</ol>
+<p>任务注释说明：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># # # # # # -CopyRight# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -
+#   AppName: offline_ods_bm_cust_info
+#   Description: 计算售前商机_客户基本信息表，保留历史与最新的数据
+#   Source Table:
+#        pom.stg_bm_cust_info
+#   Output Table:
+#        pom.ods_bm_cust_info
+#   Version 1.00
+#   Language:bash shell
+#   CreateDate: 2022&#x2F;04&#x2F;14 14:43
+#   Author: gujc
+#   ITCode: 17405
+#   Email: gujc@digiwin.com
+# # # # # # Update Log# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#   2022-04-15 修改history分区数据不全的问题
+# # # # # # Environment# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol>
+<li>提供任务名，方便任务创建时任务的获取以及平台中任务查询 </li>
+<li>提供创建者、创建日期、功能描述等信息，方便后期维护跟踪 </li>
+<li>提供代码变更历史，便于了解代码演进历史及依据 </li>
+<li>提供脚本依赖表清单，方便后续任务依赖配置 </li>
+<li>提供输出表清单，方便确认是否单个目标表</li>
+</ol>
+<h4 id="SQL编写规范"><a href="#SQL编写规范" class="headerlink" title="SQL编写规范"></a>SQL编写规范</h4><ol>
+<li>关键字最好大写，如SELECT、FROM、WHERE等，字段名不做要求</li>
+<li>字段排列要求</li>
+</ol>
+<ul>
+<li>SELECT 语句选择的字段按每行一个字段方式编排；</li>
+<li>SELECT 单词后面一个空格后直接跟首个选择的字段，其他字段前”,”点后放字段名</li>
+<li>建议每个SELECT的字段后面都有注释，至少在SQL的最外层的SELECT必须要有，并且多个字段的注释对其在同一列上<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> first_name               <span class="token comment">--第一个名字</span>
+      <span class="token punctuation">,</span>last_name                <span class="token comment">--最后一个名字</span>
+      <span class="token punctuation">,</span>salary                   <span class="token comment">--工资</span>
+      <span class="token punctuation">,</span>itcode                   <span class="token comment">--工号</span>
+<span class="token keyword">FROM</span> employee
+<span class="token keyword">WHERE</span> salary <span class="token operator">></span> <span class="token number">35000</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ul>
+<ol start="3">
+<li>SELECT子句排列要求<br>SELECT语句中所用到的FROM、WHERE、GROUP BY、HAVING、JOIN、UNION等子句</li>
+</ol>
+<ul>
+<li>换行编写</li>
+<li>与相应的SELECT语句对齐</li>
+<li>WHERE子句下面的逻辑判断符AND、OR等与WHERE左对齐编排<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> cust_id
+      <span class="token punctuation">,</span>num
+<span class="token keyword">FROM</span> cust 
+<span class="token keyword">WHERE</span> num <span class="token operator">>=</span> <span class="token number">100</span> 
+  <span class="token operator">AND</span> num <span class="token operator">&lt;=</span> <span class="token number">200</span>
+   <span class="token operator">OR</span> proname <span class="token operator">=</span> <span class="token string">'ORANGE'</span>
+<span class="token keyword">ORDER</span> <span class="token keyword">BY</span> num<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ul>
+<ol start="3">
+<li>算术运算符、逻辑运算符前后至少保留一个空格<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> <span class="token function">SUM</span><span class="token punctuation">(</span>t1<span class="token punctuation">.</span>num <span class="token operator">*</span> t2<span class="token punctuation">.</span>price<span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token number">2</span> <span class="token keyword">AS</span> total_amt
+<span class="token keyword">FROM</span> fruit_orders t1 
+<span class="token keyword">INNER</span> <span class="token keyword">JOIN</span> fruit_inventory t2 
+<span class="token keyword">ON</span> t1<span class="token punctuation">.</span>proid <span class="token operator">=</span> t2<span class="token punctuation">.</span>proid
+<span class="token keyword">WHERE</span> t2<span class="token punctuation">.</span>proname <span class="token operator">=</span> <span class="token string">'ORANGE'</span>
+  <span class="token operator">AND</span> num <span class="token operator">&lt;=</span> <span class="token number">200</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>一个sql语句最多join 3次，大于3次的，先创建临时表，关联临时表，这样可以使逻辑更清晰，并且方便调查数据问题</li>
+</ol>
+<p>其他规范可以参考<a href="https://zhuanlan.zhihu.com/p/453180860">HQL过程体开发规范</a></p>
+<h4 id="任务脚本案例"><a href="#任务脚本案例" class="headerlink" title="任务脚本案例"></a>任务脚本案例</h4><p>数仓脚本开发统一提交到<a href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a><br>为了方便编码，让数据研发人员专注于业务逻辑，这里对shell异常捕捉、执行引擎的选择等做了封装，开发人员只要按照固定的模版填充sql即可：</p>
+<ol>
+<li>删除hive临时表：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot; clear Temporary table $&#123;TABLE_TMP_01&#125;,write into Temporary table&quot;
+drop_tmp_table -tbn &quot;$&#123;TABLE_TMP_01&#125;&quot; -engine hive -env hwCloud<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+参数说明：</li>
+</ol>
+<p>-tbn：表名<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云</p>
+<ol start="2">
+<li>执行sql语句：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot;INSERT OVERWRITE TABLE partition active&quot;
+V_SQL&#x3D;&quot;
+INSERT OVERWRITE TABLE $&#123;TABLE_TMP_01&#125; partition(dp &#x3D; &#39;active&#39;,end_date &#x3D; &#39;99991231&#39;)
+SELECT activity_id          --活动id
+      ,activity_no          --活动编号
+      ,activity_name        --活动名称
+      ,transaction_times    --交易次数
+      ,contact_times        --接触次数
+      ,manage_status        --状态
+      ,tenantsid            --租户id
+FROM $&#123;TABLE_INPUT_01&#125; -- 因为每天取得数据都是最新的数据，所以，stg表就是最新的数据
+;
+&quot;
+runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -engine hive -env hwCloud || return $?<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+参数说明：</li>
+</ol>
+<p>-sql：要执行的sql语句<br>-msg：执行sql提示信息<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云<br>|| return $? : 获取代码执行状态 </p>
+<p>hive脚本案例可以查看DataWarehose/public/hive_templete.sh<br>impala脚本案例可以查看DataWarehose/public/impala_templete.sh</p>
+<h2 id="调度系统使用规范"><a href="#调度系统使用规范" class="headerlink" title="调度系统使用规范"></a>调度系统使用规范</h2><ul>
+<li>工作流按照项目划分，理论上，一个项目的所有任务都在一个工作流内</li>
+<li>一个job输出一个结果表，需要配置前置和后置依赖</li>
+<li>job名称统一按照时间粒度 + 输出结果表名来命名，例如offline_ods_pom_business_work_record,代表离线计算ods_pom_business_work_record<br>具体的项目案例，可以参考华为云上的pom项目</li>
+</ul>
+<h2 id="任务上线流程"><a href="#任务上线流程" class="headerlink" title="任务上线流程"></a>任务上线流程</h2><ul>
+<li>代码在本地开发完成后，需统一提交到<a href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a></li>
+<li>经由管理员codeReview之后合并到master分支</li>
+<li>在数据中台-项目管理-projectDeploy，选择相应的job执行代码分发<br><img src="/uploads/202204/%E6%95%B0%E4%BB%93%E9%A1%B9%E7%9B%AE%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B.png" alt="数仓项目上线流程"></li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+        <category>开发规范</category>
       </categories>
       <tags>
         <tag>数据仓库</tag>
@@ -8880,21 +9156,22 @@ nohup .&#x2F;bin&#x2F;hive --service hiveserver2 &amp;
 <span class="token comment">-- 因为是流式写数据，所以，必须得开启ck，否则会报错</span>
 <span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
 <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
-  id <span class="token keyword">BIGINT</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
-  name STRING<span class="token punctuation">,</span>
-  birthday <span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-  ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+    uuid string <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
+    name STRING<span class="token punctuation">,</span>
+    age <span class="token keyword">int</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    part string
 <span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
-<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
-<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'10.150.21.241'</span><span class="token punctuation">,</span>
-<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
-<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
-<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'123456'</span><span class="token punctuation">,</span>
-<span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
-<span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
-<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
-<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'tbl_users'</span>
-<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+      <span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
+      <span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
+      <span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
+      <span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
+      <span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
+      <span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
+      <span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
+      <span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
+      <span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'users_source_mysql'</span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>写数据到hudi<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--创建hudi表</span>
 <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> t2_tmp<span class="token punctuation">(</span>
     uuid <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
@@ -9014,6 +9291,52 @@ at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden=
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">use hudi;
 select * from t2_rt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>经过检验，spark-sql可以查询flink写入hudi的表</p>
+<h3 id="hudi与impala整合"><a href="#hudi与impala整合" class="headerlink" title="hudi与impala整合"></a>hudi与impala整合</h3><p>hudi与impala整合需要注意亮点</p>
+<ol>
+<li>需要升级impala3.4版本以上，3.4以前的版本不支持读取hudi。</li>
+<li>impala仅支持读取COPY_ON_WRITE类型的hudi表</li>
+<li>每次使用impala查询hudi表之前，都需要refresh该表</li>
+</ol>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--flinksql写数据进hudi</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> t2_1<span class="token punctuation">(</span>
+    uuid <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
+    name <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    age <span class="token keyword">INT</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    part <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">WITH</span> <span class="token punctuation">(</span> 
+    <span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'hudi'</span><span class="token punctuation">,</span>
+    <span class="token string">'path'</span> <span class="token operator">=</span> <span class="token string">'hdfs:///user/hive/warehouse/hudi.db/t2_1'</span><span class="token punctuation">,</span>
+    <span class="token string">'table.type'</span> <span class="token operator">=</span> <span class="token string">'COPY_ON_WRITE'</span><span class="token punctuation">,</span>   <span class="token comment">--注意是COPY_ON_WRITE</span>
+    <span class="token string">'hoodie.datasource.write.recordkey.field'</span><span class="token operator">=</span> <span class="token string">'uuid'</span><span class="token punctuation">,</span>
+    <span class="token string">'write.precombine.field'</span><span class="token operator">=</span> <span class="token string">'ts'</span><span class="token punctuation">,</span>
+    <span class="token string">'write.tasks'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+    <span class="token string">'write.rate.limit'</span> <span class="token operator">=</span> <span class="token string">'2000'</span><span class="token punctuation">,</span>
+    <span class="token string">'compaction.tasks'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+    <span class="token string">'compaction.async.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+    <span class="token string">'compaction.trigger.strategy'</span> <span class="token operator">=</span> <span class="token string">'num_commits'</span><span class="token punctuation">,</span>
+    <span class="token string">'compaction.delta_commits'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+    <span class="token string">'changleog.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+    <span class="token string">'read.streaming.enabled'</span><span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+    <span class="token string">'read.streaming.check-interval'</span><span class="token operator">=</span> <span class="token string">'3'</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.enable'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>     <span class="token comment">-- Required. To enable hive synchronization</span>
+    <span class="token string">'hive_sync.mode'</span> <span class="token operator">=</span> <span class="token string">'hms'</span><span class="token punctuation">,</span>        <span class="token comment">-- Required. Setting hive sync mode to hms, default jdbc</span>
+    <span class="token string">'hive_sync.metastore.uris'</span> <span class="token operator">=</span> <span class="token string">'thrift://172.16.2.204:9083'</span><span class="token punctuation">,</span> <span class="token comment">-- Required. The port need set on hive-site.xml</span>
+    <span class="token string">'hive_sync.jdbc_url'</span> <span class="token operator">=</span> <span class="token string">'jdbc://hive2://172.16.2.204:10000'</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.table'</span><span class="token operator">=</span><span class="token string">'t2_1'</span><span class="token punctuation">,</span>                  <span class="token comment">-- required, hive table name</span>
+    <span class="token string">'hive_sync.db'</span><span class="token operator">=</span><span class="token string">'hudi'</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.username'</span> <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.password'</span> <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">,</span>
+    <span class="token string">'hive_sync.support_timstamp'</span> <span class="token operator">=</span> <span class="token string">'true'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">INSERT</span> <span class="token keyword">INTO</span> t2_1 <span class="token keyword">SELECT</span> uuid<span class="token punctuation">,</span> name<span class="token punctuation">,</span> age<span class="token punctuation">,</span> ts<span class="token punctuation">,</span> part <span class="token keyword">FROM</span> users_source_mysql <span class="token punctuation">;</span>
+
+<span class="token comment">-- 在impala中查询hudi表</span>
+INVALIDATE METADATA hudi<span class="token punctuation">.</span>t2_1<span class="token punctuation">;</span>
+REFRESH hudi<span class="token punctuation">.</span>t2_1<span class="token punctuation">;</span>
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> hudi<span class="token punctuation">.</span>t2_1<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/uploads/202204/impala%E8%AF%BB%E5%8F%96hudi%E8%A1%A8.png" alt="impala读取hudi表"></p>
 <h1 id="Iceberg介绍"><a href="#Iceberg介绍" class="headerlink" title="Iceberg介绍"></a>Iceberg介绍</h1><h2 id="存储-1"><a href="#存储-1" class="headerlink" title="存储"></a>存储</h2><p>Iceberg支持使用Hadoop FileSystem API与湖存储交互，Iceberg需要文件系统支持写、读、删除操作，比如S3。Iceberg不需要随机写，一旦写入，数据文件和元数据文件在被删除之前是不可变的。</p>
 <h2 id="文件格式-1"><a href="#文件格式-1" class="headerlink" title="文件格式"></a>文件格式</h2><p>Iceberg是围绕数据文件和元数据文件的概念设计的，数据文件格式支持parquet, avro, orc，数据文件可以设置大小，减少数据文件重写成本，元数据文件格式支持Json</p>
 <h2 id="表格式-1"><a href="#表格式-1" class="headerlink" title="表格式"></a>表格式</h2><p>Iceerg支持创建表、删除表、修改表名、修改表属性、添加列、修改列名、修改列大小、修改列的顺序、删除列等操作。Iceberg的schema更新是元数据修改，数据文件不需要重写。<br>Iceberg分区每次都正确地生成分区值，并总是在可能的情况下用于加速查询。最重要的是，查询不再依赖于表的物理布局。通过物理和逻辑之间的分离，Iceberg表可以随着数据量的变化而发展分区方案。分区修改是一个元数据操作且不需要重写文件。<br>Iceberg排序顺序也可以在现有表中更新，在修改排序顺序时，使用较早顺序写入的旧数据将保持不变，引擎总是可以选择以最新的排序顺序。<br>快照文件列出清单列表文件。清单列表文件列出组成表快照的清单文件，以及每个分区的范围。清单文件列出组成表快照的数据文件，以及数据文件分区数据和列级别统计信息。Iceberg首先使用清单列表文件分区的范围，然后使用清单文件获取数据文件。通过这种模式，清单列表文件作为清单文件的索引，不需要扫描所有的清单文件。</p>
