@@ -1024,48 +1024,6 @@ fs<span class="token punctuation">.</span>defaultFS<span class="token operator">
       </tags>
   </entry>
   <entry>
-    <title>Iceberg学习笔记</title>
-    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Iceberg简介</li>
-<li>Iceberg架构</li>
-<li>Iceberg简单使用案例</li>
-<li>Iceberg压力测试<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
-<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
-<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
-<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
-<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
-<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
-<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
-<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
-<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
-</ul>
-<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
-<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
-<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/20210520/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
-<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
-<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
-<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
-<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
-<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
-<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
-<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
-</ul>
-<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Iceberg</category>
-      </categories>
-      <tags>
-        <tag>Iceberg</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hadoop集群扩容</title>
     <url>/2022/03/08/Hadoop%E9%9B%86%E7%BE%A4%E6%89%A9%E5%AE%B9/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1117,6 +1075,48 @@ chown -R hdfs:hadoop dfs<span aria-hidden="true" class="line-numbers-rows"><span
       </categories>
       <tags>
         <tag>Hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Iceberg学习笔记</title>
+    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Iceberg简介</li>
+<li>Iceberg架构</li>
+<li>Iceberg简单使用案例</li>
+<li>Iceberg压力测试<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
+<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
+<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
+<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
+<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
+<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
+<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
+</ul>
+<p>与其他数据湖产品对比：<br><img src="/uploads/20210520/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
+<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
+<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/20210520/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
+<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
+<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
+<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
+<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
+<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
+<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
+</ul>
+<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Iceberg</category>
+      </categories>
+      <tags>
+        <tag>Iceberg</tag>
       </tags>
   </entry>
   <entry>
@@ -1850,40 +1850,6 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
-    <title>Scala面试题</title>
-    <url>/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Scala面试题总结</li>
-</ul>
-<a id="more"></a>
-
-
-<p><strong><font size = 5>1. 方法和函数的区别？</font></strong><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
-<p><strong><font size = 5>2. Scala类型系统中Nil, Null, None, Nothing四个类型的区别？？</font></strong><br>Null是一个trait（特质），是所以引用类型AnyRef的一个子类型，null是Null唯一的实例。<br>Nothing也是一个trait（特质），是所有类型Any（包括值类型和引用类型）的子类型，它不在有子类型，它也没有实例，实际上为了一个方法抛出异常，通常会设置一个默认返回类型。<br>Nil代表一个List空类型，等同List[Nothing]<br>None是Option monad的空标识（深入了解请参考问题Q11）</p>
-<p><strong><font size = 5>3. 什么是高阶函数？</font></strong><br>高阶函数指能接受或者返回其他函数的函数，scala中的filter map flatMap函数都能接受其他函数作为参数。</p>
-<p><strong><font size = 5>4. 什么是隐式转换？</font></strong><br>通过隐式转换，程序员可以在编写Scala程序时故意漏掉一些信息，让编译器去尝试在编译期间自动推导出这些信息来，这种特性可以极大的减少代码量，忽略那些冗长，过于细节的代码<br>隐式转换必须满足无歧义规则，在声明隐式参数的类型是最好使用特别的或自定义的数据类型，不要使用Int,String这些常用类型，避免碰巧匹配<br>调用方法：</p>
-<ol>
-<li>将方法或变量标记为implicit</li>
-<li>将方法的参数列表标记为implicit</li>
-<li>将类标记为implicit</li>
-</ol>
-<p>Scala支持3种形式的隐式转换：<br>隐式值：用于给方法提供参数<br>隐式视图：用于类型间转换或使针对某类型的方法能调用成功<br>隐式类：使用implicit声明类</p>
-<p><strong><font size = 5>5. scala的模式匹配？</font></strong><br>有点类似于Java语言的 switch，但其实还是有很大的不同的</p>
-<ul>
-<li>java 的 switch 仅仅会做一些基本类型的匹配，然后执行一些动作，并且是没有返回值的。</li>
-<li>scala 的模式匹配除了可以匹配数值，同时它还能匹配类型，同时它还是有返回值的</li>
-</ul>
-]]></content>
-      <categories>
-        <category>面试题</category>
-        <category>Scala</category>
-      </categories>
-      <tags>
-        <tag>Scala</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Scala杂记</title>
     <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1949,6 +1915,110 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </categories>
       <tags>
         <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Scala面试题</title>
+    <url>/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Scala面试题总结</li>
+</ul>
+<a id="more"></a>
+
+
+<p><strong><font size = 5>1. 方法和函数的区别？</font></strong><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
+<p><strong><font size = 5>2. Scala类型系统中Nil, Null, None, Nothing四个类型的区别？？</font></strong><br>Null是一个trait（特质），是所以引用类型AnyRef的一个子类型，null是Null唯一的实例。<br>Nothing也是一个trait（特质），是所有类型Any（包括值类型和引用类型）的子类型，它不在有子类型，它也没有实例，实际上为了一个方法抛出异常，通常会设置一个默认返回类型。<br>Nil代表一个List空类型，等同List[Nothing]<br>None是Option monad的空标识（深入了解请参考问题Q11）</p>
+<p><strong><font size = 5>3. 什么是高阶函数？</font></strong><br>高阶函数指能接受或者返回其他函数的函数，scala中的filter map flatMap函数都能接受其他函数作为参数。</p>
+<p><strong><font size = 5>4. 什么是隐式转换？</font></strong><br>通过隐式转换，程序员可以在编写Scala程序时故意漏掉一些信息，让编译器去尝试在编译期间自动推导出这些信息来，这种特性可以极大的减少代码量，忽略那些冗长，过于细节的代码<br>隐式转换必须满足无歧义规则，在声明隐式参数的类型是最好使用特别的或自定义的数据类型，不要使用Int,String这些常用类型，避免碰巧匹配<br>调用方法：</p>
+<ol>
+<li>将方法或变量标记为implicit</li>
+<li>将方法的参数列表标记为implicit</li>
+<li>将类标记为implicit</li>
+</ol>
+<p>Scala支持3种形式的隐式转换：<br>隐式值：用于给方法提供参数<br>隐式视图：用于类型间转换或使针对某类型的方法能调用成功<br>隐式类：使用implicit声明类</p>
+<p><strong><font size = 5>5. scala的模式匹配？</font></strong><br>有点类似于Java语言的 switch，但其实还是有很大的不同的</p>
+<ul>
+<li>java 的 switch 仅仅会做一些基本类型的匹配，然后执行一些动作，并且是没有返回值的。</li>
+<li>scala 的模式匹配除了可以匹配数值，同时它还能匹配类型，同时它还是有返回值的</li>
+</ul>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>Scala</category>
+      </categories>
+      <tags>
+        <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Selenium与PhantomJS踩过的坑</title>
+    <url>/2021/01/16/Selenium%E4%B8%8EPhantomJS%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Selenium与PhantomJS踩过的坑<a id="more"></a>
+<h2 id="Selenium与PhantomJS踩过的坑"><a href="#Selenium与PhantomJS踩过的坑" class="headerlink" title="Selenium与PhantomJS踩过的坑"></a>Selenium与PhantomJS踩过的坑</h2><h3 id="Selenium"><a href="#Selenium" class="headerlink" title="Selenium"></a>Selenium</h3>Selenium是一个Web的自动化测试工具，最初是为网站自动化测试而开发的，类型像我们玩游戏用的按键精灵，可以按指定的命令自动化操作，不同是Selenium可以直接运行在浏览器上，它支持所有主流的浏览器(包括PhantomJS这些无界面的浏览器)。</li>
+</ul>
+<p>Selenium可以根据我们的指令，让浏览器自动加载页面，获取需要的页面，甚至页面截屏，或者判断网站上某些动作是否发生。</p>
+<p>Selenium自己不带浏览器，不支持浏览器的功能，它需要与第三方浏览器结合在一起才能使用。但是我们有时候需要让它内嵌在代码中运行，所有我们需要用一个叫PhantomJS的工具代替真实的浏览器。</p>
+<h4 id="Selenium的安装"><a href="#Selenium的安装" class="headerlink" title="Selenium的安装"></a>Selenium的安装</h4><p>直接通过pip安装即可，这里没什么坑</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">pip install selenium<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="PhantomJS"><a href="#PhantomJS" class="headerlink" title="PhantomJS"></a>PhantomJS</h3><p>PhantomJS是一个基于Webkit的”无界面”(headless)浏览器，它会把网站加载到内存并执行页面上的JavaScript，因为不会展示图形界面，所以运行起来比完整的浏览器更高效。</p>
+<p>如果我们把Selenium和PhantomJS结合在一起，就可以运行一个非常强大的网络爬虫了，这个爬虫可以处理JavaScript、Cookie、headers，以及任何我们真实用户需要做的事情。</p>
+<h4 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h4><ul>
+<li>PhantomJS只能从它的网站(<a href="http://phantomjs.org/download.html)%E4%B8%8B%E8%BD%BD%E3%80%82">http://phantomjs.org/download.html)下载。</a></li>
+<li>因为PhantomJS是一个功能完善(虽然无界面)的浏览器而非一个Python库，所以它不需要像Python的其它库一样安装，但我们可以通过Selenium调用PhantomJS来直接使用</li>
+<li>PhantomsJS官方才考文档：<a href="http://phantomjs.org/documention">http://phantomjs.org/documention</a></li>
+<li>这里不能通过pip、apt-get，yum等方式安装，一开始在自己虚拟机通过apt-get安装，但是一直报错。后来又全卸载，重新通过官网下载手动安装才行。</li>
+<li>在自己的远程服务器中运行代码，报错：<pre class="line-numbers language-python" data-language="python"><code class="language-python">TypeError<span class="token punctuation">:</span> urlopen<span class="token punctuation">(</span><span class="token punctuation">)</span> got multiple values <span class="token keyword">for</span> keyword argument <span class="token string">'body'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+原因是服务器的urllib3版本太低，卸载以后重装就好了<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get remove python-urllib3
+sudo pip install -U urllib3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+下面是代码：<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
+<span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
+<span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
+<span class="token keyword">import</span> time
+driver <span class="token operator">=</span> webdriver<span class="token punctuation">.</span>PhantomJS<span class="token punctuation">(</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"www.wangzhi.com"</span><span class="token punctuation">)</span>  <span class="token comment">#穿入你的网址</span>
+driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">"aaa@qq.com"</span><span class="token punctuation">)</span> <span class="token comment">#按F12，查看网页源代码中登录界面的name传参是什么</span>
+<span class="token comment"># 我的网页：&lt;input id="loginEmail" class='login_input' type="text" name="email" placeholder="请输入您的邮箱"></span>
+<span class="token comment"># 所以 find_element_by_name("email")里面穿的是email，pwd一样，find_element_by_id也一样</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"pwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">'111111'</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>find_element_by_id<span class="token punctuation">(</span><span class="token string">"loginButton"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>click<span class="token punctuation">(</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>save_screenshot<span class="token punctuation">(</span><span class="token string">'broad.png'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+</li>
+</ul>
+<h3 id="服务器没有中文字体"><a href="#服务器没有中文字体" class="headerlink" title="服务器没有中文字体"></a>服务器没有中文字体</h3><p>所有都准备好了，原本以为万事大吉，但是发现截图的内容，不能显示中文。<br>在网上查了原因是系统没有装中文字体。<br>安装字体可以参考<a href="https://www.jianshu.com/p/e7f12b8c8602">https://www.jianshu.com/p/e7f12b8c8602</a></p>
+<h3 id="中文字体解决以后，又出现了截图页面不完整"><a href="#中文字体解决以后，又出现了截图页面不完整" class="headerlink" title="中文字体解决以后，又出现了截图页面不完整"></a>中文字体解决以后，又出现了截图页面不完整</h3><p>最后在网上查了原因 ，是因为分辨率的原因<br>在代码上添加</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">driver<span class="token punctuation">.</span>set_window_size<span class="token punctuation">(</span><span class="token number">1366</span><span class="token punctuation">,</span> <span class="token number">768</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>完整代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
+<span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
+<span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
+<span class="token keyword">import</span> time
+driver <span class="token operator">=</span> webdriver<span class="token punctuation">.</span>PhantomJS<span class="token punctuation">(</span>service_args<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">'--ignore-ssl-errors=true'</span><span class="token punctuation">,</span> <span class="token string">'--ssl-protocol=any'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yourwebsite"</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>set_window_size<span class="token punctuation">(</span><span class="token number">1366</span><span class="token punctuation">,</span> <span class="token number">768</span><span class="token punctuation">)</span> <span class="token comment">#这里必须加在get网页的后面，加在它之前没用</span>
+driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">"你的用户名"</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"pwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">'你的密码'</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>find_element_by_id<span class="token punctuation">(</span><span class="token string">"loginButton"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>click<span class="token punctuation">(</span><span class="token punctuation">)</span>
+time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
+driver<span class="token punctuation">.</span>save_screenshot<span class="token punctuation">(</span><span class="token string">'/data/jenkins/broadcastPicture/broad.png'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>因为截图涉及公司数据，就不粘贴到这里了。</p>
+<p>实践过程中，通过参考 <a href="https://www.cnblogs.com/miqi1992/p/8093958.html">Python爬虫(二十一)_Selenium与PhantomJS</a>实现了自动截图，<br>参考<a href="https://www.cnblogs.com/miqi1992/p/8120185.html">Python爬虫(二十二)_selenium案例：模拟登陆豆瓣</a>实现了自动登录  </p>
+]]></content>
+      <categories>
+        <category>爬虫</category>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Selenium</tag>
+        <tag>PhantomJS</tag>
       </tags>
   </entry>
   <entry>
@@ -2035,76 +2105,6 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </categories>
       <tags>
         <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Selenium与PhantomJS踩过的坑</title>
-    <url>/2021/01/16/Selenium%E4%B8%8EPhantomJS%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Selenium与PhantomJS踩过的坑<a id="more"></a>
-<h2 id="Selenium与PhantomJS踩过的坑"><a href="#Selenium与PhantomJS踩过的坑" class="headerlink" title="Selenium与PhantomJS踩过的坑"></a>Selenium与PhantomJS踩过的坑</h2><h3 id="Selenium"><a href="#Selenium" class="headerlink" title="Selenium"></a>Selenium</h3>Selenium是一个Web的自动化测试工具，最初是为网站自动化测试而开发的，类型像我们玩游戏用的按键精灵，可以按指定的命令自动化操作，不同是Selenium可以直接运行在浏览器上，它支持所有主流的浏览器(包括PhantomJS这些无界面的浏览器)。</li>
-</ul>
-<p>Selenium可以根据我们的指令，让浏览器自动加载页面，获取需要的页面，甚至页面截屏，或者判断网站上某些动作是否发生。</p>
-<p>Selenium自己不带浏览器，不支持浏览器的功能，它需要与第三方浏览器结合在一起才能使用。但是我们有时候需要让它内嵌在代码中运行，所有我们需要用一个叫PhantomJS的工具代替真实的浏览器。</p>
-<h4 id="Selenium的安装"><a href="#Selenium的安装" class="headerlink" title="Selenium的安装"></a>Selenium的安装</h4><p>直接通过pip安装即可，这里没什么坑</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">pip install selenium<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="PhantomJS"><a href="#PhantomJS" class="headerlink" title="PhantomJS"></a>PhantomJS</h3><p>PhantomJS是一个基于Webkit的”无界面”(headless)浏览器，它会把网站加载到内存并执行页面上的JavaScript，因为不会展示图形界面，所以运行起来比完整的浏览器更高效。</p>
-<p>如果我们把Selenium和PhantomJS结合在一起，就可以运行一个非常强大的网络爬虫了，这个爬虫可以处理JavaScript、Cookie、headers，以及任何我们真实用户需要做的事情。</p>
-<h4 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h4><ul>
-<li>PhantomJS只能从它的网站(<a href="http://phantomjs.org/download.html)%E4%B8%8B%E8%BD%BD%E3%80%82">http://phantomjs.org/download.html)下载。</a></li>
-<li>因为PhantomJS是一个功能完善(虽然无界面)的浏览器而非一个Python库，所以它不需要像Python的其它库一样安装，但我们可以通过Selenium调用PhantomJS来直接使用</li>
-<li>PhantomsJS官方才考文档：<a href="http://phantomjs.org/documention">http://phantomjs.org/documention</a></li>
-<li>这里不能通过pip、apt-get，yum等方式安装，一开始在自己虚拟机通过apt-get安装，但是一直报错。后来又全卸载，重新通过官网下载手动安装才行。</li>
-<li>在自己的远程服务器中运行代码，报错：<pre class="line-numbers language-python" data-language="python"><code class="language-python">TypeError<span class="token punctuation">:</span> urlopen<span class="token punctuation">(</span><span class="token punctuation">)</span> got multiple values <span class="token keyword">for</span> keyword argument <span class="token string">'body'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-原因是服务器的urllib3版本太低，卸载以后重装就好了<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get remove python-urllib3
-sudo pip install -U urllib3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-下面是代码：<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
-<span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
-<span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
-<span class="token keyword">import</span> time
-driver <span class="token operator">=</span> webdriver<span class="token punctuation">.</span>PhantomJS<span class="token punctuation">(</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"www.wangzhi.com"</span><span class="token punctuation">)</span>  <span class="token comment">#穿入你的网址</span>
-driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">"aaa@qq.com"</span><span class="token punctuation">)</span> <span class="token comment">#按F12，查看网页源代码中登录界面的name传参是什么</span>
-<span class="token comment"># 我的网页：&lt;input id="loginEmail" class='login_input' type="text" name="email" placeholder="请输入您的邮箱"></span>
-<span class="token comment"># 所以 find_element_by_name("email")里面穿的是email，pwd一样，find_element_by_id也一样</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"pwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">'111111'</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>find_element_by_id<span class="token punctuation">(</span><span class="token string">"loginButton"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>click<span class="token punctuation">(</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>save_screenshot<span class="token punctuation">(</span><span class="token string">'broad.png'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-</li>
-</ul>
-<h3 id="服务器没有中文字体"><a href="#服务器没有中文字体" class="headerlink" title="服务器没有中文字体"></a>服务器没有中文字体</h3><p>所有都准备好了，原本以为万事大吉，但是发现截图的内容，不能显示中文。<br>在网上查了原因是系统没有装中文字体。<br>安装字体可以参考<a href="https://www.jianshu.com/p/e7f12b8c8602">https://www.jianshu.com/p/e7f12b8c8602</a></p>
-<h3 id="中文字体解决以后，又出现了截图页面不完整"><a href="#中文字体解决以后，又出现了截图页面不完整" class="headerlink" title="中文字体解决以后，又出现了截图页面不完整"></a>中文字体解决以后，又出现了截图页面不完整</h3><p>最后在网上查了原因 ，是因为分辨率的原因<br>在代码上添加</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python">driver<span class="token punctuation">.</span>set_window_size<span class="token punctuation">(</span><span class="token number">1366</span><span class="token punctuation">,</span> <span class="token number">768</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>完整代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
-<span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
-<span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
-<span class="token keyword">import</span> time
-driver <span class="token operator">=</span> webdriver<span class="token punctuation">.</span>PhantomJS<span class="token punctuation">(</span>service_args<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">'--ignore-ssl-errors=true'</span><span class="token punctuation">,</span> <span class="token string">'--ssl-protocol=any'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yourwebsite"</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>set_window_size<span class="token punctuation">(</span><span class="token number">1366</span><span class="token punctuation">,</span> <span class="token number">768</span><span class="token punctuation">)</span> <span class="token comment">#这里必须加在get网页的后面，加在它之前没用</span>
-driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">"你的用户名"</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>find_element_by_name<span class="token punctuation">(</span><span class="token string">"pwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>send_keys<span class="token punctuation">(</span><span class="token string">'你的密码'</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>find_element_by_id<span class="token punctuation">(</span><span class="token string">"loginButton"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>click<span class="token punctuation">(</span><span class="token punctuation">)</span>
-time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
-driver<span class="token punctuation">.</span>save_screenshot<span class="token punctuation">(</span><span class="token string">'/data/jenkins/broadcastPicture/broad.png'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>因为截图涉及公司数据，就不粘贴到这里了。</p>
-<p>实践过程中，通过参考 <a href="https://www.cnblogs.com/miqi1992/p/8093958.html">Python爬虫(二十一)_Selenium与PhantomJS</a>实现了自动截图，<br>参考<a href="https://www.cnblogs.com/miqi1992/p/8120185.html">Python爬虫(二十二)_selenium案例：模拟登陆豆瓣</a>实现了自动登录  </p>
-]]></content>
-      <categories>
-        <category>爬虫</category>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Selenium</tag>
-        <tag>PhantomJS</tag>
       </tags>
   </entry>
   <entry>
@@ -2684,34 +2684,88 @@ interact<span aria-hidden="true" class="line-numbers-rows"><span></span><span></
 <a id="more"></a>
 
 
-<h2 id="maven编译hudi源码"><a href="#maven编译hudi源码" class="headerlink" title="maven编译hudi源码"></a>maven编译hudi源码</h2><p>到github上下载hudi源码，本文选择0.10.1版本</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;hudi.git -b release-0.10.1 <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="集群环境"><a href="#集群环境" class="headerlink" title="集群环境"></a>集群环境</h3><p>Flink-1.13.6<br>Scala-2.11<br>CDH-6.2.0<br>Hadoop-3.0.0<br>Hive-2.1.1<br>Hudi-0.10(release-0.10.1 )<br>maven-3.6.3<br>jdk-1.8</p>
+<h2 id="maven编译hudi源码"><a href="#maven编译hudi源码" class="headerlink" title="maven编译hudi源码"></a>maven编译hudi源码</h2><p>到github上下载hudi源码，本文选择0.11.0版本</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;hudi.git -b release-0.11.0 <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="集群环境"><a href="#集群环境" class="headerlink" title="集群环境"></a>集群环境</h3><p>Flink-1.13.6<br>Scala-2.11<br>CDH-6.2.0<br>Hadoop-3.0.0<br>Hive-2.1.1<br>Hudi-0.11(release-0.11.0 )<br>maven-3.6.3<br>jdk-1.8</p>
 <h3 id="配置maven并编译源代码"><a href="#配置maven并编译源代码" class="headerlink" title="配置maven并编译源代码"></a>配置maven并编译源代码</h3><p>为了加快下载速度，修改maven的settings.xml，添加aliyun远程仓库</p>
 <pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirror</span><span class="token punctuation">></span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>alimaven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrorOf</span><span class="token punctuation">></span></span>central,!cloudera<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrorOf</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrorOf</span><span class="token punctuation">></span></span>central<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrorOf</span><span class="token punctuation">></span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>aliyun maven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>https://maven.aliyun.com/nexus/content/groups/public/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirror</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p><strong>注意：</strong> 这里是https，原本从自己电脑上复制下来是http，然后一直报如下错误：<br><img src="/uploads/202203/maven%E7%BC%96%E8%AF%91hudi%E6%8A%A5%E9%94%99%E6%97%A5%E5%BF%971.png" alt="maven编译hudi报错日志1"><br>编译时报错，显示连接中央仓库501<br>经过百度得知，原来中央仓库不再支持http访问，需要将路径更改为https</p>
 <p>进入hudi源代码目录，并执行一下语句：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mvn clean install -DskipTests -Dmaven.test.skip&#x3D;true -Dscala-2.11 -Dhadoop.version&#x3D;3.0.0-cdh6.2.0 -Pflink-bundle-shade-hive2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mvn clean install -DskipTests -Dmaven.test.skip&#x3D;true -Dscala-2.12 -Dhadoop.version&#x3D;3.0.0-cdh6.2.0 -Pflink1.13 -Pflink-bundle-shade-hive2 -T20C<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>开始的时候没有指定跳过检查，导致一直报错，编译的时候，一定要跳过检查</p>
 <ul>
 <li>-DskipTests</li>
 <li>-Dmaven.test.skip=true</li>
 </ul>
-<p>因为跳过了检查，hudi包里有两个测试模块，里面引用了hudi-common里的test的java类，需要从编译列表里去除，后期可以调查一下不跳过检查，怎么编译源码</p>
-<p>跳过检查后，编译成功：<br><img src="/uploads/202203/Hudi%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%88%90%E5%8A%9F.png" alt="Hudi源码编译成功"></p>
+<p>hudi-0.11.0默认用的flink版本是1.14.4,但是，官方给留了一个参数，可以在编译的时候指定flink版本为1.13<br>即加上参数<code>-Pflink1.13</code></p>
+<p>这里的参数可以在hudi最外层的pom文件里看到，配置如下：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>profile</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>flink1.13<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>properties</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>flink.version</span><span class="token punctuation">></span></span>$&#123;flink1.13.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>flink.version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>flink.runtime.artifactId</span><span class="token punctuation">></span></span>flink-runtime_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>flink.runtime.artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>flink.table.runtime.artifactId</span><span class="token punctuation">></span></span>flink-table-runtime-blink_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>flink.table.runtime.artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>flink.table.planner.artifactId</span><span class="token punctuation">></span></span>flink-table-planner-blink_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>flink.table.planner.artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hudi.flink.module</span><span class="token punctuation">></span></span>hudi-flink1.13.x<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>hudi.flink.module</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>flink.bundle.version</span><span class="token punctuation">></span></span>1.13<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>flink.bundle.version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>skipITs</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>skipITs</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>properties</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>activation</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>flink1.13<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>activation</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>profile</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这种profile在编译的时候，就可以指定-P，后面跟<id></id>的内容</p>
+<h3 id="报错与踩坑"><a href="#报错与踩坑" class="headerlink" title="报错与踩坑"></a>报错与踩坑</h3><ol>
+<li><p>找不到合适的构造器 [ERROR] 构造器</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.8.0:compile (default-compile) on project hudi-common: Compilation failure [ERROR] &#x2F;opt&#x2F;hudi&#x2F;hudi-common&#x2F;src&#x2F;main&#x2F;java&#x2F;org&#x2F;apache&#x2F;hudi&#x2F;common&#x2F;table&#x2F;log&#x2F;block&#x2F;HoodieParquetDataBlock.java:[111,44] 对于FSDataOutputStream(java.io.ByteArrayOutputStream), 找不到合适的构造器 [ERROR] 构造器 org.apache.hadoop.fs.FSDataOutputStream.FSDataOutputStream(java.io.OutputStream,org.apache.hadoop.fs.FileSystem.Statistics)不适用 [ERROR] (实际参数列表和形式参数列表<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>解决办法：<br>FSDataOutputStream outputStream = new FSDataOutputStream(baos, null) 把报错的地方第二个参数加上</p>
+</li>
+<li><p>java.lang.NoSuchMethodError: org.apache.parquet.bytes.BytesInput.toInputStream()Lorg/apache/parquet/bytes/ByteBufferInputStream;</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-05-10 15:41:49,463 WARN  org.apache.flink.runtime.taskmanager.Task                    [] - split_reader -&gt; NotNullEnforcer(fields&#x3D;[uuid]) (3&#x2F;4)#0 (de4312b557275e636b33cacdeca84148) switched from RUNNING to FAILED with failure cause: java.lang.NoSuchMethodError: org.apache.parquet.bytes.BytesInput.toInputStream()Lorg&#x2F;apache&#x2F;parquet&#x2F;bytes&#x2F;ByteBufferInputStream;
+	at org.apache.flink.formats.parquet.vector.reader.AbstractColumnReader.readPageV1(AbstractColumnReader.java:211)
+	at org.apache.flink.formats.parquet.vector.reader.AbstractColumnReader.readToVector(AbstractColumnReader.java:156)
+	at org.apache.hudi.table.format.cow.vector.reader.ParquetColumnarRowSplitReader.nextBatch(ParquetColumnarRowSplitReader.java:311)
+	at org.apache.hudi.table.format.cow.vector.reader.ParquetColumnarRowSplitReader.ensureBatch(ParquetColumnarRowSplitReader.java:287)
+	at org.apache.hudi.table.format.cow.vector.reader.ParquetColumnarRowSplitReader.reachedEnd(ParquetColumnarRowSplitReader.java:266)
+	at org.apache.hudi.table.format.mor.MergeOnReadInputFormat$BaseFileOnlyFilteringIterator.reachedEnd(MergeOnReadInputFormat.java:509)
+	at org.apache.hudi.table.format.mor.MergeOnReadInputFormat.reachedEnd(MergeOnReadInputFormat.java:245)
+	at org.apache.hudi.source.StreamReadOperator.consumeAsMiniBatch(StreamReadOperator.java:186)
+	at org.apache.hudi.source.StreamReadOperator.processSplits(StreamReadOperator.java:166)
+	at org.apache.flink.streaming.runtime.tasks.StreamTaskActionExecutor$1.runThrowing(StreamTaskActionExecutor.java:50)
+	at org.apache.flink.streaming.runtime.tasks.mailbox.Mail.run(Mail.java:90)
+	at org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor.processMailsNonBlocking(MailboxProcessor.java:359)
+	at org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor.processMail(MailboxProcessor.java:323)
+	at org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor.runMailboxLoop(MailboxProcessor.java:202)
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.runMailboxLoop(StreamTask.java:684)
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.executeInvoke(StreamTask.java:639)
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.runWithCleanUpOnFail(StreamTask.java:650)
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.invoke(StreamTask.java:623)
+	at org.apache.flink.runtime.taskmanager.Task.doRun(Task.java:779)
+	at org.apache.flink.runtime.taskmanager.Task.run(Task.java:566)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>flink写数据到hudi没有问题，数据同步到hive也没问题，从hive里可以正常查询，但是，通过flink查询就会报以上错误。<br>这里很明显可以看出，这个报错是parquet jar包冲突了<br>解决办法：<br>修改packaging/hudi-flink-bundle/pom.xml<br>在relocations里添加以下参数：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>relocation</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pattern</span><span class="token punctuation">></span></span>org.apache.parquet.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pattern</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>shadedPattern</span><span class="token punctuation">></span></span>$&#123;flink.bundle.shade.prefix&#125;org.apache.parquet.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>shadedPattern</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>relocation</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>问题解决</p>
+</li>
+</ol>
+<p>最终编译成功：<br><img src="/uploads/202203/Hudi%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%88%90%E5%8A%9F.png" alt="Hudi源码编译成功"></p>
 <h3 id="编译结果说明"><a href="#编译结果说明" class="headerlink" title="编译结果说明"></a>编译结果说明</h3><p>packaging/hudi-flink-bundle/target下的hudi-flink-bundle jar 是 flink 用来写入和读取数据</p>
 <h3 id="补充maven相关知识"><a href="#补充maven相关知识" class="headerlink" title="补充maven相关知识"></a>补充maven相关知识</h3><h4 id="Maven如何配置多个远程仓库"><a href="#Maven如何配置多个远程仓库" class="headerlink" title="Maven如何配置多个远程仓库"></a>Maven如何配置多个远程仓库</h4><p>常用配置：我们常用的配置是在maven的配置文件的 mirrors 标签中去配置远程仓库，但是 mirrors 标签中配置多个远程仓库的时候，只有第一个会生效，只有第一个仓库无法访问的时候才会使用第二个仓库，如果第一个仓库能访问，但是没有你所需要的依赖，那它是不会去第二个仓库中下载依赖的。所以如果在这里配置远程仓库的话，因为不同项目用到的依赖不一样，不是每个仓库中都有，这时候就需要你手动切换远程仓库。</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirror</span><span class="token punctuation">></span></span>
-       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>alimaven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
-       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrorOf</span><span class="token punctuation">></span></span>central,!cloudera<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrorOf</span><span class="token punctuation">></span></span>
-       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>aliyun maven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
-       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>http://maven.aliyun.com/nexus/content/groups/public/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
-   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirror</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirror</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>alimaven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrorOf</span><span class="token punctuation">></span></span>central,!cloudera<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrorOf</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>aliyun maven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>http://maven.aliyun.com/nexus/content/groups/public/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirror</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>多个远程仓库配置：在Maven的配置文件中的 profiles 标签下面配置多个远程仓库，这样配置之后，如果第一个仓库中如果没有你需要的依赖，或者第一个仓库无法访问，那么会自动的去第二个仓库中下载你需要的依赖，就不需要手动切换远程仓库了。</p>
 <pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>profiles</span><span class="token punctuation">></span></span>
      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>profile</span><span class="token punctuation">></span></span>
@@ -2885,18 +2939,6 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       </tags>
   </entry>
   <entry>
-    <title>python杂记</title>
-    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
     <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3007,6 +3049,18 @@ org.apache.spark.SparkException: Yarn application has already ended! It might ha
       <tags>
         <tag>Spark</tag>
         <tag>Yarn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python杂记</title>
+    <url>/2021/01/18/python%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
@@ -3167,6 +3221,95 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </categories>
       <tags>
         <tag>Sqoop</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vim使用手册</title>
+    <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>vim使用手册<a id="more"></a>
+个人感觉，vim用熟了，比任何编辑器都好用，VIM的许多特性节省了时间和击键次数，并可以完成一些其他编辑器无法完成的功能，这里在网上找了几个经典案例，记录一下。</li>
+</ul>
+<p>与大部分其它编辑器不同，进入 Vim 后，缺省状态下键入的字符并不会插入到所编辑的文件之中。Vim 的模式（mode，可以简单地理解为“状态”）概念非常重要。需要知道，Vim 有以下几个模式：</p>
+<ul>
+<li>正常（normal）模式，缺省的编辑模式；下面如果不加特殊说明，提到的命令都直接在正常模式下输入；任何其它模式中都可以通过键盘上的 Esc 键回到正常模式。</li>
+<li>命令（command）模式，用于执行较长、较复杂的命令；在正常模式下输入“:”（一般命令）、“/”（正向搜索）或“?”（反向搜索）即可进入该模式；命令模式下的命令要输入回车键（Enter）才算完成。</li>
+<li>插入（insert）模式，输入文本时使用；在正常模式下键入“i”（insert）或“a”（append）即可进入插入模式（也有另外一些命令，如“c”，也可以进入插入模式，但这些命令有其它的作用）。</li>
+<li>可视（visual）模式，用于选定文本块；可以在正常模式下输入“v”（小写）来按字符选定，输入“V”（大写）来按行选定，或输入“Ctrl-V”来按方块选定。</li>
+</ul>
+<p>一般的发布版中还常常带有一个简单的 30 分钟的 Vim 教程，新手在操作系统的命令行上输入<code>vimtutor</code>命令即可开始学习。除上面的简单说明外，本文并不介绍最基本的 Vim 命令，Vim 的新手应该先通过教程熟悉一下 Vim，再继续往下阅读。</p>
+<h2 id="常用的指令序列"><a href="#常用的指令序列" class="headerlink" title="常用的指令序列"></a>常用的指令序列</h2><ul>
+<li><p>左右交换光标处两字符的位置：xp<br>命令拆分：</p>
+<ul>
+<li>x剪切当前字符</li>
+<li>p粘贴剪切的字符到光标后面</li>
+</ul>
+</li>
+<li><p>上下交换光标处两行的位置： ddp<br>命令拆分：</p>
+<ul>
+<li>dd 剪切当前行</li>
+<li>p 粘贴剪切的内容到光标的下一行</li>
+</ul>
+</li>
+<li><p>行转列：</p>
+<ul>
+<li><p>第一种, 多行合并成一行,即:<br>AAAAA<br>BBBBB<br>CCCCC<br>合并为:<br>AAAAA BBBBB CCCCC<br>方法1: normal状态下 3J 其中的3是范围,可以是书签或者搜索位置等方式实现,J为合并<br>注: 如果改为3gJ的话,则合并时各行没有空白AAAAABBBBBCCCCC, 下面方法类似,不再重复这两种合并方式的区别.</p>
+<p>方法2: 命令状态下 :1,3 join   或 :1,3 j    （注意j前面是空格）</p>
+<p>方法3: 传统一点的,替换换行符的方式,为避免最后一行也被换掉,范围缩小了,命令状态下  :1,2s/\n/ /</p>
+</li>
+<li><p>第二种,隔行合并,即:</p>
+<p>AAAAA<br>BBBBB<br>CCCCC<br>DDDDD</p>
+<p>合并为:</p>
+<p>AAAAA BBBBB<br>CCCCC DDDDD</p>
+<p>方法1: 借用一下宏录制功能, normal状态下 qaJjq 实现录制, 然后在合适的区域重复执行n遍,这里2遍即可,normal状态下2@a</p>
+<p>方法2: 命令状态下 :1,4g/^/ join  增加了g过滤后,合并变成了隔行处理</p>
+</li>
+</ul>
+</li>
+<li><p>在每行行首添加相同的内容<br>  :%s/^/要添加的内容</p>
+</li>
+<li><p>在每行行尾添加相同的内容<br>  :%s/$/要添加的内容</p>
+</li>
+<li><p>利用正则表达式删除代码段每行的行号<br>  :%s/^\s*[0-9]<em>\s</em>//gc</p>
+</li>
+<li><p>删除某一行之前的所有内容</p>
+<ul>
+<li>先找到这一行，复制这一行的内容，然后全文查找这一行的内容，这时候这一行是高亮的<br><img src="/uploads/20210116/vim-select.png" alt="vim-select"></li>
+<li>然后gg回到第一行</li>
+<li>dn<br><img src="/uploads/20210116/vim-dn.png" alt="vim-dn"></li>
+</ul>
+</li>
+</ul>
+<h2 id="在vim里使用类似Emacs里的orgmode"><a href="#在vim里使用类似Emacs里的orgmode" class="headerlink" title="在vim里使用类似Emacs里的orgmode"></a>在vim里使用类似Emacs里的orgmode</h2><ul>
+<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin &#39;jceb&#x2F;vim-orgmode&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在vim命令行模式运行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">:PluginInstall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+之后就能直接用vim编辑.org文件，目前vim-orgmode有如下功能：<br>当前 vim orgmode不支持所有orgmode功能，但它非常有用。 已经支持的功能的简短列表：</li>
+<li>语法高亮显示</li>
+<li>标题的循环可见性( 折叠)</li>
+<li>在标题之间导航</li>
+<li>编辑文档的结构： 添加，移动，提升，表示标题和更多</li>
+<li>vim orgmode和外部( 文件，网页，等等 ) 中的超链接</li>
+<li>待办事项列表管理</li>
+<li>标题标记</li>
+<li>列表中的字母符号和项目符号符号和复选框支持</li>
+<li>基本日期处理</li>
+<li>导出到其他格式( 通过 Emacs’org模式</li>
+</ul>
+<h2 id="vim设置leader键"><a href="#vim设置leader键" class="headerlink" title="vim设置leader键"></a>vim设置leader键</h2><p>leader 键简单的说就是一个前缀键，可以自由设定<br>例如，绑定leader键为‘，’</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&quot; 设置 leader 键，例子为,键，也可以设置为其他的 默认为&quot;&#x2F;&quot;
+let mapleader&#x3D;&quot;,&quot;
+ 
+&quot; 设置快捷键，关闭一个窗口
+map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这个例子中，在 vim 的<code>normal-mode</code>下，按空格键+w+q 就可以保存文件退出窗口<br>在这个leader的前提下，就不会有键冲突的的情况了</p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>vim</category>
+      </categories>
+      <tags>
+        <tag>vim</tag>
       </tags>
   </entry>
   <entry>
@@ -3451,95 +3594,6 @@ search:
       </categories>
       <tags>
         <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>vim使用手册</title>
-    <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>vim使用手册<a id="more"></a>
-个人感觉，vim用熟了，比任何编辑器都好用，VIM的许多特性节省了时间和击键次数，并可以完成一些其他编辑器无法完成的功能，这里在网上找了几个经典案例，记录一下。</li>
-</ul>
-<p>与大部分其它编辑器不同，进入 Vim 后，缺省状态下键入的字符并不会插入到所编辑的文件之中。Vim 的模式（mode，可以简单地理解为“状态”）概念非常重要。需要知道，Vim 有以下几个模式：</p>
-<ul>
-<li>正常（normal）模式，缺省的编辑模式；下面如果不加特殊说明，提到的命令都直接在正常模式下输入；任何其它模式中都可以通过键盘上的 Esc 键回到正常模式。</li>
-<li>命令（command）模式，用于执行较长、较复杂的命令；在正常模式下输入“:”（一般命令）、“/”（正向搜索）或“?”（反向搜索）即可进入该模式；命令模式下的命令要输入回车键（Enter）才算完成。</li>
-<li>插入（insert）模式，输入文本时使用；在正常模式下键入“i”（insert）或“a”（append）即可进入插入模式（也有另外一些命令，如“c”，也可以进入插入模式，但这些命令有其它的作用）。</li>
-<li>可视（visual）模式，用于选定文本块；可以在正常模式下输入“v”（小写）来按字符选定，输入“V”（大写）来按行选定，或输入“Ctrl-V”来按方块选定。</li>
-</ul>
-<p>一般的发布版中还常常带有一个简单的 30 分钟的 Vim 教程，新手在操作系统的命令行上输入<code>vimtutor</code>命令即可开始学习。除上面的简单说明外，本文并不介绍最基本的 Vim 命令，Vim 的新手应该先通过教程熟悉一下 Vim，再继续往下阅读。</p>
-<h2 id="常用的指令序列"><a href="#常用的指令序列" class="headerlink" title="常用的指令序列"></a>常用的指令序列</h2><ul>
-<li><p>左右交换光标处两字符的位置：xp<br>命令拆分：</p>
-<ul>
-<li>x剪切当前字符</li>
-<li>p粘贴剪切的字符到光标后面</li>
-</ul>
-</li>
-<li><p>上下交换光标处两行的位置： ddp<br>命令拆分：</p>
-<ul>
-<li>dd 剪切当前行</li>
-<li>p 粘贴剪切的内容到光标的下一行</li>
-</ul>
-</li>
-<li><p>行转列：</p>
-<ul>
-<li><p>第一种, 多行合并成一行,即:<br>AAAAA<br>BBBBB<br>CCCCC<br>合并为:<br>AAAAA BBBBB CCCCC<br>方法1: normal状态下 3J 其中的3是范围,可以是书签或者搜索位置等方式实现,J为合并<br>注: 如果改为3gJ的话,则合并时各行没有空白AAAAABBBBBCCCCC, 下面方法类似,不再重复这两种合并方式的区别.</p>
-<p>方法2: 命令状态下 :1,3 join   或 :1,3 j    （注意j前面是空格）</p>
-<p>方法3: 传统一点的,替换换行符的方式,为避免最后一行也被换掉,范围缩小了,命令状态下  :1,2s/\n/ /</p>
-</li>
-<li><p>第二种,隔行合并,即:</p>
-<p>AAAAA<br>BBBBB<br>CCCCC<br>DDDDD</p>
-<p>合并为:</p>
-<p>AAAAA BBBBB<br>CCCCC DDDDD</p>
-<p>方法1: 借用一下宏录制功能, normal状态下 qaJjq 实现录制, 然后在合适的区域重复执行n遍,这里2遍即可,normal状态下2@a</p>
-<p>方法2: 命令状态下 :1,4g/^/ join  增加了g过滤后,合并变成了隔行处理</p>
-</li>
-</ul>
-</li>
-<li><p>在每行行首添加相同的内容<br>  :%s/^/要添加的内容</p>
-</li>
-<li><p>在每行行尾添加相同的内容<br>  :%s/$/要添加的内容</p>
-</li>
-<li><p>利用正则表达式删除代码段每行的行号<br>  :%s/^\s*[0-9]<em>\s</em>//gc</p>
-</li>
-<li><p>删除某一行之前的所有内容</p>
-<ul>
-<li>先找到这一行，复制这一行的内容，然后全文查找这一行的内容，这时候这一行是高亮的<br><img src="/uploads/20210116/vim-select.png" alt="vim-select"></li>
-<li>然后gg回到第一行</li>
-<li>dn<br><img src="/uploads/20210116/vim-dn.png" alt="vim-dn"></li>
-</ul>
-</li>
-</ul>
-<h2 id="在vim里使用类似Emacs里的orgmode"><a href="#在vim里使用类似Emacs里的orgmode" class="headerlink" title="在vim里使用类似Emacs里的orgmode"></a>在vim里使用类似Emacs里的orgmode</h2><ul>
-<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin &#39;jceb&#x2F;vim-orgmode&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>在vim命令行模式运行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">:PluginInstall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-之后就能直接用vim编辑.org文件，目前vim-orgmode有如下功能：<br>当前 vim orgmode不支持所有orgmode功能，但它非常有用。 已经支持的功能的简短列表：</li>
-<li>语法高亮显示</li>
-<li>标题的循环可见性( 折叠)</li>
-<li>在标题之间导航</li>
-<li>编辑文档的结构： 添加，移动，提升，表示标题和更多</li>
-<li>vim orgmode和外部( 文件，网页，等等 ) 中的超链接</li>
-<li>待办事项列表管理</li>
-<li>标题标记</li>
-<li>列表中的字母符号和项目符号符号和复选框支持</li>
-<li>基本日期处理</li>
-<li>导出到其他格式( 通过 Emacs’org模式</li>
-</ul>
-<h2 id="vim设置leader键"><a href="#vim设置leader键" class="headerlink" title="vim设置leader键"></a>vim设置leader键</h2><p>leader 键简单的说就是一个前缀键，可以自由设定<br>例如，绑定leader键为‘，’</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&quot; 设置 leader 键，例子为,键，也可以设置为其他的 默认为&quot;&#x2F;&quot;
-let mapleader&#x3D;&quot;,&quot;
- 
-&quot; 设置快捷键，关闭一个窗口
-map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这个例子中，在 vim 的<code>normal-mode</code>下，按空格键+w+q 就可以保存文件退出窗口<br>在这个leader的前提下，就不会有键冲突的的情况了</p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>vim</category>
-      </categories>
-      <tags>
-        <tag>vim</tag>
       </tags>
   </entry>
   <entry>
@@ -9426,6 +9480,11 @@ at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.jav
 at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 问题原因：<br>因为没有生成parquet文件，因为测试的时候，是直接insert into values的方式写入数据的，不管写入多少，hudi都没有生成parquet<br>文件<br>这里换成使用<code>insert into tablename1 select * from tablename2;</code>的方式，发现有parquet文件了</li>
 </ol>
+<h3 id="hudi-0-11-0与flink整合"><a href="#hudi-0-11-0与flink整合" class="headerlink" title="hudi-0.11.0与flink整合"></a>hudi-0.11.0与flink整合</h3><p>hudi-0.11.0与flink整合简单很多，只需要把以下jar包放到flink/lib下</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">-rw-r--r--. 1 root root  35787665 5月   6 13:51 hive-exec-2.1.1-cdh6.2.0.jar
+-rw-r--r--. 1 root root  83405474 5月  10 17:38 hudi-flink1.13-bundle_2.12-0.11.0.jar
+-rw-r--r--. 1 root root  38046857 5月  10 15:39 hudi-hadoop-mr-bundle-0.11.0.jar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>不需要再把hadoop-mapreduce-client*几个jar包放到lib下了</p>
 <h3 id="hudi与spark的整合"><a href="#hudi与spark的整合" class="headerlink" title="hudi与spark的整合"></a>hudi与spark的整合</h3><p>首先修改hudi源码，把pom文件夹下的spark.version改成3.1.1，然后重新编译hudi源码</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">nohup mvn clean install -DskipTests -Dmaven.test.skip&#x3D;true -Dscala-2.12 -Dhadoop.version&#x3D;3.0.0-cdh6.2.0  -Dspark3 -Pflink-bundle-shade-hive2 &gt; nohup.log 2&gt;&amp;1 &amp;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>这里加了-Dspark3<br>复制packaging/hudi-spark-bundle/target/hudi-spark-bundle_2.12-0.10.1.jar<br>spark首先要与hive集成的，就是把hive-site.xml复制到spark/conf文件夹即可<br>spark-sql启动：</p>
