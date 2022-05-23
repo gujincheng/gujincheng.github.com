@@ -31,13 +31,13 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202204/flink-on-yarn%E8%B5%84%E6%BA%90%E7%94%B3%E8%AF%B7.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202204/flink%E6%80%BB%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.png">
-<meta property="og:image" content="https://gujincheng.github.io/uploads/202204/jobmanager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3.png">
-<meta property="og:image" content="https://gujincheng.github.io/uploads/202204/tasknamager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202204/jobmanager%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202204/taskmanager%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202204/yarn%E4%B8%8A%E7%94%B3%E8%AF%B7%E7%9A%84%E5%86%85%E5%AD%98.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202204/jobmanager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202204/tasknamager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3.png">
 <meta property="article:published_time" content="2022-05-07T03:19:33.000Z">
-<meta property="article:modified_time" content="2022-05-09T02:50:40.202Z">
+<meta property="article:modified_time" content="2022-05-23T05:41:57.243Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="flink">
 <meta name="twitter:card" content="summary">
@@ -240,7 +240,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-09 10:50:40" itemprop="dateModified" datetime="2022-05-09T10:50:40+08:00">2022-05-09</time>
+                <time title="修改时间：2022-05-23 13:41:57" itemprop="dateModified" datetime="2022-05-23T13:41:57+08:00">2022-05-23</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -400,7 +400,9 @@ taskmanager.memory.framework.heap.size: 32mb
 taskmanager.memory.framework.off-heap.size: 32mb
 jobmanager.memory.jvm-metaspace.size: 64mb
 taskmanager.memory.jvm-metaspace.size: 64mb<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>具体可以参考<a target="_blank" rel="noopener" href="https://nightlies.apache.org/flink/flink-docs-release-1.15/zh/docs/deployment/memory/mem_setup/">flink官网的内存配置</a><br>着重看一下内存配置的taskmanager的内存模型详解 和jobmanager的内存模型详解<br>jobmanager的内存模型详解在官网的位置：<br><img src="/uploads/202204/jobmanager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3.png" alt="jobmanager内存模型详解"><br>taskmanager的内存模型详解在官网的位置：<br><img src="/uploads/202204/tasknamager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3.png" alt="tasknamager内存模型详解"></p>
+
+
+
 <p>通过如上的参数设置完成以后，任务提交到yarn上，可以看到，tm和jm的内存确实降低了，效果如图：<br>jobmanager的内存使用情况<br><img src="/uploads/202204/jobmanager%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8.png" alt="jobmanager内存使用"><br>taskmanager的内存使用情况<br><img src="/uploads/202204/taskmanager%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8.png" alt="taskmanager内存使用"></p>
 <p>但是yarn上的申请竟然还是2个G，效果如图：<br><img src="/uploads/202204/yarn%E4%B8%8A%E7%94%B3%E8%AF%B7%E7%9A%84%E5%86%85%E5%AD%98.png" alt="yarn上申请的内存"></p>
 <p>出现这种问题，是因为任务提交到yarn上，资源也会收到yarn的控制，yarn上有参数控制每个container的最小内存，查看当前集群的设置</p>
@@ -414,8 +416,116 @@ yarn.scheduler.minimum-allocation-vcores&#x3D;1;<span aria-hidden="true" class="
 <li>复制${FLINK_HOME}/conf/flink-conf.yaml以及log4j.properties/log4j-cli.properties/log4j-console.properties到该目录</li>
 <li>在执行<code>flink run</code>之前，先<code>export FLINK_CONF_DIR=$&#123;myDir&#125;</code><br>完整的提交脚本：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export FLINK_CONF_DIR&#x3D;&#x2F;root&#x2F;conf
 $&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 256m -ytm 256m -ynm gjc_test -c com.digiwin.test.FlinkTest FlinkTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
 </li>
 </ol>
+<h2 id="Flink内存模型"><a href="#Flink内存模型" class="headerlink" title="Flink内存模型"></a>Flink内存模型</h2><p>具体可以参考<a target="_blank" rel="noopener" href="https://nightlies.apache.org/flink/flink-docs-release-1.15/zh/docs/deployment/memory/mem_setup/">flink官网的内存配置</a><br>着重看一下内存配置的taskmanager的内存模型详解 和jobmanager的内存模型详解</p>
+<h3 id="jobmanager内存模型"><a href="#jobmanager内存模型" class="headerlink" title="jobmanager内存模型"></a>jobmanager内存模型</h3><p>jobmanager的内存模型详解在官网的位置：<br><img src="/uploads/202204/jobmanager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3.png" alt="jobmanager内存模型详解"></p>
+<table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>配置参数</th>
+<th>描述</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JVM 堆内存</td>
+<td>jobmanager.memory.heap.size</td>
+<td>JobManager 的 JVM 堆内存。</td>
+<td>(none)</td>
+</tr>
+<tr>
+<td>堆外内存</td>
+<td>jobmanager.memory.off-heap.size</td>
+<td>JobManager 的堆外内存（直接内存或本地内存）。</td>
+<td>128mb</td>
+</tr>
+<tr>
+<td>JVM Metaspace</td>
+<td>jobmanager.memory.jvm-metaspace.size</td>
+<td>Flink JVM 进程的 Metaspace。</td>
+<td>256mb</td>
+</tr>
+<tr>
+<td>JVM 开销</td>
+<td>jobmanager.memory.jvm-overhead.min/max/fraction</td>
+<td>用于其他 JVM 开销的本地内存，例如栈空间、垃圾回收空间等。该内存部分为基于进程总内存的受限的等比内存部分。</td>
+<td>192 mb/1gb/0.1</td>
+</tr>
+</tbody></table>
+<p>这里举个例子：<br>提交flink程序的时候，-yjm 256m 代表 flink的jobmananger总内存为256m<br>在flink-conf.yaml里添加以下参数：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">jobmanager.memory.jvm-metaspace.size: 110mb
+jobmanager.memory.jvm-overhead.min: 0mb<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>这时候，还有默认的参数没有指定，即<code>jobmanager.memory.jvm-overhead.fraction = 0.1</code>以及<code>jobmanager.memory.off-heap.size=128mb</code><br>这时候，程序会自动计算出total memory，<br>totalMemory = JVM对内存 + 堆外内存，但是，JVM堆内存没有默认值，只有堆外内存128M。所以，这里的totalMemory不应该直接用这两者相加，而应该是：<br>totalMemory = <code>-yjm 256m</code> -  <code>JVM Metaspace</code> - <code>JVM 开销</code><br>即 <code>256mb - 110mb(metaspace) - 256*0.1(jvm-overhead)</code> = 120.4<br>但是，120.4小于堆外内存(128m)，所以会报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.configuration.IllegalConfigurationException: JobManager memory configuration failed: The configured Total Flink Memory (120.400mb (126248550 bytes)) is less than the configured Off-heap Memory (128.000mb (134217728 bytes)).
+	at org.apache.flink.runtime.jobmanager.JobManagerProcessUtils.processSpecFromConfigWithNewOptionToInterpretLegacyHeap(JobManagerProcessUtils.java:78)
+	at org.apache.flink.client.deployment.AbstractContainerizedClusterClientFactory.getClusterSpecification(AbstractContainerizedClusterClientFactory.java:43)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="taskmanager内存模型"><a href="#taskmanager内存模型" class="headerlink" title="taskmanager内存模型"></a>taskmanager内存模型</h3><p>Flink JVM 进程的<em>进程总内存（Total Process Memory）</em>包含了由 Flink 应用使用的内存（Flink 总内存）以及由运行 Flink 的 JVM 使用的内存。 其中，<em>Flink 总内存（Total Flink Memory）</em>包括 JVM 堆内存（Heap Memory）、<em>托管内存（Managed Memory）</em>以及其他直接内存（Direct Memory）或本地内存（Native Memory）。</p>
+<p>taskmanager的内存模型详解在官网的位置：<br><img src="/uploads/202204/tasknamager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E8%AF%A6%E8%A7%A3.png" alt="tasknamager内存模型详解"></p>
+<table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>配置参数</th>
+<th>描述</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>框架堆内存（Framework Heap Memory）</td>
+<td>taskmanager.memory.framework.heap.size</td>
+<td>用于 Flink 框架的 JVM 堆内存（进阶配置）。</td>
+<td>128mb</td>
+</tr>
+<tr>
+<td>任务堆内存（Task Heap Memory）</td>
+<td>taskmanager.memory.task.heap.size</td>
+<td>用于 Flink 应用的算子及用户代码的 JVM 堆内存。</td>
+<td>none</td>
+</tr>
+<tr>
+<td>托管内存（Managed memory）</td>
+<td>taskmanager.memory.managed.size/fraction</td>
+<td>由 Flink 管理的用于排序、哈希表、缓存中间结果及 RocksDB State Backend 的本地内存。</td>
+<td>none/0.4</td>
+</tr>
+<tr>
+<td>框架堆外内存（Framework Off-heap Memory）</td>
+<td>taskmanager.memory.framework.off-heap.size</td>
+<td>用于 Flink 框架的堆外内存（直接内存或本地内存）（进阶配置）。</td>
+<td>128mb</td>
+</tr>
+<tr>
+<td>任务堆外内存（Task Off-heap Memory）</td>
+<td>taskmanager.memory.task.off-heap.size</td>
+<td>用于 Flink 应用的算子及用户代码的堆外内存（直接内存或本地内存）。</td>
+<td>0 bytes</td>
+</tr>
+<tr>
+<td>网络内存（Network Memory）</td>
+<td>taskmanager.memory.network.min/max/fraction</td>
+<td>用于任务之间数据传输的直接内存（例如网络传输缓冲）。该内存部分为基于 Flink 总内存的受限的等比内存部分。这块内存被用于分配网络缓冲</td>
+<td>64 mb/1 gb/0.1</td>
+</tr>
+<tr>
+<td>JVM Metaspace</td>
+<td>taskmanager.memory.jvm-metaspace.size</td>
+<td>Flink JVM 进程的 Metaspace。</td>
+<td>256 mb</td>
+</tr>
+<tr>
+<td>JVM 开销</td>
+<td>taskmanager.memory.jvm-overhead.min/max/fraction</td>
+<td>用于其他 JVM 开销的本地内存，例如栈空间、垃圾回收空间等。该内存部分为基于进程总内存的受限的等比内存部分。</td>
+<td>192mb/1gb/0.1</td>
+</tr>
+</tbody></table>
+<p>举个例子：<br>提交flink程序的时候，-ytm 256m 代表 flink的taskmananger总内存为256m<br>和jobmanager的内存计算方法一样，taskmanager的totalMemory计算方法应该如下：<br>totalMemory = <code>256mb - 128mb(metaspace) - 256*0.1(jvm-overhead)</code> = 102.4mb<br>然后，内存模型里的networkMem和managedMem的比例都是根据这个totalMemory计算出来的<br>即networkMem = 102.4 * 0.1 = 10.24m<br>managedMem = 102.4 * 0.4 = 40.960m<br>因此，会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.configuration.IllegalConfigurationException: Sum of configured Framework Heap Memory (32.000mb (33554432 bytes)), Framework Off-Heap Memory (32.000mb (33554432 bytes)), Task Off-Heap Memory (0 bytes), Managed Memory (40.960mb (42949673 bytes)) and Network Memory (10.240mb (10737418 bytes)) exceed configured Total Flink Memory (102.400mb (107374182 bytes)).
+	at org.apache.flink.runtime.util.config.memory.taskmanager.TaskExecutorFlinkMemoryUtils.deriveFromTotalFlinkMemory(TaskExecutorFlinkMemoryUtils.java:178)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 
     </div>
 
@@ -497,7 +607,7 @@ $&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 256m -ytm 2
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#flink%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">flink资源管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E7%9A%84Slot%E5%92%8C%E5%B9%B6%E8%A1%8C%E5%BA%A6"><span class="nav-number">1.1.</span> <span class="nav-text">Flink的Slot和并行度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E5%BA%A6"><span class="nav-number">1.1.1.</span> <span class="nav-text">并行度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Slot"><span class="nav-number">1.1.2.</span> <span class="nav-text">Slot</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E6%8F%90%E4%BA%A4%E7%9A%84%E5%8F%82%E6%95%B0%EF%BC%8C%E5%A6%82%E4%BD%95%E8%AE%A1%E7%AE%97%E5%87%BA%E6%95%B4%E4%BD%93%E6%89%80%E6%B6%88%E8%80%97%E7%9A%84%E8%B5%84%E6%BA%90"><span class="nav-number">1.2.</span> <span class="nav-text">通过提交的参数，如何计算出整体所消耗的资源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%99%8D%E4%BD%8Eflink%E4%BB%BB%E5%8A%A1%E7%9A%84%E8%B5%84%E6%BA%90"><span class="nav-number">1.3.</span> <span class="nav-text">如何降低flink任务的资源</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%8Eflink%E6%96%B9%E9%9D%A2%E9%99%8D%E4%BD%8E%E8%B5%84%E6%BA%90"><span class="nav-number">1.3.1.</span> <span class="nav-text">从flink方面降低资源</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%8F%E4%B8%AA%E4%BB%BB%E5%8A%A1%E8%AE%BE%E7%BD%AE%E4%B8%8D%E9%80%9A%E7%9A%84%E5%8F%82%E6%95%B0%E6%8F%90%E4%BA%A4"><span class="nav-number">1.4.</span> <span class="nav-text">每个任务设置不通的参数提交</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#flink%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">flink资源管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink%E7%9A%84Slot%E5%92%8C%E5%B9%B6%E8%A1%8C%E5%BA%A6"><span class="nav-number">1.1.</span> <span class="nav-text">Flink的Slot和并行度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E5%BA%A6"><span class="nav-number">1.1.1.</span> <span class="nav-text">并行度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Slot"><span class="nav-number">1.1.2.</span> <span class="nav-text">Slot</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E6%8F%90%E4%BA%A4%E7%9A%84%E5%8F%82%E6%95%B0%EF%BC%8C%E5%A6%82%E4%BD%95%E8%AE%A1%E7%AE%97%E5%87%BA%E6%95%B4%E4%BD%93%E6%89%80%E6%B6%88%E8%80%97%E7%9A%84%E8%B5%84%E6%BA%90"><span class="nav-number">1.2.</span> <span class="nav-text">通过提交的参数，如何计算出整体所消耗的资源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%99%8D%E4%BD%8Eflink%E4%BB%BB%E5%8A%A1%E7%9A%84%E8%B5%84%E6%BA%90"><span class="nav-number">1.3.</span> <span class="nav-text">如何降低flink任务的资源</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%8Eflink%E6%96%B9%E9%9D%A2%E9%99%8D%E4%BD%8E%E8%B5%84%E6%BA%90"><span class="nav-number">1.3.1.</span> <span class="nav-text">从flink方面降低资源</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%8F%E4%B8%AA%E4%BB%BB%E5%8A%A1%E8%AE%BE%E7%BD%AE%E4%B8%8D%E9%80%9A%E7%9A%84%E5%8F%82%E6%95%B0%E6%8F%90%E4%BA%A4"><span class="nav-number">1.4.</span> <span class="nav-text">每个任务设置不通的参数提交</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">Flink内存模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#jobmanager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.1.</span> <span class="nav-text">jobmanager内存模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#taskmanager%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.2.</span> <span class="nav-text">taskmanager内存模型</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
