@@ -1,3 +1,4 @@
+https://gujincheng.github.io/2022/06/01/clickhouse%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/
 https://gujincheng.github.io/2022/05/07/flink%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86/
 https://gujincheng.github.io/2022/05/05/impala3-4%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/
 https://gujincheng.github.io/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/
@@ -17,4 +18,3 @@ https://gujincheng.github.io/2022/03/08/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2
 https://gujincheng.github.io/2022/03/07/%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/
 https://gujincheng.github.io/2022/03/01/Hbase%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/
 https://gujincheng.github.io/2022/02/28/hudi%E5%92%8Ciceberg%E6%B5%8B%E8%AF%95%E6%AF%94%E8%BE%83/
-https://gujincheng.github.io/2022/02/28/%E9%87%87%E9%9B%86%E5%86%99%E5%85%A5hudi%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/

@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/maven%E7%BC%96%E8%AF%91hudi%E6%8A%A5%E9%94%99%E6%97%A5%E5%BF%971.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/Hudi%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%88%90%E5%8A%9F.png">
 <meta property="article:published_time" content="2022-03-10T06:43:41.000Z">
-<meta property="article:modified_time" content="2022-05-11T01:42:49.070Z">
+<meta property="article:modified_time" content="2022-06-06T03:08:51.037Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta property="article:tag" content="Hudi">
@@ -236,7 +236,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-11 09:42:49" itemprop="dateModified" datetime="2022-05-11T09:42:49+08:00">2022-05-11</time>
+                <time title="修改时间：2022-06-06 11:08:51" itemprop="dateModified" datetime="2022-06-06T11:08:51+08:00">2022-06-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -410,6 +410,30 @@ tar zxvf flink-1.13.6-src.tgz -C .<span aria-hidden="true" class="line-numbers-r
 # -Dscala-2.12     # 指定scala的版本为2.12
 # -Dhadoop.version&#x3D;3.0.0-cdh6.2.0  指定 hadoop 的版本，这里的版本与CDH集群版本的Hadoop一致就行<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
+<h3 id="maven-编译Flink-1-15-0"><a href="#maven-编译Flink-1-15-0" class="headerlink" title="maven 编译Flink-1.15.0"></a>maven 编译Flink-1.15.0</h3><p>总是报如下错误</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Running &#39;npm install --cache-max&#x3D;0 --no-save&#39; in &#x2F;opt&#x2F;gitrepo&#x2F;flink-runtime-web&#x2F;web-dashboard<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>在flink的源码里，找到flink-runtime-web模块，里面的README.md有单独的编译方法,按照如下流程编译</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd flink-runtime-web&#x2F;web-dashboard
+npm install
+npm run build<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>但是，在执行npm install的时候，一直报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">npm ERR! path &#x2F;root&#x2F;flink&#x2F;flink-runtime-web&#x2F;web-dashboard&#x2F;node_modules&#x2F;@angular&#x2F;cli
+npm ERR! command failed
+npm ERR! command sh -c node .&#x2F;bin&#x2F;postinstall&#x2F;script.js
+npm ERR! node:internal&#x2F;modules&#x2F;cjs&#x2F;loader:936
+npm ERR!   throw err;
+npm ERR!   ^
+npm ERR!
+npm ERR! Error: Cannot find module &#39;&#x2F;root&#x2F;flink&#x2F;flink-runtime-web&#x2F;web-dashboard&#x2F;node_modules&#x2F;@angular&#x2F;cli&#x2F;bin&#x2F;postinstall&#x2F;script.js&#39;
+npm ERR!     at Function.Module._resolveFilename (node:internal&#x2F;modules&#x2F;cjs&#x2F;loader:933:15)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这是因为这里用的是root权限编译的。npm对root权限管控很厉害。不能使用root权限编译<br>这里切换到非root用户重新编译flink源码（不需要单独执行flink-runtime-web/web-dashboard了）</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mvn clean install -DskipTests -Dfast -Drat.skip&#x3D;true -Dhaoop.version&#x3D;3.0.0-cdh6.2.0 -Pvendor-repos -Dinclude-hadoop -Dscala-2.12 -T10C<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+
+<p>解决办法：<br>修改flink源码flink-runtime-web的pom，把里面的npm.proflile给成以下内容<br>-registry=<a target="_blank" rel="noopener" href="https://registry.npm.taobao.org/">https://registry.npm.taobao.org</a> </p>
+
     </div>
 
     
@@ -494,7 +518,7 @@ tar zxvf flink-1.13.6-src.tgz -C .<span aria-hidden="true" class="line-numbers-r
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#maven%E7%BC%96%E8%AF%91hudi%E6%BA%90%E7%A0%81"><span class="nav-number">1.</span> <span class="nav-text">maven编译hudi源码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%86%E7%BE%A4%E7%8E%AF%E5%A2%83"><span class="nav-number">1.1.</span> <span class="nav-text">集群环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEmaven%E5%B9%B6%E7%BC%96%E8%AF%91%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="nav-number">1.2.</span> <span class="nav-text">配置maven并编译源代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%A5%E9%94%99%E4%B8%8E%E8%B8%A9%E5%9D%91"><span class="nav-number">1.3.</span> <span class="nav-text">报错与踩坑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E7%BB%93%E6%9E%9C%E8%AF%B4%E6%98%8E"><span class="nav-number">1.4.</span> <span class="nav-text">编译结果说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A5%E5%85%85maven%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86"><span class="nav-number">1.5.</span> <span class="nav-text">补充maven相关知识</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Maven%E5%A6%82%E4%BD%95%E9%85%8D%E7%BD%AE%E5%A4%9A%E4%B8%AA%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93"><span class="nav-number">1.5.1.</span> <span class="nav-text">Maven如何配置多个远程仓库</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven%E7%BC%96%E8%AF%91Flink%E6%BA%90%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">maven编译Flink源码</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#maven%E7%BC%96%E8%AF%91hudi%E6%BA%90%E7%A0%81"><span class="nav-number">1.</span> <span class="nav-text">maven编译hudi源码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%86%E7%BE%A4%E7%8E%AF%E5%A2%83"><span class="nav-number">1.1.</span> <span class="nav-text">集群环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEmaven%E5%B9%B6%E7%BC%96%E8%AF%91%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="nav-number">1.2.</span> <span class="nav-text">配置maven并编译源代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%A5%E9%94%99%E4%B8%8E%E8%B8%A9%E5%9D%91"><span class="nav-number">1.3.</span> <span class="nav-text">报错与踩坑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E7%BB%93%E6%9E%9C%E8%AF%B4%E6%98%8E"><span class="nav-number">1.4.</span> <span class="nav-text">编译结果说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A5%E5%85%85maven%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86"><span class="nav-number">1.5.</span> <span class="nav-text">补充maven相关知识</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Maven%E5%A6%82%E4%BD%95%E9%85%8D%E7%BD%AE%E5%A4%9A%E4%B8%AA%E8%BF%9C%E7%A8%8B%E4%BB%93%E5%BA%93"><span class="nav-number">1.5.1.</span> <span class="nav-text">Maven如何配置多个远程仓库</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven%E7%BC%96%E8%AF%91Flink%E6%BA%90%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">maven编译Flink源码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maven-%E7%BC%96%E8%AF%91Flink-1-15-0"><span class="nav-number">2.1.</span> <span class="nav-text">maven 编译Flink-1.15.0</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -510,7 +534,7 @@ tar zxvf flink-1.13.6-src.tgz -C .<span aria-hidden="true" class="line-numbers-r
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">63</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -523,7 +547,7 @@ tar zxvf flink-1.13.6-src.tgz -C .<span aria-hidden="true" class="line-numbers-r
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-count">47</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
