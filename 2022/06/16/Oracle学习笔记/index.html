@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Centos7.x安装Oracle12c 初尝Oracle遇到的坑 Ocacle基本操作 Oracle开启CDC功能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Oracle学习笔记">
+<meta property="og:url" content="https://gujincheng.github.io/2022/06/16/Oracle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Centos7.x安装Oracle12c 初尝Oracle遇到的坑 Ocacle基本操作 Oracle开启CDC功能">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202206/Navicat%E8%BF%9E%E6%8E%A5Oracle.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202206/debezium%E9%87%87%E9%9B%86oracle%E5%AF%BC%E8%87%B4PGA%E5%86%85%E5%AD%98%E8%B6%85%E5%87%BA.png">
+<meta property="article:published_time" content="2022-06-16T05:18:56.000Z">
+<meta property="article:modified_time" content="2022-07-14T07:19:30.412Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Oracle">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202206/Navicat%E8%BF%9E%E6%8E%A5Oracle.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2022/06/16/Oracle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Oracle学习笔记 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2022/06/16/Oracle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Oracle学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-06-16 13:18:56" itemprop="dateCreated datePublished" datetime="2022-06-16T13:18:56+08:00">2022-06-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-07-14 15:19:30" itemprop="dateModified" datetime="2022-07-14T15:19:30+08:00">2022-07-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Oracle/" itemprop="url" rel="index"><span itemprop="name">Oracle</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2022/06/16/Oracle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Oracle学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/06/16/Oracle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/06/16/Oracle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Centos7.x安装Oracle12c</li>
+<li>初尝Oracle遇到的坑</li>
+<li>Ocacle基本操作</li>
+<li>Oracle开启CDC功能</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Centos7-x安装Oracle12c"><a href="#Centos7-x安装Oracle12c" class="headerlink" title="Centos7.x安装Oracle12c"></a>Centos7.x安装Oracle12c</h2><p>这里安装完全参考了<a target="_blank" rel="noopener" href="https://www.freesion.com/article/56911167140/">CENTOS7.3静默安装ORACLE12C</a><br>需要注意的是</p>
+<ol>
+<li>在配置ORACLE环境变量并验证–需要把<code>export ORACLE_HOSTNAME=liuxiaobai</code>改成自己的</li>
+<li>安装ORACLE–这里采取命令行安装，文档里的<code>\</code>换行不对，这里全部放到一行里成功了</li>
+<li>创建数据库–<code>-gdbname</code>需要改成<code>-gdbName</code>，换行去掉，都放在一行 </li>
+<li>配置数据库监听 ，这里看初尝Oracle遇到的坑</li>
+</ol>
+<h2 id="初尝Oracle遇到的坑"><a href="#初尝Oracle遇到的坑" class="headerlink" title="初尝Oracle遇到的坑"></a>初尝Oracle遇到的坑</h2><h3 id="配置数据库监听"><a href="#配置数据库监听" class="headerlink" title="配置数据库监听"></a>配置数据库监听</h3><p>未配置监听前执行</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lsnrctl status
+## 因为没配置过，所以会报错，具体日志看参考文档<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>使用默认的netca.rsp文件，执行命令</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netca -silent -responseFile &#x2F;home&#x2F;oracle&#x2F;database&#x2F;response&#x2F;netca.rsp<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里执行命令以后，没有出现文档里成功的日志，通过查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">为此监听程序提供的端口1521当前正在使用。可以按现状继续配置,但只有在解决冲突之后才能启动该监听程序。是否仍然继续配置?<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>网上说是因为host配置不对，我这里通过<code>lsnrctl stop</code>把监听停掉,然后手动执行</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;usr&#x2F;local&#x2F;products&#x2F;oracle12c&#x2F;bin&#x2F;lsnrctl start LISTENER<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这样虽然报日志成功了，但是并没有文档里说的会对服务<code>cdb1</code>监听的日志，这里根据文档里提示，修改listener.ora文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim &#x2F;usr&#x2F;local&#x2F;products&#x2F;oracle12c&#x2F;network&#x2F;admin&#x2F;listener.ora
+## 文件内容修改如下：
+# listener.ora Network Configuration File: &#x2F;usr&#x2F;local&#x2F;products&#x2F;oracle12c&#x2F;network&#x2F;admin&#x2F;listener.ora
+# Generated by Oracle configuration tools.
+## 这里不动
+LISTENER &#x3D;
+  (DESCRIPTION_LIST &#x3D;
+    (DESCRIPTION &#x3D;
+      (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; golden-cloud)(PORT &#x3D; 1539))
+      (ADDRESS &#x3D; (PROTOCOL &#x3D; IPC)(KEY &#x3D; EXTPROC1521))
+    )
+  )
+    ## 以下为新增
+SID_LIST_LISTENER &#x3D;
+(SID_LIST &#x3D;
+  (SID_DESC &#x3D;
+  (GLOBAL_DBNAME &#x3D; orcl)
+  (SID_NAME &#x3D; orcl)
+  )
+
+  (SID_DESC &#x3D;
+  (GLOBAL_DBNAME &#x3D; orclpdb1)
+  (SID_NAME &#x3D; orclpdb1)
+  )
+)
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<p>注意：<br>这里的监听需要开启2个，一个是CDB一个是PDB，否则flink连接的时候，会有问题<br>再次执行：</p>
+</blockquote>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lsnrctl stop
+lsnrctl start<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>终于成功了</p>
+<h3 id="使用navicat连接oracle"><a href="#使用navicat连接oracle" class="headerlink" title="使用navicat连接oracle"></a>使用navicat连接oracle</h3><p>首先在腾讯云开启端口，这次安装的端口换成1539了。<br>这里要注意，Service Name和SID都是一样的，都是之前创建的数据库cdb1，选哪个都可以的<br>密码就是之前<code>-systemPassword</code>的内容，连接界面如下：<br><img src="/uploads/202206/Navicat%E8%BF%9E%E6%8E%A5Oracle.png" alt="Navicat连接Oracle"><br>还需要注意的是，通过第三方工具连接，必须要开启监听服务，否则连不上的</p>
+<h3 id="创建用户失败"><a href="#创建用户失败" class="headerlink" title="创建用户失败"></a>创建用户失败</h3><p>主要有2个问题：</p>
+<ol>
+<li>用户名不合法，具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/dling8/article/details/120000292">ORA-65096: 公用用户名或角色名无效</a></li>
+<li>找不到表命名空间</li>
+</ol>
+<p>不管是在sqlplus还是在Navicat创建都报错，大致的意思就是用户名不合法，通过网上的资料查看，oracle12版本，普通用户名必须要以c##开头</p>
+<p>找不到表命名空间的解决办法就是重启oracle服务：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 1. su – oralce                           —-切换到oracle用户
+# 2.lsnrctl stop                           —-停止监听
+# 3.sqlplus “&#x2F;as sysdba”                   —-以sysdba用户登录oracle
+# 4.shutdown immediate                     —-关闭数据库
+# 5.startup                                —-启动数据库
+# 6.exit                                   —-退出sqlplus
+# 7.lsnrctl start                          —-启动监听
+# 3，4，5是在sqlplus里执行的<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>重启过后就可以找到命名空间了<br>通过sqlplus创建命名空间与用户的语句如下：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">tablespace</span> testspace datafile <span class="token string">'/usr/local/products/oradata/testspace.dbf'</span> size <span class="token number">300</span>m<span class="token punctuation">;</span>
+<span class="token comment">--创建用户名</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> c<span class="token comment">##test IDENTIFIED BY 123456 DEFAULT TABLESPACE "golden" TEMPORARY TABLESPACE TEMP;</span>
+<span class="token comment">-- 查看用户名与其默认的表空间</span>
+<span class="token keyword">select</span> username<span class="token punctuation">,</span> default_tablespace <span class="token keyword">from</span> dba_users <span class="token keyword">where</span> username <span class="token operator">=</span> <span class="token string">'C##TEST'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>但是还是感觉使用navicat来创建更方便</p>
+<p>如果想要用新创建的用户登陆，需要给新用户授权：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--这个在navicat里也可以操作</span>
+<span class="token keyword">grant</span> <span class="token keyword">connect</span><span class="token punctuation">,</span> resource <span class="token keyword">to</span> c<span class="token comment">##test; // 用户授权</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="ORA-01950-对表空间-‘golden’-无权限"><a href="#ORA-01950-对表空间-‘golden’-无权限" class="headerlink" title="ORA-01950: 对表空间 ‘golden’ 无权限"></a>ORA-01950: 对表空间 ‘golden’ 无权限</h3><p>以新用户登陆oracle，并创建表都没有问题，但是，往表里写数据的时候，报错：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">ORA<span class="token operator">-</span><span class="token number">01950</span>: 对表空间 <span class="token string">'golden'</span> 无权限<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>需要再次赋权：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">USER</span> C<span class="token comment">##TEST QUOTA UNLIMITED ON "golden"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h2 id="Ocacle基本操作"><a href="#Ocacle基本操作" class="headerlink" title="Ocacle基本操作"></a>Ocacle基本操作</h2><p>这里操作Oracle都在Navicat里操作，通过命令行操作Oracle，太费事了<br>schema是什么？可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/afsdfq/article/details/90417355">oracle之schema</a><br>schema和用户是一一对应的。每个用户都有一个schema，并且和用户名是一样的</p>
+<p>数据库的启动步骤：</p>
+<ol>
+<li>nomount –根据参数文件启动实例（instance）</li>
+<li>mount –加载控制文件，让实例和数据库相关联</li>
+<li>open –根据控制文件找到并打开数据文件和日志文件，从而打开数据库</li>
+</ol>
+<h2 id="Oracle开启CDC功能"><a href="#Oracle开启CDC功能" class="headerlink" title="Oracle开启CDC功能"></a>Oracle开启CDC功能</h2><p>您必须为 Oracle 数据库启用日志归档，并定义一个对 Debezium Oracle 连接器监控的所有数据库具有适当权限的 Oracle 用户<br>Oracle启用日志归档，根据数据库类型有2种方式</p>
+<h3 id="对于Non-CDB-database"><a href="#对于Non-CDB-database" class="headerlink" title="对于Non-CDB database"></a>对于Non-CDB database</h3><p>Non-CDB概念：<br>Non-CDB 是指任何不是 CDB 的东西。即 12c 之前的任何数据库，或在没有启用可插入数据库子句的情况下创建的 12c 数据库。如果您创建非 CDB，则它不是 Multitentant，而是像 12c 之前的数据库一样的单实例独立数据库。<br>看网上的说法，12C之前的版本都是Non-CDB，12C之后的版本，都是CDB的<br>那么，我们这次采集的目标是12C，所以是CDB版本的</p>
+<h3 id="查询Oracle数据库是CDB还是Non-CDB？"><a href="#查询Oracle数据库是CDB还是Non-CDB？" class="headerlink" title="查询Oracle数据库是CDB还是Non-CDB？"></a>查询Oracle数据库是CDB还是Non-CDB？</h3><p>您可以在V$DATABASE视图中查询 CDB 列以查看数据库是否为 CDB。如果当前数据库是 CDB，则列值为 YES，否则 CDB 列值为 NO</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SQL</span><span class="token operator">></span> <span class="token keyword">SELECT</span> CDB <span class="token keyword">FROM</span> V$<span class="token keyword">DATABASE</span><span class="token punctuation">;</span>
+
+CDB
+<span class="token comment">------</span>
+YES
+
+<span class="token comment">--您可以通过如下查询获取有关 CDB 中容器的信息。</span>
+<span class="token comment">--使用 SQLPlus 连接，确保您位于根容器中，然后运行查询。</span>
+<span class="token keyword">SQL</span><span class="token operator">></span> <span class="token keyword">SHOW</span> CON_NAME<span class="token punctuation">;</span>
+
+CON_NAME
+<span class="token comment">------------------------------</span>
+CDB$ROOT
+
+
+<span class="token keyword">SQL</span><span class="token operator">></span> <span class="token keyword">COLUMN</span> NAME FORMAT A8<span class="token punctuation">;</span>
+<span class="token keyword">SQL</span><span class="token operator">></span> <span class="token keyword">SELECT</span> NAME<span class="token punctuation">,</span> CON_ID<span class="token punctuation">,</span> DBID<span class="token punctuation">,</span> CON_UID<span class="token punctuation">,</span> GUID <span class="token keyword">FROM</span> V$CONTAINERS <span class="token keyword">ORDER</span> <span class="token keyword">BY</span> CON_ID<span class="token punctuation">;</span>
+
+NAME	     CON_ID	  DBID	  CON_UID GUID
+<span class="token comment">-------- ---------- ---------- ---------- --------------------------------</span>
+CDB$ROOT	  <span class="token number">1</span> <span class="token number">1081227694</span>		<span class="token number">1</span> <span class="token number">4700</span>A987085A3DFAE05387E5E50A8C7B
+PDB$SEED	  <span class="token number">2</span> <span class="token number">4250516830</span> <span class="token number">4250516830</span> E187C82E49CD2E91E055000000000001
+PDB1		  <span class="token number">3</span>  <span class="token number">913056142</span>	<span class="token number">913056142</span> E187D563EBD3375EE055000000000001<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看到，我们的版本确实是CDB的</p>
+<h3 id="CDB与PDB区别"><a href="#CDB与PDB区别" class="headerlink" title="CDB与PDB区别"></a>CDB与PDB区别</h3><p>Oracle 12C引⼊了CDB与PDB的新特性，在ORACLE 12C数据库引⼊的多租⽤户环境（Multitenant Environment）中，允许⼀个数据库容<br>器（CDB）承载多个可插拔数据库（PDB）。CDB全称为Container Database，中⽂翻译为数据库容器，PDB全称为Pluggable<br>Database，即可插拔数据库。在ORACLE 12C之前，实例与数据库是⼀对⼀或多对⼀关系（RAC）：即⼀个实例只能与⼀个数据库相关<br>联，数据库可以被多个实例所加载。⽽实例与数据库不可能是⼀对多的关系。当进⼊ORACLE 12C后，实例与数据库可以是⼀对多的关<br>系。</p>
+<h3 id="公共用户与本地用户"><a href="#公共用户与本地用户" class="headerlink" title="公共用户与本地用户"></a>公共用户与本地用户</h3><p>公共用户需要以C##开头<br>具体可以参考<a target="_blank" rel="noopener" href="https://www.likecs.com/show-204093510.html">Oracle 12C R2 公共用户和本地用户</a></p>
+<blockquote>
+<p>如果想创建非C##开头的用户名，可以设置<code>alter session set &quot;_ORACLE_SCRIPT&quot;=true;</code></p>
+</blockquote>
+<h3 id="数据库开启CDC功能"><a href="#数据库开启CDC功能" class="headerlink" title="数据库开启CDC功能"></a>数据库开启CDC功能</h3><p>flinkcdc是通过读取Oracle的日志来做到实时采集的，所以，这里需要了解一下Oracle的日志相关知识<br>具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/ai15134626825/article/details/103480564">Oracle数据库开启归档日志和补充日志</a></p>
+<p>Oracle开启cdc功能，根据数据库类型有<code>CDB数据库</code>和<code>Non-CDB数据库</code>两种，<code>Non-CDB数据库</code>比较好操作，但是，CDB数据库创建用户必须要用<code>C##</code>开头，导致赋权限一直报错，而且，flinksql连接不到数据库<br>这里先使用<code>Non-CDB数据库</code>做测试。</p>
+<blockquote>
+<p>有点奇怪，为什么flinkcdc官网上创建<code>CDB数据库</code>的用户不需要使用<code>C##</code>开头？</p>
+</blockquote>
+<h4 id="Non-CDB数据库开启cdc"><a href="#Non-CDB数据库开启cdc" class="headerlink" title="Non-CDB数据库开启cdc"></a>Non-CDB数据库开启cdc</h4><ul>
+<li>启用日志归档<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p &#x2F;data&#x2F;oracle&#x2F;oradata&#x2F;recovery_area 
+chown -R oracle:dba &#x2F;data&#x2F;oracle&#x2F;oradata&#x2F;recovery_area 
+CONNECT sys&#x2F;Oracle123 AS SYSDBA<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">alter</span> system <span class="token keyword">set</span> db_recovery_file_dest_size <span class="token operator">=</span> <span class="token number">60</span>G<span class="token punctuation">;</span>
+<span class="token keyword">alter</span> system <span class="token keyword">set</span> db_recovery_file_dest <span class="token operator">=</span> <span class="token string">'/opt/soft/oracle12c/oradata/oradb/archive_log'</span> scope<span class="token operator">=</span>spfile<span class="token punctuation">;</span>
+<span class="token keyword">shutdown</span> immediate<span class="token punctuation">;</span>
+startup mount<span class="token punctuation">;</span>
+<span class="token keyword">alter</span> <span class="token keyword">database</span> archivelog<span class="token punctuation">;</span>
+<span class="token keyword">alter</span> <span class="token keyword">database</span> <span class="token keyword">open</span><span class="token punctuation">;</span>
+<span class="token comment">-- 检查是否启用了日志归档</span>
+<span class="token comment">-- Should now "Database log mode: Archive Mode"</span>
+archive log list<span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+注意：</li>
+<li>启用日志归档需要重启数据库，尝试时注意</li>
+<li>归档日志会占用大量磁盘空间，建议定期清理过期日志</li>
+<li>必须为捕获的表或数据库启用补充日志记录，以便数据更改捕获已更改数据库行的之前状态</li>
+</ul>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 为特定表启用补充日志记录：</span>
+<span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> flinkuser<span class="token punctuation">.</span>GJC_TEST_CDC <span class="token keyword">ADD</span> SUPPLEMENTAL LOG <span class="token keyword">DATA</span> <span class="token punctuation">(</span><span class="token keyword">ALL</span><span class="token punctuation">)</span> <span class="token keyword">COLUMNS</span><span class="token punctuation">;</span>
+<span class="token comment">-- 为数据库启用补充日志记录</span>
+<span class="token keyword">ALTER</span> <span class="token keyword">DATABASE</span> <span class="token keyword">ADD</span> SUPPLEMENTAL LOG <span class="token keyword">DATA</span><span class="token punctuation">;</span>  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>创建用户并赋权限<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- Create Tablespace</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> logminer_tbs DATAFILE <span class="token string">'/data/oracle/oradata/orcl/logminer_tbs.dbf'</span> SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> flinkuser IDENTIFIED <span class="token keyword">BY</span> flinkpw <span class="token keyword">DEFAULT</span> <span class="token keyword">TABLESPACE</span> LOGMINER_TBS QUOTA UNLIMITED <span class="token keyword">ON</span> LOGMINER_TBS<span class="token punctuation">;</span>
+  <span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">SESSION</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+  <span class="token keyword">GRANT</span> <span class="token keyword">SET</span> CONTAINER <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$<span class="token keyword">DATABASE</span> <span class="token keyword">to</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> FLASHBACK <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+  <span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> SELECT_CATALOG_ROLE <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> EXECUTE_CATALOG_ROLE <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TRANSACTION</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> LOGMINING <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">LOCK</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALTER</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> SEQUENCE <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">EXECUTE</span> <span class="token keyword">ON</span> DBMS_LOGMNR <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">EXECUTE</span> <span class="token keyword">ON</span> DBMS_LOGMNR_D <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOG <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOG_HISTORY <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_LOGS <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_CONTENTS <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_PARAMETERS <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGFILE <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$ARCHIVED_LOG <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$ARCHIVE_DEST_STATUS <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>在Navicat里创建Oracle表，并插入几条数据</li>
+<li>在sql-client创建表映射<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 注意，这里的字段名需要和oracle里保持一样，区分大小写的</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> gjc_test_oracle <span class="token punctuation">(</span>
+   id <span class="token keyword">INT</span><span class="token punctuation">,</span>
+   name STRING<span class="token punctuation">,</span>
+   age <span class="token keyword">INT</span><span class="token punctuation">,</span>
+   <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'oracle-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'172.16.109.130'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'1521'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'flinkuser'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'flinkpw'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'orcl'</span><span class="token punctuation">,</span>
+<span class="token string">'schema-name'</span> <span class="token operator">=</span> <span class="token string">'FLINKUSER'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'GJC_TEST_CDC'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> gjc_test_oracle<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+遇到的问题：</li>
+</ul>
+<ol>
+<li>一开始Oracle字段是小写的，但是，flinksql里创建的字段是大写的，导致数据能够识别到（日志里能看到有几条记录），但是控制台没有数据输出（其实是字段名映射不上去）</li>
+<li>flinkcdc可以正常采集没有主键的表，增删改查都可以</li>
+</ol>
+<h4 id="CDB数据库开启cdc"><a href="#CDB数据库开启cdc" class="headerlink" title="CDB数据库开启cdc"></a>CDB数据库开启cdc</h4><ul>
+<li>启用日志归档<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">sqlplus <span class="token operator">/</span>nolog
+  <span class="token keyword">CONNECT</span> sys<span class="token operator">/</span>password <span class="token keyword">AS</span> SYSDBA
+  <span class="token keyword">alter</span> system <span class="token keyword">set</span> db_recovery_file_dest_size <span class="token operator">=</span> <span class="token number">10</span>G<span class="token punctuation">;</span>
+  <span class="token comment">-- should exist</span>
+  <span class="token keyword">alter</span> system <span class="token keyword">set</span> db_recovery_file_dest <span class="token operator">=</span> <span class="token string">'/opt/soft/oracle12c/oradata/recovery_area'</span> scope<span class="token operator">=</span>spfile<span class="token punctuation">;</span>
+  <span class="token keyword">alter</span> system <span class="token keyword">set</span> archive_lag_target<span class="token operator">=</span><span class="token number">600</span> scope<span class="token operator">=</span>both<span class="token punctuation">;</span>    <span class="token comment">--解决ORA-04036: 实例使用的 PGA 内存超出 PGA_AGGREGATE_LIMIT</span>
+  <span class="token keyword">shutdown</span> immediate
+  startup mount
+  <span class="token keyword">alter</span> <span class="token keyword">database</span> archivelog<span class="token punctuation">;</span>
+  <span class="token keyword">alter</span> <span class="token keyword">database</span> <span class="token keyword">open</span><span class="token punctuation">;</span>
+  <span class="token comment">-- Should show "Database log mode: Archive Mode"</span>
+  archive log list
+  <span class="token keyword">exit</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>创建用户并赋权限<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> logminer_tbs DATAFILE <span class="token string">'/opt/soft/oracle12c/oradata/orcl/logminer_tbs.dbf'</span> SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>  
+<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> flinkuser IDENTIFIED <span class="token keyword">BY</span> flinkpw <span class="token keyword">DEFAULT</span> <span class="token keyword">TABLESPACE</span> LOGMINER_TBS QUOTA UNLIMITED <span class="token keyword">ON</span> LOGMINER_TBS<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">SESSION</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SET</span> CONTAINER <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$<span class="token keyword">DATABASE</span> <span class="token keyword">to</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> FLASHBACK <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> SELECT_CATALOG_ROLE <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> EXECUTE_CATALOG_ROLE <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TRANSACTION</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> LOGMINING <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">LOCK</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> SEQUENCE <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">EXECUTE</span> <span class="token keyword">ON</span> DBMS_LOGMNR <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">EXECUTE</span> <span class="token keyword">ON</span> DBMS_LOGMNR_D <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOG <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOG_HISTORY <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_LOGS <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_CONTENTS <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_PARAMETERS <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGFILE <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$ARCHIVED_LOG <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$ARCHIVE_DEST_STATUS <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> gjc_test_oracle <span class="token punctuation">(</span>
+   id <span class="token keyword">INT</span><span class="token punctuation">,</span>
+   name STRING<span class="token punctuation">,</span>
+   <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'oracle-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'172.16.101.223'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'1521'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'c##flinkuser'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'dbz'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'orcl'</span><span class="token punctuation">,</span>
+<span class="token string">'schema-name'</span> <span class="token operator">=</span> <span class="token string">'C##FLINKUSER'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'GJC_TEST_CDC'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+</li>
+</ul>
+<p>遇到的问题：</p>
+<ul>
+<li>cdb默认创建普通用户需要c##开头，如果实在不想c##开头，可以通过设置<code>alter session set &quot;_ORACLE_SCRIPT&quot;=true;</code>后再创建用户</li>
+<li>创建c##用户，再flinksql中也是可以正常使用的，这个没什么关系，只是名字看起来别扭</li>
+<li>默认pdb未启动，需手动启动pdb，不启动pdb，会报如下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Sink: Collect table sink (1&#x2F;1)#1 (2663b9a93aca6d06f44204c23b976492) switched from RUNNING to FAILED with failure cause: com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.errors.ConnectException: An exception occurred in the change event producer. This connector will be stopped.
+  at io.debezium.pipeline.ErrorHandler.setProducerThrowable(ErrorHandler.java:42)
+  at io.debezium.connector.oracle.logminer.LogMinerStreamingChangeEventSource.execute(LogMinerStreamingChangeEventSource.java:208)
+  at io.debezium.pipeline.ChangeEventSourceCoordinator.streamEvents(ChangeEventSourceCoordinator.java:152)
+  at io.debezium.pipeline.ChangeEventSourceCoordinator.lambda$start$0(ChangeEventSourceCoordinator.java:119)
+  at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+  at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+  at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+  at java.lang.Thread.run(Thread.java:748)
+Caused by: java.sql.SQLException: ORA-65024: 可插入数据库  未打开。
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 7750
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 4812
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 4999
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 7601
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 7764
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 7920
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_D&quot;, line 12
+ORA-06512: 在 line 1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+启动pdb命令：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--查看数据库中pdb列表：</span>
+<span class="token keyword">show</span> pdbs<span class="token punctuation">;</span>
+<span class="token comment">--   CON_ID CON_NAME			  OPEN MODE  RESTRICTED</span>
+<span class="token comment">---------- ------------------------------ ---------- ----------</span>
+<span class="token comment">--	 2 PDB$SEED			  READ ONLY  NO</span>
+<span class="token comment">--	 3 DGWORCL			  MOUNTED</span>
+<span class="token comment">-- 可以看到，默认是MOUNTED,需要手动打开</span>
+<span class="token keyword">alter</span> pluggable <span class="token keyword">database</span> <span class="token keyword">all</span> <span class="token keyword">open</span><span class="token punctuation">;</span>
+<span class="token comment">--报错：Warning: PDB altered with errors.，这个是因为PDB$SEED</span>
+<span class="token comment">--再次查看状态</span>
+<span class="token keyword">show</span> pdbs<span class="token punctuation">;</span>
+<span class="token comment">--    CON_ID CON_NAME			  OPEN MODE  RESTRICTED</span>
+<span class="token comment">---------- ------------------------------ ---------- ----------</span>
+<span class="token comment">--	 2 PDB$SEED			  READ ONLY  NO</span>
+<span class="token comment">--	 3 DGWORCL			  READ WRITE YES</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+然后再在flink的sql-client里执行命令，就可以正常读取oracle数据了，数据增删改查也都可以看到</li>
+</ul>
+<h4 id="flinkcdc采集oracle数据延迟大"><a href="#flinkcdc采集oracle数据延迟大" class="headerlink" title="flinkcdc采集oracle数据延迟大"></a>flinkcdc采集oracle数据延迟大</h4><p>官网给出解决方案：<br>在flinksql中加入以下参数：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<blockquote>
+<p>oracle-cdc会调用一个checkpoint的锁，如果checkpoint频率很慢，就会导致数据有延迟，如果想要降低数据延迟，最好是降低ck时间</p>
+</blockquote>
+<p>实际测试，在PDB方式的数据库，可以正常执行，并且，速度明显加快，但是，在CDB数据库，会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.errors.ConnectException: An exception occurred in the change event producer. This connector will be stopped.
+	at io.debezium.pipeline.ErrorHandler.setProducerThrowable(ErrorHandler.java:42) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.connector.oracle.logminer.LogMinerStreamingChangeEventSource.execute(LogMinerStreamingChangeEventSource.java:208) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.pipeline.ChangeEventSourceCoordinator.streamEvents(ChangeEventSourceCoordinator.java:152) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.pipeline.ChangeEventSourceCoordinator.lambda$start$0(ChangeEventSourceCoordinator.java:119) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) ~[?:1.8.0_291]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) ~[?:1.8.0_291]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_291]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_291]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_291]
+Caused by: java.sql.SQLException: ORA-01435: 用户不存在
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR&quot;, line 58
+ORA-06512: 在 line 1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>为啥会报用户名不存在呢？而且，快照数据已经读取到了，数据能够正常输出的<br>问题原因：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">在CDB内创建用户分配表空间时，所分配的表空间必须在PDB和CDB中同时存在，否则会报错。如果是在PDB与CDB有相同表空间的情况下给CDB用户分配表空间，则会分配CDB的表空间，给用户PDB的表空间并不受影响。所以要在PDB内创建相同的表空间，然后再回CDB创建用户<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里在官网上其实是创建了2个相同的命名空间，但是，在测试的时候，把pdb的命名空间给忽略了，导致一直报错，正确的操作方法：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">sqlplus <span class="token operator">/</span> <span class="token keyword">as</span> sysdba
+  <span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> logminer_tbs DATAFILE <span class="token string">'/usr/local/products/oradata/orcl/logminer_tbs.dbf'</span> 
+  SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+<span class="token comment">-- 这里切换到pdb下，使用官网的方式，直接使用sqlplus sys/OraPasswd1@//150.158.190.192:1539/ORCLPDB1 as sysdba ，连接不进去，交互式输入用户名密码，其实连接还是CDB</span>
+<span class="token comment">-- 切换容器 这里需要权限</span>
+  <span class="token keyword">alter</span> <span class="token keyword">session</span> <span class="token keyword">set</span> container <span class="token operator">=</span> ORCLPDB1<span class="token punctuation">;</span>
+<span class="token comment">--在PDB下创建相同的表空间，并且，路径要和CDB的不一样</span>
+  <span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> logminer_tbs DATAFILE <span class="token string">'/usr/local/products/oradata/orcl/orclpdb1/logminer_tbs.dbf'</span> 
+  SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+<span class="token comment">-- 然后再去创建用户名，给用户赋权</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="报错：ORA-00257-archiver-error-Connect-internal-only-until-freed。"><a href="#报错：ORA-00257-archiver-error-Connect-internal-only-until-freed。" class="headerlink" title="报错：ORA-00257: archiver error. Connect internal only, until freed。"></a>报错：ORA-00257: archiver error. Connect internal only, until freed。</h4><p>flink程序报错ORA-00257: archiver error. Connect internal only, until freed。<br>该错误是由于归档日志满了，造成的。<br>查看了下V$FLASH_RECOVERY_AREA_USAGE，看看归档目录使用的情况。果然是归档满了。</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> <span class="token operator">*</span> <span class="token keyword">FROM</span>  V$FLASH_RECOVERY_AREA_USAGE<span class="token punctuation">;</span>
+
+FILE_TYPE    PERCENT_SPACE_USED PERCENT_SPACE_RECLAIMABLE NUMBER_OF_FILES
+<span class="token comment">------------ ------------------ ------------------------- ---------------</span>
+CONTROLFILE                   <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span>
+ONLINELOG                     <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span>
+ARCHIVELOG                  <span class="token number">99.9</span>                         <span class="token number">0</span>               <span class="token number">255</span>
+BACKUPPIECE                   <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span>
+IMAGECOPY                     <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span>
+FLASHBACKLOG                  <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注：可以看出，ARCHIVELOG日志已经达到99.9%了。造成归档满的原因是因为有一个用户在做大量更新操作，由于更新操作产生大量重做日志，<br>归档日志切换频繁。解决方法是要把大量归档日志清除掉!<br>有两种方式可以解决该问题。<br>一使用RMAN清除归档日志。<br>二修改闪回恢复区的大小DB_RECOVERY_FILE_DEST_SIZE。</p>
+<ul>
+<li>第一种使用RMAN清除归档日志。<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">rman
+<span class="token keyword">connect</span> target <span class="token operator">/</span>
+crosscheck archivelog <span class="token keyword">all</span><span class="token punctuation">;</span>                                      <span class="token comment">-- 校验日志的可用性</span>
+list expired archivelog <span class="token keyword">all</span><span class="token punctuation">;</span>                                    <span class="token comment">--->列出所有失效的归档日志</span>
+<span class="token keyword">delete</span> expired archivelog <span class="token keyword">all</span><span class="token punctuation">;</span>
+<span class="token keyword">delete</span> archivelog until sequence <span class="token number">16</span><span class="token punctuation">;</span>                            <span class="token comment">--->删除log sequence为16及16之前的所有归档日志</span>
+<span class="token keyword">delete</span> archivelog <span class="token keyword">all</span> completed before <span class="token string">'sysdate-7'</span><span class="token punctuation">;</span>             <span class="token comment">--->删除系统时间7天以前的归档日志，不会删除闪回区有效的归档日志</span>
+<span class="token keyword">delete</span> archivelog <span class="token keyword">all</span> completed before <span class="token string">'sysdate - 1'</span><span class="token punctuation">;</span>           <span class="token comment">--->同上，1天以前的</span>
+<span class="token keyword">delete</span> archivelog <span class="token keyword">from</span> <span class="token keyword">time</span> <span class="token string">'sysdate-1'</span><span class="token punctuation">;</span>                        <span class="token comment">--->注意这个命令，删除系统时间1天以内到现在的归档日志</span>
+<span class="token keyword">delete</span> noprompt archivelog <span class="token keyword">all</span> completed before <span class="token string">'sysdate'</span><span class="token punctuation">;</span>
+<span class="token keyword">delete</span> noprompt archivelog <span class="token keyword">all</span> completed before <span class="token string">'sysdate - 3/24'</span><span class="token punctuation">;</span>      <span class="token comment">--->该命令清除所有的归档日志</span>
+<span class="token keyword">delete</span> noprompt archivelog <span class="token keyword">all</span><span class="token punctuation">;</span>                                 <span class="token comment">--->同上一命令</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+删除以后再次查看使用率，正常了</li>
+</ul>
+<ul>
+<li>第二种方法就是增大闪回恢复区的大小。如下：</li>
+</ul>
+<h4 id="当serivce-name与sid不一样，报错如下："><a href="#当serivce-name与sid不一样，报错如下：" class="headerlink" title="当serivce_name与sid不一样，报错如下："></a>当serivce_name与sid不一样，报错如下：</h4><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: oracle.net.ns.NetException: Listener refused the connection with the following error:
+ORA-12514, TNS:listener does not currently know of service requested in connect descriptor
+ 
+	at oracle.net.ns.NSProtocolNIO.negotiateConnection(NSProtocolNIO.java:284)
+	at oracle.net.ns.NSProtocol.connect(NSProtocol.java:340)
+	at oracle.jdbc.driver.T4CConnection.connect(T4CConnection.java:1596)
+	at oracle.jdbc.driver.T4CConnection.logon(T4CConnection.java:588)
+	... 21 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="flinkcdc采集大数据量oracle数据（性能测试）"><a href="#flinkcdc采集大数据量oracle数据（性能测试）" class="headerlink" title="flinkcdc采集大数据量oracle数据（性能测试）"></a>flinkcdc采集大数据量oracle数据（性能测试）</h4><ol>
+<li>实时采集oracle数据延迟过大，平均延迟在3秒左右<br>通过设置以下参数提高实时采集的速度：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--source端：</span>
+   <span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.log.mining.batch.size.min'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.log.mining.batch.size.default'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.log.mining.sleep.time.default.ms'</span> <span class="token operator">=</span> <span class="token string">'10'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.poll.interval.ms'</span> <span class="token operator">=</span> <span class="token string">'10'</span><span class="token punctuation">,</span>
+<span class="token comment">--sink端：</span>
+   <span class="token string">'sink.buffer-flush.max-rows'</span> <span class="token operator">=</span> <span class="token string">'1000000'</span><span class="token punctuation">,</span>
+   <span class="token string">'sink.buffer-flush.max-bytes'</span> <span class="token operator">=</span> <span class="token string">'300000000'</span><span class="token punctuation">,</span>
+   <span class="token string">'sink.buffer-flush.interval-ms'</span> <span class="token operator">=</span> <span class="token string">'1000'</span><span class="token punctuation">,</span>        <span class="token comment">--主要是这个</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>starrocks数据有换行符，数据错位：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token string">'sink.properties.row_delimiter'</span> <span class="token operator">=</span> <span class="token string">'^B'</span><span class="token punctuation">,</span>
+<span class="token string">'sink.properties.column_separator'</span> <span class="token operator">=</span> <span class="token string">'^A'</span><span class="token punctuation">,</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>导入大表（扫描时间很长的表），任务自动重启：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span> <span class="token operator">=</span> <span class="token number">2</span>min<span class="token punctuation">;</span>
+<span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span>tolerable<span class="token operator">-</span>failed<span class="token operator">-</span>checkpoints <span class="token operator">=</span><span class="token number">10000</span><span class="token punctuation">;</span>    <span class="token comment">-- 您需要设置num值来调整任务允许Checkpoint失败的次数。num需要为0或正整数。如果num为0时，则表示不允许存在任何Checkpoint异常或者失败。</span>
+<span class="token keyword">set</span> restart<span class="token operator">-</span>strategy <span class="token operator">=</span><span class="token keyword">fixed</span><span class="token operator">-</span>delay<span class="token punctuation">;</span>
+<span class="token keyword">set</span> restart<span class="token operator">-</span>strategy<span class="token punctuation">.</span><span class="token keyword">fixed</span><span class="token operator">-</span>delay<span class="token punctuation">.</span>attempts <span class="token operator">=</span> <span class="token number">2147483647</span><span class="token punctuation">;</span>   <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+这里简单解释一下flink ck的重启策略：<br>flink checkpoint 的重启策略：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">假如 restart-strategy: fixed-delay
+restart-strategy.fixed-delay.attempts&#x3D;3 [default]
+restart-strategy.fixed-delay.delay&#x3D;2s [default]
+
+举个栗子：
+&#x3D;&#x3D;&#x3D;&gt; 假如 delay&#x3D;1s,attempts&#x3D;1,那么重启的策略就为每2秒尝试重启一次，要么重启成功，要么失败进入下一次重启尝试，如果累计重试次数达到3次但是任然没有成功，那么这个task重启就算失败<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><code>Caused by: java.sql.SQLException: ORA-04036: 实例使用的 PGA 内存超出 PGA_AGGREGATE_LIMIT</code><br>具体报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.errors.ConnectException: An exception occurred in the change event producer. This connector will be stopped.
+	at io.debezium.pipeline.ErrorHandler.setProducerThrowable(ErrorHandler.java:42) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.connector.oracle.logminer.LogMinerStreamingChangeEventSource.execute(LogMinerStreamingChangeEventSource.java:208) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.pipeline.ChangeEventSourceCoordinator.streamEvents(ChangeEventSourceCoordinator.java:152) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.pipeline.ChangeEventSourceCoordinator.lambda$start$0(ChangeEventSourceCoordinator.java:119) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) ~[?:1.8.0_311]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) ~[?:1.8.0_311]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_311]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_311]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_311]
+Caused by: java.sql.SQLException: ORA-04036: 实例使用的 PGA 内存超出 PGA_AGGREGATE_LIMIT<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+查看oracle当前设置参数：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">show</span> parameter pga<span class="token punctuation">;</span>
+<span class="token comment">--------------------------------</span>
+NAME				     <span class="token keyword">TYPE</span>       <span class="token keyword">VALUE</span>
+<span class="token comment">---------------   --------------- ----------------------</span>
+
+pga_aggregate_limit	    big <span class="token keyword">integer</span>    <span class="token number">6400</span>M
+pga_aggregate_target	big <span class="token keyword">integer</span>    <span class="token number">3200</span>M
+<span class="token comment">--查看日志归档频率时间</span>
+<span class="token keyword">show</span> parameter archive_lag<span class="token punctuation">;</span>
+NAME				     <span class="token keyword">TYPE</span>   <span class="token keyword">VALUE</span>
+<span class="token comment">--------------------- --------  --------------</span>
+archive_lag_target   <span class="token keyword">integer</span>    <span class="token number">600</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+可以在oracle中设置：<br><code>alter system set archive_lag_target=60 scope=both;</code><br>或者设置<code>log.mining.session.max.xs = 300000</code></li>
+</ol>
+<p>flinkcdc引用的debeziem1.5，还没有<code>log.mining.session.max.xs</code>参数，在1.9版本才能使用。所以，还是得在oracle中设置<code>alter system set archive_lag_target=1200 scope=both;</code><br>原因：<br>对于低容量系统，当长时间使用同一会话时，LogMiner 会话可能会消耗过多的 PGA 内存。默认行为是仅在检测到日志切换时使用新的 LogMiner 会话</p>
+<p>这里同时启动多个实时采集任务，还是会报这个错误，这里网上给的办法是：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#1. 设置 PGA_AGGREGATE_LIMIT &#x3D; 0 , 消除每个会话使用PGA的限制（如11g）
+alter system set pga_aggregate_limit&#x3D;0 scope&#x3D;both;
+#2. 增大PGA_AGGREGATE_LIMIT
+alter system set pga_aggregate_limit&#x3D;16384M scope&#x3D;both;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里先把上面1200秒给更低的时间试试</p>
+<p><img src="/uploads/202206/debezium%E9%87%87%E9%9B%86oracle%E5%AF%BC%E8%87%B4PGA%E5%86%85%E5%AD%98%E8%B6%85%E5%87%BA.png" alt="debezium采集oracle导致PGA内存超出"></p>
+<h4 id="多个flinkcdc任务共同采集oracle，数据延迟巨大"><a href="#多个flinkcdc任务共同采集oracle，数据延迟巨大" class="headerlink" title="多个flinkcdc任务共同采集oracle，数据延迟巨大"></a>多个flinkcdc任务共同采集oracle，数据延迟巨大</h4><p>单个任务采集oracle，速度已经可以控制在1秒以内了，但是，多个任务采集oracle，这边的延迟变得很大，具体原因还不太清楚<br>但是，这里猜测有以下几种原因：</p>
+<ol>
+<li>每个任务都会起一个进程去读取logminer，而logminer的数据是存在pga内存里的，就会导致pga内存很高</li>
+<li>这里通过查看服务器的cpu使用情况，发现每个cdc任务占用cpu特别高，19个任务就可能导致任务玩不转了</li>
+</ol>
+<p>根本原因：<br>oracle-cdc底层调用的是oracle的Logminer，而每个cdc任务启动以后，都会调用Logminer，这会忘redolog里写大量的日志，一开始的设置的微批步长太小了，导致在任务刚开始启动的时候，读取的日志远远追不上日志生成的速度<br>之前的设置：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.poll.interval.ms'</span> <span class="token operator">=</span> <span class="token string">'5'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.min'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.default'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.sleep.time.default.ms'</span> <span class="token operator">=</span> <span class="token string">'10'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.session.max.xs'</span> <span class="token operator">=</span> <span class="token string">'300000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.lob.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.fetch.size'</span> <span class="token operator">=</span> <span class="token string">'5000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.delay.ms'</span> <span class="token operator">=</span> <span class="token string">'3000'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>优化后的设置：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.poll.interval.ms'</span> <span class="token operator">=</span> <span class="token string">'5'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.min'</span> <span class="token operator">=</span> <span class="token string">'50'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.default'</span> <span class="token operator">=</span> <span class="token string">'100'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.max'</span> <span class="token operator">=</span> <span class="token string">'10000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.sleep.time.default.ms'</span> <span class="token operator">=</span> <span class="token string">'10'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.sleep.time.max.ms'</span> <span class="token operator">=</span> <span class="token string">'2000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.sleep.time.increment.ms'</span> <span class="token operator">=</span> <span class="token string">'50'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.view.fetch.size'</span> <span class="token operator">=</span> <span class="token string">'500'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.lob.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.fetch.size'</span> <span class="token operator">=</span> <span class="token string">'5000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.delay.ms'</span> <span class="token operator">=</span> <span class="token string">'3000'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>具体可以参考<a target="_blank" rel="noopener" href="https://m.php.cn/oracle/487748.html">最系统掌握Flink CDC系列之实时抽取Oracle数据（排雷和调优实践）</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Oracle/" rel="tag"># Oracle</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/08/starrocks%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="starrocks学习笔记">
+      <i class="fa fa-chevron-left"></i> starrocks学习笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos7-x%E5%AE%89%E8%A3%85Oracle12c"><span class="nav-number">1.</span> <span class="nav-text">Centos7.x安装Oracle12c</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%B0%9DOracle%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91"><span class="nav-number">2.</span> <span class="nav-text">初尝Oracle遇到的坑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9B%91%E5%90%AC"><span class="nav-number">2.1.</span> <span class="nav-text">配置数据库监听</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8navicat%E8%BF%9E%E6%8E%A5oracle"><span class="nav-number">2.2.</span> <span class="nav-text">使用navicat连接oracle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%A4%B1%E8%B4%A5"><span class="nav-number">2.3.</span> <span class="nav-text">创建用户失败</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ORA-01950-%E5%AF%B9%E8%A1%A8%E7%A9%BA%E9%97%B4-%E2%80%98golden%E2%80%99-%E6%97%A0%E6%9D%83%E9%99%90"><span class="nav-number">2.4.</span> <span class="nav-text">ORA-01950: 对表空间 ‘golden’ 无权限</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ocacle%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">Ocacle基本操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Oracle%E5%BC%80%E5%90%AFCDC%E5%8A%9F%E8%83%BD"><span class="nav-number">4.</span> <span class="nav-text">Oracle开启CDC功能</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E4%BA%8ENon-CDB-database"><span class="nav-number">4.1.</span> <span class="nav-text">对于Non-CDB database</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E6%98%AFCDB%E8%BF%98%E6%98%AFNon-CDB%EF%BC%9F"><span class="nav-number">4.2.</span> <span class="nav-text">查询Oracle数据库是CDB还是Non-CDB？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CDB%E4%B8%8EPDB%E5%8C%BA%E5%88%AB"><span class="nav-number">4.3.</span> <span class="nav-text">CDB与PDB区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AC%E5%85%B1%E7%94%A8%E6%88%B7%E4%B8%8E%E6%9C%AC%E5%9C%B0%E7%94%A8%E6%88%B7"><span class="nav-number">4.4.</span> <span class="nav-text">公共用户与本地用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E5%BC%80%E5%90%AFCDC%E5%8A%9F%E8%83%BD"><span class="nav-number">4.5.</span> <span class="nav-text">数据库开启CDC功能</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Non-CDB%E6%95%B0%E6%8D%AE%E5%BA%93%E5%BC%80%E5%90%AFcdc"><span class="nav-number">4.5.1.</span> <span class="nav-text">Non-CDB数据库开启cdc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CDB%E6%95%B0%E6%8D%AE%E5%BA%93%E5%BC%80%E5%90%AFcdc"><span class="nav-number">4.5.2.</span> <span class="nav-text">CDB数据库开启cdc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#flinkcdc%E9%87%87%E9%9B%86oracle%E6%95%B0%E6%8D%AE%E5%BB%B6%E8%BF%9F%E5%A4%A7"><span class="nav-number">4.5.3.</span> <span class="nav-text">flinkcdc采集oracle数据延迟大</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8A%A5%E9%94%99%EF%BC%9AORA-00257-archiver-error-Connect-internal-only-until-freed%E3%80%82"><span class="nav-number">4.5.4.</span> <span class="nav-text">报错：ORA-00257: archiver error. Connect internal only, until freed。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%93serivce-name%E4%B8%8Esid%E4%B8%8D%E4%B8%80%E6%A0%B7%EF%BC%8C%E6%8A%A5%E9%94%99%E5%A6%82%E4%B8%8B%EF%BC%9A"><span class="nav-number">4.5.5.</span> <span class="nav-text">当serivce_name与sid不一样，报错如下：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#flinkcdc%E9%87%87%E9%9B%86%E5%A4%A7%E6%95%B0%E6%8D%AE%E9%87%8Foracle%E6%95%B0%E6%8D%AE%EF%BC%88%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%EF%BC%89"><span class="nav-number">4.5.6.</span> <span class="nav-text">flinkcdc采集大数据量oracle数据（性能测试）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E4%B8%AAflinkcdc%E4%BB%BB%E5%8A%A1%E5%85%B1%E5%90%8C%E9%87%87%E9%9B%86oracle%EF%BC%8C%E6%95%B0%E6%8D%AE%E5%BB%B6%E8%BF%9F%E5%B7%A8%E5%A4%A7"><span class="nav-number">4.5.7.</span> <span class="nav-text">多个flinkcdc任务共同采集oracle，数据延迟巨大</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">65</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">49</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,6 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>CM宕机问题调查与修复</title>
+    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>CM宕机问题调查与修复</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
+<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
+com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
+        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
+        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+        at java.lang.Thread.run(Thread.java:748)
+Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at java.io.RandomAccessFile.open0(Native Method)
+        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
+        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
+        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
+        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
+        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
+        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
+<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
+● cloudera-scm-agent.service - Cloudera Manager Agent Service
+   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
+   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
+  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+ Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
+<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>CM</category>
+      </categories>
+      <tags>
+        <tag>CM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>BloomFilter</title>
     <url>/2021/11/29/BloomFilter/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -139,91 +224,6 @@
       </categories>
       <tags>
         <tag>Algorithm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CM宕机问题调查与修复</title>
-    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>CM宕机问题调查与修复</li>
-</ul>
-<a id="more"></a>
-
-<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
-<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
-com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
-        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
-        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
-        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-        at java.lang.Thread.run(Thread.java:748)
-Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at java.io.RandomAccessFile.open0(Native Method)
-        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
-        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
-        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
-        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
-        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
-        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
-<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
-● cloudera-scm-agent.service - Cloudera Manager Agent Service
-   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
-   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
-  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
- Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
-
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
-<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>CM</category>
-      </categories>
-      <tags>
-        <tag>CM</tag>
       </tags>
   </entry>
   <entry>
@@ -1108,7 +1108,48 @@ chown -R hdfs:hadoop dfs<span aria-hidden="true" class="line-numbers-rows"><span
 <p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
 <h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
 <li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
-<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2></li>
+<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2><h3 id="flinkcdc-读取mysql并写入Iceberg"><a href="#flinkcdc-读取mysql并写入Iceberg" class="headerlink" title="flinkcdc 读取mysql并写入Iceberg"></a>flinkcdc 读取mysql并写入Iceberg</h3>需要注意的是，flink实时写Iceberg必须要开启checkpoint<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
+
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
+  uuid string <span class="token punctuation">,</span>
+  name STRING<span class="token punctuation">,</span>
+  age <span class="token keyword">int</span><span class="token punctuation">,</span>
+  ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  part string 
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
+<span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'users_source_mysql'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> iceberg_users_source_mysql <span class="token punctuation">(</span>
+    uuid <span class="token keyword">INT</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
+    name <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    age <span class="token keyword">INT</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    part <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span> 
+<span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+     <span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'iceberg'</span>                           <span class="token comment">-- 主键和分区均可多个，分割</span>
+   <span class="token punctuation">,</span> <span class="token string">'format-version'</span> <span class="token operator">=</span> <span class="token string">'2'</span>                          <span class="token comment">-- iceberg表版本，可选1，2</span>
+   <span class="token punctuation">,</span> <span class="token string">'write.upsert.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span>                 <span class="token comment">-- 开启upsert</span>
+   <span class="token punctuation">,</span> <span class="token string">'engine.hive.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span>                  <span class="token comment">-- 启用hive同步</span>
+   <span class="token punctuation">,</span> <span class="token string">'catalog-name'</span><span class="token operator">=</span><span class="token string">'hive_catalog'</span>                   <span class="token comment">-- 指定catalog</span>
+   <span class="token punctuation">,</span> <span class="token string">'catalog-database'</span><span class="token operator">=</span><span class="token string">'iceberg'</span>                    <span class="token comment">-- 指定hive database</span>
+   <span class="token punctuation">,</span> <span class="token string">'uri'</span><span class="token operator">=</span><span class="token string">'thrift://172.16.2.204:9083'</span>                      <span class="token comment">-- hive hms地址，分割 </span>
+   <span class="token punctuation">,</span> <span class="token string">'warehouse'</span><span class="token operator">=</span><span class="token string">'hdfs:///user/hive/warehouse/iceberg.db/iceberg_users_source_mysql'</span>  <span class="token comment">-- 仓库地址</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">insert</span> <span class="token keyword">into</span> iceberg_users_source_mysql <span class="token keyword">select</span> uuid<span class="token punctuation">,</span>name<span class="token punctuation">,</span>age<span class="token punctuation">,</span>ts<span class="token punctuation">,</span>part <span class="token keyword">from</span> users_source_mysql<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+</li>
 </ul>
 <h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
       <categories>
@@ -1817,6 +1858,39 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       </tags>
   </entry>
   <entry>
+    <title>Redis杂记</title>
+    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>什么是Redis</li>
+<li>Redis有哪些优缺点</li>
+<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
+<li>Redis为什么这么快</li>
+<li>Redis的应用场景</li>
+<li>Redis持久化</li>
+<li>Redis踩的坑</li>
+</ul>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/20211109/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
+<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
+<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
+<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
+<p>这里记录一下两个命令：</p>
+<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scala杂记</title>
     <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1916,39 +1990,6 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </categories>
       <tags>
         <tag>Scala</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Redis杂记</title>
-    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>什么是Redis</li>
-<li>Redis有哪些优缺点</li>
-<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
-<li>Redis为什么这么快</li>
-<li>Redis的应用场景</li>
-<li>Redis持久化</li>
-<li>Redis踩的坑</li>
-</ul>
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/20211109/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
-<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
-<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
-<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
-<p>这里记录一下两个命令：</p>
-<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -2666,7 +2707,15 @@ expect &quot;Password for &#39;https:&#x2F;&#x2F;xxxx@xxxx.xxxx.com.cn&#39;:&quo
 send &quot;**********\r&quot;
 interact<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里注意，不用sh这个脚本，需要给这个脚本执行权限，然后./pull.sh</p>
-]]></content>
+<h3 id="sed命令替换文件内容"><a href="#sed命令替换文件内容" class="headerlink" title="sed命令替换文件内容"></a>sed命令替换文件内容</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sed -i &#39;s&#x2F;\r&#x2F;&#x2F;g&#39; $&#123;fileName&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="linux转换文件编码"><a href="#linux转换文件编码" class="headerlink" title="linux转换文件编码"></a>linux转换文件编码</h3><p>windows下的文件类型为dos，转换成linux，并且把文件编码改成utf-8，否则中文是乱码的</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">iconv -f GB2312 -t utf8 ima_file.csv -o 1_ima_file.csv<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>有部分文件报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">conv: illegal input sequence at position 14876089<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这是由于你之前的做的假定有问题。GB2312 是国标里面一个最小也是最早的中文编码标准。其中，只涵盖了 6,763 个汉字。所以你需要转换的文件的原始的格式可能并不是 GB2312 编码。<br>这个时候，你可以用 GB18030 做为源格式来进行转换。 GB18030 是最新的国家标准，包含了 27,564 个汉字，而且向下兼容 GB2312 和 GBK。</p>
+<pre class="line-numbers language-none"><code class="language-none">iconv -f GB18030 -t utf8 ima_file.csv -o 1_ima_file.csv<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="vim打开文件中每行末尾都带有-M"><a href="#vim打开文件中每行末尾都带有-M" class="headerlink" title="vim打开文件中每行末尾都带有 ^M"></a>vim打开文件中每行末尾都带有 ^M</h3><p>因为windows下换行符是\r\n，linux下是\n，多了一个\r</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sed -i &#39;s&#x2F;\r&#x2F;&#x2F;g&#39; $&#123;fileName&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>]]></content>
       <categories>
         <category>Linux</category>
       </categories>
@@ -3625,6 +3674,80 @@ search:
       </tags>
   </entry>
   <entry>
+    <title>starrocks学习笔记</title>
+    <url>/2022/06/08/starrocks%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>starrocks学习笔记</li>
+</ul>
+<a id="more"></a>
+
+
+
+
+
+<h2 id="starrocks简介"><a href="#starrocks简介" class="headerlink" title="starrocks简介"></a>starrocks简介</h2><p>starrocks的官网写的很好，也有中文文档，文档可以直接看<a href="https://docs.starrocks.com/zh-cn/main/introduction/StarRocks_intro">starrocks官网</a></p>
+<h2 id="flinkcdc实时写starrocks"><a href="#flinkcdc实时写starrocks" class="headerlink" title="flinkcdc实时写starrocks"></a>flinkcdc实时写starrocks</h2><p>下载flink-connector-starrocks，可以直接在maven仓库里下载相应的jar包，并把它放在${FLINK_HOME}/lib下，启动flink集群以及sql-client<br>在starrocks里创建表：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"> <span class="token keyword">create</span> <span class="token keyword">table</span> gjc_test_binlog<span class="token punctuation">(</span>
+    uuid <span class="token keyword">int</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    name <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">50</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    age <span class="token keyword">int</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">DATETIME</span><span class="token punctuation">,</span>
+    part <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span> 
+ <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token punctuation">(</span>uuid<span class="token punctuation">)</span>
+ <span class="token keyword">DISTRIBUTED</span> <span class="token keyword">BY</span> <span class="token keyword">HASH</span><span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> BUCKETS <span class="token number">1</span>
+ PROPERTIES<span class="token punctuation">(</span><span class="token string">"replication_num"</span> <span class="token operator">=</span> <span class="token string">"1"</span><span class="token punctuation">)</span>
+<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：<br>这里需要指定replication_num，系统默认是3，但是当前集群节点只有1个be，否则插入数据会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Failed to find enough host in all backends. need: 3<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>在flink的sql客户端里创建映射表：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
+    uuid <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span><span class="token punctuation">,</span>
+    name STRING<span class="token punctuation">,</span>
+    age <span class="token keyword">int</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    part string
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
+<span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'users_source_mysql'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> star_gjc_test_binlog <span class="token punctuation">(</span>
+  uuid <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
+  name STRING<span class="token punctuation">,</span>
+  age <span class="token keyword">int</span><span class="token punctuation">,</span>
+  ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  part string 
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+   <span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'starrocks'</span><span class="token punctuation">,</span>
+   <span class="token string">'jdbc-url'</span><span class="token operator">=</span><span class="token string">'jdbc:mysql://172.16.2.205:19030'</span><span class="token punctuation">,</span>
+   <span class="token string">'load-url'</span><span class="token operator">=</span><span class="token string">'172.16.2.205:18030'</span><span class="token punctuation">,</span>
+   <span class="token string">'username'</span><span class="token operator">=</span><span class="token string">'root'</span><span class="token punctuation">,</span>
+   <span class="token string">'password'</span><span class="token operator">=</span><span class="token string">''</span><span class="token punctuation">,</span>
+   <span class="token string">'database-name'</span><span class="token operator">=</span><span class="token string">'test'</span><span class="token punctuation">,</span>
+   <span class="token string">'table-name'</span><span class="token operator">=</span><span class="token string">'gjc_test_binlog'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">insert</span> <span class="token keyword">into</span> star_gjc_test_binlog <span class="token keyword">select</span> uuid<span class="token punctuation">,</span>name<span class="token punctuation">,</span>age<span class="token punctuation">,</span>ts<span class="token punctuation">,</span>part <span class="token keyword">from</span> users_source_mysql<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>和clickhouse一样，在导数据之前，需要在starrocks里提前把表创建好，否则会报错</p>
+<p>注意：<br> 建表的时候一定要注意字段长度，如果字段长度不够，数据会默认置为空</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>starrocks</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>数据仓库-数据质量</title>
     <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3696,6 +3819,104 @@ search:
         <category>面试题</category>
         <category>大数据</category>
         <category>数据仓库</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据湖与数据仓库</title>
+    <url>/2022/04/01/%E6%95%B0%E6%8D%AE%E6%B9%96%E4%B8%8E%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>数据库、数据仓库、数据湖、湖仓一体概念与区别<a id="more"></a>
+
+
+</li>
+</ul>
+<h2 id="数据库、数据仓库、数据湖、湖仓一体概念与区别"><a href="#数据库、数据仓库、数据湖、湖仓一体概念与区别" class="headerlink" title="数据库、数据仓库、数据湖、湖仓一体概念与区别"></a>数据库、数据仓库、数据湖、湖仓一体概念与区别</h2><h3 id="什么是数据库？"><a href="#什么是数据库？" class="headerlink" title="什么是数据库？"></a>什么是数据库？</h3><p>数据库是“按照数据结构来组织、存储和管理数据的仓库”。<br>现在通常所说的数据库指的是关系型数据库。关系数据库是指采用了关系模型来组织数据的数据库，其以行和列的形式存储数据，具有结构化程度高，独立性强，冗余度低等优点。<br>关系型数据库的主要用于联机事务处理OLTP（On-Line Transaction Processing）主要进行基本的、日常的事务处理，例如银行交易等场景。</p>
+<h3 id="什么是数据仓库？"><a href="#什么是数据仓库？" class="headerlink" title="什么是数据仓库？"></a>什么是数据仓库？</h3><p>随着数据库的大规模应用，使信息行业的数据爆炸式的增长。为了研究数据之间的关系，挖掘数据隐藏的价值，人们越来越多的需要使用联机分析处理OLAP（On-Line Analytical Processing）进行数据分析，探究一些深层次的关系和信息。但是不同的数据库之间很难做到数据共享，数据之间的集成与分析也存在非常大的挑战。<br>数据仓库主要功能是将OLTP经年累月所累积的大量数据，通过数据仓库特有的数据储存架构进行OLAP，最终帮助决策者能快速有效地从大量数据中，分析出有价值的信息，提供决策支持<br>数据仓库相比数据库，主要有以下两个特点：</p>
+<ul>
+<li>数据仓库是面向主题集成的。数据仓库是为了支撑各种业务而建立的，数据来自于分散的操作型数据。因此需要将所需数据从多个异构的数据源中抽取出来，进行加工与集成，按照主题进行重组，最终进入数据仓库。</li>
+<li>数据仓库主要用于支撑企业决策分析，所涉及的数据操作主要是数据查询。因此数据仓库通过表结构优化、存储方式优化等方式提高查询速度、降低开销。</li>
+</ul>
+<p>数据仓库与数据库的对比： </p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据仓库</th>
+<th>数据库</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用场景</td>
+<td>OLAP</td>
+<td>OLTP</td>
+</tr>
+<tr>
+<td>数据来源</td>
+<td>多数据源</td>
+<td>单数据源</td>
+</tr>
+<tr>
+<td>数据标准化</td>
+<td>非标准化Schema</td>
+<td>高度标准化的静态Schema</td>
+</tr>
+<tr>
+<td>数据读取优势</td>
+<td>针对读操作进行优化</td>
+<td>针对写操作进行优化</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>所以，数据仓库里的数据是一次写入多次读取</p>
+</blockquote>
+<h3 id="什么是数据湖？"><a href="#什么是数据湖？" class="headerlink" title="什么是数据湖？"></a>什么是数据湖？</h3><p>数据湖是一个集中存储各类结构化和非结构化数据的大型数据仓库，它可以存储来自多个数据源、多种数据类型的原始数据，数据无需经过结构化处理，就可以进行存取、处理、分析和传输。数据湖能帮助企业快速完成异构数据源的联邦分析、挖掘和探索数据价值。</p>
+<p>数据湖的出现主要是为了解决存储全域原始数据的问题。在捕获来自业务应用程序、移动应用程序、IoT设备和互联网的结构化和非结构化数据时，实际上并没有预先定义好数据结构，这意味着可以先存储数据而无须进行精心设计，也无须明确要进行什么分析，由数据科学家和数据工程师在后续工作中探索和尝试<br>从根本上来讲，数据湖的最主要目标是尽可能保持业务的可还原度</p>
+<p>对于数据仓库与数据湖的不同之处，可以类比为仓库和湖泊的区别：仓库存储着来自特定来源的货物；而湖泊的水来自河流、溪流和其他来源，并且是<strong>原始数据</strong>。<br>数据湖与数据仓库的对比：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据湖</th>
+<th>数据仓库</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用场景</td>
+<td>可以探索性分析所有类型的数据，包括机器学习、数据发现、特征分析、预测等</td>
+<td>通过历史的结构化数据进行数据分析</td>
+</tr>
+<tr>
+<td>使用成本</td>
+<td>起步成本低，后期成本较高</td>
+<td>起步成本高，后期成本较低</td>
+</tr>
+<tr>
+<td>数据质量</td>
+<td>包含大量原始数据，使用前需要清洗和标准化处理</td>
+<td>质量高，可作为事实依据</td>
+</tr>
+<tr>
+<td>适用对象</td>
+<td>数据科学家、数据开发人员为主</td>
+<td>业务分析师为主</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>个人理解，数据湖就是不管什么样的数据，都扔到这里，不强调数据标准，数据变化快，所以前期好发展，后期容易烟囱式发展，容易乱<br>但是它也有好处，就是什么数据都可以扔里面，而且它允许数据可以变化</p>
+</blockquote>
+<p>数据湖写入的时候不关心数据格式，可以这么理解，以流量为例，流量大部分都是日志，入湖的时候，我们不用去关心流量里面有啥字段，可能就是一条完整的日志存进去，等数仓需要分析的时候，按照流量的分析需求，设计好流量的表结构，然后从湖里面拿流量日志，再去解析里面的字段</p>
+<h3 id="数据湖存储组件"><a href="#数据湖存储组件" class="headerlink" title="数据湖存储组件"></a>数据湖存储组件</h3><p>数据湖的建设方式有很多种，有的企业使用以Hadoop为核心的数据湖实现，有的企业以MPP为核心加上一些对象存储来实现。虽然建设方式不同，但是它们建设数据湖的目标是一致的<br>使用MPP例如Doris，需要单独搭建集群，与现有的Hadoop生态是分开的，所以从长远角度来看，使用以Hadoop为核心来实现数据湖更加靠谱<br>因为大部分公司大数据平台都是以Hadoop生态为基础的</p>
+<p>目前流行的数据湖组件有hudi、iceberg、Delta </p>
+<p>关于数据湖与数据仓库，可以参考<a href="https://xw.qq.com/cmsid/20210909A0ARO400">终于有人将数据湖讲明白了</a></p>
+<h3 id="什么是湖仓一体？"><a href="#什么是湖仓一体？" class="headerlink" title="什么是湖仓一体？"></a>什么是湖仓一体？</h3><p>湖仓一体，又被称为Lake House，其出发点是通过数据仓库和数据湖的打通和融合，让数据流动起来，减少重复建设。Lake House架构最重要的一点，是实现数据仓库和数据湖的数据/元数据无缝打通和自由流动。湖里的“显性价值”数据可以流到仓里，甚至可以直接被数仓使用；而仓里的“隐性价值”数据，也可以流到湖里，低成本长久保存，供未来的数据挖掘使用<br><img src="/uploads/202203/%E4%BB%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E5%88%B0%E6%8F%90%E4%BE%9B%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="从数据采集到提供数据服务的流程图"></p>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+        <category>数据湖</category>
       </categories>
       <tags>
         <tag>数据仓库</tag>
@@ -3851,101 +4072,82 @@ runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -
       </tags>
   </entry>
   <entry>
-    <title>数据湖与数据仓库</title>
-    <url>/2022/04/01/%E6%95%B0%E6%8D%AE%E6%B9%96%E4%B8%8E%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/</url>
+    <title>日常工具软件问题</title>
+    <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
-<li>数据库、数据仓库、数据湖、湖仓一体概念与区别<a id="more"></a>
-
-
-</li>
+<li>VMWare常见问题</li>
+<li>IDEA常见问题<a id="more"></a>
+<h2 id="VMWare常见问题"><a href="#VMWare常见问题" class="headerlink" title="VMWare常见问题"></a>VMWare常见问题</h2><h3 id="VMWare开启虚拟机黑屏"><a href="#VMWare开启虚拟机黑屏" class="headerlink" title="VMWare开启虚拟机黑屏"></a>VMWare开启虚拟机黑屏</h3>解决办法：</li>
+<li>在windows下搜索cmd，并以管理员身份打开，输入：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netsh winsock reset<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>重启电脑</li>
 </ul>
-<h2 id="数据库、数据仓库、数据湖、湖仓一体概念与区别"><a href="#数据库、数据仓库、数据湖、湖仓一体概念与区别" class="headerlink" title="数据库、数据仓库、数据湖、湖仓一体概念与区别"></a>数据库、数据仓库、数据湖、湖仓一体概念与区别</h2><h3 id="什么是数据库？"><a href="#什么是数据库？" class="headerlink" title="什么是数据库？"></a>什么是数据库？</h3><p>数据库是“按照数据结构来组织、存储和管理数据的仓库”。<br>现在通常所说的数据库指的是关系型数据库。关系数据库是指采用了关系模型来组织数据的数据库，其以行和列的形式存储数据，具有结构化程度高，独立性强，冗余度低等优点。<br>关系型数据库的主要用于联机事务处理OLTP（On-Line Transaction Processing）主要进行基本的、日常的事务处理，例如银行交易等场景。</p>
-<h3 id="什么是数据仓库？"><a href="#什么是数据仓库？" class="headerlink" title="什么是数据仓库？"></a>什么是数据仓库？</h3><p>随着数据库的大规模应用，使信息行业的数据爆炸式的增长。为了研究数据之间的关系，挖掘数据隐藏的价值，人们越来越多的需要使用联机分析处理OLAP（On-Line Analytical Processing）进行数据分析，探究一些深层次的关系和信息。但是不同的数据库之间很难做到数据共享，数据之间的集成与分析也存在非常大的挑战。<br>数据仓库主要功能是将OLTP经年累月所累积的大量数据，通过数据仓库特有的数据储存架构进行OLAP，最终帮助决策者能快速有效地从大量数据中，分析出有价值的信息，提供决策支持<br>数据仓库相比数据库，主要有以下两个特点：</p>
-<ul>
-<li>数据仓库是面向主题集成的。数据仓库是为了支撑各种业务而建立的，数据来自于分散的操作型数据。因此需要将所需数据从多个异构的数据源中抽取出来，进行加工与集成，按照主题进行重组，最终进入数据仓库。</li>
-<li>数据仓库主要用于支撑企业决策分析，所涉及的数据操作主要是数据查询。因此数据仓库通过表结构优化、存储方式优化等方式提高查询速度、降低开销。</li>
+<h2 id="IDEA常见问题"><a href="#IDEA常见问题" class="headerlink" title="IDEA常见问题"></a>IDEA常见问题</h2><h3 id="maven编译报错-source-1-5-中不支持-lambda-表达式"><a href="#maven编译报错-source-1-5-中不支持-lambda-表达式" class="headerlink" title="maven编译报错 -source 1.5 中不支持 lambda 表达式"></a>maven编译报错 -source 1.5 中不支持 lambda 表达式</h3><p><img src="/uploads/20210124/IDEA%E4%B8%AD%E7%BC%96%E8%AF%91Maven%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99.png" alt="IDEA中编译Maven项目报错"><br>解决办法：<br>在pom文件中添加:</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.7.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>source</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>encoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>encoding</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="Maven编译时报：编码GBK的不可映射字符"><a href="#Maven编译时报：编码GBK的不可映射字符" class="headerlink" title="Maven编译时报：编码GBK的不可映射字符"></a>Maven编译时报：编码GBK的不可映射字符</h3><p>解决办法：<br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_1.png" alt="编码GBK的不可映射字符_1"><br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_2.png" alt="编码GBK的不可映射字符_2"></p>
+<h3 id="IDEA常用快捷键（windows）"><a href="#IDEA常用快捷键（windows）" class="headerlink" title="IDEA常用快捷键（windows）"></a>IDEA常用快捷键（windows）</h3><ul>
+<li><code>Alt + 1</code> 项目视图，可以自动关闭左边侧边栏</li>
+<li><code>Crl + E</code> 最近文件列表</li>
+<li>快速按两下<code>Shift</code>，全局文件搜索</li>
+<li><code>Crl + Shift + N</code> 跳转到某个文件，可以直接搜索</li>
+<li><code>Alt+Insert</code> 可以生成构造器/Getter/Setter等</li>
+<li><code>Ctrl + W</code> 按一个word来进行选择操作，在IDEA里的这个快捷键功能是先选择光标所在字符处的单词，然后是选择源代码的扩展区域</li>
+<li><code>shift + F6</code>修改文件名</li>
 </ul>
-<p>数据仓库与数据库的对比： </p>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>数据仓库</th>
-<th>数据库</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>应用场景</td>
-<td>OLAP</td>
-<td>OLTP</td>
-</tr>
-<tr>
-<td>数据来源</td>
-<td>多数据源</td>
-<td>单数据源</td>
-</tr>
-<tr>
-<td>数据标准化</td>
-<td>非标准化Schema</td>
-<td>高度标准化的静态Schema</td>
-</tr>
-<tr>
-<td>数据读取优势</td>
-<td>针对读操作进行优化</td>
-<td>针对写操作进行优化</td>
-</tr>
-</tbody></table>
+<h2 id="IDEA常用快捷键（mac）"><a href="#IDEA常用快捷键（mac）" class="headerlink" title="IDEA常用快捷键（mac）"></a>IDEA常用快捷键（mac）</h2><ul>
+<li>当前行注释： ctrl+/</li>
+<li>撤销行注释： ctrl+/</li>
+<li>块状注释： ctrl+shift+/</li>
+<li>撤销块注释： ctrl+shift+/</li>
+<li>实现/重写方法：command + N</li>
+<li>全局查找： shift + command + f</li>
+<li>全局替换： shift + command + r</li>
+<li>当前文件查找： command + f</li>
+<li>当前文件替换： command + r</li>
+<li>最近查看过的文件： command + e</li>
+<li>打开类结构： command + 7</li>
+<li>前往父类/父类方法： command + u</li>
+<li>呼出文件列表： command + 上方向键</li>
+</ul>
+<p>当用IDEA写java的时候，写匿名函数的时候，如果不知道new什么，可以在方法()里使用<code>option + /</code>会自动提示创建什么对象<br><img src="/uploads/20210520/IDEA%E7%BC%96%E5%86%99JAVA.png" alt="IDEA编写JAVA"><br>鼠标悬浮在提醒的对象名上，会提醒这个对象是什么类的，直接new就可以</p>
+<h2 id="IDEA常用插件"><a href="#IDEA常用插件" class="headerlink" title="IDEA常用插件"></a>IDEA常用插件</h2><ul>
+<li>leetcode editor  刷算法</li>
+<li>codota ai aotocomplete for java   自动补全java，从githup上找相似的</li>
+<li>easy code  自动写java实体类</li>
+<li>translation  在线翻译，看源码可以使用</li>
+<li>key promoter  提醒快捷键的，用的功能会自动提示</li>
+<li>maven helper  解决maven依赖冲突</li>
+<li>alibaba java coding   代码规范</li>
+<li>codeglance  类似sublime的代码缩影。可以替代下拉框</li>
+<li>GsonFormat   自动根据json创建实体类</li>
+<li>ignore    git过滤</li>
+<li>rainbow brackets  括号变成彩虹颜色</li>
+<li>acejump  类似vim快速定位</li>
+</ul>
+<p>在IDEA写java的时候，如果不知道是什么类型，可以使用<code>option + shift + enter</code>来自动补全<br>例如：<br><code>map = mapState.iterator().next();</code><br>把鼠标悬浮在map变量上，然后可以点击<code>create local variable &#39;map&#39;</code>,或者<code>option + shift + enter</code>来自动补全</p>
+<p><code>option + shift + enter</code>： 鼠标悬浮在倒入的无用的包上（import变灰色的），使用这个快捷键，可以自动清除无用的包</p>
 <blockquote>
-<p>所以，数据仓库里的数据是一次写入多次读取</p>
+<p>在写java或者scala的时候，直接写=号右边的内容，然后加一个.var,然后enter，就可以自动补全左边的定义变量的操作<br>在编辑java的时候，在调用类和正在编辑的类中来回切换： option + command + 方向键</p>
 </blockquote>
-<h3 id="什么是数据湖？"><a href="#什么是数据湖？" class="headerlink" title="什么是数据湖？"></a>什么是数据湖？</h3><p>数据湖是一个集中存储各类结构化和非结构化数据的大型数据仓库，它可以存储来自多个数据源、多种数据类型的原始数据，数据无需经过结构化处理，就可以进行存取、处理、分析和传输。数据湖能帮助企业快速完成异构数据源的联邦分析、挖掘和探索数据价值。</p>
-<p>数据湖的出现主要是为了解决存储全域原始数据的问题。在捕获来自业务应用程序、移动应用程序、IoT设备和互联网的结构化和非结构化数据时，实际上并没有预先定义好数据结构，这意味着可以先存储数据而无须进行精心设计，也无须明确要进行什么分析，由数据科学家和数据工程师在后续工作中探索和尝试<br>从根本上来讲，数据湖的最主要目标是尽可能保持业务的可还原度</p>
-<p>对于数据仓库与数据湖的不同之处，可以类比为仓库和湖泊的区别：仓库存储着来自特定来源的货物；而湖泊的水来自河流、溪流和其他来源，并且是<strong>原始数据</strong>。<br>数据湖与数据仓库的对比：</p>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>数据湖</th>
-<th>数据仓库</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>应用场景</td>
-<td>可以探索性分析所有类型的数据，包括机器学习、数据发现、特征分析、预测等</td>
-<td>通过历史的结构化数据进行数据分析</td>
-</tr>
-<tr>
-<td>使用成本</td>
-<td>起步成本低，后期成本较高</td>
-<td>起步成本高，后期成本较低</td>
-</tr>
-<tr>
-<td>数据质量</td>
-<td>包含大量原始数据，使用前需要清洗和标准化处理</td>
-<td>质量高，可作为事实依据</td>
-</tr>
-<tr>
-<td>适用对象</td>
-<td>数据科学家、数据开发人员为主</td>
-<td>业务分析师为主</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>个人理解，数据湖就是不管什么样的数据，都扔到这里，不强调数据标准，数据变化快，所以前期好发展，后期容易烟囱式发展，容易乱<br>但是它也有好处，就是什么数据都可以扔里面，而且它允许数据可以变化</p>
-</blockquote>
-<p>数据湖写入的时候不关心数据格式，可以这么理解，以流量为例，流量大部分都是日志，入湖的时候，我们不用去关心流量里面有啥字段，可能就是一条完整的日志存进去，等数仓需要分析的时候，按照流量的分析需求，设计好流量的表结构，然后从湖里面拿流量日志，再去解析里面的字段</p>
-<h3 id="数据湖存储组件"><a href="#数据湖存储组件" class="headerlink" title="数据湖存储组件"></a>数据湖存储组件</h3><p>数据湖的建设方式有很多种，有的企业使用以Hadoop为核心的数据湖实现，有的企业以MPP为核心加上一些对象存储来实现。虽然建设方式不同，但是它们建设数据湖的目标是一致的<br>使用MPP例如Doris，需要单独搭建集群，与现有的Hadoop生态是分开的，所以从长远角度来看，使用以Hadoop为核心来实现数据湖更加靠谱<br>因为大部分公司大数据平台都是以Hadoop生态为基础的</p>
-<p>目前流行的数据湖组件有hudi、iceberg、Delta </p>
-<p>关于数据湖与数据仓库，可以参考<a href="https://xw.qq.com/cmsid/20210909A0ARO400">终于有人将数据湖讲明白了</a></p>
-<h3 id="什么是湖仓一体？"><a href="#什么是湖仓一体？" class="headerlink" title="什么是湖仓一体？"></a>什么是湖仓一体？</h3><p>湖仓一体，又被称为Lake House，其出发点是通过数据仓库和数据湖的打通和融合，让数据流动起来，减少重复建设。Lake House架构最重要的一点，是实现数据仓库和数据湖的数据/元数据无缝打通和自由流动。湖里的“显性价值”数据可以流到仓里，甚至可以直接被数仓使用；而仓里的“隐性价值”数据，也可以流到湖里，低成本长久保存，供未来的数据挖掘使用<br><img src="/uploads/202203/%E4%BB%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E5%88%B0%E6%8F%90%E4%BE%9B%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="从数据采集到提供数据服务的流程图"></p>
+<h2 id="github网页可以访问，但是ping不通"><a href="#github网页可以访问，但是ping不通" class="headerlink" title="github网页可以访问，但是ping不通"></a>github网页可以访问，但是ping不通</h2><p>最近从github上拉取代码，总是报超时，ping github.com后连不通<br>一开始以为是国外ip访问不了，翻墙试了一下，还是不行<br>最后解决方法，修改hosts文件<br>原因是直接ping github.com返回的服务器ip ping不通，但是github本身是有很多ip的，我们挑一个可以ping的通的ip</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>问题解决</p>
 ]]></content>
       <categories>
-        <category>数据仓库</category>
-        <category>数据湖</category>
+        <category>工具箱</category>
       </categories>
       <tags>
-        <tag>数据仓库</tag>
+        <tag>VMWare</tag>
+        <tag>IDEA</tag>
       </tags>
   </entry>
   <entry>
@@ -4141,85 +4343,6 @@ yarn logs -applicationId application_1641525781336_0011 -size 1000000000 &gt; ap
       </categories>
       <tags>
         <tag>监控</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>日常工具软件问题</title>
-    <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>VMWare常见问题</li>
-<li>IDEA常见问题<a id="more"></a>
-<h2 id="VMWare常见问题"><a href="#VMWare常见问题" class="headerlink" title="VMWare常见问题"></a>VMWare常见问题</h2><h3 id="VMWare开启虚拟机黑屏"><a href="#VMWare开启虚拟机黑屏" class="headerlink" title="VMWare开启虚拟机黑屏"></a>VMWare开启虚拟机黑屏</h3>解决办法：</li>
-<li>在windows下搜索cmd，并以管理员身份打开，输入：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netsh winsock reset<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>重启电脑</li>
-</ul>
-<h2 id="IDEA常见问题"><a href="#IDEA常见问题" class="headerlink" title="IDEA常见问题"></a>IDEA常见问题</h2><h3 id="maven编译报错-source-1-5-中不支持-lambda-表达式"><a href="#maven编译报错-source-1-5-中不支持-lambda-表达式" class="headerlink" title="maven编译报错 -source 1.5 中不支持 lambda 表达式"></a>maven编译报错 -source 1.5 中不支持 lambda 表达式</h3><p><img src="/uploads/20210124/IDEA%E4%B8%AD%E7%BC%96%E8%AF%91Maven%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99.png" alt="IDEA中编译Maven项目报错"><br>解决办法：<br>在pom文件中添加:</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.7.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>source</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>encoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>encoding</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="Maven编译时报：编码GBK的不可映射字符"><a href="#Maven编译时报：编码GBK的不可映射字符" class="headerlink" title="Maven编译时报：编码GBK的不可映射字符"></a>Maven编译时报：编码GBK的不可映射字符</h3><p>解决办法：<br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_1.png" alt="编码GBK的不可映射字符_1"><br><img src="/uploads/20210124/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_2.png" alt="编码GBK的不可映射字符_2"></p>
-<h3 id="IDEA常用快捷键（windows）"><a href="#IDEA常用快捷键（windows）" class="headerlink" title="IDEA常用快捷键（windows）"></a>IDEA常用快捷键（windows）</h3><ul>
-<li><code>Alt + 1</code> 项目视图，可以自动关闭左边侧边栏</li>
-<li><code>Crl + E</code> 最近文件列表</li>
-<li>快速按两下<code>Shift</code>，全局文件搜索</li>
-<li><code>Crl + Shift + N</code> 跳转到某个文件，可以直接搜索</li>
-<li><code>Alt+Insert</code> 可以生成构造器/Getter/Setter等</li>
-<li><code>Ctrl + W</code> 按一个word来进行选择操作，在IDEA里的这个快捷键功能是先选择光标所在字符处的单词，然后是选择源代码的扩展区域</li>
-<li><code>shift + F6</code>修改文件名</li>
-</ul>
-<h2 id="IDEA常用快捷键（mac）"><a href="#IDEA常用快捷键（mac）" class="headerlink" title="IDEA常用快捷键（mac）"></a>IDEA常用快捷键（mac）</h2><ul>
-<li>当前行注释： ctrl+/</li>
-<li>撤销行注释： ctrl+/</li>
-<li>块状注释： ctrl+shift+/</li>
-<li>撤销块注释： ctrl+shift+/</li>
-<li>实现/重写方法：command + N</li>
-<li>全局查找： shift + command + f</li>
-<li>全局替换： shift + command + r</li>
-<li>当前文件查找： command + f</li>
-<li>当前文件替换： command + r</li>
-<li>最近查看过的文件： command + e</li>
-<li>打开类结构： command + 7</li>
-<li>前往父类/父类方法： command + u</li>
-<li>呼出文件列表： command + 上方向键</li>
-</ul>
-<p>当用IDEA写java的时候，写匿名函数的时候，如果不知道new什么，可以在方法()里使用<code>option + /</code>会自动提示创建什么对象<br><img src="/uploads/20210520/IDEA%E7%BC%96%E5%86%99JAVA.png" alt="IDEA编写JAVA"><br>鼠标悬浮在提醒的对象名上，会提醒这个对象是什么类的，直接new就可以</p>
-<h2 id="IDEA常用插件"><a href="#IDEA常用插件" class="headerlink" title="IDEA常用插件"></a>IDEA常用插件</h2><ul>
-<li>leetcode editor  刷算法</li>
-<li>codota ai aotocomplete for java   自动补全java，从githup上找相似的</li>
-<li>easy code  自动写java实体类</li>
-<li>translation  在线翻译，看源码可以使用</li>
-<li>key promoter  提醒快捷键的，用的功能会自动提示</li>
-<li>maven helper  解决maven依赖冲突</li>
-<li>alibaba java coding   代码规范</li>
-<li>codeglance  类似sublime的代码缩影。可以替代下拉框</li>
-<li>GsonFormat   自动根据json创建实体类</li>
-<li>ignore    git过滤</li>
-<li>rainbow brackets  括号变成彩虹颜色</li>
-<li>acejump  类似vim快速定位</li>
-</ul>
-<p>在IDEA写java的时候，如果不知道是什么类型，可以使用<code>option + shift + enter</code>来自动补全<br>例如：<br><code>map = mapState.iterator().next();</code><br>把鼠标悬浮在map变量上，然后可以点击<code>create local variable &#39;map&#39;</code>,或者<code>option + shift + enter</code>来自动补全</p>
-<p><code>option + shift + enter</code>： 鼠标悬浮在倒入的无用的包上（import变灰色的），使用这个快捷键，可以自动清除无用的包</p>
-<blockquote>
-<p>在写java或者scala的时候，直接写=号右边的内容，然后加一个.var,然后enter，就可以自动补全左边的定义变量的操作<br>在编辑java的时候，在调用类和正在编辑的类中来回切换： option + command + 方向键</p>
-</blockquote>
-<h2 id="github网页可以访问，但是ping不通"><a href="#github网页可以访问，但是ping不通" class="headerlink" title="github网页可以访问，但是ping不通"></a>github网页可以访问，但是ping不通</h2><p>最近从github上拉取代码，总是报超时，ping github.com后连不通<br>一开始以为是国外ip访问不了，翻墙试了一下，还是不行<br>最后解决方法，修改hosts文件<br>原因是直接ping github.com返回的服务器ip ping不通，但是github本身是有很多ip的，我们挑一个可以ping的通的ip</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>问题解决</p>
-]]></content>
-      <categories>
-        <category>工具箱</category>
-      </categories>
-      <tags>
-        <tag>VMWare</tag>
-        <tag>IDEA</tag>
       </tags>
   </entry>
   <entry>
@@ -5954,172 +6077,6 @@ canal.mq.partition&#x3D;0
       </tags>
   </entry>
   <entry>
-    <title>Flink学习笔记（三）</title>
-    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink状态管理</li>
-<li>Flink Checkpoint机制</li>
-<li>Flink精准一次探究</li>
-</ul>
-<a id="more"></a>
-<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
-<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
-<ul>
-<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
-<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
-<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
-<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
-</ul>
-<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
-<p><img src="/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
-<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
-<ul>
-<li>数据的产出要保证实时性，延迟不能太高。</li>
-<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
-<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
-</ul>
-<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
-<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Managed State</th>
-<th>Raw State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>状态管理方式</td>
-<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
-<td>用户自己管理</td>
-</tr>
-<tr>
-<td>状态数据结构</td>
-<td>Flink提供的常用数据结构，如ListState、MapState等</td>
-<td>字节数组：byte[]</td>
-</tr>
-<tr>
-<td>使用场景</td>
-<td>绝大多数Flink算子</td>
-<td>用户自定义算子</td>
-</tr>
-</tbody></table>
-<p>两者的具体区别有：</p>
-<ul>
-<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
-<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
-<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
-</ul>
-<p>下文将重点介绍Managed State。</p>
-<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
-<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
-<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Keyed State</th>
-<th>Operator State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>适用算子类型</td>
-<td>只适用于KeyedStream上的算子</td>
-<td>可以用于所有算子</td>
-</tr>
-<tr>
-<td>状态分配</td>
-<td>每个Key对应一个状态</td>
-<td>一个算子子任务对应一个状态</td>
-</tr>
-<tr>
-<td>创建和访问方式</td>
-<td>重写Rich Function，通过里面的RuntimeContext访问</td>
-<td>实现CheckpointedFunction等接口</td>
-</tr>
-<tr>
-<td>横向扩展</td>
-<td>状态随着Key自动在多个算子子任务上迁移</td>
-<td>有多种状态重新分配的方式</td>
-</tr>
-<tr>
-<td>支持的数据结构</td>
-<td>ValueState、ListState、MapState等</td>
-<td>ListState、BroadcastState等</td>
-</tr>
-</tbody></table>
-<p>上表总结了Keyed State和Operator State的区别。</p>
-<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
-<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
-<p>这几个状态的具体区别在于：</p>
-<ul>
-<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
-<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
-<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
-<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
-</ul>
-<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
-<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h3 id="如何理解flink中state-状态"><a href="#如何理解flink中state-状态" class="headerlink" title="如何理解flink中state(状态)"></a>如何理解flink中state(状态)</h3><p>state泛指：flink中有状态函数和运算符在各个元素(element)/事件(event)的处理过程中存储的数据（注意：状态数据可以修改和查询，可以自己维护，根据自己的业务场景，保存历史数据或者中间结果到状态(state)中）；<br>使用状态计算的例子：</p>
-<ul>
-<li>当应用程序搜索某些事件模式时，状态将存储到目前为止遇到的事件序列。</li>
-<li>在每分钟/小时/天聚合事件时，状态保存待处理的聚合。</li>
-<li>当在数据点流上训练机器学习模型时，状态保持模型参数的当前版本。</li>
-<li>当需要管理历史数据时，状态允许有效访问过去发生的事件。</li>
-</ul>
-<p>无状态计算指的是数据进入Flink后经过算子时只需要对当前数据进行处理就能得到想要的结果；<br>有状态计算就是需要和历史的一些状态或进行相关操作，才能计算出正确的结果；</p>
-<h3 id="flink中checkpoint执行流程"><a href="#flink中checkpoint执行流程" class="headerlink" title="flink中checkpoint执行流程"></a>flink中checkpoint执行流程</h3><ul>
-<li>checkpoint机制是Flink可靠性的基石，可以保证Flink集群在某个算子因为某些原因(如 异常退出)出现故障时，能够将整个应用流图的状态恢复到故障之前的某一状态，保 证应用流图状态的一致性。Flink的checkpoint机制原理来自“Chandy-Lamport algorithm”算法。 (分布式快照算)</li>
-<li>每个需要checkpoint的应用在启动时，Flink的JobManager为其创建一个 CheckpointCoordinator，CheckpointCoordinator全权负责本应用的快照制作。</li>
-<li>CheckpointCoordinator周期性的向该流应用的所有source算子发送barrier。</li>
-<li>当某个source算子收到一个barrier时，便暂停数据处理过程，然后将自己的当前状 态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告 自己快照制作情况，同时向自身所有下游算子广播该barrier，恢复数据处理</li>
-<li>下游算子收到barrier之后，会暂停自己的数据处理过程，然后将自身的相关状态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告自身 快照情况，同时向自身所有下游算子广播该barrier，恢复数据处理。</li>
-<li>每个算子按照步骤3不断制作快照并向下游广播，直到最后barrier传递到sink算子，快照制作完成。</li>
-<li>当CheckpointCoordinator收到所有算子的报告之后，认为该周期的快照制作成功; 否则，如果在规定的时间内没有收到所有算子的报告，则认为本周期快照制作失败 ;</li>
-</ul>
-<p>整个过程如下：</p>
-<ol>
-<li>JobManager端的 CheckPointCoordinator向 所有SourceTask发送CheckPointTrigger，Source Task会在数据流中安插CheckPoint barrier</li>
-<li>当task收到所有的barrier后，向自己的下游继续传递barrier，然后自身执行快照，并将自己的状态异步写入到持久化存储中。增量CheckPoint只是把最新的一部分更新写入到 外部存储；为了下游尽快做CheckPoint，所以会先发送barrier到下游，自身再同步进行快照</li>
-<li>当task完成备份后，会将备份数据的地址（state handle）通知给JobManager的CheckPointCoordinator；如果CheckPoint的持续时长超过 了CheckPoint设定的超时时间，CheckPointCoordinator 还没有收集完所有的 State Handle，CheckPointCoordinator就会认为本次CheckPoint失败，会把这次CheckPoint产生的所有 状态数据全部删除。</li>
-<li>最后 CheckPoint Coordinator 会把整个 StateHandle 封装成 completed CheckPoint Meta，写入到hdfs。</li>
-</ol>
-<h3 id="什么是barrier对齐？"><a href="#什么是barrier对齐？" class="headerlink" title="什么是barrier对齐？"></a>什么是barrier对齐？</h3><p><img src="/uploads/20211109/barrier%E5%AF%B9%E9%BD%90.png" alt="barrier对齐"></p>
-<ul>
-<li>一旦Operator从输入流接收到CheckPoint barrier n，它就不能处理来自该流的任何数据记录，直到它从其他所有输入接收到barrier n为止。否则，它会混合属于快照n的记录和属于快照n + 1的记录；</li>
-<li>接收到barrier n的流暂时被搁置。从这些流接收的记录不会被处理，而是放入输入缓冲区。</li>
-<li>上图中第2个图，虽然数字流对应的barrier已经到达了，但是barrier之后的1、2、3这些数据只能放到buffer中，等待字母流的barrier到达；</li>
-<li>一旦最后所有输入流都接收到barrier n，Operator就会把缓冲区中pending 的输出数据发出去，然后把CheckPoint barrier n接着往下游发送</li>
-<li>这里还会对自身进行快照；之后，Operator将继续处理来自所有输入流的记录，在处理来自流的记录之前先处理来自输入缓冲区的记录。</li>
-</ul>
-<h3 id="什么是barrier不对齐？"><a href="#什么是barrier不对齐？" class="headerlink" title="什么是barrier不对齐？"></a>什么是barrier不对齐？</h3><p>checkpoint 是要等到所有的barrier全部都到才算完成</p>
-<ul>
-<li>上述图2中，当还有其他输入流的barrier还没有到达时，会把已到达的barrier之后的数据1、2、3搁置在缓冲区，等待其他流的barrier到达后才能处理</li>
-<li>barrier不对齐就是指当还有其他流的barrier还没到达时，为了不影响性能，也不用理会，直接处理barrier之后的数据。等到所有流的barrier的都到达后，就可以对该Operator做CheckPoint了；</li>
-</ul>
-<p>为什么要进行barrier对齐？不对齐到底行不行？<br>Exactly Once时必须barrier对齐，如果barrier不对齐就变成了At Least Once；</p>
-<h3 id="checkpoint中保存的是什么信息"><a href="#checkpoint中保存的是什么信息" class="headerlink" title="checkpoint中保存的是什么信息"></a>checkpoint中保存的是什么信息</h3><p>快照里面到底保存着什么信息呢？以flink消费kafka数据wordcount为例：<br>我们从Kafka读取到一条条的日志，从日志中解析出app_id，然后将统计的结果放到内存中一个Map集合，app_id做为key，对应的pv做为value，每次只需要将相应app_id 的pv值+1后put到Map中即可；<br>kafka topic：test；<br>flink运算流程如下：<br>kakfa的testtopic的分区 —&gt; Flink的source task —&gt; flink的pv计算task</p>
-<h2 id="Flink-Exactly-once语义探究"><a href="#Flink-Exactly-once语义探究" class="headerlink" title="Flink Exactly-once语义探究"></a>Flink Exactly-once语义探究</h2><p>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义;<br>Flink不是默认就有EOS的，flink 官方推荐所有需要保证EOS的sink 逻辑都继承TwoPhaseCommitSinkFunction抽象类。它具体定义如下四个抽象方法。需要我们去在子类中实现。</p>
-<pre><code class="java">protected abstract TXN beginTransaction() throws Exception;
-protected abstract void preCommit(TXN transaction) throws Exception;
-protected abstract void commit(TXN transaction);
-protected abstract void abort(TXN transaction);</code></pre>
-<p>beginTransaction(): 开始一个事务，返回事务信息的句柄。<br>preCommit :预提交（即提交请求）阶段的逻辑<br>commit():正式提交阶段的逻辑<br>abort():取消事务</p>
-<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作(继承TwoPhaseCommitSinkFunction抽象类)<br>使用kafka的sink已经自动实现了，但是，自己写的sink，需要自己继承TwoPhaseCommitSinkFunction抽象类</p>
-<h3 id="flink的二阶段提交"><a href="#flink的二阶段提交" class="headerlink" title="flink的二阶段提交"></a>flink的二阶段提交</h3><p>两阶段提交（two-phase commit, 2PC）是最基础的分布式一致性协议，应用广泛<br>2PC 在分布式系统中，为了让每个节点能够感知其他所有节点的事务执行情况，需要我们引入一个中心节点的凡是统一所有节点的执行逻辑和进度。这个中心节点叫做协调者（coordinator），而其中向中心节点汇报或者被中心节点调度的其他节点叫做参与者。</p>
-<h4 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h4><p><strong>请求阶段</strong><br>1、协调者向所有参与者发送准备请求与事务内容，询问是否可以准备事务提交，并等待参与者的响应。<br>2、参与者执行事务中的包含操作，并记录undo日志（用于回滚）和redo日志（用于重放），但是不真正提交。<br>3、参与者向协调者返回事务才做的执行结果，执行陈工返回yes,否则返回no.<br><strong>提交阶段（分成成功和失败两种情况）</strong><br>若所有的参与者都返回yes,说明事务可以提交。<br>1、协调者向所有参与者发送commit请求。<br>2、参与者收到commit 请求后，将事务真正的提交上去，并释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者ack消息，事务成功完成。<br><strong>事务回滚</strong><br>若有参与者返回no或者超时未返回，说明事务终端，需要回滚。<br>1、协调者向所有参与者发送rollback请求。<br>2、参与者收到rollback请求后，根据undo日志回滚到事务执行前的状态，释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者的ack消息，事务回滚完成。</p>
-<h4 id="2PC-的优缺点"><a href="#2PC-的优缺点" class="headerlink" title="2PC 的优缺点"></a>2PC 的优缺点</h4><p><strong>优点</strong><br>2PC的优点在于原理非常简单，容易理解及实现。<br><strong>缺点</strong><br>缺点主要有3个，列举如下：<br>（1）协调者存在单点问题。如果协调者挂了，整个2PC逻辑就彻底不能运行。<br>（2）、执行过程是完全同步的。各参与者在等待其他参与者响应的过程中都处于阻塞状态，大并发下有性能问题。<br>（3）、仍然存在不一致风险。如果由于网络异常等意外导致只有部分参与者收到了commit请求，就会造成部分参与者提交了事务而其他参与者未提交的情况。</p>
-<p>具体可以参考<a href="https://www.cnblogs.com/zhipeng-wang/p/14082806.html">flink的二阶段提交</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Flink使用案例（一）</title>
     <url>/2021/03/30/Flink%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -7019,6 +6976,173 @@ cd &#x2F;opt&#x2F;modules&#x2F;flink-1.13.6 &amp;&amp; .&#x2F;bin&#x2F;start-clu
       </tags>
   </entry>
   <entry>
+    <title>Flink学习笔记（三）</title>
+    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink状态管理</li>
+<li>Flink Checkpoint机制</li>
+<li>Flink精准一次探究</li>
+</ul>
+<a id="more"></a>
+<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
+<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
+<ul>
+<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
+<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
+<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
+<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
+</ul>
+<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
+<p><img src="/uploads/20210208/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
+<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
+<ul>
+<li>数据的产出要保证实时性，延迟不能太高。</li>
+<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
+<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
+</ul>
+<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
+<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Managed State</th>
+<th>Raw State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态管理方式</td>
+<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
+<td>用户自己管理</td>
+</tr>
+<tr>
+<td>状态数据结构</td>
+<td>Flink提供的常用数据结构，如ListState、MapState等</td>
+<td>字节数组：byte[]</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>绝大多数Flink算子</td>
+<td>用户自定义算子</td>
+</tr>
+</tbody></table>
+<p>两者的具体区别有：</p>
+<ul>
+<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
+<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
+<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
+</ul>
+<p>下文将重点介绍Managed State。</p>
+<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
+<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/20210208/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
+<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Keyed State</th>
+<th>Operator State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用算子类型</td>
+<td>只适用于KeyedStream上的算子</td>
+<td>可以用于所有算子</td>
+</tr>
+<tr>
+<td>状态分配</td>
+<td>每个Key对应一个状态</td>
+<td>一个算子子任务对应一个状态</td>
+</tr>
+<tr>
+<td>创建和访问方式</td>
+<td>重写Rich Function，通过里面的RuntimeContext访问</td>
+<td>实现CheckpointedFunction等接口</td>
+</tr>
+<tr>
+<td>横向扩展</td>
+<td>状态随着Key自动在多个算子子任务上迁移</td>
+<td>有多种状态重新分配的方式</td>
+</tr>
+<tr>
+<td>支持的数据结构</td>
+<td>ValueState、ListState、MapState等</td>
+<td>ListState、BroadcastState等</td>
+</tr>
+</tbody></table>
+<p>上表总结了Keyed State和Operator State的区别。</p>
+<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/20210208/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
+<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
+<p>这几个状态的具体区别在于：</p>
+<ul>
+<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
+<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
+<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
+<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
+</ul>
+<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
+<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h3 id="如何理解flink中state-状态"><a href="#如何理解flink中state-状态" class="headerlink" title="如何理解flink中state(状态)"></a>如何理解flink中state(状态)</h3><p>state泛指：flink中有状态函数和运算符在各个元素(element)/事件(event)的处理过程中存储的数据（注意：状态数据可以修改和查询，可以自己维护，根据自己的业务场景，保存历史数据或者中间结果到状态(state)中）；<br>使用状态计算的例子：</p>
+<ul>
+<li>当应用程序搜索某些事件模式时，状态将存储到目前为止遇到的事件序列。</li>
+<li>在每分钟/小时/天聚合事件时，状态保存待处理的聚合。</li>
+<li>当在数据点流上训练机器学习模型时，状态保持模型参数的当前版本。</li>
+<li>当需要管理历史数据时，状态允许有效访问过去发生的事件。</li>
+</ul>
+<p>无状态计算指的是数据进入Flink后经过算子时只需要对当前数据进行处理就能得到想要的结果；<br>有状态计算就是需要和历史的一些状态或进行相关操作，才能计算出正确的结果；</p>
+<h3 id="flink中checkpoint执行流程"><a href="#flink中checkpoint执行流程" class="headerlink" title="flink中checkpoint执行流程"></a>flink中checkpoint执行流程</h3><ul>
+<li>checkpoint机制是Flink可靠性的基石，可以保证Flink集群在某个算子因为某些原因(如 异常退出)出现故障时，能够将整个应用流图的状态恢复到故障之前的某一状态，保 证应用流图状态的一致性。Flink的checkpoint机制原理来自“Chandy-Lamport algorithm”算法。 (分布式快照算)</li>
+<li>每个需要checkpoint的应用在启动时，Flink的JobManager为其创建一个 CheckpointCoordinator，CheckpointCoordinator全权负责本应用的快照制作。</li>
+<li>CheckpointCoordinator周期性的向该流应用的所有source算子发送barrier。</li>
+<li>当某个source算子收到一个barrier时，便暂停数据处理过程，然后将自己的当前状 态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告 自己快照制作情况，同时向自身所有下游算子广播该barrier，恢复数据处理</li>
+<li>下游算子收到barrier之后，会暂停自己的数据处理过程，然后将自身的相关状态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告自身 快照情况，同时向自身所有下游算子广播该barrier，恢复数据处理。</li>
+<li>每个算子按照步骤3不断制作快照并向下游广播，直到最后barrier传递到sink算子，快照制作完成。</li>
+<li>当CheckpointCoordinator收到所有算子的报告之后，认为该周期的快照制作成功; 否则，如果在规定的时间内没有收到所有算子的报告，则认为本周期快照制作失败 ;</li>
+</ul>
+<p>整个过程如下：</p>
+<ol>
+<li>JobManager端的 CheckPointCoordinator向 所有SourceTask发送CheckPointTrigger，Source Task会在数据流中安插CheckPoint barrier</li>
+<li>当task收到所有的barrier后，向自己的下游继续传递barrier，然后自身执行快照，并将自己的状态异步写入到持久化存储中。增量CheckPoint只是把最新的一部分更新写入到 外部存储；为了下游尽快做CheckPoint，所以会先发送barrier到下游，自身再同步进行快照</li>
+<li>当task完成备份后，会将备份数据的地址（state handle）通知给JobManager的CheckPointCoordinator；如果CheckPoint的持续时长超过 了CheckPoint设定的超时时间，CheckPointCoordinator 还没有收集完所有的 State Handle，CheckPointCoordinator就会认为本次CheckPoint失败，会把这次CheckPoint产生的所有 状态数据全部删除。</li>
+<li>最后 CheckPoint Coordinator 会把整个 StateHandle 封装成 completed CheckPoint Meta，写入到hdfs。</li>
+</ol>
+<h3 id="什么是barrier对齐？"><a href="#什么是barrier对齐？" class="headerlink" title="什么是barrier对齐？"></a>什么是barrier对齐？</h3><p><img src="/uploads/20211109/barrier%E5%AF%B9%E9%BD%90.png" alt="barrier对齐"></p>
+<ul>
+<li>一旦Operator从输入流接收到CheckPoint barrier n，它就不能处理来自该流的任何数据记录，直到它从其他所有输入接收到barrier n为止。否则，它会混合属于快照n的记录和属于快照n + 1的记录；</li>
+<li>接收到barrier n的流暂时被搁置。从这些流接收的记录不会被处理，而是放入输入缓冲区。</li>
+<li>上图中第2个图，虽然数字流对应的barrier已经到达了，但是barrier之后的1、2、3这些数据只能放到buffer中，等待字母流的barrier到达；</li>
+<li>一旦最后所有输入流都接收到barrier n，Operator就会把缓冲区中pending 的输出数据发出去，然后把CheckPoint barrier n接着往下游发送</li>
+<li>这里还会对自身进行快照；之后，Operator将继续处理来自所有输入流的记录，在处理来自流的记录之前先处理来自输入缓冲区的记录。</li>
+</ul>
+<h3 id="什么是barrier不对齐？"><a href="#什么是barrier不对齐？" class="headerlink" title="什么是barrier不对齐？"></a>什么是barrier不对齐？</h3><p>checkpoint 是要等到所有的barrier全部都到才算完成</p>
+<ul>
+<li>上述图2中，当还有其他输入流的barrier还没有到达时，会把已到达的barrier之后的数据1、2、3搁置在缓冲区，等待其他流的barrier到达后才能处理</li>
+<li>barrier不对齐就是指当还有其他流的barrier还没到达时，为了不影响性能，也不用理会，直接处理barrier之后的数据。等到所有流的barrier的都到达后，就可以对该Operator做CheckPoint了；</li>
+</ul>
+<p>为什么要进行barrier对齐？不对齐到底行不行？<br>Exactly Once时必须barrier对齐，如果barrier不对齐就变成了At Least Once；</p>
+<h3 id="checkpoint中保存的是什么信息"><a href="#checkpoint中保存的是什么信息" class="headerlink" title="checkpoint中保存的是什么信息"></a>checkpoint中保存的是什么信息</h3><p>快照里面到底保存着什么信息呢？以flink消费kafka数据wordcount为例：<br>我们从Kafka读取到一条条的日志，从日志中解析出app_id，然后将统计的结果放到内存中一个Map集合，app_id做为key，对应的pv做为value，每次只需要将相应app_id 的pv值+1后put到Map中即可；<br>kafka topic：test；<br>flink运算流程如下：<br>kakfa的testtopic的分区 —&gt; Flink的source task —&gt; flink的pv计算task</p>
+<h3 id="如何自动获取最新的checkpoint？"><a href="#如何自动获取最新的checkpoint？" class="headerlink" title="如何自动获取最新的checkpoint？"></a>如何自动获取最新的checkpoint？</h3><p>现在只知道可以通过-s手动把最新的chk传入到执行程序里，那么如何在java里自动带入最新的chk呢？<br>查看源码，有一个shell里写的，但是也没有写在java里，也是通过-s，可以看一下<br>flink/flink-end-to-end-tests/test-scripts/test_resume_externalized_checkpoints.sh<br>flink/flink-end-to-end-tests/test-scripts/common.sh<br>common里有一个函数：find_latest_completed_checkpoint，可以参考一下<br>这里要想实现自动传入-s的路径，就需要找到，-s是传入到哪个类里去了？</p>
+<h2 id="Flink-Exactly-once语义探究"><a href="#Flink-Exactly-once语义探究" class="headerlink" title="Flink Exactly-once语义探究"></a>Flink Exactly-once语义探究</h2><p>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义;<br>Flink不是默认就有EOS的，flink 官方推荐所有需要保证EOS的sink 逻辑都继承TwoPhaseCommitSinkFunction抽象类。它具体定义如下四个抽象方法。需要我们去在子类中实现。</p>
+<pre><code class="java">protected abstract TXN beginTransaction() throws Exception;
+protected abstract void preCommit(TXN transaction) throws Exception;
+protected abstract void commit(TXN transaction);
+protected abstract void abort(TXN transaction);</code></pre>
+<p>beginTransaction(): 开始一个事务，返回事务信息的句柄。<br>preCommit :预提交（即提交请求）阶段的逻辑<br>commit():正式提交阶段的逻辑<br>abort():取消事务</p>
+<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作(继承TwoPhaseCommitSinkFunction抽象类)<br>使用kafka的sink已经自动实现了，但是，自己写的sink，需要自己继承TwoPhaseCommitSinkFunction抽象类</p>
+<h3 id="flink的二阶段提交"><a href="#flink的二阶段提交" class="headerlink" title="flink的二阶段提交"></a>flink的二阶段提交</h3><p>两阶段提交（two-phase commit, 2PC）是最基础的分布式一致性协议，应用广泛<br>2PC 在分布式系统中，为了让每个节点能够感知其他所有节点的事务执行情况，需要我们引入一个中心节点的凡是统一所有节点的执行逻辑和进度。这个中心节点叫做协调者（coordinator），而其中向中心节点汇报或者被中心节点调度的其他节点叫做参与者。</p>
+<h4 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h4><p><strong>请求阶段</strong><br>1、协调者向所有参与者发送准备请求与事务内容，询问是否可以准备事务提交，并等待参与者的响应。<br>2、参与者执行事务中的包含操作，并记录undo日志（用于回滚）和redo日志（用于重放），但是不真正提交。<br>3、参与者向协调者返回事务才做的执行结果，执行陈工返回yes,否则返回no.<br><strong>提交阶段（分成成功和失败两种情况）</strong><br>若所有的参与者都返回yes,说明事务可以提交。<br>1、协调者向所有参与者发送commit请求。<br>2、参与者收到commit 请求后，将事务真正的提交上去，并释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者ack消息，事务成功完成。<br><strong>事务回滚</strong><br>若有参与者返回no或者超时未返回，说明事务终端，需要回滚。<br>1、协调者向所有参与者发送rollback请求。<br>2、参与者收到rollback请求后，根据undo日志回滚到事务执行前的状态，释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者的ack消息，事务回滚完成。</p>
+<h4 id="2PC-的优缺点"><a href="#2PC-的优缺点" class="headerlink" title="2PC 的优缺点"></a>2PC 的优缺点</h4><p><strong>优点</strong><br>2PC的优点在于原理非常简单，容易理解及实现。<br><strong>缺点</strong><br>缺点主要有3个，列举如下：<br>（1）协调者存在单点问题。如果协调者挂了，整个2PC逻辑就彻底不能运行。<br>（2）、执行过程是完全同步的。各参与者在等待其他参与者响应的过程中都处于阻塞状态，大并发下有性能问题。<br>（3）、仍然存在不一致风险。如果由于网络异常等意外导致只有部分参与者收到了commit请求，就会造成部分参与者提交了事务而其他参与者未提交的情况。</p>
+<p>具体可以参考<a href="https://www.cnblogs.com/zhipeng-wang/p/14082806.html">flink的二阶段提交</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Flink面试题总结</title>
     <url>/2021/11/11/Flink%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -7067,6 +7191,490 @@ cd &#x2F;opt&#x2F;modules&#x2F;flink-1.13.6 &amp;&amp; .&#x2F;bin&#x2F;start-clu
       </categories>
       <tags>
         <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Oracle学习笔记</title>
+    <url>/2022/06/16/Oracle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Centos7.x安装Oracle12c</li>
+<li>初尝Oracle遇到的坑</li>
+<li>Ocacle基本操作</li>
+<li>Oracle开启CDC功能</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Centos7-x安装Oracle12c"><a href="#Centos7-x安装Oracle12c" class="headerlink" title="Centos7.x安装Oracle12c"></a>Centos7.x安装Oracle12c</h2><p>这里安装完全参考了<a href="https://www.freesion.com/article/56911167140/">CENTOS7.3静默安装ORACLE12C</a><br>需要注意的是</p>
+<ol>
+<li>在配置ORACLE环境变量并验证–需要把<code>export ORACLE_HOSTNAME=liuxiaobai</code>改成自己的</li>
+<li>安装ORACLE–这里采取命令行安装，文档里的<code>\</code>换行不对，这里全部放到一行里成功了</li>
+<li>创建数据库–<code>-gdbname</code>需要改成<code>-gdbName</code>，换行去掉，都放在一行 </li>
+<li>配置数据库监听 ，这里看初尝Oracle遇到的坑</li>
+</ol>
+<h2 id="初尝Oracle遇到的坑"><a href="#初尝Oracle遇到的坑" class="headerlink" title="初尝Oracle遇到的坑"></a>初尝Oracle遇到的坑</h2><h3 id="配置数据库监听"><a href="#配置数据库监听" class="headerlink" title="配置数据库监听"></a>配置数据库监听</h3><p>未配置监听前执行</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lsnrctl status
+## 因为没配置过，所以会报错，具体日志看参考文档<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>使用默认的netca.rsp文件，执行命令</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netca -silent -responseFile &#x2F;home&#x2F;oracle&#x2F;database&#x2F;response&#x2F;netca.rsp<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里执行命令以后，没有出现文档里成功的日志，通过查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">为此监听程序提供的端口1521当前正在使用。可以按现状继续配置,但只有在解决冲突之后才能启动该监听程序。是否仍然继续配置?<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>网上说是因为host配置不对，我这里通过<code>lsnrctl stop</code>把监听停掉,然后手动执行</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;usr&#x2F;local&#x2F;products&#x2F;oracle12c&#x2F;bin&#x2F;lsnrctl start LISTENER<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这样虽然报日志成功了，但是并没有文档里说的会对服务<code>cdb1</code>监听的日志，这里根据文档里提示，修改listener.ora文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim &#x2F;usr&#x2F;local&#x2F;products&#x2F;oracle12c&#x2F;network&#x2F;admin&#x2F;listener.ora
+## 文件内容修改如下：
+# listener.ora Network Configuration File: &#x2F;usr&#x2F;local&#x2F;products&#x2F;oracle12c&#x2F;network&#x2F;admin&#x2F;listener.ora
+# Generated by Oracle configuration tools.
+## 这里不动
+LISTENER &#x3D;
+  (DESCRIPTION_LIST &#x3D;
+    (DESCRIPTION &#x3D;
+      (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; golden-cloud)(PORT &#x3D; 1539))
+      (ADDRESS &#x3D; (PROTOCOL &#x3D; IPC)(KEY &#x3D; EXTPROC1521))
+    )
+  )
+    ## 以下为新增
+SID_LIST_LISTENER &#x3D;
+(SID_LIST &#x3D;
+  (SID_DESC &#x3D;
+  (GLOBAL_DBNAME &#x3D; orcl)
+  (SID_NAME &#x3D; orcl)
+  )
+
+  (SID_DESC &#x3D;
+  (GLOBAL_DBNAME &#x3D; orclpdb1)
+  (SID_NAME &#x3D; orclpdb1)
+  )
+)
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<p>注意：<br>这里的监听需要开启2个，一个是CDB一个是PDB，否则flink连接的时候，会有问题<br>再次执行：</p>
+</blockquote>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lsnrctl stop
+lsnrctl start<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>终于成功了</p>
+<h3 id="使用navicat连接oracle"><a href="#使用navicat连接oracle" class="headerlink" title="使用navicat连接oracle"></a>使用navicat连接oracle</h3><p>首先在腾讯云开启端口，这次安装的端口换成1539了。<br>这里要注意，Service Name和SID都是一样的，都是之前创建的数据库cdb1，选哪个都可以的<br>密码就是之前<code>-systemPassword</code>的内容，连接界面如下：<br><img src="/uploads/202206/Navicat%E8%BF%9E%E6%8E%A5Oracle.png" alt="Navicat连接Oracle"><br>还需要注意的是，通过第三方工具连接，必须要开启监听服务，否则连不上的</p>
+<h3 id="创建用户失败"><a href="#创建用户失败" class="headerlink" title="创建用户失败"></a>创建用户失败</h3><p>主要有2个问题：</p>
+<ol>
+<li>用户名不合法，具体可以参考<a href="https://blog.csdn.net/dling8/article/details/120000292">ORA-65096: 公用用户名或角色名无效</a></li>
+<li>找不到表命名空间</li>
+</ol>
+<p>不管是在sqlplus还是在Navicat创建都报错，大致的意思就是用户名不合法，通过网上的资料查看，oracle12版本，普通用户名必须要以c##开头</p>
+<p>找不到表命名空间的解决办法就是重启oracle服务：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 1. su – oralce                           —-切换到oracle用户
+# 2.lsnrctl stop                           —-停止监听
+# 3.sqlplus “&#x2F;as sysdba”                   —-以sysdba用户登录oracle
+# 4.shutdown immediate                     —-关闭数据库
+# 5.startup                                —-启动数据库
+# 6.exit                                   —-退出sqlplus
+# 7.lsnrctl start                          —-启动监听
+# 3，4，5是在sqlplus里执行的<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>重启过后就可以找到命名空间了<br>通过sqlplus创建命名空间与用户的语句如下：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">tablespace</span> testspace datafile <span class="token string">'/usr/local/products/oradata/testspace.dbf'</span> size <span class="token number">300</span>m<span class="token punctuation">;</span>
+<span class="token comment">--创建用户名</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> c<span class="token comment">##test IDENTIFIED BY 123456 DEFAULT TABLESPACE "golden" TEMPORARY TABLESPACE TEMP;</span>
+<span class="token comment">-- 查看用户名与其默认的表空间</span>
+<span class="token keyword">select</span> username<span class="token punctuation">,</span> default_tablespace <span class="token keyword">from</span> dba_users <span class="token keyword">where</span> username <span class="token operator">=</span> <span class="token string">'C##TEST'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>但是还是感觉使用navicat来创建更方便</p>
+<p>如果想要用新创建的用户登陆，需要给新用户授权：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--这个在navicat里也可以操作</span>
+<span class="token keyword">grant</span> <span class="token keyword">connect</span><span class="token punctuation">,</span> resource <span class="token keyword">to</span> c<span class="token comment">##test; // 用户授权</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="ORA-01950-对表空间-‘golden’-无权限"><a href="#ORA-01950-对表空间-‘golden’-无权限" class="headerlink" title="ORA-01950: 对表空间 ‘golden’ 无权限"></a>ORA-01950: 对表空间 ‘golden’ 无权限</h3><p>以新用户登陆oracle，并创建表都没有问题，但是，往表里写数据的时候，报错：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">ORA<span class="token operator">-</span><span class="token number">01950</span>: 对表空间 <span class="token string">'golden'</span> 无权限<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>需要再次赋权：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">USER</span> C<span class="token comment">##TEST QUOTA UNLIMITED ON "golden"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h2 id="Ocacle基本操作"><a href="#Ocacle基本操作" class="headerlink" title="Ocacle基本操作"></a>Ocacle基本操作</h2><p>这里操作Oracle都在Navicat里操作，通过命令行操作Oracle，太费事了<br>schema是什么？可以参考<a href="https://blog.csdn.net/afsdfq/article/details/90417355">oracle之schema</a><br>schema和用户是一一对应的。每个用户都有一个schema，并且和用户名是一样的</p>
+<p>数据库的启动步骤：</p>
+<ol>
+<li>nomount –根据参数文件启动实例（instance）</li>
+<li>mount –加载控制文件，让实例和数据库相关联</li>
+<li>open –根据控制文件找到并打开数据文件和日志文件，从而打开数据库</li>
+</ol>
+<h2 id="Oracle开启CDC功能"><a href="#Oracle开启CDC功能" class="headerlink" title="Oracle开启CDC功能"></a>Oracle开启CDC功能</h2><p>您必须为 Oracle 数据库启用日志归档，并定义一个对 Debezium Oracle 连接器监控的所有数据库具有适当权限的 Oracle 用户<br>Oracle启用日志归档，根据数据库类型有2种方式</p>
+<h3 id="对于Non-CDB-database"><a href="#对于Non-CDB-database" class="headerlink" title="对于Non-CDB database"></a>对于Non-CDB database</h3><p>Non-CDB概念：<br>Non-CDB 是指任何不是 CDB 的东西。即 12c 之前的任何数据库，或在没有启用可插入数据库子句的情况下创建的 12c 数据库。如果您创建非 CDB，则它不是 Multitentant，而是像 12c 之前的数据库一样的单实例独立数据库。<br>看网上的说法，12C之前的版本都是Non-CDB，12C之后的版本，都是CDB的<br>那么，我们这次采集的目标是12C，所以是CDB版本的</p>
+<h3 id="查询Oracle数据库是CDB还是Non-CDB？"><a href="#查询Oracle数据库是CDB还是Non-CDB？" class="headerlink" title="查询Oracle数据库是CDB还是Non-CDB？"></a>查询Oracle数据库是CDB还是Non-CDB？</h3><p>您可以在V$DATABASE视图中查询 CDB 列以查看数据库是否为 CDB。如果当前数据库是 CDB，则列值为 YES，否则 CDB 列值为 NO</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SQL</span><span class="token operator">></span> <span class="token keyword">SELECT</span> CDB <span class="token keyword">FROM</span> V$<span class="token keyword">DATABASE</span><span class="token punctuation">;</span>
+
+CDB
+<span class="token comment">------</span>
+YES
+
+<span class="token comment">--您可以通过如下查询获取有关 CDB 中容器的信息。</span>
+<span class="token comment">--使用 SQLPlus 连接，确保您位于根容器中，然后运行查询。</span>
+<span class="token keyword">SQL</span><span class="token operator">></span> <span class="token keyword">SHOW</span> CON_NAME<span class="token punctuation">;</span>
+
+CON_NAME
+<span class="token comment">------------------------------</span>
+CDB$ROOT
+
+
+<span class="token keyword">SQL</span><span class="token operator">></span> <span class="token keyword">COLUMN</span> NAME FORMAT A8<span class="token punctuation">;</span>
+<span class="token keyword">SQL</span><span class="token operator">></span> <span class="token keyword">SELECT</span> NAME<span class="token punctuation">,</span> CON_ID<span class="token punctuation">,</span> DBID<span class="token punctuation">,</span> CON_UID<span class="token punctuation">,</span> GUID <span class="token keyword">FROM</span> V$CONTAINERS <span class="token keyword">ORDER</span> <span class="token keyword">BY</span> CON_ID<span class="token punctuation">;</span>
+
+NAME	     CON_ID	  DBID	  CON_UID GUID
+<span class="token comment">-------- ---------- ---------- ---------- --------------------------------</span>
+CDB$ROOT	  <span class="token number">1</span> <span class="token number">1081227694</span>		<span class="token number">1</span> <span class="token number">4700</span>A987085A3DFAE05387E5E50A8C7B
+PDB$SEED	  <span class="token number">2</span> <span class="token number">4250516830</span> <span class="token number">4250516830</span> E187C82E49CD2E91E055000000000001
+PDB1		  <span class="token number">3</span>  <span class="token number">913056142</span>	<span class="token number">913056142</span> E187D563EBD3375EE055000000000001<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看到，我们的版本确实是CDB的</p>
+<h3 id="CDB与PDB区别"><a href="#CDB与PDB区别" class="headerlink" title="CDB与PDB区别"></a>CDB与PDB区别</h3><p>Oracle 12C引⼊了CDB与PDB的新特性，在ORACLE 12C数据库引⼊的多租⽤户环境（Multitenant Environment）中，允许⼀个数据库容<br>器（CDB）承载多个可插拔数据库（PDB）。CDB全称为Container Database，中⽂翻译为数据库容器，PDB全称为Pluggable<br>Database，即可插拔数据库。在ORACLE 12C之前，实例与数据库是⼀对⼀或多对⼀关系（RAC）：即⼀个实例只能与⼀个数据库相关<br>联，数据库可以被多个实例所加载。⽽实例与数据库不可能是⼀对多的关系。当进⼊ORACLE 12C后，实例与数据库可以是⼀对多的关<br>系。</p>
+<h3 id="公共用户与本地用户"><a href="#公共用户与本地用户" class="headerlink" title="公共用户与本地用户"></a>公共用户与本地用户</h3><p>公共用户需要以C##开头<br>具体可以参考<a href="https://www.likecs.com/show-204093510.html">Oracle 12C R2 公共用户和本地用户</a></p>
+<blockquote>
+<p>如果想创建非C##开头的用户名，可以设置<code>alter session set &quot;_ORACLE_SCRIPT&quot;=true;</code></p>
+</blockquote>
+<h3 id="数据库开启CDC功能"><a href="#数据库开启CDC功能" class="headerlink" title="数据库开启CDC功能"></a>数据库开启CDC功能</h3><p>flinkcdc是通过读取Oracle的日志来做到实时采集的，所以，这里需要了解一下Oracle的日志相关知识<br>具体可以参考<a href="https://blog.csdn.net/ai15134626825/article/details/103480564">Oracle数据库开启归档日志和补充日志</a></p>
+<p>Oracle开启cdc功能，根据数据库类型有<code>CDB数据库</code>和<code>Non-CDB数据库</code>两种，<code>Non-CDB数据库</code>比较好操作，但是，CDB数据库创建用户必须要用<code>C##</code>开头，导致赋权限一直报错，而且，flinksql连接不到数据库<br>这里先使用<code>Non-CDB数据库</code>做测试。</p>
+<blockquote>
+<p>有点奇怪，为什么flinkcdc官网上创建<code>CDB数据库</code>的用户不需要使用<code>C##</code>开头？</p>
+</blockquote>
+<h4 id="Non-CDB数据库开启cdc"><a href="#Non-CDB数据库开启cdc" class="headerlink" title="Non-CDB数据库开启cdc"></a>Non-CDB数据库开启cdc</h4><ul>
+<li>启用日志归档<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p &#x2F;data&#x2F;oracle&#x2F;oradata&#x2F;recovery_area 
+chown -R oracle:dba &#x2F;data&#x2F;oracle&#x2F;oradata&#x2F;recovery_area 
+CONNECT sys&#x2F;Oracle123 AS SYSDBA<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">alter</span> system <span class="token keyword">set</span> db_recovery_file_dest_size <span class="token operator">=</span> <span class="token number">60</span>G<span class="token punctuation">;</span>
+<span class="token keyword">alter</span> system <span class="token keyword">set</span> db_recovery_file_dest <span class="token operator">=</span> <span class="token string">'/opt/soft/oracle12c/oradata/oradb/archive_log'</span> scope<span class="token operator">=</span>spfile<span class="token punctuation">;</span>
+<span class="token keyword">shutdown</span> immediate<span class="token punctuation">;</span>
+startup mount<span class="token punctuation">;</span>
+<span class="token keyword">alter</span> <span class="token keyword">database</span> archivelog<span class="token punctuation">;</span>
+<span class="token keyword">alter</span> <span class="token keyword">database</span> <span class="token keyword">open</span><span class="token punctuation">;</span>
+<span class="token comment">-- 检查是否启用了日志归档</span>
+<span class="token comment">-- Should now "Database log mode: Archive Mode"</span>
+archive log list<span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+注意：</li>
+<li>启用日志归档需要重启数据库，尝试时注意</li>
+<li>归档日志会占用大量磁盘空间，建议定期清理过期日志</li>
+<li>必须为捕获的表或数据库启用补充日志记录，以便数据更改捕获已更改数据库行的之前状态</li>
+</ul>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 为特定表启用补充日志记录：</span>
+<span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> flinkuser<span class="token punctuation">.</span>GJC_TEST_CDC <span class="token keyword">ADD</span> SUPPLEMENTAL LOG <span class="token keyword">DATA</span> <span class="token punctuation">(</span><span class="token keyword">ALL</span><span class="token punctuation">)</span> <span class="token keyword">COLUMNS</span><span class="token punctuation">;</span>
+<span class="token comment">-- 为数据库启用补充日志记录</span>
+<span class="token keyword">ALTER</span> <span class="token keyword">DATABASE</span> <span class="token keyword">ADD</span> SUPPLEMENTAL LOG <span class="token keyword">DATA</span><span class="token punctuation">;</span>  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>创建用户并赋权限<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- Create Tablespace</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> logminer_tbs DATAFILE <span class="token string">'/data/oracle/oradata/orcl/logminer_tbs.dbf'</span> SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> flinkuser IDENTIFIED <span class="token keyword">BY</span> flinkpw <span class="token keyword">DEFAULT</span> <span class="token keyword">TABLESPACE</span> LOGMINER_TBS QUOTA UNLIMITED <span class="token keyword">ON</span> LOGMINER_TBS<span class="token punctuation">;</span>
+  <span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">SESSION</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+  <span class="token keyword">GRANT</span> <span class="token keyword">SET</span> CONTAINER <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$<span class="token keyword">DATABASE</span> <span class="token keyword">to</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> FLASHBACK <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+  <span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> SELECT_CATALOG_ROLE <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> EXECUTE_CATALOG_ROLE <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TRANSACTION</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> LOGMINING <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">LOCK</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALTER</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> SEQUENCE <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">EXECUTE</span> <span class="token keyword">ON</span> DBMS_LOGMNR <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">EXECUTE</span> <span class="token keyword">ON</span> DBMS_LOGMNR_D <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOG <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOG_HISTORY <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_LOGS <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_CONTENTS <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_PARAMETERS <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGFILE <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$ARCHIVED_LOG <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$ARCHIVE_DEST_STATUS <span class="token keyword">TO</span> flinkuser<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>在Navicat里创建Oracle表，并插入几条数据</li>
+<li>在sql-client创建表映射<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 注意，这里的字段名需要和oracle里保持一样，区分大小写的</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> gjc_test_oracle <span class="token punctuation">(</span>
+   id <span class="token keyword">INT</span><span class="token punctuation">,</span>
+   name STRING<span class="token punctuation">,</span>
+   age <span class="token keyword">INT</span><span class="token punctuation">,</span>
+   <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'oracle-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'172.16.109.130'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'1521'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'flinkuser'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'flinkpw'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'orcl'</span><span class="token punctuation">,</span>
+<span class="token string">'schema-name'</span> <span class="token operator">=</span> <span class="token string">'FLINKUSER'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'GJC_TEST_CDC'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> gjc_test_oracle<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+遇到的问题：</li>
+</ul>
+<ol>
+<li>一开始Oracle字段是小写的，但是，flinksql里创建的字段是大写的，导致数据能够识别到（日志里能看到有几条记录），但是控制台没有数据输出（其实是字段名映射不上去）</li>
+<li>flinkcdc可以正常采集没有主键的表，增删改查都可以</li>
+</ol>
+<h4 id="CDB数据库开启cdc"><a href="#CDB数据库开启cdc" class="headerlink" title="CDB数据库开启cdc"></a>CDB数据库开启cdc</h4><ul>
+<li>启用日志归档<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">sqlplus <span class="token operator">/</span>nolog
+  <span class="token keyword">CONNECT</span> sys<span class="token operator">/</span>password <span class="token keyword">AS</span> SYSDBA
+  <span class="token keyword">alter</span> system <span class="token keyword">set</span> db_recovery_file_dest_size <span class="token operator">=</span> <span class="token number">10</span>G<span class="token punctuation">;</span>
+  <span class="token comment">-- should exist</span>
+  <span class="token keyword">alter</span> system <span class="token keyword">set</span> db_recovery_file_dest <span class="token operator">=</span> <span class="token string">'/opt/soft/oracle12c/oradata/recovery_area'</span> scope<span class="token operator">=</span>spfile<span class="token punctuation">;</span>
+  <span class="token keyword">alter</span> system <span class="token keyword">set</span> archive_lag_target<span class="token operator">=</span><span class="token number">600</span> scope<span class="token operator">=</span>both<span class="token punctuation">;</span>    <span class="token comment">--解决ORA-04036: 实例使用的 PGA 内存超出 PGA_AGGREGATE_LIMIT</span>
+  <span class="token keyword">shutdown</span> immediate
+  startup mount
+  <span class="token keyword">alter</span> <span class="token keyword">database</span> archivelog<span class="token punctuation">;</span>
+  <span class="token keyword">alter</span> <span class="token keyword">database</span> <span class="token keyword">open</span><span class="token punctuation">;</span>
+  <span class="token comment">-- Should show "Database log mode: Archive Mode"</span>
+  archive log list
+  <span class="token keyword">exit</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>创建用户并赋权限<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> logminer_tbs DATAFILE <span class="token string">'/opt/soft/oracle12c/oradata/orcl/logminer_tbs.dbf'</span> SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>  
+<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> flinkuser IDENTIFIED <span class="token keyword">BY</span> flinkpw <span class="token keyword">DEFAULT</span> <span class="token keyword">TABLESPACE</span> LOGMINER_TBS QUOTA UNLIMITED <span class="token keyword">ON</span> LOGMINER_TBS<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">SESSION</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SET</span> CONTAINER <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$<span class="token keyword">DATABASE</span> <span class="token keyword">to</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> FLASHBACK <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> SELECT_CATALOG_ROLE <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> EXECUTE_CATALOG_ROLE <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TRANSACTION</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> LOGMINING <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">LOCK</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> SEQUENCE <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">EXECUTE</span> <span class="token keyword">ON</span> DBMS_LOGMNR <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">EXECUTE</span> <span class="token keyword">ON</span> DBMS_LOGMNR_D <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOG <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOG_HISTORY <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_LOGS <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_CONTENTS <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGMNR_PARAMETERS <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$LOGFILE <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$ARCHIVED_LOG <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$ARCHIVE_DEST_STATUS <span class="token keyword">TO</span> flinkuser CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> gjc_test_oracle <span class="token punctuation">(</span>
+   id <span class="token keyword">INT</span><span class="token punctuation">,</span>
+   name STRING<span class="token punctuation">,</span>
+   <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'oracle-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'172.16.101.223'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'1521'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'c##flinkuser'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'dbz'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'orcl'</span><span class="token punctuation">,</span>
+<span class="token string">'schema-name'</span> <span class="token operator">=</span> <span class="token string">'C##FLINKUSER'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'GJC_TEST_CDC'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+</li>
+</ul>
+<p>遇到的问题：</p>
+<ul>
+<li>cdb默认创建普通用户需要c##开头，如果实在不想c##开头，可以通过设置<code>alter session set &quot;_ORACLE_SCRIPT&quot;=true;</code>后再创建用户</li>
+<li>创建c##用户，再flinksql中也是可以正常使用的，这个没什么关系，只是名字看起来别扭</li>
+<li>默认pdb未启动，需手动启动pdb，不启动pdb，会报如下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Sink: Collect table sink (1&#x2F;1)#1 (2663b9a93aca6d06f44204c23b976492) switched from RUNNING to FAILED with failure cause: com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.errors.ConnectException: An exception occurred in the change event producer. This connector will be stopped.
+  at io.debezium.pipeline.ErrorHandler.setProducerThrowable(ErrorHandler.java:42)
+  at io.debezium.connector.oracle.logminer.LogMinerStreamingChangeEventSource.execute(LogMinerStreamingChangeEventSource.java:208)
+  at io.debezium.pipeline.ChangeEventSourceCoordinator.streamEvents(ChangeEventSourceCoordinator.java:152)
+  at io.debezium.pipeline.ChangeEventSourceCoordinator.lambda$start$0(ChangeEventSourceCoordinator.java:119)
+  at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+  at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+  at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+  at java.lang.Thread.run(Thread.java:748)
+Caused by: java.sql.SQLException: ORA-65024: 可插入数据库  未打开。
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 7750
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 4812
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 4999
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 7601
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 7764
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_INTERNAL&quot;, line 7920
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR_D&quot;, line 12
+ORA-06512: 在 line 1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+启动pdb命令：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--查看数据库中pdb列表：</span>
+<span class="token keyword">show</span> pdbs<span class="token punctuation">;</span>
+<span class="token comment">--   CON_ID CON_NAME			  OPEN MODE  RESTRICTED</span>
+<span class="token comment">---------- ------------------------------ ---------- ----------</span>
+<span class="token comment">--	 2 PDB$SEED			  READ ONLY  NO</span>
+<span class="token comment">--	 3 DGWORCL			  MOUNTED</span>
+<span class="token comment">-- 可以看到，默认是MOUNTED,需要手动打开</span>
+<span class="token keyword">alter</span> pluggable <span class="token keyword">database</span> <span class="token keyword">all</span> <span class="token keyword">open</span><span class="token punctuation">;</span>
+<span class="token comment">--报错：Warning: PDB altered with errors.，这个是因为PDB$SEED</span>
+<span class="token comment">--再次查看状态</span>
+<span class="token keyword">show</span> pdbs<span class="token punctuation">;</span>
+<span class="token comment">--    CON_ID CON_NAME			  OPEN MODE  RESTRICTED</span>
+<span class="token comment">---------- ------------------------------ ---------- ----------</span>
+<span class="token comment">--	 2 PDB$SEED			  READ ONLY  NO</span>
+<span class="token comment">--	 3 DGWORCL			  READ WRITE YES</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+然后再在flink的sql-client里执行命令，就可以正常读取oracle数据了，数据增删改查也都可以看到</li>
+</ul>
+<h4 id="flinkcdc采集oracle数据延迟大"><a href="#flinkcdc采集oracle数据延迟大" class="headerlink" title="flinkcdc采集oracle数据延迟大"></a>flinkcdc采集oracle数据延迟大</h4><p>官网给出解决方案：<br>在flinksql中加入以下参数：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<blockquote>
+<p>oracle-cdc会调用一个checkpoint的锁，如果checkpoint频率很慢，就会导致数据有延迟，如果想要降低数据延迟，最好是降低ck时间</p>
+</blockquote>
+<p>实际测试，在PDB方式的数据库，可以正常执行，并且，速度明显加快，但是，在CDB数据库，会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.errors.ConnectException: An exception occurred in the change event producer. This connector will be stopped.
+	at io.debezium.pipeline.ErrorHandler.setProducerThrowable(ErrorHandler.java:42) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.connector.oracle.logminer.LogMinerStreamingChangeEventSource.execute(LogMinerStreamingChangeEventSource.java:208) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.pipeline.ChangeEventSourceCoordinator.streamEvents(ChangeEventSourceCoordinator.java:152) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.pipeline.ChangeEventSourceCoordinator.lambda$start$0(ChangeEventSourceCoordinator.java:119) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) ~[?:1.8.0_291]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) ~[?:1.8.0_291]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_291]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_291]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_291]
+Caused by: java.sql.SQLException: ORA-01435: 用户不存在
+ORA-06512: 在 &quot;SYS.DBMS_LOGMNR&quot;, line 58
+ORA-06512: 在 line 1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>为啥会报用户名不存在呢？而且，快照数据已经读取到了，数据能够正常输出的<br>问题原因：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">在CDB内创建用户分配表空间时，所分配的表空间必须在PDB和CDB中同时存在，否则会报错。如果是在PDB与CDB有相同表空间的情况下给CDB用户分配表空间，则会分配CDB的表空间，给用户PDB的表空间并不受影响。所以要在PDB内创建相同的表空间，然后再回CDB创建用户<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里在官网上其实是创建了2个相同的命名空间，但是，在测试的时候，把pdb的命名空间给忽略了，导致一直报错，正确的操作方法：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">sqlplus <span class="token operator">/</span> <span class="token keyword">as</span> sysdba
+  <span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> logminer_tbs DATAFILE <span class="token string">'/usr/local/products/oradata/orcl/logminer_tbs.dbf'</span> 
+  SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+<span class="token comment">-- 这里切换到pdb下，使用官网的方式，直接使用sqlplus sys/OraPasswd1@//150.158.190.192:1539/ORCLPDB1 as sysdba ，连接不进去，交互式输入用户名密码，其实连接还是CDB</span>
+<span class="token comment">-- 切换容器 这里需要权限</span>
+  <span class="token keyword">alter</span> <span class="token keyword">session</span> <span class="token keyword">set</span> container <span class="token operator">=</span> ORCLPDB1<span class="token punctuation">;</span>
+<span class="token comment">--在PDB下创建相同的表空间，并且，路径要和CDB的不一样</span>
+  <span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> logminer_tbs DATAFILE <span class="token string">'/usr/local/products/oradata/orcl/orclpdb1/logminer_tbs.dbf'</span> 
+  SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+<span class="token comment">-- 然后再去创建用户名，给用户赋权</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="报错：ORA-00257-archiver-error-Connect-internal-only-until-freed。"><a href="#报错：ORA-00257-archiver-error-Connect-internal-only-until-freed。" class="headerlink" title="报错：ORA-00257: archiver error. Connect internal only, until freed。"></a>报错：ORA-00257: archiver error. Connect internal only, until freed。</h4><p>flink程序报错ORA-00257: archiver error. Connect internal only, until freed。<br>该错误是由于归档日志满了，造成的。<br>查看了下V$FLASH_RECOVERY_AREA_USAGE，看看归档目录使用的情况。果然是归档满了。</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> <span class="token operator">*</span> <span class="token keyword">FROM</span>  V$FLASH_RECOVERY_AREA_USAGE<span class="token punctuation">;</span>
+
+FILE_TYPE    PERCENT_SPACE_USED PERCENT_SPACE_RECLAIMABLE NUMBER_OF_FILES
+<span class="token comment">------------ ------------------ ------------------------- ---------------</span>
+CONTROLFILE                   <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span>
+ONLINELOG                     <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span>
+ARCHIVELOG                  <span class="token number">99.9</span>                         <span class="token number">0</span>               <span class="token number">255</span>
+BACKUPPIECE                   <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span>
+IMAGECOPY                     <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span>
+FLASHBACKLOG                  <span class="token number">0</span>                         <span class="token number">0</span>               <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注：可以看出，ARCHIVELOG日志已经达到99.9%了。造成归档满的原因是因为有一个用户在做大量更新操作，由于更新操作产生大量重做日志，<br>归档日志切换频繁。解决方法是要把大量归档日志清除掉!<br>有两种方式可以解决该问题。<br>一使用RMAN清除归档日志。<br>二修改闪回恢复区的大小DB_RECOVERY_FILE_DEST_SIZE。</p>
+<ul>
+<li>第一种使用RMAN清除归档日志。<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">rman
+<span class="token keyword">connect</span> target <span class="token operator">/</span>
+crosscheck archivelog <span class="token keyword">all</span><span class="token punctuation">;</span>                                      <span class="token comment">-- 校验日志的可用性</span>
+list expired archivelog <span class="token keyword">all</span><span class="token punctuation">;</span>                                    <span class="token comment">--->列出所有失效的归档日志</span>
+<span class="token keyword">delete</span> expired archivelog <span class="token keyword">all</span><span class="token punctuation">;</span>
+<span class="token keyword">delete</span> archivelog until sequence <span class="token number">16</span><span class="token punctuation">;</span>                            <span class="token comment">--->删除log sequence为16及16之前的所有归档日志</span>
+<span class="token keyword">delete</span> archivelog <span class="token keyword">all</span> completed before <span class="token string">'sysdate-7'</span><span class="token punctuation">;</span>             <span class="token comment">--->删除系统时间7天以前的归档日志，不会删除闪回区有效的归档日志</span>
+<span class="token keyword">delete</span> archivelog <span class="token keyword">all</span> completed before <span class="token string">'sysdate - 1'</span><span class="token punctuation">;</span>           <span class="token comment">--->同上，1天以前的</span>
+<span class="token keyword">delete</span> archivelog <span class="token keyword">from</span> <span class="token keyword">time</span> <span class="token string">'sysdate-1'</span><span class="token punctuation">;</span>                        <span class="token comment">--->注意这个命令，删除系统时间1天以内到现在的归档日志</span>
+<span class="token keyword">delete</span> noprompt archivelog <span class="token keyword">all</span> completed before <span class="token string">'sysdate'</span><span class="token punctuation">;</span>
+<span class="token keyword">delete</span> noprompt archivelog <span class="token keyword">all</span> completed before <span class="token string">'sysdate - 3/24'</span><span class="token punctuation">;</span>      <span class="token comment">--->该命令清除所有的归档日志</span>
+<span class="token keyword">delete</span> noprompt archivelog <span class="token keyword">all</span><span class="token punctuation">;</span>                                 <span class="token comment">--->同上一命令</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+删除以后再次查看使用率，正常了</li>
+</ul>
+<ul>
+<li>第二种方法就是增大闪回恢复区的大小。如下：</li>
+</ul>
+<h4 id="当serivce-name与sid不一样，报错如下："><a href="#当serivce-name与sid不一样，报错如下：" class="headerlink" title="当serivce_name与sid不一样，报错如下："></a>当serivce_name与sid不一样，报错如下：</h4><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: oracle.net.ns.NetException: Listener refused the connection with the following error:
+ORA-12514, TNS:listener does not currently know of service requested in connect descriptor
+ 
+	at oracle.net.ns.NSProtocolNIO.negotiateConnection(NSProtocolNIO.java:284)
+	at oracle.net.ns.NSProtocol.connect(NSProtocol.java:340)
+	at oracle.jdbc.driver.T4CConnection.connect(T4CConnection.java:1596)
+	at oracle.jdbc.driver.T4CConnection.logon(T4CConnection.java:588)
+	... 21 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="flinkcdc采集大数据量oracle数据（性能测试）"><a href="#flinkcdc采集大数据量oracle数据（性能测试）" class="headerlink" title="flinkcdc采集大数据量oracle数据（性能测试）"></a>flinkcdc采集大数据量oracle数据（性能测试）</h4><ol>
+<li>实时采集oracle数据延迟过大，平均延迟在3秒左右<br>通过设置以下参数提高实时采集的速度：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">--source端：</span>
+   <span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.log.mining.batch.size.min'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.log.mining.batch.size.default'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.log.mining.sleep.time.default.ms'</span> <span class="token operator">=</span> <span class="token string">'10'</span><span class="token punctuation">,</span>
+   <span class="token string">'debezium.poll.interval.ms'</span> <span class="token operator">=</span> <span class="token string">'10'</span><span class="token punctuation">,</span>
+<span class="token comment">--sink端：</span>
+   <span class="token string">'sink.buffer-flush.max-rows'</span> <span class="token operator">=</span> <span class="token string">'1000000'</span><span class="token punctuation">,</span>
+   <span class="token string">'sink.buffer-flush.max-bytes'</span> <span class="token operator">=</span> <span class="token string">'300000000'</span><span class="token punctuation">,</span>
+   <span class="token string">'sink.buffer-flush.interval-ms'</span> <span class="token operator">=</span> <span class="token string">'1000'</span><span class="token punctuation">,</span>        <span class="token comment">--主要是这个</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>starrocks数据有换行符，数据错位：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token string">'sink.properties.row_delimiter'</span> <span class="token operator">=</span> <span class="token string">'^B'</span><span class="token punctuation">,</span>
+<span class="token string">'sink.properties.column_separator'</span> <span class="token operator">=</span> <span class="token string">'^A'</span><span class="token punctuation">,</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>导入大表（扫描时间很长的表），任务自动重启：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span> <span class="token operator">=</span> <span class="token number">2</span>min<span class="token punctuation">;</span>
+<span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span>tolerable<span class="token operator">-</span>failed<span class="token operator">-</span>checkpoints <span class="token operator">=</span><span class="token number">10000</span><span class="token punctuation">;</span>    <span class="token comment">-- 您需要设置num值来调整任务允许Checkpoint失败的次数。num需要为0或正整数。如果num为0时，则表示不允许存在任何Checkpoint异常或者失败。</span>
+<span class="token keyword">set</span> restart<span class="token operator">-</span>strategy <span class="token operator">=</span><span class="token keyword">fixed</span><span class="token operator">-</span>delay<span class="token punctuation">;</span>
+<span class="token keyword">set</span> restart<span class="token operator">-</span>strategy<span class="token punctuation">.</span><span class="token keyword">fixed</span><span class="token operator">-</span>delay<span class="token punctuation">.</span>attempts <span class="token operator">=</span> <span class="token number">2147483647</span><span class="token punctuation">;</span>   <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+这里简单解释一下flink ck的重启策略：<br>flink checkpoint 的重启策略：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">假如 restart-strategy: fixed-delay
+restart-strategy.fixed-delay.attempts&#x3D;3 [default]
+restart-strategy.fixed-delay.delay&#x3D;2s [default]
+
+举个栗子：
+&#x3D;&#x3D;&#x3D;&gt; 假如 delay&#x3D;1s,attempts&#x3D;1,那么重启的策略就为每2秒尝试重启一次，要么重启成功，要么失败进入下一次重启尝试，如果累计重试次数达到3次但是任然没有成功，那么这个task重启就算失败<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><code>Caused by: java.sql.SQLException: ORA-04036: 实例使用的 PGA 内存超出 PGA_AGGREGATE_LIMIT</code><br>具体报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.errors.ConnectException: An exception occurred in the change event producer. This connector will be stopped.
+	at io.debezium.pipeline.ErrorHandler.setProducerThrowable(ErrorHandler.java:42) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.connector.oracle.logminer.LogMinerStreamingChangeEventSource.execute(LogMinerStreamingChangeEventSource.java:208) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.pipeline.ChangeEventSourceCoordinator.streamEvents(ChangeEventSourceCoordinator.java:152) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at io.debezium.pipeline.ChangeEventSourceCoordinator.lambda$start$0(ChangeEventSourceCoordinator.java:119) ~[flink-sql-connector-oracle-cdc-2.2.1.jar:2.2.1]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) ~[?:1.8.0_311]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) ~[?:1.8.0_311]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_311]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_311]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_311]
+Caused by: java.sql.SQLException: ORA-04036: 实例使用的 PGA 内存超出 PGA_AGGREGATE_LIMIT<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+查看oracle当前设置参数：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">show</span> parameter pga<span class="token punctuation">;</span>
+<span class="token comment">--------------------------------</span>
+NAME				     <span class="token keyword">TYPE</span>       <span class="token keyword">VALUE</span>
+<span class="token comment">---------------   --------------- ----------------------</span>
+
+pga_aggregate_limit	    big <span class="token keyword">integer</span>    <span class="token number">6400</span>M
+pga_aggregate_target	big <span class="token keyword">integer</span>    <span class="token number">3200</span>M
+<span class="token comment">--查看日志归档频率时间</span>
+<span class="token keyword">show</span> parameter archive_lag<span class="token punctuation">;</span>
+NAME				     <span class="token keyword">TYPE</span>   <span class="token keyword">VALUE</span>
+<span class="token comment">--------------------- --------  --------------</span>
+archive_lag_target   <span class="token keyword">integer</span>    <span class="token number">600</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+可以在oracle中设置：<br><code>alter system set archive_lag_target=60 scope=both;</code><br>或者设置<code>log.mining.session.max.xs = 300000</code></li>
+</ol>
+<p>flinkcdc引用的debeziem1.5，还没有<code>log.mining.session.max.xs</code>参数，在1.9版本才能使用。所以，还是得在oracle中设置<code>alter system set archive_lag_target=1200 scope=both;</code><br>原因：<br>对于低容量系统，当长时间使用同一会话时，LogMiner 会话可能会消耗过多的 PGA 内存。默认行为是仅在检测到日志切换时使用新的 LogMiner 会话</p>
+<p>这里同时启动多个实时采集任务，还是会报这个错误，这里网上给的办法是：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#1. 设置 PGA_AGGREGATE_LIMIT &#x3D; 0 , 消除每个会话使用PGA的限制（如11g）
+alter system set pga_aggregate_limit&#x3D;0 scope&#x3D;both;
+#2. 增大PGA_AGGREGATE_LIMIT
+alter system set pga_aggregate_limit&#x3D;16384M scope&#x3D;both;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里先把上面1200秒给更低的时间试试</p>
+<p><img src="/uploads/202206/debezium%E9%87%87%E9%9B%86oracle%E5%AF%BC%E8%87%B4PGA%E5%86%85%E5%AD%98%E8%B6%85%E5%87%BA.png" alt="debezium采集oracle导致PGA内存超出"></p>
+<h4 id="多个flinkcdc任务共同采集oracle，数据延迟巨大"><a href="#多个flinkcdc任务共同采集oracle，数据延迟巨大" class="headerlink" title="多个flinkcdc任务共同采集oracle，数据延迟巨大"></a>多个flinkcdc任务共同采集oracle，数据延迟巨大</h4><p>单个任务采集oracle，速度已经可以控制在1秒以内了，但是，多个任务采集oracle，这边的延迟变得很大，具体原因还不太清楚<br>但是，这里猜测有以下几种原因：</p>
+<ol>
+<li>每个任务都会起一个进程去读取logminer，而logminer的数据是存在pga内存里的，就会导致pga内存很高</li>
+<li>这里通过查看服务器的cpu使用情况，发现每个cdc任务占用cpu特别高，19个任务就可能导致任务玩不转了</li>
+</ol>
+<p>根本原因：<br>oracle-cdc底层调用的是oracle的Logminer，而每个cdc任务启动以后，都会调用Logminer，这会忘redolog里写大量的日志，一开始的设置的微批步长太小了，导致在任务刚开始启动的时候，读取的日志远远追不上日志生成的速度<br>之前的设置：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.poll.interval.ms'</span> <span class="token operator">=</span> <span class="token string">'5'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.min'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.default'</span> <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.sleep.time.default.ms'</span> <span class="token operator">=</span> <span class="token string">'10'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.session.max.xs'</span> <span class="token operator">=</span> <span class="token string">'300000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.lob.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.fetch.size'</span> <span class="token operator">=</span> <span class="token string">'5000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.delay.ms'</span> <span class="token operator">=</span> <span class="token string">'3000'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>优化后的设置：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token string">'debezium.log.mining.strategy'</span> <span class="token operator">=</span> <span class="token string">'online_catalog'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.continuous.mine'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.poll.interval.ms'</span> <span class="token operator">=</span> <span class="token string">'5'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.min'</span> <span class="token operator">=</span> <span class="token string">'50'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.default'</span> <span class="token operator">=</span> <span class="token string">'100'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.batch.size.max'</span> <span class="token operator">=</span> <span class="token string">'10000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.sleep.time.default.ms'</span> <span class="token operator">=</span> <span class="token string">'10'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.sleep.time.max.ms'</span> <span class="token operator">=</span> <span class="token string">'2000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.sleep.time.increment.ms'</span> <span class="token operator">=</span> <span class="token string">'50'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.log.mining.view.fetch.size'</span> <span class="token operator">=</span> <span class="token string">'500'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.lob.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.fetch.size'</span> <span class="token operator">=</span> <span class="token string">'5000'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.delay.ms'</span> <span class="token operator">=</span> <span class="token string">'3000'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>具体可以参考<a href="https://m.php.cn/oracle/487748.html">最系统掌握Flink CDC系列之实时抽取Oracle数据（排雷和调优实践）</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Oracle</category>
+      </categories>
+      <tags>
+        <tag>Oracle</tag>
       </tags>
   </entry>
   <entry>
