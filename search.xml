@@ -1,91 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>CM宕机问题调查与修复</title>
-    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>CM宕机问题调查与修复</li>
-</ul>
-<a id="more"></a>
-
-<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
-<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
-com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
-        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
-        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
-        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-        at java.lang.Thread.run(Thread.java:748)
-Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at java.io.RandomAccessFile.open0(Native Method)
-        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
-        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
-        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
-        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
-        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
-        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
-<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
-● cloudera-scm-agent.service - Cloudera Manager Agent Service
-   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
-   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
-  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
- Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
-
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
-<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>CM</category>
-      </categories>
-      <tags>
-        <tag>CM</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>BloomFilter</title>
     <url>/2021/11/29/BloomFilter/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -224,6 +139,91 @@ Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span
       </categories>
       <tags>
         <tag>Algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CM宕机问题调查与修复</title>
+    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>CM宕机问题调查与修复</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
+<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
+com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
+        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
+        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+        at java.lang.Thread.run(Thread.java:748)
+Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at java.io.RandomAccessFile.open0(Native Method)
+        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
+        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
+        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
+        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
+        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
+        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
+<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
+● cloudera-scm-agent.service - Cloudera Manager Agent Service
+   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
+   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
+  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+ Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
+<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>CM</category>
+      </categories>
+      <tags>
+        <tag>CM</tag>
       </tags>
   </entry>
   <entry>
@@ -1807,6 +1807,58 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
 <li>在<code>/etc/profile</code>里配置相应的环境变量</li>
 <li>在<code>.zshrc</code>里<code>source /etc/profile</code></li>
 </ol>
+<h2 id="谷歌浏览器快捷键"><a href="#谷歌浏览器快捷键" class="headerlink" title="谷歌浏览器快捷键"></a>谷歌浏览器快捷键</h2><table>
+<thead>
+<tr>
+<th>快捷键</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>⌘ + N</td>
+<td>打开新窗口</td>
+</tr>
+<tr>
+<td>⌘-T</td>
+<td>打开新标签页</td>
+</tr>
+<tr>
+<td>⌘-Shift-N</td>
+<td>在隐身模式下打开新窗口。</td>
+</tr>
+<tr>
+<td>按 ⌘-O，然后选择文件。</td>
+<td>在 Google Chrome 浏览器中打开计算机中的文件。</td>
+</tr>
+<tr>
+<td>按住 Shift 键，然后点击链接。</td>
+<td>在新窗口中打开链接。</td>
+</tr>
+<tr>
+<td>按住 ⌘-Shift 键，然后点击链接。</td>
+<td>在新标签页中打开链接并切换到刚打开的标签页。</td>
+</tr>
+<tr>
+<td>同时按 ⌘-Option 和向右箭头键。</td>
+<td>切换到下一个标签页。</td>
+</tr>
+<tr>
+<td>同时按 ⌘-Option 和向左箭头键。</td>
+<td>切换到上一个标签页。</td>
+</tr>
+<tr>
+<td>⌘-W</td>
+<td>关闭当前标签页或弹出窗口。</td>
+</tr>
+<tr>
+<td>⌘-Shift-W</td>
+<td>关闭当前窗口。</td>
+</tr>
+<tr>
+<td>按住⌘ + Q</td>
+<td>关闭浏览器</td>
+</tr>
+</tbody></table>
 ]]></content>
       <categories>
         <category>工具箱</category>
@@ -1959,6 +2011,92 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </tags>
   </entry>
   <entry>
+    <title>Spark面试题</title>
+    <url>/2021/11/18/Spark%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Spark面试题总结</li>
+</ul>
+<a id="more"></a>
+
+
+<p><strong><font size = 5>1. 对于 Spark 中的数据倾斜问题你有什么好的方案?</font></strong><br>数据倾斜是因为数据中的key分布的不均匀导致的。</p>
+<ol>
+<li>可以把小表广播出去或者使用<code>map join</code></li>
+<li>采样倾斜key并分拆join操作，对倾斜key做添加随机数处理。</li>
+<li>如果其中一个表存在多个key倾斜，把主表的所有key都添加1-n随机数，把从表每条数据都复制n次，并添加1-n的随机数，然后再join</li>
+<li>自定义Partitioner：原始的spark使用的是hashPartition，可以自定义一个paritioner，把key拆分到多个task里去</li>
+<li>提高shuffle操作的并行度，使用reduceByKey(1000)，sparkSQL里设置<code>spark.sql.shuffle.partitions=1000</code></li>
+</ol>
+<p><strong><font size = 5>2. 描述一下RDD,DataFrame,DataSet,DataStream的区别和联系？</font></strong><br>RDD：弹性分布式数据集，RDD是SparkCore的基本数据结构<br>DataFrame: 从源码上看，DataFrame其实就是指定row的DataSet，<code>type DataFrame = Dataset[Row]</code><br>DataSet：Dataset是一个由特定领域的对象组成强类型集合，可以使用函数（DSL）或关系运算（SQL）进行并行的转换操作。 每个Dataset 还有一个称为“DataFrame”的无类型（untypedrel）视图，它是[[Row]]的数据集。<br>Dataset和DataFrame的区别与联系：<br>1、Dataset是强类型，会在编译的时候进行类型检测；而DataFrame是弱类型的，在执行的时候进行类型检测；<br>2、序列化方式不通，Dataset是通过Encoder进行序列化，支持动态的生成代码，直接在bytes的层面进行排序，过滤等的操作；而DataFrame是采用可选的java的标准序列化或是kyro进行序列化<br>3、DataFrame和Dataset实质上都是一个逻辑计划，并且是懒加载的，都包含着scahema信息，只有到数据要读取的时候，才会将逻辑计划进行分析和优化，并最终转化为RDD<br>4、二者由于api是统一的，所以都可以采用DSL和SQL方式进行开发，都可以通过sparksession对象进行创建或者是通过transform转化操作得到<br>Dataset和RDD的区别与联系：<br>首先，Dataset的底层不是RDD，但是它可以和RDD互相转化，DS的一些算子例如filter等都是自己实现的，并没有调用RDD的算子<br>DStream：离散化流（DStream），SparkStreaming中的基本抽象，DSream 代表了一系列连续的RDD，DStream中每个RDD包含特定时间间隔的数据，一个DStream 对应了时间维度上的多个RDD。</p>
+<p><strong><font size = 5>3. 简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数? </font></strong><br>窄依赖：每一个父RDD的partition最多被子RDD的一个partition使用<br>宽依赖：多个子RDD的partition会依赖同一个父RDD的partition<br>spark根据RDD的依赖关系划分stage，遇到一个宽依赖，就划分一个stage<br>stage中task数目由stage末端的RDD分区个数来决定</p>
+<p><strong><font size = 5>4. 列举Spark常用的transformation和action算子，有哪些算子会导致Shuffle?</font></strong><br>transformation算子：map、flatMap、reduceByKey、groupByKey、filter等<br>action算子：take、ccollect、count、reduce等<br>reduceByKey、groupByKey等会产生Shuffle<br>注意：<br>reduceByKey和groupByKey只是会产生shuffle，但是不是action算子</p>
+<p><strong><font size = 5>5. 简述下Spark中的缓存(cache和persist)与checkpoint机制，并指出两者的区别和联系</font></strong><br>cache缓存到内存中<br>persist可以缓存到磁盘和内存里<br>checkpoint只能缓存到hdfs上（磁盘上）<br>Persist 和 Cache，不会丢掉RDD间的依赖链/依赖关系，CheckPoint会斩断依赖链</p>
+<p><strong><font size = 5>6. Spark开发调优总结</font></strong></p>
+<ol>
+<li>避免创建重复的RDD</li>
+<li>尽可能复用同一个RDD</li>
+<li>对多次使用的RDD进行持久化</li>
+<li>尽量避免使用shuffle类算子</li>
+<li>使用map-side预聚合的shuffle操作</li>
+<li>使用高性能的算子<br> 6.1 使用reduceByKey/aggregateByKey替代groupByKey<br> 6.2 使用mapPartitions替代普通map<br> 6.3 使用foreachPartitions替代foreach<br> 6.4 使用filter之后进行coalesce操作<br> 6.4 使用repartitionAndSortWithinPartitions替代repartition与sort类操作  </li>
+<li>广播大变量，减少大量的变量副本在网络中传输的性能开销，以及在各个节点的Executor中占用过多内存导致的频繁GC(垃圾回收)</li>
+<li>使用Kryo优化序列化性能</li>
+<li>优化数据结构</li>
+</ol>
+<p><strong><font size = 5>7. Spark为什么快，Spark SQL 一定比 Hive 快吗</font></strong><br>1、Spark 计算比 MapReduce 快的根本原因在于 DAG 计算模型，消除了冗余的 HDFS 读写，Spark不需要将计算的中间结果写入磁盘<br>    如果计算不涉及与其他节点进行数据交换，Spark 可以在内存中一次性完成这些操作，也就是中间结果无须落盘，减少了磁盘 IO 的操作<br>2、Spark 是基于内存的计算并不是spark快的根本原因<br>3、MapReduce每启动一个Task便会启动一次JVM，基于进程的操作。而Spark每次MapReduce操作是基于线程的，只在启动Executor时启动一次JVM，内存的Task操作是在线程复用的<br>总结：Spark比Mapreduce运行更快，主要得益于其对mapreduce操作的优化以及对JVM使用的优化<br>Spark SQL 不一定比Hive快，例如没有shuffle的或者只有一次shuffle的，有可能hive的速度不会低于spark-sql</p>
+<p><strong><font size = 5>8. Spark Streaming小文件问题</font></strong><br>1、增加 batch 大小<br>2、在输出到hdfs的时候，Coalesce一下<br>3、单独起一个定时任务来合并小文件</p>
+<p><strong><font size = 5>9. Checkpoint和持久化有什么区别？</font></strong><br>1、持久化只是将数据保存在BlockManager中，而RDD的lineage是不变的，但是checkpoint执行完后，RDD已经没有之前所谓的依赖RDD了，而只有一个强行为其设置的checkpointRDD，RDD的lineage（血缘关系，依赖关系）改变了<br>2、持久化的数据丢失可能性更大，磁盘、内存都可能会存在数据丢失的情况。但是checkpoint的数据通常是存储在如HDFS等容错、高可用的文件系统，数据丢失可能性较小。<br>注：默认情况下，如果某个RDD没有持久化，但是设置了checkpoint，会存在问题，本来这个job都执行结束了，但是由于中间RDD没有持久化，checkpoint job想要将RDD的数据写入外部文件系统的话，需要全部重新计算一次，<br>再将计算出来的RDD数据checkpoint到外部文件系统。所以，建议对checkpoint()的RDD使用persist(StorageLevel.DISK_ONLY)，该RDD计算之后，就直接持久化到磁盘上。后面进行checkpoint操作时就可以直接从磁盘上读取RDD的数据，并checkpoint到外部文件系统。</p>
+<p><strong><font size = 5>10. SparkStreaming读取Kafka数据的两种方式，有什么区别？</font></strong><br>SparkStreaming读取Kafka数据有两种方式，分别为基于Receiver方式和基于Direct(No Receiver)方式<br>1、基于Receiver方式：<br>    1.1 需要使用单独的Receiver线程来异步获取Kafka数据。<br>    1.2 Receiver底层实现中使用了Kafka高级消费者API,因此,不需要自己管理Offset,只需指定Zookeeper和消费者组GroupID,系统便会自行管理。<br>    1.3 执行过程: Spark Streaming启动时，会在Executor中同时启动Receiver异步线程用于从Kafka持续获取数据，获取的数据先存储在Receiver中(存储方式由StorageLevel决定)，后续，当Batch Job触发后，这些数据会被转移到剩下的Executor中被处理。处理完毕后，Receiver会自动更新Zookeeper中的Offset。<br>    1.4 默认情况下,程序失败或Executor宕掉后可能会丢失数据，为避免数据丢失，可启用预写日志(Write Ahead Log,WAL)。将Receiver收到的数据再备份一份到更可靠的系统如HDFS分布式文件中，以冗余的数据来换取数据不丢失。<br>    1.5 生产下，为保证数据完全不丢失，一般需要启用WAL。启用WAL，在数据量较大，网络不好情况下，会严重降低性能<br>2、基于Direct(No Receiver)方式<br>    2.1 不需要使用单独的Receiver线程从Kafka获取数据。<br>    2.2 使用Kafka简单消费者API,不需要ZooKeeper参与，直接从Kafka Broker获取数据。<br>    2.3 执行过程:Spark Streaming Batch Job触发时，Driver端确定要读取的Topic-Partition的OffsetRange，然后由Executor并行从Kafka各Partition读取数据并计算。<br>    2.4 为保证整个应用EOS， Offset管理一般需要借助外部存储实现。如Mysql、HBase等。<br>    2.5 由于不需要WAL，且Spark Streaming会创建和Kafka Topic Partition一样多的RDD Partition,且一一对应，这样,就可以并行读取，大大提高了性能。<br>    2.6 Spark Streaming应用启动后，自己通过内部currentOffsets变量跟踪Offset，避免了基于Receiver的方式中Spark Streaming和Zookeeper中的Offset不一致问题。</p>
+<p><strong><font size = 5>11. 如何使用Spark实现TopN的获取（描述思路或使用伪代码）？</font></strong><br>最简单的就是，直接reduceByKey计算key的个数，然后按照value排序<br>但是，这样会有一个问题，就是当数据量很大的时候，有可能会导致OOM，或者数据倾斜<br>可以使用map算子，把每个key添加一个随机数，然后再reduceByKey,最后再把key拆出来，再做一次reduceByKey</p>
+<p><strong><font size = 5>12. Spark在什么情况下会OOM</font></strong></p>
+<ol>
+<li>map过程产生大量对象导致内存溢出</li>
+<li>数据不平衡导致内存溢出</li>
+<li>coalesce调用导致内存溢出</li>
+<li>shuffle后内存溢出</li>
+<li>广播了大变量</li>
+</ol>
+<p>指定spark的垃圾回收算法G1GC：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">-conf spark.driver.extraJavaOptions&#x3D;&quot;-XX:+UseG1GC -Dlog4j.configuration&#x3D;log4j.properties&quot; \
+--conf spark.executor.extraJavaOptions&#x3D;&quot;-XX:+UseG1GC -Dlog4j.configuration&#x3D;log4j.properties&quot; \<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+<p><strong><font size = 5>13. RDD的弹性表现在哪几点？</font></strong></p>
+<ol>
+<li>自动的进行内存和磁盘的存储切换</li>
+<li>基于Linage的高效容错</li>
+<li>task如果失败会自动进行特定次数的重试</li>
+<li>stage如果失败会自动进行特定次数的重试，而且只会计算失败的分片</li>
+<li>checkpoint和persist，数据计算之后持久化缓存</li>
+<li>数据调度弹性，DAG TASK调度和资源无关</li>
+<li>数据分片的高度弹性</li>
+</ol>
+<p><strong><font size = 5>14. RDD通过Linage（记录数据更新）的方式为何很高效？</font></strong></p>
+<p><strong><font size = 5>14. Spark与MapReduce以及Tez的区别？</font></strong></p>
+<ul>
+<li>spark与tez都是以dag方式处理数据</li>
+<li>MR相比tez和spark，每次计算结果都会落盘，增加了磁盘IO</li>
+</ul>
+<p>tez和spark的区别：</p>
+<ul>
+<li>spark更像是一个通用的计算引擎，提供内存计算，实时流处理，机器学习等多种计算方式，适合迭代计算</li>
+<li>tez作为一个框架工具，特定为hive和pig提供批量计算</li>
+<li>spark属于内存计算，支持多种运行模式，可以跑在standalone，yarn上；而tez只能跑在yarn上；虽然spark与yarn兼容，但是spark不适合和其他yarn应用跑在一起</li>
+<li>tez能够及时的释放资源，重用container，节省调度时间，对内存的资源要求率不高； 而spark如果存在迭代计算时，container一直占用资源；</li>
+</ul>
+<p>可以参考<a href="https://zhuanlan.zhihu.com/p/49169166">Spark面试题(一)</a></p>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scala面试题</title>
     <url>/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2060,92 +2198,6 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       <tags>
         <tag>Selenium</tag>
         <tag>PhantomJS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spark面试题</title>
-    <url>/2021/11/18/Spark%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Spark面试题总结</li>
-</ul>
-<a id="more"></a>
-
-
-<p><strong><font size = 5>1. 对于 Spark 中的数据倾斜问题你有什么好的方案?</font></strong><br>数据倾斜是因为数据中的key分布的不均匀导致的。</p>
-<ol>
-<li>可以把小表广播出去或者使用<code>map join</code></li>
-<li>采样倾斜key并分拆join操作，对倾斜key做添加随机数处理。</li>
-<li>如果其中一个表存在多个key倾斜，把主表的所有key都添加1-n随机数，把从表每条数据都复制n次，并添加1-n的随机数，然后再join</li>
-<li>自定义Partitioner：原始的spark使用的是hashPartition，可以自定义一个paritioner，把key拆分到多个task里去</li>
-<li>提高shuffle操作的并行度，使用reduceByKey(1000)，sparkSQL里设置<code>spark.sql.shuffle.partitions=1000</code></li>
-</ol>
-<p><strong><font size = 5>2. 描述一下RDD,DataFrame,DataSet,DataStream的区别和联系？</font></strong><br>RDD：弹性分布式数据集，RDD是SparkCore的基本数据结构<br>DataFrame: 从源码上看，DataFrame其实就是指定row的DataSet，<code>type DataFrame = Dataset[Row]</code><br>DataSet：Dataset是一个由特定领域的对象组成强类型集合，可以使用函数（DSL）或关系运算（SQL）进行并行的转换操作。 每个Dataset 还有一个称为“DataFrame”的无类型（untypedrel）视图，它是[[Row]]的数据集。<br>Dataset和DataFrame的区别与联系：<br>1、Dataset是强类型，会在编译的时候进行类型检测；而DataFrame是弱类型的，在执行的时候进行类型检测；<br>2、序列化方式不通，Dataset是通过Encoder进行序列化，支持动态的生成代码，直接在bytes的层面进行排序，过滤等的操作；而DataFrame是采用可选的java的标准序列化或是kyro进行序列化<br>3、DataFrame和Dataset实质上都是一个逻辑计划，并且是懒加载的，都包含着scahema信息，只有到数据要读取的时候，才会将逻辑计划进行分析和优化，并最终转化为RDD<br>4、二者由于api是统一的，所以都可以采用DSL和SQL方式进行开发，都可以通过sparksession对象进行创建或者是通过transform转化操作得到<br>Dataset和RDD的区别与联系：<br>首先，Dataset的底层不是RDD，但是它可以和RDD互相转化，DS的一些算子例如filter等都是自己实现的，并没有调用RDD的算子<br>DStream：离散化流（DStream），SparkStreaming中的基本抽象，DSream 代表了一系列连续的RDD，DStream中每个RDD包含特定时间间隔的数据，一个DStream 对应了时间维度上的多个RDD。</p>
-<p><strong><font size = 5>3. 简述Spark的宽窄依赖，以及Spark如何划分stage，每个stage又根据什么决定task个数? </font></strong><br>窄依赖：每一个父RDD的partition最多被子RDD的一个partition使用<br>宽依赖：多个子RDD的partition会依赖同一个父RDD的partition<br>spark根据RDD的依赖关系划分stage，遇到一个宽依赖，就划分一个stage<br>stage中task数目由stage末端的RDD分区个数来决定</p>
-<p><strong><font size = 5>4. 列举Spark常用的transformation和action算子，有哪些算子会导致Shuffle?</font></strong><br>transformation算子：map、flatMap、reduceByKey、groupByKey、filter等<br>action算子：take、ccollect、count、reduce等<br>reduceByKey、groupByKey等会产生Shuffle<br>注意：<br>reduceByKey和groupByKey只是会产生shuffle，但是不是action算子</p>
-<p><strong><font size = 5>5. 简述下Spark中的缓存(cache和persist)与checkpoint机制，并指出两者的区别和联系</font></strong><br>cache缓存到内存中<br>persist可以缓存到磁盘和内存里<br>checkpoint只能缓存到hdfs上（磁盘上）<br>Persist 和 Cache，不会丢掉RDD间的依赖链/依赖关系，CheckPoint会斩断依赖链</p>
-<p><strong><font size = 5>6. Spark开发调优总结</font></strong></p>
-<ol>
-<li>避免创建重复的RDD</li>
-<li>尽可能复用同一个RDD</li>
-<li>对多次使用的RDD进行持久化</li>
-<li>尽量避免使用shuffle类算子</li>
-<li>使用map-side预聚合的shuffle操作</li>
-<li>使用高性能的算子<br> 6.1 使用reduceByKey/aggregateByKey替代groupByKey<br> 6.2 使用mapPartitions替代普通map<br> 6.3 使用foreachPartitions替代foreach<br> 6.4 使用filter之后进行coalesce操作<br> 6.4 使用repartitionAndSortWithinPartitions替代repartition与sort类操作  </li>
-<li>广播大变量，减少大量的变量副本在网络中传输的性能开销，以及在各个节点的Executor中占用过多内存导致的频繁GC(垃圾回收)</li>
-<li>使用Kryo优化序列化性能</li>
-<li>优化数据结构</li>
-</ol>
-<p><strong><font size = 5>7. Spark为什么快，Spark SQL 一定比 Hive 快吗</font></strong><br>1、Spark 计算比 MapReduce 快的根本原因在于 DAG 计算模型，消除了冗余的 HDFS 读写，Spark不需要将计算的中间结果写入磁盘<br>    如果计算不涉及与其他节点进行数据交换，Spark 可以在内存中一次性完成这些操作，也就是中间结果无须落盘，减少了磁盘 IO 的操作<br>2、Spark 是基于内存的计算并不是spark快的根本原因<br>3、MapReduce每启动一个Task便会启动一次JVM，基于进程的操作。而Spark每次MapReduce操作是基于线程的，只在启动Executor时启动一次JVM，内存的Task操作是在线程复用的<br>总结：Spark比Mapreduce运行更快，主要得益于其对mapreduce操作的优化以及对JVM使用的优化<br>Spark SQL 不一定比Hive快，例如没有shuffle的或者只有一次shuffle的，有可能hive的速度不会低于spark-sql</p>
-<p><strong><font size = 5>8. Spark Streaming小文件问题</font></strong><br>1、增加 batch 大小<br>2、在输出到hdfs的时候，Coalesce一下<br>3、单独起一个定时任务来合并小文件</p>
-<p><strong><font size = 5>9. Checkpoint和持久化有什么区别？</font></strong><br>1、持久化只是将数据保存在BlockManager中，而RDD的lineage是不变的，但是checkpoint执行完后，RDD已经没有之前所谓的依赖RDD了，而只有一个强行为其设置的checkpointRDD，RDD的lineage（血缘关系，依赖关系）改变了<br>2、持久化的数据丢失可能性更大，磁盘、内存都可能会存在数据丢失的情况。但是checkpoint的数据通常是存储在如HDFS等容错、高可用的文件系统，数据丢失可能性较小。<br>注：默认情况下，如果某个RDD没有持久化，但是设置了checkpoint，会存在问题，本来这个job都执行结束了，但是由于中间RDD没有持久化，checkpoint job想要将RDD的数据写入外部文件系统的话，需要全部重新计算一次，<br>再将计算出来的RDD数据checkpoint到外部文件系统。所以，建议对checkpoint()的RDD使用persist(StorageLevel.DISK_ONLY)，该RDD计算之后，就直接持久化到磁盘上。后面进行checkpoint操作时就可以直接从磁盘上读取RDD的数据，并checkpoint到外部文件系统。</p>
-<p><strong><font size = 5>10. SparkStreaming读取Kafka数据的两种方式，有什么区别？</font></strong><br>SparkStreaming读取Kafka数据有两种方式，分别为基于Receiver方式和基于Direct(No Receiver)方式<br>1、基于Receiver方式：<br>    1.1 需要使用单独的Receiver线程来异步获取Kafka数据。<br>    1.2 Receiver底层实现中使用了Kafka高级消费者API,因此,不需要自己管理Offset,只需指定Zookeeper和消费者组GroupID,系统便会自行管理。<br>    1.3 执行过程: Spark Streaming启动时，会在Executor中同时启动Receiver异步线程用于从Kafka持续获取数据，获取的数据先存储在Receiver中(存储方式由StorageLevel决定)，后续，当Batch Job触发后，这些数据会被转移到剩下的Executor中被处理。处理完毕后，Receiver会自动更新Zookeeper中的Offset。<br>    1.4 默认情况下,程序失败或Executor宕掉后可能会丢失数据，为避免数据丢失，可启用预写日志(Write Ahead Log,WAL)。将Receiver收到的数据再备份一份到更可靠的系统如HDFS分布式文件中，以冗余的数据来换取数据不丢失。<br>    1.5 生产下，为保证数据完全不丢失，一般需要启用WAL。启用WAL，在数据量较大，网络不好情况下，会严重降低性能<br>2、基于Direct(No Receiver)方式<br>    2.1 不需要使用单独的Receiver线程从Kafka获取数据。<br>    2.2 使用Kafka简单消费者API,不需要ZooKeeper参与，直接从Kafka Broker获取数据。<br>    2.3 执行过程:Spark Streaming Batch Job触发时，Driver端确定要读取的Topic-Partition的OffsetRange，然后由Executor并行从Kafka各Partition读取数据并计算。<br>    2.4 为保证整个应用EOS， Offset管理一般需要借助外部存储实现。如Mysql、HBase等。<br>    2.5 由于不需要WAL，且Spark Streaming会创建和Kafka Topic Partition一样多的RDD Partition,且一一对应，这样,就可以并行读取，大大提高了性能。<br>    2.6 Spark Streaming应用启动后，自己通过内部currentOffsets变量跟踪Offset，避免了基于Receiver的方式中Spark Streaming和Zookeeper中的Offset不一致问题。</p>
-<p><strong><font size = 5>11. 如何使用Spark实现TopN的获取（描述思路或使用伪代码）？</font></strong><br>最简单的就是，直接reduceByKey计算key的个数，然后按照value排序<br>但是，这样会有一个问题，就是当数据量很大的时候，有可能会导致OOM，或者数据倾斜<br>可以使用map算子，把每个key添加一个随机数，然后再reduceByKey,最后再把key拆出来，再做一次reduceByKey</p>
-<p><strong><font size = 5>12. Spark在什么情况下会OOM</font></strong></p>
-<ol>
-<li>map过程产生大量对象导致内存溢出</li>
-<li>数据不平衡导致内存溢出</li>
-<li>coalesce调用导致内存溢出</li>
-<li>shuffle后内存溢出</li>
-<li>广播了大变量</li>
-</ol>
-<p>指定spark的垃圾回收算法G1GC：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">-conf spark.driver.extraJavaOptions&#x3D;&quot;-XX:+UseG1GC -Dlog4j.configuration&#x3D;log4j.properties&quot; \
---conf spark.executor.extraJavaOptions&#x3D;&quot;-XX:+UseG1GC -Dlog4j.configuration&#x3D;log4j.properties&quot; \<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
-
-<p><strong><font size = 5>13. RDD的弹性表现在哪几点？</font></strong></p>
-<ol>
-<li>自动的进行内存和磁盘的存储切换</li>
-<li>基于Linage的高效容错</li>
-<li>task如果失败会自动进行特定次数的重试</li>
-<li>stage如果失败会自动进行特定次数的重试，而且只会计算失败的分片</li>
-<li>checkpoint和persist，数据计算之后持久化缓存</li>
-<li>数据调度弹性，DAG TASK调度和资源无关</li>
-<li>数据分片的高度弹性</li>
-</ol>
-<p><strong><font size = 5>14. RDD通过Linage（记录数据更新）的方式为何很高效？</font></strong></p>
-<p><strong><font size = 5>14. Spark与MapReduce以及Tez的区别？</font></strong></p>
-<ul>
-<li>spark与tez都是以dag方式处理数据</li>
-<li>MR相比tez和spark，每次计算结果都会落盘，增加了磁盘IO</li>
-</ul>
-<p>tez和spark的区别：</p>
-<ul>
-<li>spark更像是一个通用的计算引擎，提供内存计算，实时流处理，机器学习等多种计算方式，适合迭代计算</li>
-<li>tez作为一个框架工具，特定为hive和pig提供批量计算</li>
-<li>spark属于内存计算，支持多种运行模式，可以跑在standalone，yarn上；而tez只能跑在yarn上；虽然spark与yarn兼容，但是spark不适合和其他yarn应用跑在一起</li>
-<li>tez能够及时的释放资源，重用container，节省调度时间，对内存的资源要求率不高； 而spark如果存在迭代计算时，container一直占用资源；</li>
-</ul>
-<p>可以参考<a href="https://zhuanlan.zhihu.com/p/49169166">Spark面试题(一)</a></p>
-]]></content>
-      <categories>
-        <category>面试题</category>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
       </tags>
   </entry>
   <entry>
@@ -2626,6 +2678,7 @@ awk &#39;BEGIN &#123;for (i&#x3D;3;i&gt;1;i--) print i&#125;&#39; test.txt<span 
 上述 While 和 For 循环语句使用的 awk 均使用 BEGIN 模式，即在未读取文档内容前就会将 BEGIN 代码执行完毕，所以输入文档可以是任意文档。<br>具体参考：<br><a href="https://blog.csdn.net/sunny_future/article/details/80287236">https://blog.csdn.net/sunny_future/article/details/80287236</a></li>
 </ul>
 <h2 id="查询文件下所有文件是否包含某个字符串"><a href="#查询文件下所有文件是否包含某个字符串" class="headerlink" title="查询文件下所有文件是否包含某个字符串"></a>查询文件下所有文件是否包含某个字符串</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="查询文件夹下所有文件既包含AAA又包含BBB字符串"><a href="#查询文件夹下所有文件既包含AAA又包含BBB字符串" class="headerlink" title="查询文件夹下所有文件既包含AAA又包含BBB字符串"></a>查询文件夹下所有文件既包含AAA又包含BBB字符串</h2><pre class="line-numbers language-xml" data-language="xml"><code class="language-xml">find .| xargs grep -ri "AAA" -l |  xargs grep -ri "BBB"<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h2 id="目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名"><a href="#目录下的所有文件中查找字符串-并且只打印出含有该字符串的文件名" class="headerlink" title="目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名"></a>目录下的所有文件中查找字符串,并且只打印出含有该字符串的文件名</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">find .| xargs grep -ri &quot;class&quot; -l <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h2 id="遍历指定文件夹下所有文件"><a href="#遍历指定文件夹下所有文件" class="headerlink" title="遍历指定文件夹下所有文件"></a>遍历指定文件夹下所有文件</h2><h3 id="采用递归的方式"><a href="#采用递归的方式" class="headerlink" title="采用递归的方式"></a>采用递归的方式</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">function scandir() &#123;
     local cur_dir parent_dir workdir
@@ -3301,6 +3354,240 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </tags>
   </entry>
   <entry>
+    <title>starrocks学习笔记</title>
+    <url>/2022/06/08/starrocks%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>starrocks学习笔记</li>
+</ul>
+<a id="more"></a>
+
+
+
+
+
+<h2 id="starrocks简介"><a href="#starrocks简介" class="headerlink" title="starrocks简介"></a>starrocks简介</h2><p>starrocks的官网写的很好，也有中文文档，文档可以直接看<a href="https://docs.starrocks.com/zh-cn/main/introduction/StarRocks_intro">starrocks官网</a></p>
+<h2 id="flinkcdc实时写starrocks"><a href="#flinkcdc实时写starrocks" class="headerlink" title="flinkcdc实时写starrocks"></a>flinkcdc实时写starrocks</h2><p>下载flink-connector-starrocks，可以直接在maven仓库里下载相应的jar包，并把它放在${FLINK_HOME}/lib下，启动flink集群以及sql-client<br>在starrocks里创建表：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"> <span class="token keyword">create</span> <span class="token keyword">table</span> gjc_test_binlog<span class="token punctuation">(</span>
+    uuid <span class="token keyword">int</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    name <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">50</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    age <span class="token keyword">int</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">DATETIME</span><span class="token punctuation">,</span>
+    part <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span> 
+ <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token punctuation">(</span>uuid<span class="token punctuation">)</span>
+ <span class="token keyword">DISTRIBUTED</span> <span class="token keyword">BY</span> <span class="token keyword">HASH</span><span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> BUCKETS <span class="token number">1</span>
+ PROPERTIES<span class="token punctuation">(</span><span class="token string">"replication_num"</span> <span class="token operator">=</span> <span class="token string">"1"</span><span class="token punctuation">)</span>
+<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：<br>这里需要指定replication_num，系统默认是3，但是当前集群节点只有1个be，否则插入数据会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Failed to find enough host in all backends. need: 3<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>在flink的sql客户端里创建映射表：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
+    uuid <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span><span class="token punctuation">,</span>
+    name STRING<span class="token punctuation">,</span>
+    age <span class="token keyword">int</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    part string
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
+<span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'users_source_mysql'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> star_gjc_test_binlog <span class="token punctuation">(</span>
+  uuid <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
+  name STRING<span class="token punctuation">,</span>
+  age <span class="token keyword">int</span><span class="token punctuation">,</span>
+  ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  part string 
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+   <span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'starrocks'</span><span class="token punctuation">,</span>
+   <span class="token string">'jdbc-url'</span><span class="token operator">=</span><span class="token string">'jdbc:mysql://172.16.2.205:19030'</span><span class="token punctuation">,</span>
+   <span class="token string">'load-url'</span><span class="token operator">=</span><span class="token string">'172.16.2.205:18030'</span><span class="token punctuation">,</span>
+   <span class="token string">'username'</span><span class="token operator">=</span><span class="token string">'root'</span><span class="token punctuation">,</span>
+   <span class="token string">'password'</span><span class="token operator">=</span><span class="token string">''</span><span class="token punctuation">,</span>
+   <span class="token string">'database-name'</span><span class="token operator">=</span><span class="token string">'test'</span><span class="token punctuation">,</span>
+   <span class="token string">'table-name'</span><span class="token operator">=</span><span class="token string">'gjc_test_binlog'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">insert</span> <span class="token keyword">into</span> star_gjc_test_binlog <span class="token keyword">select</span> uuid<span class="token punctuation">,</span>name<span class="token punctuation">,</span>age<span class="token punctuation">,</span>ts<span class="token punctuation">,</span>part <span class="token keyword">from</span> users_source_mysql<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>和clickhouse一样，在导数据之前，需要在starrocks里提前把表创建好，否则会报错</p>
+<p>注意：<br> 建表的时候一定要注意字段长度，如果字段长度不够，数据会默认置为空</p>
+<h2 id="使用DataStream写Starrocks"><a href="#使用DataStream写Starrocks" class="headerlink" title="使用DataStream写Starrocks"></a>使用DataStream写Starrocks</h2><h3 id="flinkcdc采集多表并sink到starrrocks"><a href="#flinkcdc采集多表并sink到starrrocks" class="headerlink" title="flinkcdc采集多表并sink到starrrocks"></a>flinkcdc采集多表并sink到starrrocks</h3><p>这里在实现多表sink的时候，一开始想要偷懒使用jdbc的方式，自动拼接sql写入starrocks的，但是，会报<code>too many versions</code><br>原因是，starrcoks每次insert into都会生成一个version，然后会定期compaction，在采集的snapshot阶段，由于写入的数据比较大，会导致version过多<br>需要注意的是，使用jdbc的<code>pstmt.executeBatch();</code>也是不行的，数据还是一条一条的insert。<br>starrocks的微批写入，不是使用<code>pstmt.executeBatch();</code>，而是用的<code>stream load</code>方式，下面直接开发<code>stream load</code>方式<br>多个表同步需要利用flink-connector的DataStream api写入starrocks，cdc多表写入到starrocks的思路是source按cdc配置读取多表，mapfunc转化成StarRocksSinkRowDataWithMeta，然后写入到starrocks sink<br>直接上代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">runJob</span><span class="token punctuation">(</span><span class="token class-name">CommandArgs</span> commandArgs<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> checkpointPath <span class="token operator">=</span> baseCheckpintPath <span class="token operator">+</span> <span class="token class-name">DigestUtils</span><span class="token punctuation">.</span><span class="token function">md5Hex</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">.</span><span class="token function">getSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"."</span> <span class="token operator">+</span> commandArgs<span class="token punctuation">.</span><span class="token function">getStbn</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toUpperCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//设置自动获取上次的断点</span>
+        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token string">"true"</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">.</span><span class="token function">getIsFromCK</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token class-name">String</span> lastCheckpintPath <span class="token operator">=</span> <span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token function">getCkPath</span><span class="token punctuation">(</span>checkpointPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            LOG<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"&lt;=======  断点续传：自动从 &#123;&#125; 恢复 =======>"</span><span class="token punctuation">,</span>lastCheckpintPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">//断点续传，获取最近一次的checkpoint路径，如果路径为空，那么告警并退出</span>
+            <span class="token comment">//todo 这里需要检查一下当前flink job的状态是否已完成，如果是running，直接退出</span>
+            conf<span class="token punctuation">.</span><span class="token function">setString</span><span class="token punctuation">(</span><span class="token string">"execution.savepoint.path"</span><span class="token punctuation">,</span> lastCheckpintPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">//不断点续传，删除目标表并重新创建目标表</span>
+            LOG<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"&lt;=======  非断点续传：删除目标表并重建 =======>"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">String</span> jdbcUrl <span class="token operator">=</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"jdbc:mysql://%s:%s/%s"</span><span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getThost</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getTport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getTdb</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">StarRocksUtil</span> starRocksUtil <span class="token operator">=</span> <span class="token class-name">StarRocksUtil</span><span class="token punctuation">.</span><span class="token function">getInstance</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">StarRocksJdbcConnectionOptions</span><span class="token punctuation">(</span>jdbcUrl<span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getTuser</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getTpsw</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">SqlConstructorUtils</span> sqlConstructorUtils <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SqlConstructorUtils</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> sqlCreateList <span class="token operator">=</span> sqlConstructorUtils<span class="token punctuation">.</span><span class="token function">getStarrocksCreateSql</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> sqlDropList <span class="token operator">=</span> sqlConstructorUtils<span class="token punctuation">.</span><span class="token function">getStarrocksDropSql</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> sqlCreateList<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                LOG<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"&lt;=======  非断点续传：删除目标表 &#123;&#125; =======>"</span><span class="token punctuation">,</span>sqlDropList<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                starRocksUtil<span class="token punctuation">.</span><span class="token function">excuteSql</span><span class="token punctuation">(</span>sqlDropList<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                LOG<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"&lt;=======  非断点续传：创建目标表 &#123;&#125; =======>"</span><span class="token punctuation">,</span>sqlCreateList<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                starRocksUtil<span class="token punctuation">.</span><span class="token function">excuteSql</span><span class="token punctuation">(</span>sqlCreateList<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+
+        <span class="token punctuation">&#125;</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//配置ck的状态后端</span>
+        env<span class="token punctuation">.</span><span class="token function">setStateBackend</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">HashMapStateBackend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//设置系统异常退出或人为 Cancel 掉，不删除checkpoint数据</span>
+        env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setExternalizedCheckpointCleanup</span><span class="token punctuation">(</span><span class="token class-name">CheckpointConfig</span><span class="token punctuation">.</span><span class="token class-name">ExternalizedCheckpointCleanup</span><span class="token punctuation">.</span>RETAIN_ON_CANCELLATION<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//设置checkpoint存储目录</span>
+        env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span>checkpointPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">enableCheckpointing</span><span class="token punctuation">(</span>checkpointInterval<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//设置num值来调整任务允许Checkpoint失败的次数。num需要为0或正整数。如果num为0时，则表示不允许存在任何Checkpoint异常或者失败。</span>
+        env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setTolerableCheckpointFailureNumber</span><span class="token punctuation">(</span><span class="token number">1000000000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//每隔2秒重试一次，一共重启2147483647次</span>
+        env<span class="token punctuation">.</span><span class="token function">setRestartStrategy</span><span class="token punctuation">(</span><span class="token class-name">RestartStrategies</span><span class="token punctuation">.</span><span class="token function">failureRateRestart</span><span class="token punctuation">(</span>
+                <span class="token number">3</span><span class="token punctuation">,</span> <span class="token comment">// 每个时间间隔的最大故障次数</span>
+                <span class="token class-name">Time</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span> <span class="token class-name">TimeUnit</span><span class="token punctuation">.</span>MINUTES<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token comment">// 测量故障率的时间间隔</span>
+                <span class="token class-name">Time</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">,</span> <span class="token class-name">TimeUnit</span><span class="token punctuation">.</span>SECONDS<span class="token punctuation">)</span> <span class="token comment">// 延时</span>
+        <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> dbName <span class="token operator">=</span> commandArgs<span class="token punctuation">.</span><span class="token function">getTdb</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> schama <span class="token operator">=</span> commandArgs<span class="token punctuation">.</span><span class="token function">getSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> tableName <span class="token operator">=</span> <span class="token punctuation">(</span>schama  <span class="token operator">+</span> <span class="token string">"."</span> <span class="token operator">+</span> commandArgs<span class="token punctuation">.</span><span class="token function">getStbn</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">,</span><span class="token string">","</span> <span class="token operator">+</span> schama  <span class="token operator">+</span> <span class="token string">"."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> tableArr <span class="token operator">=</span>tableName<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Properties</span> dbzProperty <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.strategy"</span><span class="token punctuation">,</span> <span class="token string">"online_catalog"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.continuous.mine"</span><span class="token punctuation">,</span><span class="token string">"true"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"poll.interval.ms"</span><span class="token punctuation">,</span><span class="token string">"5"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"database.tablename.case.insensitive"</span><span class="token punctuation">,</span><span class="token string">"false"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.batch.size.min"</span><span class="token punctuation">,</span><span class="token string">"50"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.batch.size.default"</span><span class="token punctuation">,</span><span class="token string">"100"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.batch.size.max"</span><span class="token punctuation">,</span><span class="token string">"10000"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.sleep.time.default.ms"</span><span class="token punctuation">,</span><span class="token string">"10"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.sleep.time.max.ms"</span><span class="token punctuation">,</span><span class="token string">"200"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.sleep.time.increment.ms"</span><span class="token punctuation">,</span><span class="token string">"50"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"log.mining.view.fetch.size"</span><span class="token punctuation">,</span><span class="token string">"10000"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"lob.enabled"</span><span class="token punctuation">,</span><span class="token string">"true"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"snapshot.fetch.size"</span><span class="token punctuation">,</span><span class="token string">"8000"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        dbzProperty<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"snapshot.delay.ms"</span><span class="token punctuation">,</span><span class="token string">"3000"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">SourceFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> sourceFunction <span class="token operator">=</span> <span class="token class-name">OracleSource</span><span class="token punctuation">.</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token function">builder</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">hostname</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">.</span><span class="token function">getShost</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">port</span><span class="token punctuation">(</span><span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">parseInt</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">.</span><span class="token function">getSport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">database</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">.</span><span class="token function">getSdb</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">schemaList</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">.</span><span class="token function">getSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">tableList</span><span class="token punctuation">(</span>tableArr<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">username</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">.</span><span class="token function">getSuser</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">password</span><span class="token punctuation">(</span>commandArgs<span class="token punctuation">.</span><span class="token function">getSpsw</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">debeziumProperties</span><span class="token punctuation">(</span>dbzProperty<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">deserializer</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">StarRocksDebeziumDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">// converts SourceRecord to JSON String</span>
+                <span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">StarRocksSinkOptions</span> sinkOptions <span class="token operator">=</span> <span class="token class-name">StarRocksSinkOptions</span><span class="token punctuation">.</span><span class="token function">builder</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"jdbc-url"</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"jdbc:mysql://%s:%s"</span><span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getThost</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getTport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"load-url"</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s:%s"</span><span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getThost</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getLoadPort</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"username"</span><span class="token punctuation">,</span> commandArgs<span class="token punctuation">.</span><span class="token function">getTuser</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"password"</span><span class="token punctuation">,</span> commandArgs<span class="token punctuation">.</span><span class="token function">getTpsw</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"table-name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"database-name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"sink.properties.format"</span><span class="token punctuation">,</span> <span class="token string">"json"</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"sink.properties.strip_outer_array"</span><span class="token punctuation">,</span> <span class="token string">"true"</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"sink.buffer-flush.interval-ms"</span><span class="token punctuation">,</span><span class="token string">"1000"</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"sink.properties.column_separator"</span><span class="token punctuation">,</span> <span class="token string">"\\x01"</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"sink.properties.row_delimiter"</span><span class="token punctuation">,</span> <span class="token string">"\\x02"</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">SinkFunction</span> sinkFunction <span class="token operator">=</span> <span class="token class-name">StarRocksStreamLoadSink</span><span class="token punctuation">.</span><span class="token function">sink</span><span class="token punctuation">(</span>sinkOptions<span class="token punctuation">,</span>commandArgs<span class="token punctuation">.</span><span class="token function">getStbn</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>sourceFunction<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FilterFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token annotation punctuation">@Override</span>
+                    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">filter</span><span class="token punctuation">(</span><span class="token class-name">String</span> row<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                        <span class="token class-name">String</span> operation <span class="token operator">=</span> <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>row<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"op"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">return</span> <span class="token class-name">Envelope</span><span class="token punctuation">.</span><span class="token class-name">Operation</span><span class="token punctuation">.</span>CREATE<span class="token punctuation">.</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>operation<span class="token punctuation">)</span>
+                                <span class="token operator">||</span> <span class="token class-name">Envelope</span><span class="token punctuation">.</span><span class="token class-name">Operation</span><span class="token punctuation">.</span>READ<span class="token punctuation">.</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>operation<span class="token punctuation">)</span>
+                                <span class="token operator">||</span> <span class="token class-name">Envelope</span><span class="token punctuation">.</span><span class="token class-name">Operation</span><span class="token punctuation">.</span>DELETE<span class="token punctuation">.</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>operation<span class="token punctuation">)</span>
+                                <span class="token operator">||</span> <span class="token class-name">Envelope</span><span class="token punctuation">.</span><span class="token class-name">Operation</span><span class="token punctuation">.</span>UPDATE<span class="token punctuation">.</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>operation<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">RichFlatMapFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">StarRocksSinkRowDataWithMeta</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">private</span> <span class="token class-name">SimpleDateFormat</span> sdf<span class="token punctuation">;</span>
+                    <span class="token annotation punctuation">@Override</span>
+                    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token keyword">open</span><span class="token punctuation">(</span><span class="token class-name">Configuration</span> parameters<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                        <span class="token keyword">super</span><span class="token punctuation">.</span><span class="token keyword">open</span><span class="token punctuation">(</span>parameters<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        sdf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SimpleDateFormat</span><span class="token punctuation">(</span><span class="token string">"yyyy-MM-dd HH:mm:ss"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+
+                    <span class="token annotation punctuation">@Override</span>
+                    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token class-name">String</span> row<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">StarRocksSinkRowDataWithMeta</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                        <span class="token class-name">JSONObject</span> rowJson <span class="token operator">=</span> <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>row<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">String</span> operation <span class="token operator">=</span> rowJson<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"op"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> afterJson <span class="token operator">=</span> <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>rowJson<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"after"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        afterJson<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"update_time"</span><span class="token punctuation">,</span>sdf<span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token class-name">JSONObject</span> beforeJson <span class="token operator">=</span> <span class="token class-name">JSONObject</span><span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>rowJson<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"before"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        beforeJson<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"update_time"</span><span class="token punctuation">,</span>sdf<span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token class-name">Envelope</span><span class="token punctuation">.</span><span class="token class-name">Operation</span><span class="token punctuation">.</span>CREATE<span class="token punctuation">.</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>operation<span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token class-name">Envelope</span><span class="token punctuation">.</span><span class="token class-name">Operation</span><span class="token punctuation">.</span>READ<span class="token punctuation">.</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>operation<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token class-name">StarRocksSinkRowDataWithMeta</span> rowData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StarRocksSinkRowDataWithMeta</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            rowData<span class="token punctuation">.</span><span class="token function">setDatabase</span><span class="token punctuation">(</span>dbName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            rowData<span class="token punctuation">.</span><span class="token function">setTable</span><span class="token punctuation">(</span>rowJson<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"tableName"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            afterJson<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token class-name">StarRocksSinkOP</span><span class="token punctuation">.</span>COLUMN_KEY<span class="token punctuation">,</span><span class="token class-name">StarRocksSinkOP</span><span class="token punctuation">.</span>UPSERT<span class="token punctuation">.</span><span class="token function">ordinal</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            rowData<span class="token punctuation">.</span><span class="token function">addDataRow</span><span class="token punctuation">(</span>afterJson<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>rowData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">Envelope</span><span class="token punctuation">.</span><span class="token class-name">Operation</span><span class="token punctuation">.</span>DELETE<span class="token punctuation">.</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>operation<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            beforeJson<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token class-name">StarRocksSinkOP</span><span class="token punctuation">.</span>COLUMN_KEY<span class="token punctuation">,</span><span class="token class-name">StarRocksSinkOP</span><span class="token punctuation">.</span>DELETE<span class="token punctuation">.</span><span class="token function">ordinal</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">StarRocksSinkRowDataWithMeta</span> rowData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StarRocksSinkRowDataWithMeta</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            rowData<span class="token punctuation">.</span><span class="token function">setDatabase</span><span class="token punctuation">(</span>dbName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            rowData<span class="token punctuation">.</span><span class="token function">setTable</span><span class="token punctuation">(</span>rowJson<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"tableName"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            rowData<span class="token punctuation">.</span><span class="token function">addDataRow</span><span class="token punctuation">(</span>beforeJson<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>rowData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">Envelope</span><span class="token punctuation">.</span><span class="token class-name">Operation</span><span class="token punctuation">.</span>UPDATE<span class="token punctuation">.</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>operation<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token class-name">StarRocksSinkRowDataWithMeta</span> beforeRowData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StarRocksSinkRowDataWithMeta</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token class-name">StarRocksSinkRowDataWithMeta</span> afterRowData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StarRocksSinkRowDataWithMeta</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            beforeRowData<span class="token punctuation">.</span><span class="token function">setDatabase</span><span class="token punctuation">(</span>dbName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            beforeRowData<span class="token punctuation">.</span><span class="token function">setTable</span><span class="token punctuation">(</span>rowJson<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"tableName"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            afterRowData<span class="token punctuation">.</span><span class="token function">setDatabase</span><span class="token punctuation">(</span>dbName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            afterRowData<span class="token punctuation">.</span><span class="token function">setTable</span><span class="token punctuation">(</span>rowJson<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token string">"tableName"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            beforeJson<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token class-name">StarRocksSinkOP</span><span class="token punctuation">.</span>COLUMN_KEY<span class="token punctuation">,</span><span class="token class-name">StarRocksSinkOP</span><span class="token punctuation">.</span>DELETE<span class="token punctuation">.</span><span class="token function">ordinal</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            beforeRowData<span class="token punctuation">.</span><span class="token function">addDataRow</span><span class="token punctuation">(</span>beforeJson<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            afterJson<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token class-name">StarRocksSinkOP</span><span class="token punctuation">.</span>COLUMN_KEY<span class="token punctuation">,</span><span class="token class-name">StarRocksSinkOP</span><span class="token punctuation">.</span>UPSERT<span class="token punctuation">.</span><span class="token function">ordinal</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            afterRowData<span class="token punctuation">.</span><span class="token function">addDataRow</span><span class="token punctuation">(</span>afterJson<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>beforeRowData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>afterRowData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">addSink</span><span class="token punctuation">(</span>sinkFunction<span class="token punctuation">)</span>
+                <span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"More Table Collector Snapshot And Binlog"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>因为解析的cdc数据源转化为json了，所以必须要加上如下参数设置：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"sink.properties.format"</span><span class="token punctuation">,</span> <span class="token string">"json"</span><span class="token punctuation">)</span>
+<span class="token punctuation">.</span><span class="token function">withProperty</span><span class="token punctuation">(</span><span class="token string">"sink.properties.strip_outer_array"</span><span class="token punctuation">,</span> <span class="token string">"true"</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+
+<h3 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h3><ol>
+<li>实时写starrocks不要使用UNIQUE模型，因为UNIQUE模型不能识别delete/update操作</li>
+<li>主键模型的主键长度最大是127，这里在使用的时候，把starrcoks的源码改了一下，从128改成512了</li>
+</ol>
+]]></content>
+      <categories>
+        <category>大数据</category>
+      </categories>
+      <tags>
+        <tag>starrocks</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>vim使用手册</title>
     <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3671,80 +3958,6 @@ search:
       </categories>
       <tags>
         <tag>hexo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>starrocks学习笔记</title>
-    <url>/2022/06/08/starrocks%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>starrocks学习笔记</li>
-</ul>
-<a id="more"></a>
-
-
-
-
-
-<h2 id="starrocks简介"><a href="#starrocks简介" class="headerlink" title="starrocks简介"></a>starrocks简介</h2><p>starrocks的官网写的很好，也有中文文档，文档可以直接看<a href="https://docs.starrocks.com/zh-cn/main/introduction/StarRocks_intro">starrocks官网</a></p>
-<h2 id="flinkcdc实时写starrocks"><a href="#flinkcdc实时写starrocks" class="headerlink" title="flinkcdc实时写starrocks"></a>flinkcdc实时写starrocks</h2><p>下载flink-connector-starrocks，可以直接在maven仓库里下载相应的jar包，并把它放在${FLINK_HOME}/lib下，启动flink集群以及sql-client<br>在starrocks里创建表：</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"> <span class="token keyword">create</span> <span class="token keyword">table</span> gjc_test_binlog<span class="token punctuation">(</span>
-    uuid <span class="token keyword">int</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    name <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">50</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    age <span class="token keyword">int</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    ts <span class="token keyword">DATETIME</span><span class="token punctuation">,</span>
-    part <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
-<span class="token punctuation">)</span> 
- <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token punctuation">(</span>uuid<span class="token punctuation">)</span>
- <span class="token keyword">DISTRIBUTED</span> <span class="token keyword">BY</span> <span class="token keyword">HASH</span><span class="token punctuation">(</span>uuid<span class="token punctuation">)</span> BUCKETS <span class="token number">1</span>
- PROPERTIES<span class="token punctuation">(</span><span class="token string">"replication_num"</span> <span class="token operator">=</span> <span class="token string">"1"</span><span class="token punctuation">)</span>
-<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>注意：<br>这里需要指定replication_num，系统默认是3，但是当前集群节点只有1个be，否则插入数据会报如下错误：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Failed to find enough host in all backends. need: 3<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>在flink的sql客户端里创建映射表：</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
-    uuid <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span><span class="token punctuation">,</span>
-    name STRING<span class="token punctuation">,</span>
-    age <span class="token keyword">int</span><span class="token punctuation">,</span>
-    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    part string
-<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
-<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
-<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
-<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
-<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
-<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
-<span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
-<span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
-<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
-<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'users_source_mysql'</span>
-<span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> star_gjc_test_binlog <span class="token punctuation">(</span>
-  uuid <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
-  name STRING<span class="token punctuation">,</span>
-  age <span class="token keyword">int</span><span class="token punctuation">,</span>
-  ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-  part string 
-<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
-   <span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'starrocks'</span><span class="token punctuation">,</span>
-   <span class="token string">'jdbc-url'</span><span class="token operator">=</span><span class="token string">'jdbc:mysql://172.16.2.205:19030'</span><span class="token punctuation">,</span>
-   <span class="token string">'load-url'</span><span class="token operator">=</span><span class="token string">'172.16.2.205:18030'</span><span class="token punctuation">,</span>
-   <span class="token string">'username'</span><span class="token operator">=</span><span class="token string">'root'</span><span class="token punctuation">,</span>
-   <span class="token string">'password'</span><span class="token operator">=</span><span class="token string">''</span><span class="token punctuation">,</span>
-   <span class="token string">'database-name'</span><span class="token operator">=</span><span class="token string">'test'</span><span class="token punctuation">,</span>
-   <span class="token string">'table-name'</span><span class="token operator">=</span><span class="token string">'gjc_test_binlog'</span>
-<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">insert</span> <span class="token keyword">into</span> star_gjc_test_binlog <span class="token keyword">select</span> uuid<span class="token punctuation">,</span>name<span class="token punctuation">,</span>age<span class="token punctuation">,</span>ts<span class="token punctuation">,</span>part <span class="token keyword">from</span> users_source_mysql<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>和clickhouse一样，在导数据之前，需要在starrocks里提前把表创建好，否则会报错</p>
-<p>注意：<br> 建表的时候一定要注意字段长度，如果字段长度不够，数据会默认置为空</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-      </categories>
-      <tags>
-        <tag>starrocks</tag>
       </tags>
   </entry>
   <entry>
@@ -6966,6 +7179,15 @@ cd &#x2F;opt&#x2F;modules&#x2F;flink-1.13.6 &amp;&amp; .&#x2F;bin&#x2F;start-clu
 <p>因为yarn-session模式默认会在/tmp/目录下维护一个会话信息，此时启动客户端指定yarn-session他会自动寻找到当前的session会话然后提交任务<br>但是，提交到yarn上只能使用yarn-session模式，无法使用per-job的方式，感觉不太实用，一般也就是测试的时候用一下，生产上肯定不会用它的</p>
 </li>
 </ul>
+<h3 id="在IDEA上运行Flink任务"><a href="#在IDEA上运行Flink任务" class="headerlink" title="在IDEA上运行Flink任务"></a>在IDEA上运行Flink任务</h3><p>在IDEA上运行Flink任务，在网上查到，需要把<code>flink-dist_xxx.jar</code>放到代码工程的的modules里，这里提供一个更方便的方式：<br>在pom文件里，添加如下内容：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>flink.scope</span><span class="token punctuation">></span></span>compile<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>flink.scope</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-clients_2.11<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>$&#123;flink.scope&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>需要注意的是，通过打包的方式运行的时候，需要把scope改成provided</p>
 ]]></content>
       <categories>
         <category>大数据</category>
