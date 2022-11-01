@@ -36,7 +36,7 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210208/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20211109/barrier%E5%AF%B9%E9%BD%90.png">
 <meta property="article:published_time" content="2021-02-07T09:43:04.000Z">
-<meta property="article:modified_time" content="2022-07-08T09:59:25.727Z">
+<meta property="article:modified_time" content="2022-08-16T01:43:54.760Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -239,7 +239,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-08 17:59:25" itemprop="dateModified" datetime="2022-07-08T17:59:25+08:00">2022-07-08</time>
+                <time title="修改时间：2022-08-16 09:43:54" itemprop="dateModified" datetime="2022-08-16T09:43:54+08:00">2022-08-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -430,7 +430,37 @@
 </ul>
 <p>为什么要进行barrier对齐？不对齐到底行不行？<br>Exactly Once时必须barrier对齐，如果barrier不对齐就变成了At Least Once；</p>
 <h3 id="checkpoint中保存的是什么信息"><a href="#checkpoint中保存的是什么信息" class="headerlink" title="checkpoint中保存的是什么信息"></a>checkpoint中保存的是什么信息</h3><p>快照里面到底保存着什么信息呢？以flink消费kafka数据wordcount为例：<br>我们从Kafka读取到一条条的日志，从日志中解析出app_id，然后将统计的结果放到内存中一个Map集合，app_id做为key，对应的pv做为value，每次只需要将相应app_id 的pv值+1后put到Map中即可；<br>kafka topic：test；<br>flink运算流程如下：<br>kakfa的testtopic的分区 —&gt; Flink的source task —&gt; flink的pv计算task</p>
-<h3 id="如何自动获取最新的checkpoint？"><a href="#如何自动获取最新的checkpoint？" class="headerlink" title="如何自动获取最新的checkpoint？"></a>如何自动获取最新的checkpoint？</h3><p>现在只知道可以通过-s手动把最新的chk传入到执行程序里，那么如何在java里自动带入最新的chk呢？<br>查看源码，有一个shell里写的，但是也没有写在java里，也是通过-s，可以看一下<br>flink/flink-end-to-end-tests/test-scripts/test_resume_externalized_checkpoints.sh<br>flink/flink-end-to-end-tests/test-scripts/common.sh<br>common里有一个函数：find_latest_completed_checkpoint，可以参考一下<br>这里要想实现自动传入-s的路径，就需要找到，-s是传入到哪个类里去了？</p>
+<h3 id="如何自动获取最新的checkpoint？"><a href="#如何自动获取最新的checkpoint？" class="headerlink" title="如何自动获取最新的checkpoint？"></a>如何自动获取最新的checkpoint？</h3><p>现在只知道可以通过-s手动把最新的chk传入到执行程序里，那么如何在java里自动带入最新的chk呢？<br>在代码中设置如下参数：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">String</span> lastCheckpintPath <span class="token operator">=</span> <span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token function">getCkPath</span><span class="token punctuation">(</span>checkpointPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+conf<span class="token punctuation">.</span><span class="token function">setString</span><span class="token punctuation">(</span><span class="token string">"execution.savepoint.path"</span><span class="token punctuation">,</span> lastCheckpintPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">getCkPath</span><span class="token punctuation">(</span><span class="token class-name">String</span> relativePath<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token string">"/core-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token string">"/hdfs-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">FileSystem</span> fs <span class="token operator">=</span> <span class="token class-name">FileSystem</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">FileStatus</span><span class="token punctuation">[</span><span class="token punctuation">]</span> listStatus <span class="token operator">=</span> fs<span class="token punctuation">.</span><span class="token function">listStatus</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>relativePath<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">FileStatus</span><span class="token punctuation">></span></span> latestFiles <span class="token operator">=</span> <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">stream</span><span class="token punctuation">(</span>listStatus<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">sorted</span><span class="token punctuation">(</span><span class="token class-name">Comparator</span><span class="token punctuation">.</span><span class="token function">comparing</span><span class="token punctuation">(</span><span class="token class-name">FileStatus</span><span class="token operator">::</span><span class="token function">getModificationTime</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">reversed</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">limit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token class-name">Collectors</span><span class="token punctuation">.</span><span class="token function">toList</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">CollectionUtils</span><span class="token punctuation">.</span><span class="token function">isNotEmpty</span><span class="token punctuation">(</span>latestFiles<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">FileStatus</span> fileStatus <span class="token operator">=</span> latestFiles<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">FileStatus</span><span class="token punctuation">[</span><span class="token punctuation">]</span> fileStatuses <span class="token operator">=</span> fs<span class="token punctuation">.</span><span class="token function">listStatus</span><span class="token punctuation">(</span>fileStatus<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">FileStatus</span> status <span class="token operator">:</span> fileStatuses<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"chk"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">return</span> status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> ex<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>err<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>ex<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token string">""</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <h2 id="Flink-Exactly-once语义探究"><a href="#Flink-Exactly-once语义探究" class="headerlink" title="Flink Exactly-once语义探究"></a>Flink Exactly-once语义探究</h2><p>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义;<br>Flink不是默认就有EOS的，flink 官方推荐所有需要保证EOS的sink 逻辑都继承TwoPhaseCommitSinkFunction抽象类。它具体定义如下四个抽象方法。需要我们去在子类中实现。</p>
 <pre><code class="java">protected abstract TXN beginTransaction() throws Exception;
 protected abstract void preCommit(TXN transaction) throws Exception;
@@ -542,20 +572,20 @@ protected abstract void abort(TXN transaction);</code></pre>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">65</span>
+          <span class="site-state-item-count">69</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-count">53</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">49</span>
+        <span class="site-state-item-count">52</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
