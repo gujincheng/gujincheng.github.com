@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/20210520/jdk%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF.png">
 <meta property="article:published_time" content="2021-05-20T07:04:35.000Z">
-<meta property="article:modified_time" content="2022-07-20T05:19:08.105Z">
+<meta property="article:modified_time" content="2022-12-07T08:57:36.456Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Mac">
 <meta property="article:tag" content="Sublime">
@@ -235,7 +235,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-20 13:19:08" itemprop="dateModified" datetime="2022-07-20T13:19:08+08:00">2022-07-20</time>
+                <time title="修改时间：2022-12-07 16:57:36" itemprop="dateModified" datetime="2022-12-07T16:57:36+08:00">2022-12-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -465,27 +465,25 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 <img src="/uploads/20210520/jdk%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF.png" alt="jdk版本信息"><br>有2个java是因为一开始装的java不是jdk，是jre，而且两个的版本不一样。</li>
 </ul>
 <h2 id="mac环境下Sublime使用技巧"><a href="#mac环境下Sublime使用技巧" class="headerlink" title="mac环境下Sublime使用技巧"></a>mac环境下Sublime使用技巧</h2><ul>
-<li>命令行使用Sublime打开文件<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">alias subl&#x3D;&quot;&#x2F;Applications&#x2F;Sublime\ Text.app&#x2F;Contents&#x2F;SharedSupport&#x2F;bin&#x2F;subl&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>Sublime列式编辑<br>按住鼠标中键，或者按住<code>command</code>使用鼠标选择文本</li>
-<li>Sublime查找与替换快捷键  <ul>
+<li><p>命令行使用Sublime打开文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">alias subl&#x3D;&quot;&#x2F;Applications&#x2F;Sublime\ Text.app&#x2F;Contents&#x2F;SharedSupport&#x2F;bin&#x2F;subl&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li><p>Sublime列式编辑<br>按住鼠标中键，或者按住<code>command</code>使用鼠标选择文本</p>
+</li>
+<li><p>Sublime查找与替换快捷键  </p>
+<ul>
 <li>查找：<code>command + F</code></li>
 <li>替换：<code>command +shift + F</code>,需要注意是否忽略大小写，是否正则匹配</li>
 </ul>
 </li>
-<li>Sublime呼出命令行<ul>
-<li>安装Terminus插件</li>
-<li>配置快捷键<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">[</span>
-    <span class="token punctuation">&#123;</span> <span class="token property">"keys"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"alt+shift+t"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token property">"command"</span><span class="token operator">:</span> <span class="token string">"toggle_terminus_panel"</span> <span class="token punctuation">&#125;</span>
-<span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
-</ul>
-</li>
-<li>Sublime使用home/end快捷键到行首行尾<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">[</span>
+<li><p>Sublime使用home/end快捷键到行首行尾</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">[</span>
     <span class="token punctuation">&#123;</span> <span class="token property">"keys"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"ctrl+shift+t"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token property">"command"</span><span class="token operator">:</span> <span class="token string">"toggle_terminus_panel"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
     <span class="token punctuation">&#123;</span> <span class="token property">"keys"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"home"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token property">"command"</span><span class="token operator">:</span> <span class="token string">"move_to"</span><span class="token punctuation">,</span> <span class="token property">"args"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span><span class="token property">"to"</span><span class="token operator">:</span> <span class="token string">"bol"</span><span class="token punctuation">,</span> <span class="token property">"extend"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
     <span class="token punctuation">&#123;</span> <span class="token property">"keys"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"end"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token property">"command"</span><span class="token operator">:</span> <span class="token string">"move_to"</span><span class="token punctuation">,</span> <span class="token property">"args"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span><span class="token property">"to"</span><span class="token operator">:</span> <span class="token string">"eol"</span><span class="token punctuation">,</span> <span class="token property">"extend"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span>
 <span class="token punctuation">]</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>Sublime配置文件：<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+<li><p>Sublime配置文件：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
 	<span class="token property">"theme"</span><span class="token operator">:</span> <span class="token string">"Default.sublime-theme"</span><span class="token punctuation">,</span>
 	<span class="token property">"translate_tabs_to_spaces"</span><span class="token operator">:</span>  <span class="token boolean">true</span><span class="token punctuation">,</span>
 	<span class="token property">"color_scheme"</span><span class="token operator">:</span> <span class="token string">"Packages/Color Scheme - Default/Monokai.tmTheme"</span><span class="token punctuation">,</span>
@@ -495,10 +493,12 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 	<span class="token punctuation">[</span>
 		<span class="token string">"Vintage"</span><span class="token punctuation">,</span>
 	<span class="token punctuation">]</span><span class="token punctuation">,</span>
-<span class="token punctuation">&#125;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p>Sumblime JSON格式化<br>安装Pretty JSON插件，command + shift + p，搜索 package install，进入后选择pretty json并安装<br>在sumblime里添加快捷键配置</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span> <span class="token property">"keys"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"ctrl+command+j"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token property">"command"</span><span class="token operator">:</span> <span class="token string">"pretty_json"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h2 id="mac-安装homebrew"><a href="#mac-安装homebrew" class="headerlink" title="mac 安装homebrew"></a>mac 安装homebrew</h2><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">&#x2F;bin&#x2F;zsh -c &quot;$(curl -fsSL https:&#x2F;&#x2F;gitee.com&#x2F;cunkai&#x2F;HomebrewCN&#x2F;raw&#x2F;master&#x2F;Homebrew.sh)&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="Mac安装mysql"><a href="#Mac安装mysql" class="headerlink" title="Mac安装mysql"></a>Mac安装mysql</h2>具体参考<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/257006114">mac 安装mysql详细教程</a></li>
+<h2 id="Mac安装mysql"><a href="#Mac安装mysql" class="headerlink" title="Mac安装mysql"></a>Mac安装mysql</h2><p>具体参考<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/257006114">mac 安装mysql详细教程</a></p>
+</li>
 </ul>
 <h2 id="Mac常用快捷键"><a href="#Mac常用快捷键" class="headerlink" title="Mac常用快捷键"></a>Mac常用快捷键</h2><p>Mac系统快捷键设置：<br>系统偏好设置 -&gt; 键盘 -&gt; 快捷键<br><code>command + 左右方向键</code>： 到句首/尾（下一个/上一个标点符号）<br><code>option + 左右方向键</code>：跳到行首/行尾<br><code>ctrl + 左右方向键</code>：切换后台进程（窗口），是直接上一个/下一个窗口<br><code>ctrl + 上下方向键</code>:  呼出所有后台进程（窗口）<br><code>shift + 中/英</code>：切换大小写<br><code>command + tab</code>:切换后台进程，按住command会有所有后台，然后按tab可以切换（只是图标）<br><code>command + 上下方向键</code>：进入上层文件夹（在访达里使用）<br><code>ctrl + command + Q</code>: 锁屏<br><code>command + 空格</code>：聚焦搜索<br><code>option + command + 空格</code>：在访达里搜索<br><code>option + command + D</code>:显示/隐藏程序坞<br><code>shift + command + 2</code>:截图到剪切板<br><code>option + command + T</code>:自动生成try catch<br><code>command + 7</code>: 打开/关闭structure<br><code>ctrl + option + o</code>: 自动删除java不用了的package</p>
 <h2 id="开启-HIDPI，让-2K-显示器更舒适"><a href="#开启-HIDPI，让-2K-显示器更舒适" class="headerlink" title="开启 HIDPI，让 2K 显示器更舒适"></a>开启 HIDPI，让 2K 显示器更舒适</h2><p>mac自带的屏幕太小了，自己买的外接显示器是2k的，mac不会自动启动hidpi，所以字特别小，不好看。这里强行让mac知道可以启用hidpi<br>具体可以参考:<br><a target="_blank" rel="noopener" href="https://sspai.com/post/57549">为 macOS 10.15 开启 HiDPI，让 2K 显示器更舒适</a></p>
@@ -708,7 +708,7 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">69</span>
+          <span class="site-state-item-count">71</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -721,7 +721,7 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-count">53</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

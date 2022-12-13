@@ -1,3 +1,5 @@
+https://gujincheng.github.io/2022/12/13/Flink%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/
+https://gujincheng.github.io/2022/11/08/Flume%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/
 https://gujincheng.github.io/2022/10/27/Mqtt%E8%B0%83%E7%A0%94/
 https://gujincheng.github.io/2022/10/26/Flink%E8%B0%83%E4%BC%98/
 https://gujincheng.github.io/2022/10/19/StreamX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/
@@ -16,5 +18,3 @@ https://gujincheng.github.io/2022/03/19/Centos%E7%B2%BE%E7%AE%80%E7%89%88%E4%BB%
 https://gujincheng.github.io/2022/03/18/Maven%E6%9D%82%E8%AE%B0/
 https://gujincheng.github.io/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/
 https://gujincheng.github.io/2022/03/11/Cloudera-Manager-CDH%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/
-https://gujincheng.github.io/2022/03/11/flink-cdc%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%95%B0%E6%8D%AE%E5%BA%93%E5%85%A5Kafka/
-https://gujincheng.github.io/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/
