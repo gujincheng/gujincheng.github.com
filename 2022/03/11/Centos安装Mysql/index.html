@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202203/mysql-yum%E6%BA%90%E9%80%89%E6%8B%A9.png">
 <meta property="article:published_time" content="2022-03-11T02:15:41.000Z">
-<meta property="article:modified_time" content="2022-10-28T08:02:33.610Z">
+<meta property="article:modified_time" content="2023-01-17T06:42:47.066Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Mysql">
 <meta name="twitter:card" content="summary">
@@ -234,7 +234,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-28 16:02:33" itemprop="dateModified" datetime="2022-10-28T16:02:33+08:00">2022-10-28</time>
+                <time title="修改时间：2023-01-17 14:42:47" itemprop="dateModified" datetime="2023-01-17T14:42:47+08:00">2023-01-17</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -424,6 +424,67 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">service mysqld restart<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>注意：需要在[mysqld]节点下添加如上参数，否则会报错：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mysql: [ERROR] unknown variable &#39;log-bin&#x3D;&#x2F;data&#x2F;mysql&#x2F;logs&#x2F;mysql-bin&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="MySQL性能测试——tpch工具"><a href="#MySQL性能测试——tpch工具" class="headerlink" title="MySQL性能测试——tpch工具"></a>MySQL性能测试——tpch工具</h2><p>tpch是TPC(Transaction Processing Performance Council)组织提供的工具包。用于进行OLAP测试，以评估商业分析中决策支持系统（DSS）的性能。它包含了一整套面向商业的ad-hoc查询和并发数据修改，强调测试的是数据库、平台和I/O性能，关注查询能力。</p>
+<p>TPC-H是业界常用的一套基准，由TPC委员会制定发布，用于评测数据库的分析型查询能力。TPC-H查询包含8张数据表、22条复杂的SQL查询，大多数查询包含若干表Join、子查询和Group by聚合等。</p>
+<p>相关链接：<br>tpch下载地址（TPC-H需要完成注册后才可以下载）：<br><a target="_blank" rel="noopener" href="http://tpc.org/tpc_documents_current_versions/download_programs">http://tpc.org/tpc_documents_current_versions/download_programs</a><br>tpch工具github仓库地址：<br><a target="_blank" rel="noopener" href="https://github.com/electrum/tpch-dbgen">https://github.com/electrum/tpch-dbgen</a></p>
+<h3 id="tpch的安装"><a href="#tpch的安装" class="headerlink" title="tpch的安装"></a>tpch的安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install unzip -y
+unzip tpch-mysql.zip
+cd tpch-mysql
+cd dbgen
+yum install gcc-c++
+make
+.&#x2F;dbgen -s 10
+#进入数据库建表(使用root或高权限用户)有的需要手动建库tpcd<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="tpch的使用"><a href="#tpch的使用" class="headerlink" title="tpch的使用"></a>tpch的使用</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">mysql <span class="token operator">-</span>uroot <span class="token operator">-</span>p<span class="token string">'Gjc123!@#'</span> <span class="token comment">--local-infile</span>
+<span class="token keyword">use</span> tpch<span class="token punctuation">;</span>
+\<span class="token punctuation">.</span> <span class="token operator">/</span>root<span class="token operator">/</span>TPCH<span class="token operator">/</span>dbgen<span class="token operator">/</span>dss<span class="token punctuation">.</span>ddl<span class="token punctuation">;</span>
+<span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> <span class="token keyword">infile</span> <span class="token string">'/root/TPCH/dbgen/part.tbl'</span> <span class="token keyword">into</span> <span class="token keyword">table</span> PART <span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'|'</span><span class="token punctuation">;</span>
+<span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> <span class="token keyword">infile</span> <span class="token string">'/root/TPCH/dbgen/region.tbl'</span> <span class="token keyword">into</span> <span class="token keyword">table</span> REGION <span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'|'</span><span class="token punctuation">;</span>
+<span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> <span class="token keyword">infile</span> <span class="token string">'/root/TPCH/dbgen/nation.tbl'</span> <span class="token keyword">into</span> <span class="token keyword">table</span> NATION <span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'|'</span><span class="token punctuation">;</span>
+<span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> <span class="token keyword">infile</span> <span class="token string">'/root/TPCH/dbgen/customer.tbl'</span> <span class="token keyword">into</span> <span class="token keyword">table</span> CUSTOMER <span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'|'</span><span class="token punctuation">;</span>
+<span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> <span class="token keyword">infile</span> <span class="token string">'/root/TPCH/dbgen/supplier.tbl'</span> <span class="token keyword">into</span> <span class="token keyword">table</span> SUPPLIER <span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'|'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> <span class="token keyword">infile</span> <span class="token string">'/root/TPCH/dbgen/orders.tbl'</span> <span class="token keyword">into</span> <span class="token keyword">table</span> ORDERS <span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'|'</span><span class="token punctuation">;</span>
+<span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> <span class="token keyword">infile</span> <span class="token string">'/root/TPCH/dbgen/partsupp.tbl'</span> <span class="token keyword">into</span> <span class="token keyword">table</span> PARTSUPP <span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'|'</span><span class="token punctuation">;</span>
+<span class="token keyword">load</span> <span class="token keyword">data</span> <span class="token keyword">local</span> <span class="token keyword">infile</span> <span class="token string">'/root/TPCH/dbgen/lineitem.tbl'</span> <span class="token keyword">into</span> <span class="token keyword">table</span> LINEITEM <span class="token keyword">fields</span> <span class="token keyword">terminated</span> <span class="token keyword">by</span> <span class="token string">'|'</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>编写脚本切分文件，并导入mysql</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#! &#x2F;bin&#x2F;bash
+#文件名不带.tbl ！！！,即对应表名
+#read -p &quot;please input filename: &quot; filename
+filename&#x3D;orders      # 修改处1：替换文件名orders、partsupp、lineitem、
+#获取原文件总行数totalline
+totalline&#x3D;$(cat $filename.tbl | wc -l)
+echo totalline&#x3D;$totalline
+#要分割成的每个小文件的行数line
+line&#x3D;1000000   
+a&#x3D;&#96;expr $totalline &#x2F; $line&#96;    
+b&#x3D;&#96;expr $totalline % $line&#96; 
+#获取小文件个数filenum
+if (( $b&#x3D;&#x3D;0 ))   
+then
+    filenum&#x3D;$a
+else
+    filenum&#x3D;&#96;expr $a + 1&#96;
+fi
+echo filenum&#x3D;$filenum
+#进行文件分割,分割后第一个小文件名后缀为i,i最小值为1
+i&#x3D;1        # 修改处2：38 修改为1
+while(( i&lt;&#x3D;$filenum ))
+do
+#每个小文件要截取行数在原文件范围min,max 
+    p&#x3D;&#96;expr $i - 1&#96;
+    min&#x3D;&#96;expr $p \* $line + 1&#96;
+    max&#x3D;&#96;expr $i \* $line&#96;
+    sed -n &quot;$min,$max&quot;p .&#x2F;$filename.tbl &gt; .&#x2F;$filename.tbl.$i
+#将小文件导入数据库，mysql登录信息及小文件路径根据实际修改       # 修改处3：mysql连接信息（加了--local-infile）
+#根据自己创建的数据库的用户名、密码、数据库实例的ip、端口号、已经tpc安装包的路径信息进行修改。
+    mysql -umyroot -p&#39;******&#39; -h10.185.147.201 -P32307 --local-infile -Dtpcd -e &quot;load data local infile &#39;&#x2F;root&#x2F;tpch-mysql&#x2F;dbgen&#x2F;$filename.tbl.$i&#39; into table $filename fields terminated by &#39;|&#39;;&quot;
+    i&#x3D;&#96;expr $i + 1&#96;
+done<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41822345/article/details/117463499">MySQL性能测试——tpch工具</a></p>
+
     </div>
 
     
@@ -507,7 +568,7 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos%E5%AE%89%E8%A3%85Mysql"><span class="nav-number">1.</span> <span class="nav-text">Centos安装Mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog%E5%BC%80%E5%90%AF%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.1.</span> <span class="nav-text">binlog开启步骤</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos%E5%AE%89%E8%A3%85Mysql"><span class="nav-number">1.</span> <span class="nav-text">Centos安装Mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog%E5%BC%80%E5%90%AF%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.1.</span> <span class="nav-text">binlog开启步骤</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MySQL%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E2%80%94%E2%80%94tpch%E5%B7%A5%E5%85%B7"><span class="nav-number">2.</span> <span class="nav-text">MySQL性能测试——tpch工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tpch%E7%9A%84%E5%AE%89%E8%A3%85"><span class="nav-number">2.1.</span> <span class="nav-text">tpch的安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tpch%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-number">2.2.</span> <span class="nav-text">tpch的使用</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -523,7 +584,7 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">71</span>
+          <span class="site-state-item-count">72</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -563,7 +624,7 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
 <div class="copyright">
   
   &copy; 2021 – 
-  <span itemprop="copyrightYear">2022</span>
+  <span itemprop="copyrightYear">2023</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

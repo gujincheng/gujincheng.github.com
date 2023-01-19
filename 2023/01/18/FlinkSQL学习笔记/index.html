@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  FlinkSQL学习笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FlinkSQL学习笔记">
+<meta property="og:url" content="https://gujincheng.github.io/2023/01/18/FlinkSQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  FlinkSQL学习笔记">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-01-18T13:10:32.000Z">
+<meta property="article:modified_time" content="2023-01-19T06:00:06.750Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Flink">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://gujincheng.github.io/2023/01/18/FlinkSQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>FlinkSQL学习笔记 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/01/18/FlinkSQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          FlinkSQL学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-01-18 21:10:32" itemprop="dateCreated datePublished" datetime="2023-01-18T21:10:32+08:00">2023-01-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-01-19 14:00:06" itemprop="dateModified" datetime="2023-01-19T14:00:06+08:00">2023-01-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Flink/" itemprop="url" rel="index"><span itemprop="name">Flink</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2023/01/18/FlinkSQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="FlinkSQL学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2023/01/18/FlinkSQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/01/18/FlinkSQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>FlinkSQL学习笔记<a id="more"></a>
+
+
+</li>
+</ul>
+<h1 id="FlinkSQL"><a href="#FlinkSQL" class="headerlink" title="FlinkSQL"></a>FlinkSQL</h1><h2 id="FlinkSQL-JOIN"><a href="#FlinkSQL-JOIN" class="headerlink" title="FlinkSQL JOIN"></a>FlinkSQL JOIN</h2><p>Flink 作为流式数据处理框架的领跑者，在吞吐量、时延、准确型、容错性等方面都有优异的表现。在 API 方面，它为用户提供了较底层的 DataStream API，也推出了 Table API 和 SQL 等编程接口。特别来看，SQL 以其易用、易迁移的特点，深受广大用户的欢迎。<br>在常见的数据分析场景中，JOIN（关联）操作是一项很有挑战性的工作，因为它涉及到左右两个表（流）的状态匹配，对内存的压力较大；而相比恒定的批数据而言，流数据更加难以预测，例如数据可能乱序、可能晚到，甚至可能丢失，因此需要缓存的状态量更加庞大，甚至会严重拖慢整体的数据处理进度。由此可见，流的 JOIN 并没有一个全能且通用的方案，我们必须在 低时延 和 高精准 等维度间进行取舍。<br>考虑到不同业务场景的时效性、准确型要求不同，Flink 提供了多种流式的 JOIN 操作，用户可以根据实际情况选择最适合自己的类型。下面我们对它们逐一进行介绍。</p>
+<h3 id="常规-JOIN（Regular-JOIN）"><a href="#常规-JOIN（Regular-JOIN）" class="headerlink" title="常规 JOIN（Regular JOIN）"></a>常规 JOIN（Regular JOIN）</h3><p>常规 JOIN（Regular JOIN）是语法最简单的一类 JOIN，和传统数据库的 JOIN 语法完全一致。对于左表和右表的任何变动，都会触发实时计算和更新，因此它的结果是“逐步逼近”最终的精确值，也就是下游可能看到变来变去的结果。为了支持结果的更新，下游目的表需要 定义主键 （PRIMARY KEY NOT ENFORCED）。</p>
+<p>常规 JOIN 支持 INNER、LEFT、RIGHT 等多种 JOIN 类型。其中 INNER JOIN 只会下发 Upsert 数据流（即只有更新和插入，没有删除操作），而 LEFT 和 RIGHT JOIN 则会下发更多类型的 Changelog 数据流（包含了插入、更新、删除等各种类型）。对于各类数据流的区别和转化，请参见 Flink 官方文档：动态表。</p>
+<p>常规 JOIN 运行时需要保留左表和右表的状态，且随着时间的推移，状态会无限增长，最终可能导致作业 OOM 崩溃或异常缓慢。因此我们强烈建议用户在 Flink 参数中设置 table.exec.state.ttl 选项，它可以指定 JOIN 状态的保留时间，以便 Flink 及时清理过期的状态。</p>
+<h3 id="时间区间-JOIN（Interval-JOIN）"><a href="#时间区间-JOIN（Interval-JOIN）" class="headerlink" title="时间区间 JOIN（Interval JOIN）"></a>时间区间 JOIN（Interval JOIN）</h3><p>时间区间 JOIN 是另一种关联策略，它与上述的常规 JOIN 不同之处在于，左右表仅在某个时间范围（给定上界和下界）内进行关联，且只支持普通 Append 数据流，不支持含 Retract 的动态表。如下图（来自 Flink 官方文档）。它的好处是由于给定了关联的区间，因此只需要保留很少的状态，内存压力较小。但是缺点是如果关联的数据晚到或者早到，导致落不到 JOIN 区间内，就可能导致结果不准确。此外，只有当区间过了以后，JOIN 结果才会输出，因此会有一定的延迟存在。</p>
+<h3 id="窗口-JOIN"><a href="#窗口-JOIN" class="headerlink" title="窗口 JOIN"></a>窗口 JOIN</h3><p>窗口 JOIN 也是用法非常简单的一种 JOIN 类型。它以窗口为界，对窗口里面的左表、右表数据进行关联操作。由于 Flink 支持滑动（TUMBLE）、滚动（HOP 也叫做 SLIDING）、会话（SESSION）等不同窗口类型，因此可以根据业务需求进行选择。</p>
+<p>窗口 JOIN 不强制要求左右表必须包含时间戳字段，但是如果您使用时间相关窗口的话，也需要提供相关的时间戳来划分窗口。</p>
+<p>和上述 时间区间 JOIN 类似，窗口 JOIN 的输出也是最终值，也就是说不会出现 常规 JOIN 那样不断变动的结果。但是缺点也一样，它只能在窗口结束后输出关联结果，且对于早到或者晚到等不在窗口内的数据是无法参与计算的，因此实时性和准确性方面都相对较差。</p>
+<h3 id="时态表-JOIN（Temporal-JOIN）"><a href="#时态表-JOIN（Temporal-JOIN）" class="headerlink" title="时态表 JOIN（Temporal JOIN）"></a>时态表 JOIN（Temporal JOIN）</h3><p>时态表 JOIN 是一类特殊的关联操作：本文前半部分介绍的各种 JOIN 类型都是基于最新的数据进行关联，而 时态表 JOIN 则可以根据左表记录中的时间戳，在右表的历史版本中进行查询和关联。例如我们的商品价格表会随时间不断变动，左表来了一条时间戳为 10:00 的订单记录，那么它会对右表在 10:00 的商品价格快照（当时的价格）进行关联并输出结果；如果随后左表来了一条 10:30 的订单记录，那么它会对右表在 10:30 时的商品价格进行后续的关联。这种特性对于统计不断变动的时序数据非常有用。</p>
+<p>时态表 JOIN 分为 事件时间（Event Time） 和 处理时间（Processing Time） 两种类型，且只支持 INNER 和 LEFT JOIN。由于基于处理时间的时态表 JOIN 存在 Bug（参见 FLINK-19830），因此在最新的 Flink 版本中已被禁用。我们这里主要介绍基于事件时间的时态表 JOIN。</p>
+<p>由于时态表 JOIN 需要得知不同时刻下右表的不同版本，因此它的右表必须是 Changelog 动态表（即 Upsert、Retract 数据流，而非 Append 数据流），且两侧的源表都必须定义 WATERMARK FOR。随着 Watermark 水位推进，Flink 可以逐步清理失效的数据，因此时态表 JOIN 的内存压力相对也不大。此外，还要求时态表的主键必须包含在 JOIN 等值条件中。</p>
+<p>具体可参考[Flink SQL 双表 JOIN 介绍与原理简析][2]</p>
+<h2 id="多表join测试"><a href="#多表join测试" class="headerlink" title="多表join测试"></a>多表join测试</h2><p>测试大数据量下多表Join，数据是否会一直缓存着，数据具体缓存在哪边？<br>因为之前在测试flinksql多表join的时候，发现只要一个表数据变动，哪怕另外一个表数据没有变动，数据也会关联上。这里再次验证一下<br><strong>数据量分布：</strong></p>
+<table>
+<thead>
+<tr>
+<th>表名</th>
+<th>数据量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>customer</td>
+<td>1500000</td>
+</tr>
+<tr>
+<td>orders</td>
+<td>15000000</td>
+</tr>
+</tbody></table>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> <span class="token keyword">sql</span><span class="token operator">-</span>client<span class="token punctuation">.</span>execution<span class="token punctuation">.</span>result<span class="token operator">-</span><span class="token keyword">mode</span><span class="token operator">=</span>tableau<span class="token punctuation">;</span>
+<span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
+
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> customer <span class="token punctuation">(</span>
+  <span class="token punctuation">`</span>c_custkey<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>c_name<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>c_address<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>c_nationkey<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>c_phone<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>c_acctbal<span class="token punctuation">`</span> <span class="token keyword">decimal</span><span class="token punctuation">(</span><span class="token number">15</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>c_mktsegment<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>c_comment<span class="token punctuation">`</span> string 
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span><span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span><span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span><span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span><span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span><span class="token operator">=</span><span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
+<span class="token string">'server-time-zone'</span><span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
+<span class="token string">'scan.startup.mode'</span><span class="token operator">=</span><span class="token string">'latest-offset'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span><span class="token operator">=</span> <span class="token string">'tpch'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span><span class="token operator">=</span> <span class="token string">'customer'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> orders <span class="token punctuation">(</span>
+  <span class="token punctuation">`</span>o_orderkey<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>o_custkey<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>o_orderstatus<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>o_totalprice<span class="token punctuation">`</span> <span class="token keyword">decimal</span><span class="token punctuation">(</span><span class="token number">15</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>o_orderdate<span class="token punctuation">`</span> <span class="token keyword">date</span> <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>o_orderpriority<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>o_clerk<span class="token punctuation">`</span> string<span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>o_shippriority<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
+  <span class="token punctuation">`</span>o_comment<span class="token punctuation">`</span> string
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span><span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span><span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span><span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span><span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span><span class="token operator">=</span><span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
+<span class="token string">'server-time-zone'</span><span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
+<span class="token string">'scan.startup.mode'</span><span class="token operator">=</span><span class="token string">'latest-offset'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span><span class="token operator">=</span> <span class="token string">'tpch'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span><span class="token operator">=</span> <span class="token string">'orders'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">create</span> <span class="token keyword">table</span> result_print<span class="token punctuation">(</span>
+c_custkey <span class="token keyword">int</span><span class="token punctuation">,</span>
+c_name string <span class="token punctuation">,</span>
+o_orderkey <span class="token keyword">int</span><span class="token punctuation">,</span>
+o_custkey <span class="token keyword">int</span> <span class="token punctuation">,</span>
+o_orderstatus string
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'print'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">insert</span> <span class="token keyword">into</span> result_print 
+<span class="token keyword">select</span> c_custkey<span class="token punctuation">,</span>c_name<span class="token punctuation">,</span>o_orderkey<span class="token punctuation">,</span>o_custkey<span class="token punctuation">,</span>o_orderstatus
+<span class="token keyword">from</span> customer a
+<span class="token keyword">left</span> <span class="token keyword">join</span> orders b
+<span class="token keyword">on</span> a<span class="token punctuation">.</span>c_custkey <span class="token operator">=</span> b<span class="token punctuation">.</span>o_custkey
+
+
+<span class="token comment">-- 在mysql里执行的sql</span>
+<span class="token keyword">update</span> orders <span class="token keyword">set</span> o_orderstatus <span class="token operator">=</span> <span class="token string">'C'</span> <span class="token keyword">where</span> o_orderkey <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+<span class="token keyword">update</span> customer <span class="token keyword">set</span> c_name <span class="token operator">=</span> <span class="token string">'aaa'</span> <span class="token keyword">where</span> c_custkey <span class="token operator">=</span> <span class="token number">369001</span><span class="token punctuation">;</span>
+
+<span class="token keyword">update</span> orders <span class="token keyword">set</span> o_orderstatus <span class="token operator">=</span> <span class="token string">'B'</span><span class="token punctuation">;</span>
+<span class="token keyword">update</span> customer <span class="token keyword">set</span> c_name <span class="token operator">=</span> <span class="token string">'aaa'</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>测试步骤：</p>
+<ol>
+<li>先只修改customer表的数据，orders表不变，这时候，关联出来取自orders表的数据均为空</li>
+<li>修改orders表的数据，这时候关联出来的数据就正常了</li>
+<li>把orders和customer表的数据全部修改一次，为了看状态存在哪，能存多少时间？</li>
+</ol>
+<p>通过这次测试，可以看出，两表join，两个流的数据是会被缓存下来，如果关联的数据在另外一个流里没有（另外一个表没有变动），这时候是关联不上的<br>通过观察，发现这两个流的数据会被缓存在checkpoint里</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@V-SH-101-227 log]# hadoop fs -du -h &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;
+296.1 M  888.4 M  &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;chk-2585
+128 M    768 M    &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;chk-2586
+0        0        &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;shared
+0        0        &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;taskowned
+[root@V-SH-101-227 log]# hadoop fs -du -h &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;
+296.1 M  888.4 M  &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;chk-2586
+0        384 M    &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;chk-2587
+0        0        &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;shared
+0        0        &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;taskowned
+[root@V-SH-101-227 log]# hadoop fs -du -h &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;
+296.1 M  888.4 M  &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;chk-2586
+0        384 M    &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;chk-2587
+0        0        &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;shared
+0        0        &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;taskowned
+[root@V-SH-101-227 log]# hadoop fs -du -h &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;
+296.1 M  888.4 M  &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;chk-2586
+0        384 M    &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;chk-2587
+0        0        &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;shared
+0        0        &#x2F;flink&#x2F;checkpoint&#x2F;sql&#x2F;7465947e9b337b3b4f74beb2e6442731&#x2F;taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看出checkpoint很大，这就会有一个问题，双流jion，如果表特别大，checkpoint就会很大，而且，如果代码修改了，数据只能从头再来一次，局限性有点大，会在网上继续找找有什么方法规避</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Flink/" rel="tag"># Flink</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/12/13/Flink%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" rel="prev" title="Flink常见问题">
+      <i class="fa fa-chevron-left"></i> Flink常见问题
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#FlinkSQL"><span class="nav-number">1.</span> <span class="nav-text">FlinkSQL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#FlinkSQL-JOIN"><span class="nav-number">1.1.</span> <span class="nav-text">FlinkSQL JOIN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%84-JOIN%EF%BC%88Regular-JOIN%EF%BC%89"><span class="nav-number">1.1.1.</span> <span class="nav-text">常规 JOIN（Regular JOIN）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E5%8C%BA%E9%97%B4-JOIN%EF%BC%88Interval-JOIN%EF%BC%89"><span class="nav-number">1.1.2.</span> <span class="nav-text">时间区间 JOIN（Interval JOIN）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AA%97%E5%8F%A3-JOIN"><span class="nav-number">1.1.3.</span> <span class="nav-text">窗口 JOIN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E6%80%81%E8%A1%A8-JOIN%EF%BC%88Temporal-JOIN%EF%BC%89"><span class="nav-number">1.1.4.</span> <span class="nav-text">时态表 JOIN（Temporal JOIN）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E8%A1%A8join%E6%B5%8B%E8%AF%95"><span class="nav-number">1.2.</span> <span class="nav-text">多表join测试</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">53</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">53</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
