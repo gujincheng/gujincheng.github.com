@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Ambari编译 Ambari安装">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ambari编译安装">
+<meta property="og:url" content="https://gujincheng.github.io/2023/03/02/Ambari%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Ambari编译 Ambari安装">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-03-02T08:28:40.000Z">
+<meta property="article:modified_time" content="2023-03-17T07:45:18.100Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Ambari">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://gujincheng.github.io/2023/03/02/Ambari%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Ambari编译安装 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/03/02/Ambari%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Ambari编译安装
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-03-02 16:28:40" itemprop="dateCreated datePublished" datetime="2023-03-02T16:28:40+08:00">2023-03-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-03-17 15:45:18" itemprop="dateModified" datetime="2023-03-17T15:45:18+08:00">2023-03-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Ambari/" itemprop="url" rel="index"><span itemprop="name">Ambari</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2023/03/02/Ambari%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85/" class="post-meta-item leancloud_visitors" data-flag-title="Ambari编译安装" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2023/03/02/Ambari%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/03/02/Ambari%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Ambari编译</li>
+<li>Ambari安装</li>
+</ul>
+<a id="more"></a>
+
+<p>Apache Ambari是一个用于配置、管理和监视ApacheHadoop集群的工具。Ambari由一组RESTful API和基于浏览器的管理界面组成。<br>Ambari使系统管理员能够：</p>
+<ol>
+<li>配置Hadoop群集</li>
+<li>Ambari提供了一个易于使用的分步向导，用于在任意数量的主机上安装Hadoop服务。</li>
+<li>Ambari负责集群Hadoop服务的配置。</li>
+<li>管理Hadoop群集</li>
+<li>Ambari提供了在整个集群中启动、停止和重新配置Hadoop服务的中央管理。</li>
+<li>监视Hadoop群集</li>
+<li>Ambari提供了一个用于监控Hadoop集群运行状况和状态的仪表板。</li>
+<li>Ambari将在您需要注意时发送电子邮件（例如，节点故障、剩余磁盘空间不足等）。</li>
+</ol>
+<h2 id="Ambari编译"><a href="#Ambari编译" class="headerlink" title="Ambari编译"></a>Ambari编译</h2><ul>
+<li>下载源码<pre class="line-numbers language-none"><code class="language-none">wget https:&#x2F;&#x2F;www-eu.apache.org&#x2F;dist&#x2F;ambari&#x2F;ambari-2.7.7&#x2F;apache-ambari-2.7.7-src.tar.gz (use the suggested mirror from above)
+tar xfvz apache-ambari-2.7.7-src.tar.gz
+cd apache-ambari-2.7.7-src
+mvn versions:set -DnewVersion&#x3D;2.7.7.0.0
+ 
+pushd ambari-metrics
+mvn versions:set -DnewVersion&#x3D;2.7.7.0.0
+popd<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>修改源码里的pom文件<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pluginRepository</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>aliyun<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>aliyun<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>http://maven.aliyun.com/nexus/content/groups/public<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>layout</span><span class="token punctuation">></span></span>default<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>layout</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pluginRepository</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3></li>
+</ul>
+<ol>
+<li><code>Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.4:install-node-and-yarn</code><pre class="line-numbers language-text" data-language="text"><code class="language-text">[ERROR] Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.4:install-node-and-yarn (install node and yarn) on project ambari-web: Could not download Yarn: Could not download https:&#x2F;&#x2F;github.com&#x2F;yarnpkg&#x2F;yarn&#x2F;releases&#x2F;download&#x2F;v0.23.2&#x2F;yarn-v0.23.2.tar.gz: Remote host closed connection during handshake: SSL peer shut down incorrectly -&gt; [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http:&#x2F;&#x2F;cwiki.apache.org&#x2F;confluence&#x2F;display&#x2F;MAVEN&#x2F;MojoFailureException
+[ERROR]
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn &lt;args&gt; -rf :ambari-web<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+解决办法：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p ~&#x2F;.m2&#x2F;repository&#x2F;com&#x2F;github&#x2F;eirslett&#x2F;yarn&#x2F;0.21.3&#x2F;yarn-0.21.3.&#x2F;
+cd ~&#x2F;.m2&#x2F;repository&#x2F;com&#x2F;github&#x2F;eirslett&#x2F;yarn&#x2F;0.21.3&#x2F;yarn-0.21.3.&#x2F;
+wget https:&#x2F;&#x2F;github.com&#x2F;yarnpkg&#x2F;yarn&#x2F;releases&#x2F;download&#x2F;v0.23.2&#x2F;yarn-v0.23.2.tar.gz<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+<li><code>Failed to run task: &#39;yarn install --ignore-engines --pure-lockfile&#39; failed</code><pre class="line-numbers language-text" data-language="text"><code class="language-text">[ERROR] Failed to execute goal org.codehaus.mojo:exec-maven-plugin:1.2.1:exec (Bower install) on project ambari-admin: Command execution failed. Process exited with an error: 1 (Exit value: 1) -&gt; [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http:&#x2F;&#x2F;cwiki.apache.org&#x2F;confluence&#x2F;display&#x2F;MAVEN&#x2F;MojoExecutionException
+[ERROR]
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn &lt;args&gt; -rf :ambari-admin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+解决办法：安装git，并且调整nodejs版本&lt;= v11.15.0</li>
+</ol>
+<ol start="3">
+<li><p><code>ambari-metrics-storm-sink-legacy: Could not resolve dependencies for project org.apache.ambari:ambari-metrics-storm-sink-legacy:jar:2.7.7.0.0</code></p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[ERROR] Failed to execute goal on project ambari-metrics-storm-sink-legacy: Could not resolve dependencies for project org.apache.ambari:ambari-metrics-storm-sink-legacy:jar:2.7.7.0.0: Could not find artifact org.apache.storm:storm-core:jar:0.10.0.2.3.0.0-2557 in apache-hadoop (https:&#x2F;&#x2F;repo.hortonworks.com&#x2F;content&#x2F;groups&#x2F;public&#x2F;) -&gt; [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http:&#x2F;&#x2F;cwiki.apache.org&#x2F;confluence&#x2F;display&#x2F;MAVEN&#x2F;DependencyResolutionException
+[ERROR]
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn &lt;args&gt; -rf :ambari-metrics-storm-sink-legacy<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>解决办法： 进入ambari-metrics，修改pom.xml<br>把第一个 repository 替换为 <a target="_blank" rel="noopener" href="http://nexus-private.hortonworks.com/nexus/content/groups/public">http://nexus-private.hortonworks.com/nexus/content/groups/public</a></p>
+</li>
+<li><p>下载<code>hbase/hadoop/grafana/phoenix</code>很慢<br>解决办法：提前使用wget下载下来，并在<code>ambari-metrics/ambari-metrics-timelineservice</code>，<code>ambari-metrics/ambari-metrics-assembly</code>,<code>ambari-metrics/ambari-metrics-grafana</code>修改pom文件</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token comment">&lt;!--
+ &lt;get
+      src="$&#123;phoenix.tar&#125;"
+      dest="$&#123;project.build.directory&#125;/embedded/phoenix.tar.gz"
+      usetimestamp="true"
+  />
+--></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>copy</span> <span class="token attr-name">todir</span> <span class="token attr-value"><span class="token punctuation attr-equals">=</span> <span class="token punctuation">"</span>$&#123;project.build.directory&#125;/embedded/<span class="token punctuation">"</span></span>
+       <span class="token attr-name">file</span> <span class="token attr-value"><span class="token punctuation attr-equals">=</span> <span class="token punctuation">"</span>/home/gujc/phoenix.tar.gz<span class="token punctuation">"</span></span>
+  <span class="token punctuation">/></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+</li>
+</ol>
+<p>具体可以参考<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/585173462">国内网络编译，Ambari 2.7.6 全部模块源码编译笔记</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/suwei825/article/details/119544348">自建云服务器集群离线安装Ambari2.7.5和HDP3.1.5(一)</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/suwei825/article/details/119577210">自建云服务器集群离线安装Ambari2.7.5和HDP3.1.5(二)</a></p>
+<h2 id="Ambari-安装"><a href="#Ambari-安装" class="headerlink" title="Ambari 安装"></a>Ambari 安装</h2><h3 id="Ambari-Server-安装"><a href="#Ambari-Server-安装" class="headerlink" title="Ambari Server 安装"></a>Ambari Server 安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM-4-14-centos ~]# ambari-server setup
+Using python  &#x2F;usr&#x2F;bin&#x2F;python
+Setup ambari-server
+Checking SELinux...
+SELinux status is &#39;disabled&#39;
+Customize user account for ambari-server daemon [y&#x2F;n] (n)? y
+Enter user account for ambari-server daemon (root):
+Adjusting ambari-server permissions and ownership...
+Checking firewall status...
+Checking JDK...
+Do you want to change Oracle JDK [y&#x2F;n] (n)? n
+Check JDK version for Ambari Server...
+JDK version found: 8
+Minimum JDK version is 8 for Ambari. Skipping to setup different JDK for Ambari Server.
+Checking GPL software agreement...
+Completing setup...
+Configuring database...
+Enter advanced database configuration [y&#x2F;n] (n)? y
+Configuring database...
+&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;
+Choose one of the following options:
+[1] - PostgreSQL (Embedded)
+[2] - Oracle
+[3] - MySQL &#x2F; MariaDB
+[4] - PostgreSQL
+[5] - Microsoft SQL Server (Tech Preview)
+[6] - SQL Anywhere
+[7] - BDB
+&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;
+Enter choice (1): 3
+Hostname (localhost):
+Port (3306):
+Database name (ambari):
+Username (ambari):
+Enter Database Password (bigdata):
+Invalid characters in password. Use only alphanumeric or _ or - characters
+Enter Database Password (bigdata):
+Re-enter password:
+Configuring ambari database...
+Enter full path to custom jdbc driver: &#x2F;opt&#x2F;soft&#x2F;mysql-connector&#x2F;mysql-connector-java-8.0.28.jar
+Copying &#x2F;opt&#x2F;soft&#x2F;mysql-connector&#x2F;mysql-connector-java-8.0.28.jar to &#x2F;usr&#x2F;share&#x2F;java
+Configuring remote database connection properties...
+WARNING: Before starting Ambari Server, you must run the following DDL directly from the database shell to create the schema: &#x2F;var&#x2F;lib&#x2F;ambari-server&#x2F;resources&#x2F;Ambari-DDL-MySQL-CREATE.sql
+Proceed with configuring remote database connection properties [y&#x2F;n] (y)? y
+Extracting system views...
+ambari-admin-2.7.7.0.0.jar
+
+Ambari repo file doesn&#39;t contain latest json url, skipping repoinfos modification
+Adjusting ambari-server permissions and ownership...
+Ambari Server &#39;setup&#39; completed successfully.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>查看 Ambari 服务器日志：<code>tail -f /var/log/ambari-server/ambari-server.log</code><br>要访问 Ambari，请转到:<code>http://&#123;ambari-server-hostname&#125;:8080</code><br>使用用户名admin 和密码 admin登录</p>
+<h3 id="Ambari-agent安装"><a href="#Ambari-agent安装" class="headerlink" title="Ambari agent安装"></a>Ambari agent安装</h3><p>在集群中的每台主机上手动安装并启动 Ambari 代理<br>安装 Ambari 代理 RPM，在 RHEL/CentOS 上：<br><code>yum install ambari-agent/target/rpm/ambari-agent/RPMS/x86_64/ambari-agent-*.rpm</code><br>通过编辑主机名行，在 /etc/ambari-agent/conf/ambari-agent.ini 中编辑 Ambari 服务器的位置。<br>启动 Ambari 代理：<code>ambari-agent start</code><br>查看 Ambari 代理日志：<code>tail -f /var/log/ambari-agent/ambari-agent.log</code></p>
+<h3 id="遇到问题："><a href="#遇到问题：" class="headerlink" title="遇到问题："></a>遇到问题：</h3><ol>
+<li><code>Before starting Ambari Server, you must copy the MySQL JDBC driver JAR file to /usr/share/java and set property “server.jdbc.driver.path=[path/to/custom_jdbc_driver]” in ambari.properties.</code><br>解决办法：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">将mysql的驱动包放到&#x2F;usr&#x2F;share&#x2F;java
+在&#x2F;etc&#x2F;ambari-server&#x2F;conf&#x2F;ambari.properties中添加
+server.jdbc.driver.path&#x3D;&#x2F;usr&#x2F;share&#x2F;java&#x2F;mysql-connector-java.jar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+<li><code>Table &#39;ambari.metainfo&#39; doesn&#39;t exist</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Waiting for server start...........ERROR: Exiting with exit code -1.
+REASON: Ambari Server java process has stopped. Please check the logs for more information.
+# 在&#x2F;var&#x2F;log&#x2F;ambari-server&#x2F;ambari-server.log报错：
+Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doesn&#39;t exist
+        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:120)
+        at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
+        at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:953)
+        at com.mysql.cj.jdbc.ClientPreparedStatement.executeQuery(ClientPreparedStatement.java:1009)
+        at com.mchange.v2.c3p0.impl.NewProxyPreparedStatement.executeQuery(NewProxyPreparedStatement.java:431)
+        at org.eclipse.persistence.internal.databaseaccess.DatabaseAccessor.executeSelect(DatabaseAccessor.java:1009)
+        at org.eclipse.persistence.internal.databaseaccess.DatabaseAccessor.basicExecuteCall(DatabaseAccessor.java:644)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+解决办法：<code>source /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql</code></li>
+</ol>
+<ol start="3">
+<li>fsdf</li>
+<li>fsdf</li>
+<li>dsfas</li>
+<li>dfasdf</li>
+<li>dfasdf</li>
+</ol>
+<h2 id="安装Apache-Hadoop等组件"><a href="#安装Apache-Hadoop等组件" class="headerlink" title="安装Apache Hadoop等组件"></a>安装Apache Hadoop等组件</h2><p>网上的Ambari文档大部分都是直接安装HDP版本的软件，但是，HDP目前不开源，所以公司需要使用完全开源的大数据组件<br>要想使用Amabri安装Apache版本的相应组件，安装步骤应该如下：</p>
+<ol>
+<li>使用Ambari安装HDP版本的rpm包（为了让它创建集群环境，一些service目录等）</li>
+<li>替换已经安装的组件，替换成tar.gz，这种方式的好处是，各个组件解耦，并且不需要编译</li>
+<li>测试替换后组件的稳定性</li>
+</ol>
+<p>下面首先安装正常HDP的rpm包，网上很多资源。这里不赘述</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Ambari/" rel="tag"># Ambari</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/02/28/Impala%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" rel="prev" title="Impala踩坑记录">
+      <i class="fa fa-chevron-left"></i> Impala踩坑记录
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/03/13/Tidb%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="next" title="Tidb学习笔记">
+      Tidb学习笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari%E7%BC%96%E8%AF%91"><span class="nav-number">1.</span> <span class="nav-text">Ambari编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98"><span class="nav-number">1.1.</span> <span class="nav-text">遇到问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari-%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Ambari 安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-Server-%E5%AE%89%E8%A3%85"><span class="nav-number">2.1.</span> <span class="nav-text">Ambari Server 安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-agent%E5%AE%89%E8%A3%85"><span class="nav-number">2.2.</span> <span class="nav-text">Ambari agent安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">遇到问题：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Apache-Hadoop%E7%AD%89%E7%BB%84%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">安装Apache Hadoop等组件</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">74</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">56</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">54</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
