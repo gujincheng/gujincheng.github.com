@@ -1157,10 +1157,16 @@ project_id &#x3D; 9
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-10-26 08:53:08 / 修改时间：18:02:19" itemprop="dateCreated datePublished" datetime="2022-10-26T08:53:08+08:00">2022-10-26</time>
+              <time title="创建时间：2022-10-26 08:53:08" itemprop="dateCreated datePublished" datetime="2022-10-26T08:53:08+08:00">2022-10-26</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-04-27 09:45:08" itemprop="dateModified" datetime="2023-04-27T09:45:08+08:00">2023-04-27</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -1203,54 +1209,18 @@ project_id &#x3D; 9
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="Checkpoint很慢，一直超时"><a href="#Checkpoint很慢，一直超时" class="headerlink" title="Checkpoint很慢，一直超时"></a>Checkpoint很慢，一直超时</h2><p>flink程序的Checkpoint一直超时失败<br><img src="/uploads/202206/checkpoint%E5%A4%B1%E8%B4%A5.png" alt="checkpoint失败"><br>taskmanager的日志打印以下日志：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">org.apache.flink.streaming.runtime.tasks.SubtaskCheckpointCoordinatorImpl [] - Time from receiving all checkpoint barriers&#x2F;RPC to executing it exceeded threshold: 135751ms<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>task 仅在接受到所有的 barrier 之后才会进行 snapshot，如果作业存在反压，或者有数据倾斜，则会导致全部的 channel 或者某些 channel 的 barrier 发送慢，从而整体影响 Checkpoint 的时间<br>具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44904816/article/details/101062878">Flink Checkpoint 问题排查实用指南</a></p>
-<p>通过查看<code>Flink WebUI</code>查看，确实存在反压，并且查看<code>taskmanagers</code>的各个并行度的消息消费情况，发现只有2哥并行度有数据消费，其他并行度没有数据。所以数据出现严重的数据倾斜<br>解决数据倾斜的方法是：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">SingleOutputStreamOperator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Alert</span><span class="token punctuation">></span></span> alertDS <span class="token operator">=</span> dataDS
-                <span class="token punctuation">.</span><span class="token function">connect</span><span class="token punctuation">(</span>broadcastStream<span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">process</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">DynamicKeyFunction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">uid</span><span class="token punctuation">(</span><span class="token string">"DynamicKeyFunction"</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token string">"Dynamic Partitioning Function"</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>keyData <span class="token operator">-></span> <span class="token class-name">DigestUtils</span><span class="token punctuation">.</span><span class="token function">md5Hex</span><span class="token punctuation">(</span>keyData<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">random</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">10</span> <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">connect</span><span class="token punctuation">(</span>broadcastStream<span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">process</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">DynamicAlertFunction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">uid</span><span class="token punctuation">(</span><span class="token string">"DynamicAlertFunction"</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token string">"Dynamic Rule Evaluation Function"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>把keyby的key打散即可</p>
-<h2 id="Flink-1-13提交任务到yarn上没有tm和jm的日志"><a href="#Flink-1-13提交任务到yarn上没有tm和jm的日志" class="headerlink" title="Flink-1.13提交任务到yarn上没有tm和jm的日志"></a>Flink-1.13提交任务到yarn上没有tm和jm的日志</h2><p>这个是因为，flink-1.13提交任务到yarn上，并不会读取${FLINK_HOME}/lib下的jar，所以，log4j的依赖没有，这里有2个解决办法：</p>
-<ol>
-<li>把log4j的依赖打在maven项目里<pre class="line-numbers language-java" data-language="java"><code class="language-java">       <span class="token generics"><span class="token punctuation">&lt;</span>dependency<span class="token punctuation">></span></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>groupId<span class="token punctuation">></span></span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>logging<span class="token punctuation">.</span>log4j<span class="token operator">&lt;</span><span class="token operator">/</span>groupId<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>artifactId<span class="token punctuation">></span></span>log4j<span class="token operator">-</span>slf4j<span class="token operator">-</span>impl<span class="token operator">&lt;</span><span class="token operator">/</span>artifactId<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>version<span class="token punctuation">></span></span><span class="token number">2.17</span><span class="token number">.1</span><span class="token operator">&lt;</span><span class="token operator">/</span>version<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>scope<span class="token punctuation">></span></span>compile<span class="token operator">&lt;</span><span class="token operator">/</span>scope<span class="token operator">></span>
-<span class="token operator">&lt;</span><span class="token operator">/</span>dependency<span class="token operator">></span>
-
-<span class="token generics"><span class="token punctuation">&lt;</span>dependency<span class="token punctuation">></span></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>groupId<span class="token punctuation">></span></span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>logging<span class="token punctuation">.</span>log4j<span class="token operator">&lt;</span><span class="token operator">/</span>groupId<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>artifactId<span class="token punctuation">></span></span>log4j<span class="token operator">-</span>api<span class="token operator">&lt;</span><span class="token operator">/</span>artifactId<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>version<span class="token punctuation">></span></span><span class="token number">2.17</span><span class="token number">.1</span><span class="token operator">&lt;</span><span class="token operator">/</span>version<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>scope<span class="token punctuation">></span></span>compile<span class="token operator">&lt;</span><span class="token operator">/</span>scope<span class="token operator">></span>
-<span class="token operator">&lt;</span><span class="token operator">/</span>dependency<span class="token operator">></span>
-
-<span class="token generics"><span class="token punctuation">&lt;</span>dependency<span class="token punctuation">></span></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>groupId<span class="token punctuation">></span></span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>logging<span class="token punctuation">.</span>log4j<span class="token operator">&lt;</span><span class="token operator">/</span>groupId<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>artifactId<span class="token punctuation">></span></span>log4j<span class="token operator">-</span>core<span class="token operator">&lt;</span><span class="token operator">/</span>artifactId<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>version<span class="token punctuation">></span></span><span class="token number">2.17</span><span class="token number">.1</span><span class="token operator">&lt;</span><span class="token operator">/</span>version<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>scope<span class="token punctuation">></span></span>compile<span class="token operator">&lt;</span><span class="token operator">/</span>scope<span class="token operator">></span>
-<span class="token operator">&lt;</span><span class="token operator">/</span>dependency<span class="token operator">></span>
-
-<span class="token generics"><span class="token punctuation">&lt;</span>dependency<span class="token punctuation">></span></span>
-<span class="token operator">&lt;</span><span class="token operator">!</span><span class="token operator">--</span> API bridge between log4j <span class="token number">1</span> and <span class="token number">2</span><span class="token punctuation">;</span> included <span class="token keyword">for</span> convenience <span class="token operator">--</span><span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>groupId<span class="token punctuation">></span></span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>logging<span class="token punctuation">.</span>log4j<span class="token operator">&lt;</span><span class="token operator">/</span>groupId<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>artifactId<span class="token punctuation">></span></span>log4j<span class="token operator">-</span><span class="token number">1.2</span><span class="token operator">-</span>api<span class="token operator">&lt;</span><span class="token operator">/</span>artifactId<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>version<span class="token punctuation">></span></span><span class="token number">2.17</span><span class="token number">.1</span><span class="token operator">&lt;</span><span class="token operator">/</span>version<span class="token operator">></span>
-<span class="token generics"><span class="token punctuation">&lt;</span>scope<span class="token punctuation">></span></span>compile<span class="token operator">&lt;</span><span class="token operator">/</span>scope<span class="token operator">></span>
-<span class="token operator">&lt;</span><span class="token operator">/</span>dependency<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>把log4j相关的依赖从maven项目里去掉，这时候flink-1.13会默认使用logback来处理日志</li>
-</ol>
-
+          <p>本文主要包括：</p>
+<ul>
+<li>Checkpoint很慢，一直超时</li>
+<li>Flink-1.13提交任务到yarn上没有tm和jm的日志
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/10/26/Flink%E8%B0%83%E4%BC%98/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
