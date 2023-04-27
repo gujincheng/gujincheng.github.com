@@ -1146,125 +1146,6 @@ o_orderstatus string
       </tags>
   </entry>
   <entry>
-    <title>Flink学习笔记（二）</title>
-    <url>/2021/01/29/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink任务案例</li>
-<li>Flink的slot和并行度理解<a id="more"></a>
-<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><h3 id="Flink消费Kafka-自定义KafkaDeserializationSchema"><a href="#Flink消费Kafka-自定义KafkaDeserializationSchema" class="headerlink" title="Flink消费Kafka:自定义KafkaDeserializationSchema"></a>Flink消费Kafka:自定义KafkaDeserializationSchema</h3>Flink已经定义好的反序列化shema:</li>
-<li>SimpleStringSchema：返回的结果只有Kafka的value，没有其它信息：</li>
-<li>TypeInformationKeyValueSerializationSchema：返回的结果只有Kafka的key,value，没有其它信息</li>
-</ul>
-<p>如果需要获得Kafka的topic或者其它信息，就需要通过实现KafkaDeserializationSchema接口来自定义返回数据的结构</p>
-<ul>
-<li>自定义KafkaDeserializationSchema：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeHint</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeInformation</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">KafkaDeserializationSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span>clients<span class="token punctuation">.</span>consumer<span class="token punctuation">.</span></span><span class="token class-name">ConsumerRecord</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">Charset</span><span class="token punctuation">;</span>
-
-<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MyKafkaDeserializationSchema</span> <span class="token keyword">implements</span> <span class="token class-name">KafkaDeserializationSchema</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Charset</span> UTF_8 <span class="token operator">=</span> <span class="token class-name">Charset</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"UTF-8"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isEndOfStream</span><span class="token punctuation">(</span><span class="token class-name">String</span> nextElement<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">deserialize</span><span class="token punctuation">(</span><span class="token class-name">ConsumerRecord</span><span class="token operator">&lt;</span><span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">></span> consumerRecord<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-        <span class="token class-name">String</span> value <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">(</span>consumerRecord<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> UTF_8<span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">long</span> offset <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">offset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">int</span> partition <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">partition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">return</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token class-name">TypeInformation</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token function">getProducedType</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token class-name">TypeInformation</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">TypeHint</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token comment">//return null; //会报错</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-如果不重写，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Exception in thread &quot;main&quot; org.apache.flink.api.common.functions.InvalidTypesException: The return type of function &#39;Custom Source&#39; could not be determined automatically, due to type erasure. You can give type information hints by using the returns(...) method on the result of the transformation call, or by letting your function implement the &#39;ResultTypeQueryable&#39; interface.
-	at org.apache.flink.api.dag.Transformation.getOutputType(Transformation.java:479)
-	at org.apache.flink.streaming.api.datastream.DataStream.getType(DataStream.java:193)
-	at org.apache.flink.streaming.api.datastream.DataStream.flatMap(DataStream.java:613)
-	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:60)
-Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of TypeVariable &#39;OUT&#39; in &#39;interface org.apache.flink.streaming.api.functions.source.ParallelSourceFunction&#39; could not be determined. This is most likely a type erasure problem. The type extraction currently supports types with generic variables only in cases where all variables in the return type can be deduced from the input type(s). Otherwise the type has to be specified explicitly using type information.
-	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfoWithTypeHierarchy(TypeExtractor.java:923)
-	at org.apache.flink.api.java.typeutils.TypeExtractor.privateCreateTypeInfo(TypeExtractor.java:828)
-	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfo(TypeExtractor.java:787)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.getTypeInfo(StreamExecutionEnvironment.java:2287)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1681)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1668)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1637)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1623)
-	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:58)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>主类调用：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
-
-
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">Types</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">TimeCharacteristic</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer011</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
-
-
-<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-        <span class="token comment">// 创建Flink执行环境</span>
-        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token comment">// Kafka参数</span>
-        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"auto.offset.reset"</span><span class="token punctuation">,</span><span class="token string">"earliest"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"key.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"value.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
-        <span class="token comment">// Source</span>
-        <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> consumer <span class="token operator">=</span>
-                <span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>inputTopic<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">MyKafkaDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> properties<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        consumer<span class="token punctuation">.</span><span class="token function">setStartFromEarliest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>consumer<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> wordCount <span class="token operator">=</span> stream
-                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span> line<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
-                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>line<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">returns</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span><span class="token function">TUPLE</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> <span class="token class-name">Types</span><span class="token punctuation">.</span>INT<span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>key <span class="token operator">-></span> key<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>key <span class="token operator">-></span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span>f0 <span class="token operator">+</span> <span class="token string">":"</span> <span class="token operator">+</span> key<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-具体的可以参考<br><a href="https://my.oschina.net/u/2380815/blog/4453531">Flink实战：自定义KafkaDeserializationSchema(Java/Scala)</a></li>
-</ul>
-<h2 id="Flink的slot和并行度理解"><a href="#Flink的slot和并行度理解" class="headerlink" title="Flink的slot和并行度理解"></a>Flink的slot和并行度理解</h2><h3 id="Flink的Slot是什么？和Spark的Excutor有什么区别？"><a href="#Flink的Slot是什么？和Spark的Excutor有什么区别？" class="headerlink" title="Flink的Slot是什么？和Spark的Excutor有什么区别？"></a>Flink的Slot是什么？和Spark的Excutor有什么区别？</h3><h3 id="Slot和并行度之间有什么关系？"><a href="#Slot和并行度之间有什么关系？" class="headerlink" title="Slot和并行度之间有什么关系？"></a>Slot和并行度之间有什么关系？</h3><p>是每个slot都有几个并行度，还是说，并行度是整体任务的并行度，和每个slot没什么关系？</p>
-<h3 id="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"><a href="#假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据" class="headerlink" title="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"></a>假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据</h3>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-        <tag>Kafka</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Flink学习笔记（四）</title>
     <url>/2021/08/12/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E5%9B%9B%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1427,6 +1308,125 @@ input
       </categories>
       <tags>
         <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Flink学习笔记（二）</title>
+    <url>/2021/01/29/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink任务案例</li>
+<li>Flink的slot和并行度理解<a id="more"></a>
+<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><h3 id="Flink消费Kafka-自定义KafkaDeserializationSchema"><a href="#Flink消费Kafka-自定义KafkaDeserializationSchema" class="headerlink" title="Flink消费Kafka:自定义KafkaDeserializationSchema"></a>Flink消费Kafka:自定义KafkaDeserializationSchema</h3>Flink已经定义好的反序列化shema:</li>
+<li>SimpleStringSchema：返回的结果只有Kafka的value，没有其它信息：</li>
+<li>TypeInformationKeyValueSerializationSchema：返回的结果只有Kafka的key,value，没有其它信息</li>
+</ul>
+<p>如果需要获得Kafka的topic或者其它信息，就需要通过实现KafkaDeserializationSchema接口来自定义返回数据的结构</p>
+<ul>
+<li>自定义KafkaDeserializationSchema：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeHint</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeInformation</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">KafkaDeserializationSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span>clients<span class="token punctuation">.</span>consumer<span class="token punctuation">.</span></span><span class="token class-name">ConsumerRecord</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">Charset</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MyKafkaDeserializationSchema</span> <span class="token keyword">implements</span> <span class="token class-name">KafkaDeserializationSchema</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Charset</span> UTF_8 <span class="token operator">=</span> <span class="token class-name">Charset</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"UTF-8"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isEndOfStream</span><span class="token punctuation">(</span><span class="token class-name">String</span> nextElement<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">deserialize</span><span class="token punctuation">(</span><span class="token class-name">ConsumerRecord</span><span class="token operator">&lt;</span><span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">></span> consumerRecord<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> value <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">(</span>consumerRecord<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> UTF_8<span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">long</span> offset <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">offset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> partition <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">partition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">TypeInformation</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token function">getProducedType</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token class-name">TypeInformation</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">TypeHint</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//return null; //会报错</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+如果不重写，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Exception in thread &quot;main&quot; org.apache.flink.api.common.functions.InvalidTypesException: The return type of function &#39;Custom Source&#39; could not be determined automatically, due to type erasure. You can give type information hints by using the returns(...) method on the result of the transformation call, or by letting your function implement the &#39;ResultTypeQueryable&#39; interface.
+	at org.apache.flink.api.dag.Transformation.getOutputType(Transformation.java:479)
+	at org.apache.flink.streaming.api.datastream.DataStream.getType(DataStream.java:193)
+	at org.apache.flink.streaming.api.datastream.DataStream.flatMap(DataStream.java:613)
+	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:60)
+Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of TypeVariable &#39;OUT&#39; in &#39;interface org.apache.flink.streaming.api.functions.source.ParallelSourceFunction&#39; could not be determined. This is most likely a type erasure problem. The type extraction currently supports types with generic variables only in cases where all variables in the return type can be deduced from the input type(s). Otherwise the type has to be specified explicitly using type information.
+	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfoWithTypeHierarchy(TypeExtractor.java:923)
+	at org.apache.flink.api.java.typeutils.TypeExtractor.privateCreateTypeInfo(TypeExtractor.java:828)
+	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfo(TypeExtractor.java:787)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.getTypeInfo(StreamExecutionEnvironment.java:2287)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1681)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1668)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1637)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1623)
+	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:58)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>主类调用：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">Types</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">TimeCharacteristic</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer011</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 创建Flink执行环境</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Kafka参数</span>
+        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"auto.offset.reset"</span><span class="token punctuation">,</span><span class="token string">"earliest"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"key.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"value.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
+        <span class="token comment">// Source</span>
+        <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> consumer <span class="token operator">=</span>
+                <span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>inputTopic<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">MyKafkaDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> properties<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        consumer<span class="token punctuation">.</span><span class="token function">setStartFromEarliest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>consumer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> wordCount <span class="token operator">=</span> stream
+                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span> line<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>line<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">returns</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span><span class="token function">TUPLE</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> <span class="token class-name">Types</span><span class="token punctuation">.</span>INT<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>key <span class="token operator">-></span> key<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>key <span class="token operator">-></span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span>f0 <span class="token operator">+</span> <span class="token string">":"</span> <span class="token operator">+</span> key<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+具体的可以参考<br><a href="https://my.oschina.net/u/2380815/blog/4453531">Flink实战：自定义KafkaDeserializationSchema(Java/Scala)</a></li>
+</ul>
+<h2 id="Flink的slot和并行度理解"><a href="#Flink的slot和并行度理解" class="headerlink" title="Flink的slot和并行度理解"></a>Flink的slot和并行度理解</h2><h3 id="Flink的Slot是什么？和Spark的Excutor有什么区别？"><a href="#Flink的Slot是什么？和Spark的Excutor有什么区别？" class="headerlink" title="Flink的Slot是什么？和Spark的Excutor有什么区别？"></a>Flink的Slot是什么？和Spark的Excutor有什么区别？</h3><h3 id="Slot和并行度之间有什么关系？"><a href="#Slot和并行度之间有什么关系？" class="headerlink" title="Slot和并行度之间有什么关系？"></a>Slot和并行度之间有什么关系？</h3><p>是每个slot都有几个并行度，还是说，并行度是整体任务的并行度，和每个slot没什么关系？</p>
+<h3 id="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"><a href="#假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据" class="headerlink" title="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"></a>假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据</h3>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+        <tag>Kafka</tag>
       </tags>
   </entry>
   <entry>
@@ -3230,6 +3230,39 @@ agent.sinks.logger.channel &#x3D; memory-channel<span aria-hidden="true" class="
       </tags>
   </entry>
   <entry>
+    <title>Redis杂记</title>
+    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>什么是Redis</li>
+<li>Redis有哪些优缺点</li>
+<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
+<li>Redis为什么这么快</li>
+<li>Redis的应用场景</li>
+<li>Redis持久化</li>
+<li>Redis踩的坑</li>
+</ul>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/202106/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
+<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
+<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
+<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
+<p>这里记录一下两个命令：</p>
+<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scala杂记</title>
     <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3295,39 +3328,6 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </categories>
       <tags>
         <tag>Scala</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Redis杂记</title>
-    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>什么是Redis</li>
-<li>Redis有哪些优缺点</li>
-<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
-<li>Redis为什么这么快</li>
-<li>Redis的应用场景</li>
-<li>Redis持久化</li>
-<li>Redis踩的坑</li>
-</ul>
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/202106/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
-<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
-<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
-<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
-<p>这里记录一下两个命令：</p>
-<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -3608,6 +3608,45 @@ cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServe
       </tags>
   </entry>
   <entry>
+    <title>azkban从编译开始安装</title>
+    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>如何下载Azkaban稳定版代码</li>
+<li>如何构建Azkaban源码</li>
+<li>如何配置Azkaban</li>
+<li>启动Azkaban注意点<a id="more"></a>
+<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
+</ul>
+<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
+<p>后来还是直接clone官网上的代码来构建</p>
+<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
+<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
+<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
+<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
+2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
+2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
+<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Azkaban</category>
+      </categories>
+      <tags>
+        <tag>Azkaban</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>clickhouse学习笔记</title>
     <url>/2022/06/01/clickhouse%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3806,103 +3845,6 @@ sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<spa
       </tags>
   </entry>
   <entry>
-    <title>azkban从编译开始安装</title>
-    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>如何下载Azkaban稳定版代码</li>
-<li>如何构建Azkaban源码</li>
-<li>如何配置Azkaban</li>
-<li>启动Azkaban注意点<a id="more"></a>
-<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
-</ul>
-<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
-<p>后来还是直接clone官网上的代码来构建</p>
-<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
-<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
-<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
-<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
-2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
-2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
-<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Azkaban</category>
-      </categories>
-      <tags>
-        <tag>Azkaban</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>hdfs块文件丢失</title>
-    <url>/2022/03/08/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>hdfs块文件丢失</li>
-</ul>
-<a id="more"></a>
-
-<h2 id="hdfs块文件丢失"><a href="#hdfs块文件丢失" class="headerlink" title="hdfs块文件丢失"></a>hdfs块文件丢失</h2><p>最近公司集群扩容，运维那边不知道怎么操作的，导致hdfs的block块文件丢失了。</p>
-<p>个人猜测，公司的五台节点，都新挂载了一个新盘，datanode上配置了新盘，重启之后，hadoop集群肯定是要负载均衡一下的，迁移一些文件到新盘<br>这时候namenode会可能会进入安全模式，CM上很多组件都会报红，这时候我们的运维强制退出了安全模式，重启了hadoop集群，但是只是猜测，具体原因找不到了</p>
-<p>先说问题描述：<br>启动hive的时候，报如下报错日志：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory &#x2F;tmp&#x2F;hive&#x2F;root&#x2F;eceb6690-1510-4703-8a4b-60ea03c3fcec. Name node is in safe mode.
-The reported blocks 10427 needs additional 4373 blocks to reach the threshold 0.9990 of total blocks 14815.
-The number of live datanodes 3 has reached the minimum number 1. Safe mode will be turned off automatically once the thresholds have been reached. NamenodeHostName:ddp2
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.newSafemodeException(FSNamesystem.java:1448)
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkNameNodeSafeMode(FSNamesystem.java:1435)
-        ... 12 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错就是丢失了4373个block，导致namenode进入安全模式</p>
-<h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3><p>出现前面提到的问题主要原因是客户端写入的数据没有及时保存到磁盘中，从而导致数据丢失；又因为数据块丢失达到一定的比率，导致hdfs启动进入安全模式。</p>
-<p>为了弄清楚导致安全模式的原因，下面主要对hdfs安全模式和如何退出安全模式进行分析。</p>
-<h3 id="安全模式"><a href="#安全模式" class="headerlink" title="安全模式"></a>安全模式</h3><p>当 hdfs的NameNode节点启动时，会进入安全模式阶段。安全模式主要是为了系统启动的时候检查各个DataNode上数据块的有效性，同时根据策略必要的复制或者删除部分数据块。</p>
-<p>在此阶段，NameNode加载fsimage（Filesystem image：文件meta信息的持久化的检查点）文件到内存中，然后在editlog中执行相应的操作。加载fsimage文件包含文件metadata信息，但是不包含文件块位置的信息。</p>
-<p>DataNode启动的时候扫描本地磁盘，保存的block信息，然后将这些信息汇报给NameNode,让 NameNode得到块的位置信息，并对每个文件对应的数据块副本进行统计。</p>
-<p>如果hdfs数据量很大时，进入至退出安全模式时间较长。</p>
-<h3 id="安全模式退出条件"><a href="#安全模式退出条件" class="headerlink" title="安全模式退出条件"></a>安全模式退出条件</h3><p>当最小副本条件满足时，即一定比例（dfs.safemode.threshold.pct缺省值0.999f）的数据块都达到最小副本数，系统就会退出安全模式。当最小副本条件未达到要求时，就会对副本数不足的数据块安排DataNode进行复制，直至达到最小副本数。如果datanode丢失的block达到一定的比例（1-dfs.safemode.threshold.pct），则系统会一直处于安全模式状态即只读状态。而在安全模式下，系统会处于只读状态，NameNode不会处理任何块的复制和删除命令。</p>
-<p>dfs.safemode.threshold.pct（缺省值0.999f）表示HDFS启动的时候，如果DataNode上报的block个数达到了元 数据 记录的block个数的0.999倍才可以离开安全模式，否则一直是这种只读模式。如果设为1则HDFS永远是处于SafeMode。</p>
-<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>比较粗暴的方式，删除损坏掉的block</p>
-<ol>
-<li>执行命令退出安全模式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop dfsadmin -safemode leave<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>执行健康检查，删除损坏掉的block。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs fsck  &#x2F;  -delete<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-这里的路径虽然写的是<code>/</code>，但是不是删除所有文件，是删除根目录以下的所有的损坏的块文件</li>
-</ol>
-<p>生产环境一般考虑先恢复： 找到数据块的位置和丢失的数据信息</p>
-<ol>
-<li>查看/所有分区信息：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs hdfs fsck &#x2F; -files -blocks -locations<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>恢复数据文件，前提是，datanode里的block文件还存在，如果不存在了，虽然信息提示SUCCESS，但是其实还是没有恢复成功<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs debug recoverLease -path $&#123;path&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-我这里使用恢复命令没有效果，直接到datanode的文件存储目录查看了以下，报找不到的block都找不到<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;data&#x2F;dfs&#x2F;dn&#x2F;current ## 通过查看hdfs-site.xml查看datanode的文件实际存储位置
-find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下，文件名包含blk_1073743358_2534的文件。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
-
-</li>
-</ol>
-<p>通过查看hdfs-site.xmhjl找到datanode的日志文件路径：/var/log/hadoop-hdfs<br>查看datanode日志文件：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D1.png" alt="hdfs块文件丢失恢复1"><br>通过日志可以看出，之前的恢复命令有的成功，有的失败，这里分别找了成功和失败的block查看了一下，发现成功日志的block块是恢复成功了，但是失败的确实没有成功</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 以下文件是成功的block块的文件，查看block块所属哪个文件路径，可以通过hdfs hdfs fsck &#x2F; -files -blocks -locations命令查看
-[root@ddp3 tmp]# hadoop fs -ls &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041
--rw-r-----   3 digiwin hadoop      70423 2022-03-01 11:13 &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>查看datanode3的log，找其中一块block查看具体的生成时间，已经从哪台节点复制过来的<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D2.png" alt="hdfs块文件丢失恢复2"><br>可以看出，blk_1073741854是2022-03-07 13:27:37从192.168.5.25复制过来的。<br>查看datanode3的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D3.png" alt="hdfs块文件丢失恢复3"><br>查看datanode5的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D4.png" alt="hdfs块文件丢失恢复4"><br>可以很明显的看出，blk_1073741854在dn5上是2022-03-04的时候生成的，但是dn3是2022-03-07新复制的<br>所以，数据恢复操作，要有一个前提，丢失的块不能没有副本，需要从其他副本节点复制过来</p>
-<p>这里也可以参考一下<a href="https://www.cnblogs.com/prayer21/p/4819789.html">HDFS中datanode节点block损坏后的自动恢复过程</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Hadoop</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>git使用笔记</title>
     <url>/2022/08/26/git%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3964,6 +3906,64 @@ git push origin develop<span aria-hidden="true" class="line-numbers-rows"><span>
       </categories>
       <tags>
         <tag>git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hdfs块文件丢失</title>
+    <url>/2022/03/08/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>hdfs块文件丢失</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="hdfs块文件丢失"><a href="#hdfs块文件丢失" class="headerlink" title="hdfs块文件丢失"></a>hdfs块文件丢失</h2><p>最近公司集群扩容，运维那边不知道怎么操作的，导致hdfs的block块文件丢失了。</p>
+<p>个人猜测，公司的五台节点，都新挂载了一个新盘，datanode上配置了新盘，重启之后，hadoop集群肯定是要负载均衡一下的，迁移一些文件到新盘<br>这时候namenode会可能会进入安全模式，CM上很多组件都会报红，这时候我们的运维强制退出了安全模式，重启了hadoop集群，但是只是猜测，具体原因找不到了</p>
+<p>先说问题描述：<br>启动hive的时候，报如下报错日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory &#x2F;tmp&#x2F;hive&#x2F;root&#x2F;eceb6690-1510-4703-8a4b-60ea03c3fcec. Name node is in safe mode.
+The reported blocks 10427 needs additional 4373 blocks to reach the threshold 0.9990 of total blocks 14815.
+The number of live datanodes 3 has reached the minimum number 1. Safe mode will be turned off automatically once the thresholds have been reached. NamenodeHostName:ddp2
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.newSafemodeException(FSNamesystem.java:1448)
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkNameNodeSafeMode(FSNamesystem.java:1435)
+        ... 12 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错就是丢失了4373个block，导致namenode进入安全模式</p>
+<h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3><p>出现前面提到的问题主要原因是客户端写入的数据没有及时保存到磁盘中，从而导致数据丢失；又因为数据块丢失达到一定的比率，导致hdfs启动进入安全模式。</p>
+<p>为了弄清楚导致安全模式的原因，下面主要对hdfs安全模式和如何退出安全模式进行分析。</p>
+<h3 id="安全模式"><a href="#安全模式" class="headerlink" title="安全模式"></a>安全模式</h3><p>当 hdfs的NameNode节点启动时，会进入安全模式阶段。安全模式主要是为了系统启动的时候检查各个DataNode上数据块的有效性，同时根据策略必要的复制或者删除部分数据块。</p>
+<p>在此阶段，NameNode加载fsimage（Filesystem image：文件meta信息的持久化的检查点）文件到内存中，然后在editlog中执行相应的操作。加载fsimage文件包含文件metadata信息，但是不包含文件块位置的信息。</p>
+<p>DataNode启动的时候扫描本地磁盘，保存的block信息，然后将这些信息汇报给NameNode,让 NameNode得到块的位置信息，并对每个文件对应的数据块副本进行统计。</p>
+<p>如果hdfs数据量很大时，进入至退出安全模式时间较长。</p>
+<h3 id="安全模式退出条件"><a href="#安全模式退出条件" class="headerlink" title="安全模式退出条件"></a>安全模式退出条件</h3><p>当最小副本条件满足时，即一定比例（dfs.safemode.threshold.pct缺省值0.999f）的数据块都达到最小副本数，系统就会退出安全模式。当最小副本条件未达到要求时，就会对副本数不足的数据块安排DataNode进行复制，直至达到最小副本数。如果datanode丢失的block达到一定的比例（1-dfs.safemode.threshold.pct），则系统会一直处于安全模式状态即只读状态。而在安全模式下，系统会处于只读状态，NameNode不会处理任何块的复制和删除命令。</p>
+<p>dfs.safemode.threshold.pct（缺省值0.999f）表示HDFS启动的时候，如果DataNode上报的block个数达到了元 数据 记录的block个数的0.999倍才可以离开安全模式，否则一直是这种只读模式。如果设为1则HDFS永远是处于SafeMode。</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>比较粗暴的方式，删除损坏掉的block</p>
+<ol>
+<li>执行命令退出安全模式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop dfsadmin -safemode leave<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>执行健康检查，删除损坏掉的block。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs fsck  &#x2F;  -delete<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+这里的路径虽然写的是<code>/</code>，但是不是删除所有文件，是删除根目录以下的所有的损坏的块文件</li>
+</ol>
+<p>生产环境一般考虑先恢复： 找到数据块的位置和丢失的数据信息</p>
+<ol>
+<li>查看/所有分区信息：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs hdfs fsck &#x2F; -files -blocks -locations<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>恢复数据文件，前提是，datanode里的block文件还存在，如果不存在了，虽然信息提示SUCCESS，但是其实还是没有恢复成功<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs debug recoverLease -path $&#123;path&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+我这里使用恢复命令没有效果，直接到datanode的文件存储目录查看了以下，报找不到的block都找不到<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;data&#x2F;dfs&#x2F;dn&#x2F;current ## 通过查看hdfs-site.xml查看datanode的文件实际存储位置
+find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下，文件名包含blk_1073743358_2534的文件。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+</li>
+</ol>
+<p>通过查看hdfs-site.xmhjl找到datanode的日志文件路径：/var/log/hadoop-hdfs<br>查看datanode日志文件：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D1.png" alt="hdfs块文件丢失恢复1"><br>通过日志可以看出，之前的恢复命令有的成功，有的失败，这里分别找了成功和失败的block查看了一下，发现成功日志的block块是恢复成功了，但是失败的确实没有成功</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 以下文件是成功的block块的文件，查看block块所属哪个文件路径，可以通过hdfs hdfs fsck &#x2F; -files -blocks -locations命令查看
+[root@ddp3 tmp]# hadoop fs -ls &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041
+-rw-r-----   3 digiwin hadoop      70423 2022-03-01 11:13 &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>查看datanode3的log，找其中一块block查看具体的生成时间，已经从哪台节点复制过来的<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D2.png" alt="hdfs块文件丢失恢复2"><br>可以看出，blk_1073741854是2022-03-07 13:27:37从192.168.5.25复制过来的。<br>查看datanode3的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D3.png" alt="hdfs块文件丢失恢复3"><br>查看datanode5的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D4.png" alt="hdfs块文件丢失恢复4"><br>可以很明显的看出，blk_1073741854在dn5上是2022-03-04的时候生成的，但是dn3是2022-03-07新复制的<br>所以，数据恢复操作，要有一个前提，丢失的块不能没有副本，需要从其他副本节点复制过来</p>
+<p>这里也可以参考一下<a href="https://www.cnblogs.com/prayer21/p/4819789.html">HDFS中datanode节点block损坏后的自动恢复过程</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Hadoop</tag>
       </tags>
   </entry>
   <entry>
@@ -4551,6 +4551,46 @@ words <span class="token operator">=</span> <span class="token string-interpolat
       </tags>
   </entry>
   <entry>
+    <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
+    <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>安装jenkins</li>
+<li>通过pythonAPI实现参数化jenkins构建</li>
+</ul>
+<a id="more"></a>
+<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
+<ul>
+<li>在官网下载rpm包，手动安装，最费事</li>
+<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
+<li>直接下载官网上的war包：wget <a href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
+</ul>
+<p>我这里直接用的下载war包</p>
+<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
+<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
+<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
+<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
+<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
+<p><img src="/uploads/202101/jenkins-param.png" alt="hive-import-data"></p>
+<p>需要几个参数，就添加几个参数</p>
+<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
+server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>里面的执行shell：<br><img src="/uploads/202101/jenkins-build.png" alt="hive-import-data"></p>
+<p>最终的效果：<br><img src="/uploads/202101/jenkins-console.png" alt="hive-import-data"></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Jenkins</category>
+      </categories>
+      <tags>
+        <tag>Jenkins</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spark on yarn遇到的问题</title>
     <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -4621,46 +4661,6 @@ org.apache.spark.SparkException: Yarn application has already ended! It might ha
       <tags>
         <tag>Spark</tag>
         <tag>Yarn</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
-    <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>安装jenkins</li>
-<li>通过pythonAPI实现参数化jenkins构建</li>
-</ul>
-<a id="more"></a>
-<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
-<ul>
-<li>在官网下载rpm包，手动安装，最费事</li>
-<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
-<li>直接下载官网上的war包：wget <a href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
-</ul>
-<p>我这里直接用的下载war包</p>
-<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
-<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
-<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
-<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
-<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
-<p><img src="/uploads/202101/jenkins-param.png" alt="hive-import-data"></p>
-<p>需要几个参数，就添加几个参数</p>
-<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
-server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>里面的执行shell：<br><img src="/uploads/202101/jenkins-build.png" alt="hive-import-data"></p>
-<p>最终的效果：<br><img src="/uploads/202101/jenkins-console.png" alt="hive-import-data"></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Jenkins</category>
-      </categories>
-      <tags>
-        <tag>Jenkins</tag>
       </tags>
   </entry>
   <entry>
@@ -5606,201 +5606,6 @@ search:
       </tags>
   </entry>
   <entry>
-    <title>获取yarn上application资源占用情况</title>
-    <url>/2021/12/09/%E8%8E%B7%E5%8F%96yarn%E4%B8%8Aapplication%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>根据yarn的applicationid获取应用实时资源消耗的方法</li>
-<li>写python脚本调取yarn api获取实时资源消耗情况</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="根据yarn的applicationid获取应用实时资源消耗的方法"><a href="#根据yarn的applicationid获取应用实时资源消耗的方法" class="headerlink" title="根据yarn的applicationid获取应用实时资源消耗的方法"></a>根据yarn的applicationid获取应用实时资源消耗的方法</h2><p>这种方法是根据hadoop的配置文件，使用YarnClient来获取applicationId的资源占用情况</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">YarnListener</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Logger</span> logger <span class="token operator">=</span> <span class="token class-name">LoggerFactory</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">YarnListener</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
- 
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token class-name">URL</span> resource <span class="token operator">=</span> <span class="token class-name">HDFSUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getResource</span><span class="token punctuation">(</span><span class="token string">"config/hadoop-conf"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">String</span> resourceDir <span class="token operator">=</span> resource<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token class-name">Constants</span><span class="token punctuation">.</span>SEPARATOR<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">YarnConfiguration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"hdfs-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"core-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"yarn-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">YarnClient</span> yarnClient <span class="token operator">=</span> <span class="token class-name">YarnClient</span><span class="token punctuation">.</span><span class="token function">createYarnClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        yarnClient<span class="token punctuation">.</span><span class="token function">init</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        yarnClient<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
- 
-        <span class="token class-name">ApplicationId</span> applicationId <span class="token operator">=</span> <span class="token class-name">ApplicationId</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token number">1577686647484L</span><span class="token punctuation">,</span><span class="token number">0001</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
-            <span class="token class-name">ApplicationReport</span> report <span class="token operator">=</span> yarnClient<span class="token punctuation">.</span><span class="token function">getApplicationReport</span><span class="token punctuation">(</span>applicationId<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getStartTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getUsedResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getVirtualCores</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getUsedResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getMemorySize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getStartTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">YarnException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span>
-        yarnClient<span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>输出结果如下：</p>
-<pre class="line-numbers language-json" data-language="json"><code class="language-json">num_used_containers<span class="token operator">:</span> <span class="token number">-1</span>
-num_reserved_containers<span class="token operator">:</span> <span class="token number">-1</span>
-used_resources <span class="token punctuation">&#123;</span>
-  memory<span class="token operator">:</span> <span class="token number">-1</span>
-  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
-  resource_value_map <span class="token punctuation">&#123;</span>
-    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
-    value<span class="token operator">:</span> <span class="token number">-1</span>
-    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
-    type<span class="token operator">:</span> COUNTABLE
-  <span class="token punctuation">&#125;</span>
-  resource_value_map <span class="token punctuation">&#123;</span>
-    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
-    value<span class="token operator">:</span> <span class="token number">-1</span>
-    units<span class="token operator">:</span> <span class="token string">""</span>
-    type<span class="token operator">:</span> COUNTABLE
-  <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-reserved_resources <span class="token punctuation">&#123;</span>
-  memory<span class="token operator">:</span> <span class="token number">-1</span>
-  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
-  resource_value_map <span class="token punctuation">&#123;</span>
-    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
-    value<span class="token operator">:</span> <span class="token number">-1</span>
-    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
-    type<span class="token operator">:</span> COUNTABLE
-  <span class="token punctuation">&#125;</span>
-  resource_value_map <span class="token punctuation">&#123;</span>
-    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
-    value<span class="token operator">:</span> <span class="token number">-1</span>
-    units<span class="token operator">:</span> <span class="token string">""</span>
-    type<span class="token operator">:</span> COUNTABLE
-  <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-needed_resources <span class="token punctuation">&#123;</span>
-  memory<span class="token operator">:</span> <span class="token number">-1</span>
-  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
-  resource_value_map <span class="token punctuation">&#123;</span>
-    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
-    value<span class="token operator">:</span> <span class="token number">-1</span>
-    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
-    type<span class="token operator">:</span> COUNTABLE
-  <span class="token punctuation">&#125;</span>
-  resource_value_map <span class="token punctuation">&#123;</span>
-    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
-    value<span class="token operator">:</span> <span class="token number">-1</span>
-    units<span class="token operator">:</span> <span class="token string">""</span>
-    type<span class="token operator">:</span> COUNTABLE
-  <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-memory_seconds<span class="token operator">:</span> <span class="token number">5549488</span>
-vcore_seconds<span class="token operator">:</span> <span class="token number">5378</span>
-preempted_memory_seconds<span class="token operator">:</span> <span class="token number">5549488</span>
-preempted_vcore_seconds<span class="token operator">:</span> <span class="token number">5378</span>
-application_resource_usage_map <span class="token punctuation">&#123;</span>
-  key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
-  value<span class="token operator">:</span> <span class="token number">5549488</span>
-<span class="token punctuation">&#125;</span>
-application_resource_usage_map <span class="token punctuation">&#123;</span>
-  key<span class="token operator">:</span> <span class="token string">"vcores"</span>
-  value<span class="token operator">:</span> <span class="token number">5378</span>
-<span class="token punctuation">&#125;</span>
-application_preempted_resource_usage_map <span class="token punctuation">&#123;</span>
-  key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
-  value<span class="token operator">:</span> <span class="token number">5549488</span>
-<span class="token punctuation">&#125;</span>
-application_preempted_resource_usage_map <span class="token punctuation">&#123;</span>
-  key<span class="token operator">:</span> <span class="token string">"vcores"</span>
-  value<span class="token operator">:</span> <span class="token number">5378</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h3><p>这种方法，感觉可以和hive的hook结合起来使用，在hivesql执行过程中，就把资源使用情况保存下来<br>这里的资源占用都是实时的占用，可以取一个平均资源占用来当作这个任务的资源占用情况</p>
-<p>具体可以参考<a href="https://blog.csdn.net/trnanan/article/details/104986262">根据yarn的applicationid获取应用实时资源消耗的方法</a></p>
-<h2 id="写python脚本调取yarn-api获取实时资源消耗情况"><a href="#写python脚本调取yarn-api获取实时资源消耗情况" class="headerlink" title="写python脚本调取yarn api获取实时资源消耗情况"></a>写python脚本调取yarn api获取实时资源消耗情况</h2><p>这种方式，就是用爬虫yarn的监控页面，取页面上的内容，其实不是很好，因为namenode在ha之后会切换，但是很方便</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> requests
-<span class="token keyword">import</span> json
-<span class="token keyword">import</span> time
-<span class="token keyword">import</span> pymysql
-<span class="token keyword">from</span> bs4 <span class="token keyword">import</span> BeautifulSoup
-<span class="token keyword">import</span> os<span class="token punctuation">,</span>threading<span class="token punctuation">,</span>time
-
-url_full<span class="token operator">=</span><span class="token string">"http://ip:port/cluster"</span>
-
-conn <span class="token operator">=</span> pymysql<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">'114.67.103.201'</span><span class="token punctuation">,</span>user <span class="token operator">=</span> <span class="token string">"root"</span><span class="token punctuation">,</span>passwd <span class="token operator">=</span> <span class="token string">"admin@123456"</span><span class="token punctuation">,</span>db <span class="token operator">=</span> <span class="token string">"myuse"</span><span class="token punctuation">)</span>
-cur<span class="token operator">=</span>conn<span class="token punctuation">.</span>cursor<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment">#获取游标</span>
-response <span class="token operator">=</span> requests<span class="token punctuation">.</span>request<span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> url_full<span class="token punctuation">,</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>url_full<span class="token punctuation">)</span>
-soup <span class="token operator">=</span> BeautifulSoup<span class="token punctuation">(</span>response<span class="token punctuation">.</span>text<span class="token punctuation">,</span> <span class="token string">'html.parser'</span><span class="token punctuation">)</span> <span class="token comment">#也可用lxml</span>
-<span class="token comment">#已提交的任务</span>
-apps_submit <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(1)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>apps_submit<span class="token punctuation">)</span>
-<span class="token comment">#等待中的任务</span>
-apps_pending <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(2)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>apps_pending<span class="token punctuation">)</span>
-<span class="token comment">#运行中的任务</span>
-apps_running <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(3)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>apps_running<span class="token punctuation">)</span>
-<span class="token comment">#已完成的任务</span>
-apps_completed <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(4)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>apps_completed<span class="token punctuation">)</span>
-<span class="token comment">#运行的contaniner</span>
-container_running <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(5)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>container_running<span class="token punctuation">)</span>
-<span class="token comment">#一用的内存</span>
-memory_used <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(6)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>memory_used<span class="token punctuation">)</span>
-<span class="token comment">#总内存</span>
-memory_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(7)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>memory_total<span class="token punctuation">)</span>
-<span class="token comment">#已用的core</span>
-core_used <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(9)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>core_used<span class="token punctuation">)</span>
-<span class="token comment">#总的core</span>
-core_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(10)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>core_total<span class="token punctuation">)</span>
-<span class="token comment">#yarn总的节点数</span>
-node_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#nodemetricsoverview > tbody > tr > td:nth-of-type(1) > a'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>node_total<span class="token punctuation">)</span>
-<span class="token comment">#yran的调度类型</span>
-yarn_scheduler_type <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#schedulermetricsoverview > tbody > tr > td:nth-of-type(1)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>yarn_scheduler_type<span class="token punctuation">)</span>
-
-sql<span class="token operator">=</span><span class="token string">"insert into yarn_monitor(apps_submit,apps_pending,apps_running,memory_used,memory_total,core_used,node_total,yarn_scheduler_type)"</span> \
-                <span class="token string">" values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"</span>
-cur<span class="token punctuation">.</span>execute<span class="token punctuation">(</span>sql<span class="token punctuation">,</span><span class="token punctuation">(</span>apps_submit<span class="token punctuation">,</span>apps_pending<span class="token punctuation">,</span>apps_running<span class="token punctuation">,</span>memory_used<span class="token punctuation">,</span>memory_total<span class="token punctuation">,</span>core_used<span class="token punctuation">,</span>node_total<span class="token punctuation">,</span>yarn_scheduler_type<span class="token punctuation">)</span><span class="token punctuation">)</span>
-conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
-cur<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
-conn<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="根据appid获取yarn的执行日志"><a href="#根据appid获取yarn的执行日志" class="headerlink" title="根据appid获取yarn的执行日志"></a>根据appid获取yarn的执行日志</h2><p>当日志量不大的情况下，直接使用如下命令查看：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yarn logs -applicationId application_1641525781336_0011<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>但是，当日志量很大的情况下，直接执行上述命令，会报如下错误：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.lang.RuntimeException: The total log size is too large.The log size limit is 10MB. Please specify a proper value --size option or if you really want to fetch all, please specify -1 for --size_limit_mb option.
-        at org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedLogFiles(LogsCLI.java:1169)
-        at org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedContainerLogFiles(LogsCLI.java:1348)
-        at org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedOptionForRunningApp(LogsCLI.java:1517)
-        at org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedLogTypesForRunningApp(LogsCLI.java:1537)
-        at org.apache.hadoop.yarn.client.cli.LogsCLI.fetchApplicationLogs(LogsCLI.java:1090)
-        at org.apache.hadoop.yarn.client.cli.LogsCLI.runCommand(LogsCLI.java:372)
-        at org.apache.hadoop.yarn.client.cli.LogsCLI.run(LogsCLI.java:153)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这时候可以只取一部分日志看看里面都是什么，一般情况下，都是因为代码里有println内容了：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># -size就是获取n字节的日志
-yarn logs -applicationId application_1641525781336_0011 -size 1000000000 &gt; appid.log<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>监控</category>
-      </categories>
-      <tags>
-        <tag>监控</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>数据研发开发规范</title>
     <url>/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -5947,6 +5752,115 @@ runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -
       </categories>
       <tags>
         <tag>数据仓库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>日常工具软件问题</title>
+    <url>/2021/01/22/%E6%97%A5%E5%B8%B8%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>VMWare常见问题</li>
+<li>IDEA常见问题<a id="more"></a>
+<h2 id="VMWare常见问题"><a href="#VMWare常见问题" class="headerlink" title="VMWare常见问题"></a>VMWare常见问题</h2><h3 id="VMWare开启虚拟机黑屏"><a href="#VMWare开启虚拟机黑屏" class="headerlink" title="VMWare开启虚拟机黑屏"></a>VMWare开启虚拟机黑屏</h3>解决办法：</li>
+<li>在windows下搜索cmd，并以管理员身份打开，输入：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">netsh winsock reset<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>重启电脑</li>
+</ul>
+<h2 id="IDEA常见问题"><a href="#IDEA常见问题" class="headerlink" title="IDEA常见问题"></a>IDEA常见问题</h2><h3 id="maven编译报错-source-1-5-中不支持-lambda-表达式"><a href="#maven编译报错-source-1-5-中不支持-lambda-表达式" class="headerlink" title="maven编译报错 -source 1.5 中不支持 lambda 表达式"></a>maven编译报错 -source 1.5 中不支持 lambda 表达式</h3><p><img src="/uploads/202101/IDEA%E4%B8%AD%E7%BC%96%E8%AF%91Maven%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99.png" alt="IDEA中编译Maven项目报错"><br>解决办法：<br>在pom文件中添加:</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>plugin</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.maven.plugins<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>maven-compiler-plugin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.7.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>source</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>source</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span><span class="token punctuation">></span></span>1.8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>encoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>encoding</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>plugin</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="Maven编译时报：编码GBK的不可映射字符"><a href="#Maven编译时报：编码GBK的不可映射字符" class="headerlink" title="Maven编译时报：编码GBK的不可映射字符"></a>Maven编译时报：编码GBK的不可映射字符</h3><p>解决办法：<br><img src="/uploads/202101/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_1.png" alt="编码GBK的不可映射字符_1"><br><img src="/uploads/202101/%E7%BC%96%E7%A0%81GBK%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%98%A0%E5%B0%84%E5%AD%97%E7%AC%A6_2.png" alt="编码GBK的不可映射字符_2"></p>
+<h3 id="IDEA常用快捷键（windows）"><a href="#IDEA常用快捷键（windows）" class="headerlink" title="IDEA常用快捷键（windows）"></a>IDEA常用快捷键（windows）</h3><ul>
+<li><code>Alt + 1</code> 项目视图，可以自动关闭左边侧边栏</li>
+<li><code>Crl + E</code> 最近文件列表</li>
+<li>快速按两下<code>Shift</code>，全局文件搜索</li>
+<li><code>Crl + Shift + N</code> 跳转到某个文件，可以直接搜索</li>
+<li><code>Alt+Insert</code> 可以生成构造器/Getter/Setter等</li>
+<li><code>Ctrl + W</code> 按一个word来进行选择操作，在IDEA里的这个快捷键功能是先选择光标所在字符处的单词，然后是选择源代码的扩展区域</li>
+<li><code>shift + F6</code>修改文件名</li>
+</ul>
+<h2 id="IDEA常用快捷键（mac）"><a href="#IDEA常用快捷键（mac）" class="headerlink" title="IDEA常用快捷键（mac）"></a>IDEA常用快捷键（mac）</h2><ul>
+<li>当前行注释： ctrl+/</li>
+<li>撤销行注释： ctrl+/</li>
+<li>块状注释： ctrl+shift+/</li>
+<li>撤销块注释： ctrl+shift+/</li>
+<li>实现/重写方法：command + N</li>
+<li>全局查找： shift + command + f</li>
+<li>全局替换： shift + command + r</li>
+<li>当前文件查找： command + f</li>
+<li>当前文件替换： command + r</li>
+<li>最近查看过的文件： command + e</li>
+<li>打开类结构： command + 7</li>
+<li>前往父类/父类方法： command + u</li>
+<li>呼出文件列表： command + 上方向键</li>
+</ul>
+<p>当用IDEA写java的时候，写匿名函数的时候，如果不知道new什么，可以在方法()里使用<code>option + /</code>会自动提示创建什么对象<br><img src="/uploads/202106/IDEA%E7%BC%96%E5%86%99JAVA.png" alt="IDEA编写JAVA"><br>鼠标悬浮在提醒的对象名上，会提醒这个对象是什么类的，直接new就可以</p>
+<h2 id="IDEA常用插件"><a href="#IDEA常用插件" class="headerlink" title="IDEA常用插件"></a>IDEA常用插件</h2><ul>
+<li>leetcode editor  刷算法</li>
+<li>codota ai aotocomplete for java   自动补全java，从githup上找相似的</li>
+<li>easy code  自动写java实体类</li>
+<li>translation  在线翻译，看源码可以使用</li>
+<li>key promoter  提醒快捷键的，用的功能会自动提示</li>
+<li>maven helper  解决maven依赖冲突</li>
+<li>alibaba java coding   代码规范</li>
+<li>codeglance  类似sublime的代码缩影。可以替代下拉框</li>
+<li>GsonFormat   自动根据json创建实体类</li>
+<li>ignore    git过滤</li>
+<li>rainbow brackets  括号变成彩虹颜色</li>
+<li>acejump  类似vim快速定位</li>
+</ul>
+<p>在IDEA写java的时候，如果不知道是什么类型，可以使用<code>option + shift + enter</code>来自动补全<br>例如：<br><code>map = mapState.iterator().next();</code><br>把鼠标悬浮在map变量上，然后可以点击<code>create local variable &#39;map&#39;</code>,或者<code>option + shift + enter</code>来自动补全</p>
+<p><code>option + shift + enter</code>： 鼠标悬浮在倒入的无用的包上（import变灰色的），使用这个快捷键，可以自动清除无用的包</p>
+<blockquote>
+<p>在写java或者scala的时候，直接写=号右边的内容，然后加一个.var,然后enter，就可以自动补全左边的定义变量的操作<br>在编辑java的时候，在调用类和正在编辑的类中来回切换： option + command + 方向键</p>
+</blockquote>
+<h2 id="github网页可以访问，但是ping不通"><a href="#github网页可以访问，但是ping不通" class="headerlink" title="github网页可以访问，但是ping不通"></a>github网页可以访问，但是ping不通</h2><p>最近从github上拉取代码，总是报超时，ping github.com后连不通<br>一开始以为是国外ip访问不了，翻墙试了一下，还是不行<br>最后解决方法，修改hosts文件<br>原因是直接ping github.com返回的服务器ip ping不通，但是github本身是有很多ip的，我们挑一个可以ping的通的ip</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>问题解决</p>
+<h2 id="idea配置lombok–idea2019不兼容问题"><a href="#idea配置lombok–idea2019不兼容问题" class="headerlink" title="idea配置lombok–idea2019不兼容问题"></a>idea配置lombok–idea2019不兼容问题</h2><p>使用idea开启配置lombok出现不兼容问题.<br>解决方法：打开lombok压缩包,修改META-INF/plugin.xml文件,直接在压缩包下用解压文件打开修改即可<br>具体步骤如下：</p>
+<ol>
+<li>去<a href="https://plugins.jetbrains.com/plugin/6317-lombok/versions">lombok官网</a>下载插件</li>
+<li>打开编辑META-INF/plugin.xml,将版本好修改成你当前idea的版本号</li>
+<li>查看idea版本号,help-&gt;about即可看到</li>
+</ol>
+<p>lombok开启步骤:</p>
+<ol>
+<li>在idea开启注解</li>
+<li>下载lombok插件</li>
+<li>导入lombok的jar包</li>
+</ol>
+<h2 id="IDEA破解办法"><a href="#IDEA破解办法" class="headerlink" title="IDEA破解办法"></a>IDEA破解办法</h2><pre class="line-numbers language-text" data-language="text"><code class="language-text">【 jetbrains全家桶激活】
+下面链接复制到电脑浏览器打开即可直接下载
+https:&#x2F;&#x2F;wwvg.lanzouf.com&#x2F;i3dqD0kx5x7e
+
+https:&#x2F;&#x2F;v.youku.com&#x2F;v_show&#x2F;id_XNTkwNDQ3NDM3Ng&#x3D;&#x3D;.html
+
+第一个是激活工具下载链接
+第二个是详细的激活教学视频链接 播放密码123
+
+
+全家桶软件官网下载链接：
+https:&#x2F;&#x2F;www.jetbrains.com&#x2F;products&#x2F;
+
+如需远程安装激活服务，请联系客服。
+
+【好·评】后赠送：
+各类编程语言教程合集
+涵盖Java、Python、Php、JavaScript等各类编程语言最新教程<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>工具箱</category>
+      </categories>
+      <tags>
+        <tag>VMWare</tag>
+        <tag>IDEA</tag>
       </tags>
   </entry>
   <entry>
@@ -6156,6 +6070,201 @@ runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -
       </categories>
       <tags>
         <tag>hudi</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>获取yarn上application资源占用情况</title>
+    <url>/2021/12/09/%E8%8E%B7%E5%8F%96yarn%E4%B8%8Aapplication%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>根据yarn的applicationid获取应用实时资源消耗的方法</li>
+<li>写python脚本调取yarn api获取实时资源消耗情况</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="根据yarn的applicationid获取应用实时资源消耗的方法"><a href="#根据yarn的applicationid获取应用实时资源消耗的方法" class="headerlink" title="根据yarn的applicationid获取应用实时资源消耗的方法"></a>根据yarn的applicationid获取应用实时资源消耗的方法</h2><p>这种方法是根据hadoop的配置文件，使用YarnClient来获取applicationId的资源占用情况</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">YarnListener</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Logger</span> logger <span class="token operator">=</span> <span class="token class-name">LoggerFactory</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">YarnListener</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">URL</span> resource <span class="token operator">=</span> <span class="token class-name">HDFSUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getResource</span><span class="token punctuation">(</span><span class="token string">"config/hadoop-conf"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> resourceDir <span class="token operator">=</span> resource<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token class-name">Constants</span><span class="token punctuation">.</span>SEPARATOR<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">YarnConfiguration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"hdfs-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"core-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>resourceDir<span class="token punctuation">.</span><span class="token function">concat</span><span class="token punctuation">(</span><span class="token string">"yarn-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">YarnClient</span> yarnClient <span class="token operator">=</span> <span class="token class-name">YarnClient</span><span class="token punctuation">.</span><span class="token function">createYarnClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        yarnClient<span class="token punctuation">.</span><span class="token function">init</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        yarnClient<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+        <span class="token class-name">ApplicationId</span> applicationId <span class="token operator">=</span> <span class="token class-name">ApplicationId</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token number">1577686647484L</span><span class="token punctuation">,</span><span class="token number">0001</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">ApplicationReport</span> report <span class="token operator">=</span> yarnClient<span class="token punctuation">.</span><span class="token function">getApplicationReport</span><span class="token punctuation">(</span>applicationId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getStartTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getUsedResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getVirtualCores</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getUsedResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getMemorySize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getStartTime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>report<span class="token punctuation">.</span><span class="token function">getApplicationResourceUsageReport</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">YarnException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        yarnClient<span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>输出结果如下：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json">num_used_containers<span class="token operator">:</span> <span class="token number">-1</span>
+num_reserved_containers<span class="token operator">:</span> <span class="token number">-1</span>
+used_resources <span class="token punctuation">&#123;</span>
+  memory<span class="token operator">:</span> <span class="token number">-1</span>
+  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">""</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+reserved_resources <span class="token punctuation">&#123;</span>
+  memory<span class="token operator">:</span> <span class="token number">-1</span>
+  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">""</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+needed_resources <span class="token punctuation">&#123;</span>
+  memory<span class="token operator">:</span> <span class="token number">-1</span>
+  virtual_cores<span class="token operator">:</span> <span class="token number">-1</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">"Mi"</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+  resource_value_map <span class="token punctuation">&#123;</span>
+    key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+    value<span class="token operator">:</span> <span class="token number">-1</span>
+    units<span class="token operator">:</span> <span class="token string">""</span>
+    type<span class="token operator">:</span> COUNTABLE
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+memory_seconds<span class="token operator">:</span> <span class="token number">5549488</span>
+vcore_seconds<span class="token operator">:</span> <span class="token number">5378</span>
+preempted_memory_seconds<span class="token operator">:</span> <span class="token number">5549488</span>
+preempted_vcore_seconds<span class="token operator">:</span> <span class="token number">5378</span>
+application_resource_usage_map <span class="token punctuation">&#123;</span>
+  key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+  value<span class="token operator">:</span> <span class="token number">5549488</span>
+<span class="token punctuation">&#125;</span>
+application_resource_usage_map <span class="token punctuation">&#123;</span>
+  key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+  value<span class="token operator">:</span> <span class="token number">5378</span>
+<span class="token punctuation">&#125;</span>
+application_preempted_resource_usage_map <span class="token punctuation">&#123;</span>
+  key<span class="token operator">:</span> <span class="token string">"memory-mb"</span>
+  value<span class="token operator">:</span> <span class="token number">5549488</span>
+<span class="token punctuation">&#125;</span>
+application_preempted_resource_usage_map <span class="token punctuation">&#123;</span>
+  key<span class="token operator">:</span> <span class="token string">"vcores"</span>
+  value<span class="token operator">:</span> <span class="token number">5378</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h3><p>这种方法，感觉可以和hive的hook结合起来使用，在hivesql执行过程中，就把资源使用情况保存下来<br>这里的资源占用都是实时的占用，可以取一个平均资源占用来当作这个任务的资源占用情况</p>
+<p>具体可以参考<a href="https://blog.csdn.net/trnanan/article/details/104986262">根据yarn的applicationid获取应用实时资源消耗的方法</a></p>
+<h2 id="写python脚本调取yarn-api获取实时资源消耗情况"><a href="#写python脚本调取yarn-api获取实时资源消耗情况" class="headerlink" title="写python脚本调取yarn api获取实时资源消耗情况"></a>写python脚本调取yarn api获取实时资源消耗情况</h2><p>这种方式，就是用爬虫yarn的监控页面，取页面上的内容，其实不是很好，因为namenode在ha之后会切换，但是很方便</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> requests
+<span class="token keyword">import</span> json
+<span class="token keyword">import</span> time
+<span class="token keyword">import</span> pymysql
+<span class="token keyword">from</span> bs4 <span class="token keyword">import</span> BeautifulSoup
+<span class="token keyword">import</span> os<span class="token punctuation">,</span>threading<span class="token punctuation">,</span>time
+
+url_full<span class="token operator">=</span><span class="token string">"http://ip:port/cluster"</span>
+
+conn <span class="token operator">=</span> pymysql<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">'114.67.103.201'</span><span class="token punctuation">,</span>user <span class="token operator">=</span> <span class="token string">"root"</span><span class="token punctuation">,</span>passwd <span class="token operator">=</span> <span class="token string">"admin@123456"</span><span class="token punctuation">,</span>db <span class="token operator">=</span> <span class="token string">"myuse"</span><span class="token punctuation">)</span>
+cur<span class="token operator">=</span>conn<span class="token punctuation">.</span>cursor<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment">#获取游标</span>
+response <span class="token operator">=</span> requests<span class="token punctuation">.</span>request<span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> url_full<span class="token punctuation">,</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>url_full<span class="token punctuation">)</span>
+soup <span class="token operator">=</span> BeautifulSoup<span class="token punctuation">(</span>response<span class="token punctuation">.</span>text<span class="token punctuation">,</span> <span class="token string">'html.parser'</span><span class="token punctuation">)</span> <span class="token comment">#也可用lxml</span>
+<span class="token comment">#已提交的任务</span>
+apps_submit <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(1)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>apps_submit<span class="token punctuation">)</span>
+<span class="token comment">#等待中的任务</span>
+apps_pending <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(2)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>apps_pending<span class="token punctuation">)</span>
+<span class="token comment">#运行中的任务</span>
+apps_running <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(3)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>apps_running<span class="token punctuation">)</span>
+<span class="token comment">#已完成的任务</span>
+apps_completed <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(4)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>apps_completed<span class="token punctuation">)</span>
+<span class="token comment">#运行的contaniner</span>
+container_running <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(5)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>container_running<span class="token punctuation">)</span>
+<span class="token comment">#一用的内存</span>
+memory_used <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(6)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>memory_used<span class="token punctuation">)</span>
+<span class="token comment">#总内存</span>
+memory_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(7)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>memory_total<span class="token punctuation">)</span>
+<span class="token comment">#已用的core</span>
+core_used <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(9)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>core_used<span class="token punctuation">)</span>
+<span class="token comment">#总的core</span>
+core_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#metricsoverview > tbody > tr > td:nth-of-type(10)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>core_total<span class="token punctuation">)</span>
+<span class="token comment">#yarn总的节点数</span>
+node_total <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#nodemetricsoverview > tbody > tr > td:nth-of-type(1) > a'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>node_total<span class="token punctuation">)</span>
+<span class="token comment">#yran的调度类型</span>
+yarn_scheduler_type <span class="token operator">=</span> soup<span class="token punctuation">.</span>select<span class="token punctuation">(</span><span class="token string">'#schedulermetricsoverview > tbody > tr > td:nth-of-type(1)'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>yarn_scheduler_type<span class="token punctuation">)</span>
+
+sql<span class="token operator">=</span><span class="token string">"insert into yarn_monitor(apps_submit,apps_pending,apps_running,memory_used,memory_total,core_used,node_total,yarn_scheduler_type)"</span> \
+                <span class="token string">" values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"</span>
+cur<span class="token punctuation">.</span>execute<span class="token punctuation">(</span>sql<span class="token punctuation">,</span><span class="token punctuation">(</span>apps_submit<span class="token punctuation">,</span>apps_pending<span class="token punctuation">,</span>apps_running<span class="token punctuation">,</span>memory_used<span class="token punctuation">,</span>memory_total<span class="token punctuation">,</span>core_used<span class="token punctuation">,</span>node_total<span class="token punctuation">,</span>yarn_scheduler_type<span class="token punctuation">)</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+cur<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>commit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+conn<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="根据appid获取yarn的执行日志"><a href="#根据appid获取yarn的执行日志" class="headerlink" title="根据appid获取yarn的执行日志"></a>根据appid获取yarn的执行日志</h2><p>当日志量不大的情况下，直接使用如下命令查看：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yarn logs -applicationId application_1641525781336_0011<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>但是，当日志量很大的情况下，直接执行上述命令，会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.lang.RuntimeException: The total log size is too large.The log size limit is 10MB. Please specify a proper value --size option or if you really want to fetch all, please specify -1 for --size_limit_mb option.
+        at org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedLogFiles(LogsCLI.java:1169)
+        at org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedContainerLogFiles(LogsCLI.java:1348)
+        at org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedOptionForRunningApp(LogsCLI.java:1517)
+        at org.apache.hadoop.yarn.client.cli.LogsCLI.getMatchedLogTypesForRunningApp(LogsCLI.java:1537)
+        at org.apache.hadoop.yarn.client.cli.LogsCLI.fetchApplicationLogs(LogsCLI.java:1090)
+        at org.apache.hadoop.yarn.client.cli.LogsCLI.runCommand(LogsCLI.java:372)
+        at org.apache.hadoop.yarn.client.cli.LogsCLI.run(LogsCLI.java:153)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这时候可以只取一部分日志看看里面都是什么，一般情况下，都是因为代码里有println内容了：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># -size就是获取n字节的日志
+yarn logs -applicationId application_1641525781336_0011 -size 1000000000 &gt; appid.log<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>监控</category>
+      </categories>
+      <tags>
+        <tag>监控</tag>
       </tags>
   </entry>
   <entry>
