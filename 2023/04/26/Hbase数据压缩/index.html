@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Hbase数据压缩  Hbase数据压缩压缩格式的选择常用的几种压缩格式：lzo，gzip，snappy，bzip2，我们简单做一下对比，方便我们在实际场景中选择不同的压缩格式。  支持特性对比：   压缩相关codec实现在org.apache.hadoop.io.compress包下面 gzip算法hadoop内置支持，使用时直接处理文本数据一样，使用方便，压缩比高，缺点就是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hbase数据压缩">
+<meta property="og:url" content="https://gujincheng.github.io/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Hbase数据压缩  Hbase数据压缩压缩格式的选择常用的几种压缩格式：lzo，gzip，snappy，bzip2，我们简单做一下对比，方便我们在实际场景中选择不同的压缩格式。  支持特性对比：   压缩相关codec实现在org.apache.hadoop.io.compress包下面 gzip算法hadoop内置支持，使用时直接处理文本数据一样，使用方便，压缩比高，缺点就是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202303/%E5%8E%8B%E7%BC%A9%E6%A0%BC%E5%BC%8F%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202303/%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9%E5%8E%8B%E7%BC%A9%E6%AF%94.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202303/Compaction%E5%88%86%E7%B1%BB.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202303/hbase%E9%9B%86%E7%BE%A4%E5%91%8A%E8%AD%A6-%E5%8E%8B%E7%BC%A9%E9%98%9F%E5%88%97.png">
+<meta property="article:published_time" content="2023-04-26T02:03:26.000Z">
+<meta property="article:modified_time" content="2023-04-26T09:58:37.514Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Hbase">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202303/%E5%8E%8B%E7%BC%A9%E6%A0%BC%E5%BC%8F%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Hbase数据压缩 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hbase数据压缩
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-04-26 10:03:26 / 修改时间：17:58:37" itemprop="dateCreated datePublished" datetime="2023-04-26T10:03:26+08:00">2023-04-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/" itemprop="url" rel="index"><span itemprop="name">Hbase</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/" class="post-meta-item leancloud_visitors" data-flag-title="Hbase数据压缩" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Hbase数据压缩</li>
+</ul>
+<h1 id="Hbase数据压缩"><a href="#Hbase数据压缩" class="headerlink" title="Hbase数据压缩"></a>Hbase数据压缩</h1><h2 id="压缩格式的选择"><a href="#压缩格式的选择" class="headerlink" title="压缩格式的选择"></a>压缩格式的选择</h2><p>常用的几种压缩格式：lzo，gzip，snappy，bzip2，我们简单做一下对比，方便我们在实际场景中选择不同的压缩格式。</p>
+<ol>
+<li>支持特性对比：<br><img src="/uploads/202303/%E5%8E%8B%E7%BC%A9%E6%A0%BC%E5%BC%8F%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94.png" alt="压缩格式特性对比"></li>
+</ol>
+<ul>
+<li>压缩相关codec实现在org.apache.hadoop.io.compress包下面</li>
+<li>gzip算法hadoop内置支持，使用时直接处理文本数据一样，使用方便，压缩比高，缺点就是不支持split。如果压缩后文件与块大小相当，可以考虑使用gzip压缩，比如：小时原始日志压缩成gzip文件，使用方便。</li>
+<li>bzip2 支持split，压缩比高，支持多文件，缺点就是慢。</li>
+<li>lzo 压缩/解压速度也比较快，合理的压缩率；支持split(需要建索引，文件修改后需要重新建索引)，支持hadoop native库，需要自己安装；</li>
+<li>snappy 压缩/解压速度也比较快，合理的压缩率,不支持split，支持hadoop native库，需要自己安装。可以用于map中间结果的压缩。</li>
+</ul>
+<ol start="2">
+<li>性能对比<br><img src="/uploads/202303/%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9%E5%8E%8B%E7%BC%A9%E6%AF%94.png" alt="数据压缩压缩比"><br>是否压缩数据以及使用何种压缩格式对性能具有重要的影响,一般原则：</li>
+</ol>
+<ul>
+<li>需要平衡压缩和解压缩数据所需的能力、读写数据所需的磁盘 IO，以及在网络中发送数据所需的网络带宽。正确平衡这些因素有赖于集群和数据的特征，以及您的使用模式。</li>
+<li>如果数据已压缩（例如 JPEG 格式的图像），则不建议进行压缩。事实上，结果文件实际上可能大于原文件。</li>
+<li>GZIP 压缩使用的 CPU 资源比 Snappy 或 LZO 更多，但可提供更高的压缩比。GZIP 通常是不常访问的冷数据的不错选择。而 Snappy 或 LZO 则更加适合经常访问的热数据。</li>
+<li>BZip2 还可以为某些文件类型生成比 GZip 更多的压缩，但是压缩和解压缩时会在一定程度上影响速度。HBase 不支持 BZip2 压缩。</li>
+<li>Snappy 的表现通常比 LZO 好。应该运行测试以查看您是否检测到明显区别。</li>
+<li>对于 MapReduce，如果您需要已压缩数据可拆分，BZip2、LZO 和 Snappy 格式都可拆分，但是 GZip 不可以。可拆分性与 HBase 数据无关。</li>
+<li>对于 MapReduce，可以压缩中间数据、输出或二者。相应地调整您为 MapReduce 作业提供的参数。</li>
+</ul>
+<h2 id="压缩方式"><a href="#压缩方式" class="headerlink" title="压缩方式"></a>压缩方式</h2><h3 id="创建表的时候指定"><a href="#创建表的时候指定" class="headerlink" title="创建表的时候指定"></a>创建表的时候指定</h3><ol>
+<li>直接在hbase建表<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create &#39;gjc_test&#39;,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在phoenix建表<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> ORACLEARCHIVESPACECOLLECTED_LATEST_BAK<span class="token punctuation">(</span>
+EID                  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DEVICEID             <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+FLUMETIMESTAMP       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+COLLECTEDTIME        <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+COLLECTCONFIGID      <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+UPLOADDATAMODELCODE  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+SOURCE_DB_ID         <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_FILE_SYSTEM       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_BLOCKS            <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_USED              <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_AVAILABLE         <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_PERCENT_USE       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_MOUNTED_ON        <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+CMDNOTEXIST          <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+EXECERROR            <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_PERCENT_USE_VALUE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+<span class="token keyword">CONSTRAINT</span> my_pk <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>EID<span class="token punctuation">,</span>DEVICEID<span class="token punctuation">,</span>FLUMETIMESTAMP<span class="token punctuation">,</span>SOURCE_DB_ID<span class="token punctuation">)</span>
+<span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="对已有的表的数据进行压缩"><a href="#对已有的表的数据进行压缩" class="headerlink" title="对已有的表的数据进行压缩"></a>对已有的表的数据进行压缩</h3></li>
+<li>在hbase中压缩<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 禁用表
+disable &#39;device_logs&#39;
+# 修改info列族的压缩格式
+alter &#39;device_logs&#39; ,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;
+# 启用表
+enable &#39;device_logs&#39;
+# 查看表信息
+describe &#39;device_logs&#39;
+# 手动触发major_compaction
+major_compact &#39;device_logs&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>通过phoenix方式压缩<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> SNMP_BIZ_CPU_LATEST <span class="token keyword">SET</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
+<span class="token comment">-- 在phoenix执行完后，如果想要数据文件立刻复制，需要手动触发major_compaction，在hbase执行</span>
+major_compact <span class="token string">'SNMP_BIZ_CPU_LATEST'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+注意：<br>这里踩了一个坑，如果hbase的表是使用phoenix建表的，那么数据压缩也需要使用phoneix去压缩，这里使用hbase压缩了100多个表，导致所有压缩的表在phoenix无法查询<br>原因： phoneix的数据编码和hbase的底层编码不一样。使用hbase数据压缩，相当于让hbase按照自己的编码格式去解析phoneix的底层数据，数据就乱了<br>这里使用了各种办法，最后都没有把数据恢复回来，最后没办法，把数据重写了。把roekey从表里其他字段获取出来<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> WINDOWSSECURITYCEV20201472COLLECTED<span class="token punctuation">(</span>
+    ROWKEY <span class="token keyword">VARCHAR</span> <span class="token operator">not</span> <span class="token boolean">null</span> <span class="token keyword">primary</span> <span class="token keyword">key</span><span class="token punctuation">,</span>
+    DEVICEID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    EID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COLLECTEDTIME <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COLLECTCONFIGID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    UPLOADDATAMODELCODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    DEVICECOLLECTDETAILID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    CODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    MESSAGE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    PS_CODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>            
+    <span class="token keyword">DATA</span>     <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>            
+    ERROR_MESSAGE   <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>     
+    OPERATING_SYSTEM  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>   
+    DOMAIN_CONTROLLER    <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    UPDATE_STATE_MESSAGE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COMPLIANCE          <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span> 
+    ENFORCEMENT       <span class="token keyword">VARCHAR</span>   
+<span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
+hbase org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hbase<span class="token punctuation">.</span>mapreduce<span class="token punctuation">.</span>CopyTable <span class="token comment">--new.name=WINDOWSSECURITYCEV20201472COLLECTED_BAK WINDOWSSECURITYCEV20201472COLLECTED</span>
+
+upsert <span class="token keyword">into</span> WINDOWSSECURITYCEV20201472COLLECTED
+<span class="token keyword">select</span> DEVICEID  <span class="token operator">||</span> to_char<span class="token punctuation">(</span>to_number<span class="token punctuation">(</span>to_date<span class="token punctuation">(</span>COLLECTEDTIME<span class="token punctuation">,</span><span class="token string">'yyyy-MM-dd hh:mm:ss'</span><span class="token punctuation">,</span><span class="token string">'GMT+8'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token string">'#'</span><span class="token punctuation">)</span>      <span class="token punctuation">,</span>
+       DEVICEID             <span class="token punctuation">,</span>
+       EID                  <span class="token punctuation">,</span>
+       COLLECTEDTIME        <span class="token punctuation">,</span>
+       COLLECTCONFIGID      <span class="token punctuation">,</span>
+       UPLOADDATAMODELCODE  <span class="token punctuation">,</span>
+       DEVICECOLLECTDETAILID<span class="token punctuation">,</span>
+       CODE                 <span class="token punctuation">,</span>
+       MESSAGE              <span class="token punctuation">,</span>
+       PS_CODE              <span class="token punctuation">,</span>
+       <span class="token keyword">DATA</span>                 <span class="token punctuation">,</span>
+       ERROR_MESSAGE        <span class="token punctuation">,</span>
+       OPERATING_SYSTEM     <span class="token punctuation">,</span>
+       DOMAIN_CONTROLLER    <span class="token punctuation">,</span>
+       UPDATE_STATE_MESSAGE <span class="token punctuation">,</span>
+       COMPLIANCE           <span class="token punctuation">,</span>
+       ENFORCEMENT          
+<span class="token keyword">from</span> WINDOWSSECURITYCEV20201472COLLECTED_BAK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="使用YCSB测试Hbase读写性能"><a href="#使用YCSB测试Hbase读写性能" class="headerlink" title="使用YCSB测试Hbase读写性能"></a>使用YCSB测试Hbase读写性能</h2>YCSB工具安装：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 到githup上下载ycsb-hbase20-binding-0.17.0.tar.gz
+https:&#x2F;&#x2F;github.com&#x2F;brianfrankcooper&#x2F;YCSB&#x2F;releases&#x2F;tag&#x2F;0.17.0
+cd &#x2F;root&#x2F;gujc&#x2F;ycsb-hbase20-binding-0.17.0&#x2F;workloads
+cat workloada
+recordcount&#x3D;150000
+operationcount&#x3D;150000
+workload&#x3D;site.ycsb.workloads.CoreWorkload
+
+readallfields&#x3D;true
+
+readproportion&#x3D;0.5
+updateproportion&#x3D;0.5
+scanproportion&#x3D;0
+insertproportion&#x3D;0
+
+requestdistribution&#x3D;zipfian
+# 生成数据
+bin&#x2F;ycsb load hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info
+# 测试数据
+bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="HBase中的Compaction详解"><a href="#HBase中的Compaction详解" class="headerlink" title="HBase中的Compaction详解"></a>HBase中的Compaction详解</h2>HBase是基于一种LSM-Tree（Log-Structured Merge Tree）存储模型设计的，写入路径上是先写入WAL（Write-Ahead-Log）即预写日志，再写入memstore缓存，满足一定条件后执行flush操作将缓存数据刷写到磁盘，生成一个HFile数据文件。随着数据不断写入，磁盘HFile文件就会越来越多，文件太多会影响HBase查询性能，主要体现在查询数据的io次数增加。为了优化查询性能，HBase会合并小的HFile以减少文件数量，这种合并HFile的操作称为Compaction，这也是为什么要进行Compaction的主要原因。<h3 id="Compaction的作用"><a href="#Compaction的作用" class="headerlink" title="Compaction的作用"></a>Compaction的作用</h3>其实Compaction操作属于资源密集型操作特别是IO密集型，这点后面也会提及到，Compaction其实就是以短时间内的IO消耗，以换取相对稳定的读取性能。<h3 id="Compaction-分类"><a href="#Compaction-分类" class="headerlink" title="Compaction 分类"></a>Compaction 分类</h3>HBase Compaction分为两种：Minor Compaction 与 Major Compaction，通常我们简称为小合并、大合并。<br><img src="/uploads/202303/Compaction%E5%88%86%E7%B1%BB.png" alt="hbase集群告警-压缩队列"><br>Minor Compaction：指选取一些小的、相邻的HFile将他们合并成一个更大的HFile。默认情况下，minor compaction会删除选取HFile中的TTL过期数据。<br>Major Compaction：指将一个Store中所有的HFile合并成一个HFile，这个过程会清理三类没有意义的数据：被删除的数据（打了Delete标记的数据）、TTL过期数据、版本号超过设定版本号的数据。另外，一般情况下，Major Compaction时间会持续比较长，整个过程会消耗大量系统资源，对上层业务有比较大的影响。因此，生产环境下通常关闭自动触发Major Compaction功能，改为手动在业务低峰期触发。<blockquote>
+<p>这里值得关注，默认情况下Minor Compaction也会删除数据，但只是删除合并HFile中的TTL过期数据。Major Compaction是完全删除无效数据，包括被删除的数据、TTL过期数据以及版本号过大的数据。</p>
+</blockquote>
+<h3 id="Compaction-触发条件"><a href="#Compaction-触发条件" class="headerlink" title="Compaction 触发条件"></a>Compaction 触发条件</h3>HBase触发Compaction的条件有三种：</li>
+<li>memstore Flush<br>可以说compaction的根源就在于flush，memstore 达到一定阈值或其他条件时就会触发flush刷写到磁盘生成HFile文件，正是因为HFile文件越来越多才需要compact。HBase每次flush之后，都会判断是否要进行compaction，一旦满足minor compaction或major compaction的条件便会触发执行。</li>
+<li>后台线程周期性检查<br>后台线程 CompactionChecker 会定期检查是否需要执行compaction，检查周期为hbase.server.thread.wakefrequency * hbase.server.compactchecker.interval.multiplier，这里主要考虑的是一段时间内没有写入请求仍然需要做compact检查。其中参数 hbase.server.thread.wakefrequency 默认值 10000 即 10s，是HBase服务端线程唤醒时间间隔，用于log roller、memstore flusher等操作周期性检查；参数 hbase.server.compactchecker.interval.multiplier 默认值1000，是compaction操作周期性检查乘数因子。10 * 1000 s 时间上约等于2hrs, 46mins, 40sec。</li>
+<li>手动触发<br>是指通过HBase Shell、Master UI界面或者HBase API等任一种方式 执行 compact、major_compact等命令。（这里主要指的是Major Compact）</li>
+</ol>
+<p>注意：当一个Region中的StoreFile数量达到一定数量或者总大小达到一定阈值时，HBase会将Minor Compact升级为Major Compact。</p>
+<h3 id="Compaction-参数解析"><a href="#Compaction-参数解析" class="headerlink" title="Compaction 参数解析"></a>Compaction 参数解析</h3><h4 id="Major-Compaction-参数"><a href="#Major-Compaction-参数" class="headerlink" title="Major Compaction 参数"></a>Major Compaction 参数</h4><p>Major Compaction涉及的参数比较少，主要有大合并时间间隔与一个抖动参数因子，如下：</p>
+<ol>
+<li><code>hbase.hregion.majorcompaction</code>:Major compaction周期性时间间隔，默认值604800000，单位ms。</li>
+</ol>
+<blockquote>
+<p>表示major compaction默认7天调度一次，HBase 0.96.x及之前默认为1天调度一次。设置为 0 时表示禁用自动触发major compaction。需要强调的是一般major compaction持续时间较长、系统资源消耗较大，对上层业务也有比较大的影响，一般生产环境下为了避免影响读写请求，会禁用自动触发major compaction。</p>
+</blockquote>
+<ol start="2">
+<li><code>hbase.hregion.majorcompaction.jitter</code>:Major compaction抖动参数，默认值0.5</li>
+</ol>
+<blockquote>
+<p>这个参数是为了避免major compaction同时在各个regionserver上同时发生，避免此操作给集群带来很大压力。 这样节点major compaction就会在 + 或 - 两者乘积的时间范围内随机发生。</p>
+</blockquote>
+<h3 id="Minor-Compaction-参数"><a href="#Minor-Compaction-参数" class="headerlink" title="Minor Compaction 参数"></a>Minor Compaction 参数</h3><p>Minor compaction涉及的参数比major compaction要多，各个参数的目标是为了选择合适的HFile：</p>
+<ol>
+<li><code>hbase.hstore.compaction.min</code> : 一次minor compaction最少合并的HFile数量，默认值 3。<blockquote>
+<p>表示至少有3个符合条件的HFile，minor compaction才会启动。一般情况下不建议调整该参数。如果要调整，不建议调小该参数，这样会带来更频繁的压缩，调大该参数的同时其他相关参数也应该做调整。早期参数名称为 hbase.hstore.compactionthreshold。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.max</code>: 一次minor compaction最多合并的HFile数量，默认值 10。<blockquote>
+<p>这个参数也是控制着一次压缩的时间。一般情况下不建议调整该参数。调大该值意味着一次compaction将会合并更多的HFile，压缩时间将会延长。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.min.size</code>:文件大小 &lt; 该参数值的HFile一定是适合进行minor compaction文件，默认值 128M（memstore flush size）<blockquote>
+<p>意味着小于该大小的HFile将会自动加入（automatic include）压缩队列。一般情况下不建议调整该参数。但是，在write-heavy就是写压力非常大的场景，可能需要微调该参数、减小参数值，假如每次memstore大小达到1~2M时就会flush生成HFile，此时生成的每个HFile都会加入压缩队列，而且压缩生成的HFile仍然可能小于该配置值会再次加入压缩队列，这样将会导致压缩队列持续很长。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.max.size</code>:文件大小 &gt; 该参数值的HFile将会被排除，不会加入minor compaction，默认值Long.MAX_VALUE<blockquote>
+<p>没有什么限制。一般情况下也不建议调整该参数。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.ratio</code>:这个ratio参数的作用是判断文件大小 &gt; hbase.hstore.compaction.min.size的HFile是否也是适合进行minor compaction的，默认值1.2<blockquote>
+<p>更大的值将压缩产生更大的HFile，建议取值范围在1.0~1.4之间。大多数场景下也不建议调整该参数。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.ratio.offpeak</code>: 此参数与compaction ratio参数含义相同，是在原有文件选择策略基础上增加了一个非高峰期的ratio控制，默认值5.0。<blockquote>
+<p>这个参数受另外两个参数 hbase.offpeak.start.hour 与 hbase.offpeak.end.hour 控制，这两个参数值为[0, 23]的整数，用于定义非高峰期时间段，默认值均为-1表示禁用非高峰期ratio设置。</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="Compaction-总结"><a href="#Compaction-总结" class="headerlink" title="Compaction 总结"></a>Compaction 总结</h3><p>HBase Compaction操作是为了数据读取做的优化，总的来说是以牺牲磁盘io来换取读性能的基本稳定。Compaction操作分为minor compaction与major compaction，其中major compaction消耗资源较大、对读写请求有一定影响，因此一般是禁用自动周期性执行而选择业务低峰期时手动执行。</p>
+<h2 id="hbase性能优化"><a href="#hbase性能优化" class="headerlink" title="hbase性能优化"></a>hbase性能优化</h2><p>在阿里云正式区做数据压缩的时候，因为这个集群内有一张表单表数据量就有6T，表太大了，不敢随便压缩，并且，hbase集群一直在告警<br><img src="/uploads/202303/hbase%E9%9B%86%E7%BE%A4%E5%91%8A%E8%AD%A6-%E5%8E%8B%E7%BC%A9%E9%98%9F%E5%88%97.png" alt="hbase集群告警-压缩队列"></p>
+<h3 id="分析原因"><a href="#分析原因" class="headerlink" title="分析原因"></a>分析原因</h3><p>这里分析了一下告警原因：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">5.6 T    6.3 T    &#x2F;hbase&#x2F;data&#x2F;default&#x2F;TraceV2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>TraceV2这张表每个小时能增长40G的数据，并且，该表设置了TTL，也就是说，每小时它要写40G数据，然后还要清理掉40G的数据。这么频繁的写操作，就会造成频繁的compaction</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>因此需要对hbase做性能优化</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Hbase/" rel="tag"># Hbase</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/03/13/Tidb%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="Tidb学习笔记">
+      <i class="fa fa-chevron-left"></i> Tidb学习笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9"><span class="nav-number">1.</span> <span class="nav-text">Hbase数据压缩</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%8B%E7%BC%A9%E6%A0%BC%E5%BC%8F%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-number">1.1.</span> <span class="nav-text">压缩格式的选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%8B%E7%BC%A9%E6%96%B9%E5%BC%8F"><span class="nav-number">1.2.</span> <span class="nav-text">压缩方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E8%A1%A8%E7%9A%84%E6%97%B6%E5%80%99%E6%8C%87%E5%AE%9A"><span class="nav-number">1.2.1.</span> <span class="nav-text">创建表的时候指定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E5%B7%B2%E6%9C%89%E7%9A%84%E8%A1%A8%E7%9A%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%8E%8B%E7%BC%A9"><span class="nav-number">1.2.2.</span> <span class="nav-text">对已有的表的数据进行压缩</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8YCSB%E6%B5%8B%E8%AF%95Hbase%E8%AF%BB%E5%86%99%E6%80%A7%E8%83%BD"><span class="nav-number">1.3.</span> <span class="nav-text">使用YCSB测试Hbase读写性能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HBase%E4%B8%AD%E7%9A%84Compaction%E8%AF%A6%E8%A7%A3"><span class="nav-number">1.4.</span> <span class="nav-text">HBase中的Compaction详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Compaction%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">1.4.1.</span> <span class="nav-text">Compaction的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compaction-%E5%88%86%E7%B1%BB"><span class="nav-number">1.4.2.</span> <span class="nav-text">Compaction 分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compaction-%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6"><span class="nav-number">1.4.3.</span> <span class="nav-text">Compaction 触发条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compaction-%E5%8F%82%E6%95%B0%E8%A7%A3%E6%9E%90"><span class="nav-number">1.4.4.</span> <span class="nav-text">Compaction 参数解析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Major-Compaction-%E5%8F%82%E6%95%B0"><span class="nav-number">1.4.4.1.</span> <span class="nav-text">Major Compaction 参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Minor-Compaction-%E5%8F%82%E6%95%B0"><span class="nav-number">1.4.5.</span> <span class="nav-text">Minor Compaction 参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compaction-%E6%80%BB%E7%BB%93"><span class="nav-number">1.4.6.</span> <span class="nav-text">Compaction 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hbase%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="nav-number">1.5.</span> <span class="nav-text">hbase性能优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.5.1.</span> <span class="nav-text">分析原因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95"><span class="nav-number">1.5.2.</span> <span class="nav-text">解决方法</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">56</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">54</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

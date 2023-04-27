@@ -187,147 +187,6 @@ Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doe
       </tags>
   </entry>
   <entry>
-    <title>BloomFilter</title>
-    <url>/2021/11/29/BloomFilter/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>布隆过滤器原理</li>
-<li>布隆过滤器使用案例</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="布隆过滤器原理"><a href="#布隆过滤器原理" class="headerlink" title="布隆过滤器原理"></a>布隆过滤器原理</h2><p>布隆过滤器（Bloom Filter）是1970年由布隆提出的，它实际上是由一个很长的二进制向量和一系列随意映射函数组成。<br>它是一种基于概率的数据结构，主要用来判断某个元素是否在集合内，它具有运行速度快（时间效率），占用内存小的优点（空间效率），但是有一定的误识别率和删除困难的问题。它能够告诉你某个元素一定不在集合内或可能在集合内。</p>
-<h3 id="算法："><a href="#算法：" class="headerlink" title="算法："></a>算法：</h3><ol>
-<li>首先需要k个hash函数，每个函数可以把key散列成为1个整数</li>
-<li>初始化时，需要一个长度为n比特的数组，每个比特位初始化为0</li>
-<li>某个key加入集合时，用k个hash函数计算出k个散列值，并把数组中对应的比特位置为1</li>
-<li>判断某个key是否在集合时，用k个hash函数计算出k个散列值，并查询数组中对应的比特位，如果所有的比特位都是1，认为在集合中。</li>
-</ol>
-<h3 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h3><p>不需要存储key，节省空间</p>
-<h3 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h3><ol>
-<li>算法判断key在集合中时，有一定的概率key其实不在集合中</li>
-<li>无法删除</li>
-</ol>
-<h3 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h3><ul>
-<li><p>False Position<br>集合里没有某元素，查找结果是有该元素。<br>也就是误判，这种情况在布隆过滤器中可能会出现。</p>
-</li>
-<li><p>False Negative<br>集合里有某元素，查找结果是没有该元素。<br>也就是少判，这种情况在布隆过滤器中一定不会出现</p>
-</li>
-</ul>
-<blockquote>
-<p>布隆过滤器只会多判不会少判。宁可错杀不可放过<br>想用布隆过滤器判断元素不存在，这个概率不是100%，<br>布隆过滤器认为不存在的情况， 确实是一定不会存在，但是，还有可能原本本身不存在，但是它会认为它存在的，比实际的要少</p>
-</blockquote>
-<p>Bloom Filter不会动态增长，运行过程中维护的始终只是m位的bitset，所以空间复杂度只有O(m);<br>Bloom Filter的插入与属于操作主要都是在计算k个hash，所以都是O(k)。</p>
-<h2 id="个人感悟："><a href="#个人感悟：" class="headerlink" title="个人感悟："></a>个人感悟：</h2><h3 id="为什么布隆过滤器需要多个hash函数？"><a href="#为什么布隆过滤器需要多个hash函数？" class="headerlink" title="为什么布隆过滤器需要多个hash函数？"></a>为什么布隆过滤器需要多个hash函数？</h3><p>因为不同的key的hash值有可能会一样，这样误判的概率会很大，但是如果通过多个hash函数来计算，那么数据误判的概率就会低很多了</p>
-<h3 id="为什么布隆过滤器不可以删除？"><a href="#为什么布隆过滤器不可以删除？" class="headerlink" title="为什么布隆过滤器不可以删除？"></a>为什么布隆过滤器不可以删除？</h3><p>如果布隆过滤器把其中一个key的值删除了，也就是把数组的值置为0了，另一个key的hash值有可能也被删除了。所以不可以删除</p>
-<p>具体可以参考<a href="https://blog.csdn.net/CrankZ/article/details/84928562">布隆过滤器，原理+案例+代码实现</a></p>
-<h2 id="测试案例："><a href="#测试案例：" class="headerlink" title="测试案例："></a>测试案例：</h2><ul>
-<li><p>手写java代码，测试布隆过滤器误判情况</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">int</span> BF_CARDINAL_THRESHOLD <span class="token operator">=</span> <span class="token number">100000</span><span class="token punctuation">;</span>
-        <span class="token keyword">double</span> BF_FALSE_POSITIVE_RATE <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
-        <span class="token class-name">BloomFilter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span> subOrderFilter <span class="token operator">=</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token class-name">Funnels</span><span class="token punctuation">.</span><span class="token function">integerFunnel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">,</span> BF_FALSE_POSITIVE_RATE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        
-        <span class="token class-name">HashSet</span> st <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span> <span class="token punctuation">;</span> i <span class="token operator">&lt;=</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">;</span> i <span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-            <span class="token keyword">if</span><span class="token punctuation">(</span>subOrderFilter<span class="token punctuation">.</span><span class="token function">mightContain</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-                st<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>    <span class="token comment">//其实不存在，但是布隆过滤器认为它存在，这就是误判了</span>
-            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
-                subOrderFilter<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token punctuation">&#125;</span>
-        <span class="token punctuation">&#125;</span>
-        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"一共误判了："</span> <span class="token operator">+</span> st<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>如果使用这种方式来过滤，就会导致有一部分数据其实没有出现过，但是也会被过滤掉</p>
-</li>
-<li><p>在flink程序中使用布隆过滤器实时过滤</p>
-<blockquote>
-<p>这种情况下，会丢数据，其实感觉没啥意义。。。</p>
-</blockquote>
-</li>
-</ul>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">FlatMapFunction</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>configuration<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>shaded<span class="token punctuation">.</span>guava18<span class="token punctuation">.</span>com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>hash<span class="token punctuation">.</span></span><span class="token class-name">BloomFilter</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>shaded<span class="token punctuation">.</span>guava18<span class="token punctuation">.</span>com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>hash<span class="token punctuation">.</span></span><span class="token class-name">Funnels</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStreamSource</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">SingleOutputStreamOperator</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">ProcessFunction</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">StandardCharsets</span><span class="token punctuation">;</span>
-
-<span class="token comment">/**
- * 使用布隆过滤器实时去重
- */</span>
-<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkBloomFilterDemo</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">DataStreamSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> source <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">socketTextStream</span><span class="token punctuation">(</span><span class="token string">"localhost"</span><span class="token punctuation">,</span> <span class="token number">9999</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-        <span class="token class-name">SingleOutputStreamOperator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream1 <span class="token operator">=</span> source<span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlatMapFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-            <span class="token annotation punctuation">@Override</span>
-            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token class-name">String</span> s<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-                <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> arr <span class="token operator">=</span> s<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token class-name">String</span> str <span class="token operator">:</span> arr<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token punctuation">&#125;</span>
-            <span class="token punctuation">&#125;</span>
-        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>x <span class="token operator">-></span> x<span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">process</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">SubOrderDeduplicateProcessFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">;</span>
-        stream1<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-    <span class="token comment">// 去重用的ProcessFunction</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">class</span> <span class="token class-name">SubOrderDeduplicateProcessFunc</span> <span class="token keyword">extends</span> <span class="token class-name">ProcessFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">long</span> serialVersionUID <span class="token operator">=</span> <span class="token number">1L</span><span class="token punctuation">;</span>
-        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> BF_CARDINAL_THRESHOLD <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">;</span>
-        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">double</span> BF_FALSE_POSITIVE_RATE <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
-
-        <span class="token keyword">private</span> <span class="token keyword">volatile</span> <span class="token class-name">BloomFilter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> subOrderFilter<span class="token punctuation">;</span>
-
-        <span class="token annotation punctuation">@Override</span>
-        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token keyword">open</span><span class="token punctuation">(</span><span class="token class-name">Configuration</span> parameters<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-            subOrderFilter <span class="token operator">=</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token class-name">Funnels</span><span class="token punctuation">.</span><span class="token function">stringFunnel</span><span class="token punctuation">(</span><span class="token class-name">StandardCharsets</span><span class="token punctuation">.</span>UTF_8<span class="token punctuation">)</span><span class="token punctuation">,</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">,</span> BF_FALSE_POSITIVE_RATE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span>
-
-
-        <span class="token annotation punctuation">@Override</span>
-        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">processElement</span><span class="token punctuation">(</span><span class="token class-name">String</span> s<span class="token punctuation">,</span> <span class="token class-name">Context</span> context<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-            <span class="token class-name">String</span> subOrderId <span class="token operator">=</span> s<span class="token punctuation">;</span>
-            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>subOrderFilter<span class="token punctuation">.</span><span class="token function">mightContain</span><span class="token punctuation">(</span>subOrderId<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-                subOrderFilter<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>subOrderId<span class="token punctuation">)</span><span class="token punctuation">;</span>
-                collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token punctuation">&#125;</span>
-        <span class="token punctuation">&#125;</span>
-
-
-        <span class="token annotation punctuation">@Override</span>
-        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-            subOrderFilter <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<ul>
-<li>使用布隆过滤器防止缓存击穿</li>
-<li>*不在布隆过滤器中的元素一定不存在数据库中。**<br>利用布隆过滤器的这个特点可以解决缓存穿透的问题，在服务启动的时候先把数据的查询条件，例如数据的 ID 映射到布隆过滤器上，当然如果新增数据时，除了写入到数据库中之外，也需要将数据的ID存入到布隆过滤器中。<br>我们在查询某条数据时，先判断这个查询的 ID 是否存在布隆过滤器中，如果不存在就直接返回空值，而不需要继续查询数据库和缓存，存在布隆过滤器中才继续查询数据库和缓存，这样就解决缓存穿透的问题。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Algorithm</category>
-        <category>BloomFilter</category>
-      </categories>
-      <tags>
-        <tag>Algorithm</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>CM宕机问题调查与修复</title>
     <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -630,44 +489,144 @@ done<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
       </tags>
   </entry>
   <entry>
-    <title>Docker学习笔记</title>
-    <url>/2022/03/30/Docker%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <title>BloomFilter</title>
+    <url>/2021/11/29/BloomFilter/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
-<li>Mac下Docker安装</li>
-<li>Docker常用命令</li>
+<li>布隆过滤器原理</li>
+<li>布隆过滤器使用案例</li>
 </ul>
 <a id="more"></a>
 
-<h2 id="Mac下Docker安装"><a href="#Mac下Docker安装" class="headerlink" title="Mac下Docker安装"></a>Mac下Docker安装</h2><p>安装docker很简单，直接到官网下载即可：<br><a href="https://docs.docker.com/desktop/mac/install/">Docker下载地址</a><br>然后使用dmg包安装即可</p>
-<h2 id="Docker常用命令"><a href="#Docker常用命令" class="headerlink" title="Docker常用命令"></a>Docker常用命令</h2><ol>
-<li>启动任务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">docker run -e MKL_SERVICE_FORCE_INTEL&#x3D;1 -p 47334:47334 -p 47335:47335 mindsdb&#x2F;mindsdb<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>停止任务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看容器ID
-docker ps | grep mindsdb
-#c6d6476faa30        mindsdb&#x2F;mindsdb     &quot;&#x2F;bin&#x2F;sh -c &#39;bash ...&quot;   39 minutes ago      Up 39 minutes       0.0.0.0:47334-47335-&gt;47334-47335&#x2F;tcp, 47336&#x2F;tcp   jovial_lovelace
-docker stop c6d6476faa30<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>删除image<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看images
-docker images
-#REPOSITORY                  TAG                 IMAGE ID            CREATED             SIZE
-#docker.io&#x2F;mindsdb&#x2F;mindsdb   latest              2df288cf59e0        8 days ago          11.6 GB
-docker rmi 2df288cf59e0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>上传/下载文件到容器<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 上传文件
-docker cp &#x2F;home&#x2F;temp.txt c6d6476faa30:&#x2F;data&#x2F;  #表示上传主机目录为 &#x2F;home&#x2F;temp.txt 的文件到 redis 容器的 &#x2F;data&#x2F; 路径下
-## 下载文件
-docker cp c6d6476faa30:&#x2F;data&#x2F;temp.txt &#x2F;home&#x2F;  #表示下载 redis 容器中路径为 &#x2F;data&#x2F;temp.txt 的文件到主键目录 &#x2F;home&#x2F; 中<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>进入容器中执行命令<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">docker exec -it c6d6476faa30 &#x2F;bin&#x2F;bash<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
-
-
-
-</li>
+<h2 id="布隆过滤器原理"><a href="#布隆过滤器原理" class="headerlink" title="布隆过滤器原理"></a>布隆过滤器原理</h2><p>布隆过滤器（Bloom Filter）是1970年由布隆提出的，它实际上是由一个很长的二进制向量和一系列随意映射函数组成。<br>它是一种基于概率的数据结构，主要用来判断某个元素是否在集合内，它具有运行速度快（时间效率），占用内存小的优点（空间效率），但是有一定的误识别率和删除困难的问题。它能够告诉你某个元素一定不在集合内或可能在集合内。</p>
+<h3 id="算法："><a href="#算法：" class="headerlink" title="算法："></a>算法：</h3><ol>
+<li>首先需要k个hash函数，每个函数可以把key散列成为1个整数</li>
+<li>初始化时，需要一个长度为n比特的数组，每个比特位初始化为0</li>
+<li>某个key加入集合时，用k个hash函数计算出k个散列值，并把数组中对应的比特位置为1</li>
+<li>判断某个key是否在集合时，用k个hash函数计算出k个散列值，并查询数组中对应的比特位，如果所有的比特位都是1，认为在集合中。</li>
 </ol>
+<h3 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h3><p>不需要存储key，节省空间</p>
+<h3 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h3><ol>
+<li>算法判断key在集合中时，有一定的概率key其实不在集合中</li>
+<li>无法删除</li>
+</ol>
+<h3 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h3><ul>
+<li><p>False Position<br>集合里没有某元素，查找结果是有该元素。<br>也就是误判，这种情况在布隆过滤器中可能会出现。</p>
+</li>
+<li><p>False Negative<br>集合里有某元素，查找结果是没有该元素。<br>也就是少判，这种情况在布隆过滤器中一定不会出现</p>
+</li>
+</ul>
+<blockquote>
+<p>布隆过滤器只会多判不会少判。宁可错杀不可放过<br>想用布隆过滤器判断元素不存在，这个概率不是100%，<br>布隆过滤器认为不存在的情况， 确实是一定不会存在，但是，还有可能原本本身不存在，但是它会认为它存在的，比实际的要少</p>
+</blockquote>
+<p>Bloom Filter不会动态增长，运行过程中维护的始终只是m位的bitset，所以空间复杂度只有O(m);<br>Bloom Filter的插入与属于操作主要都是在计算k个hash，所以都是O(k)。</p>
+<h2 id="个人感悟："><a href="#个人感悟：" class="headerlink" title="个人感悟："></a>个人感悟：</h2><h3 id="为什么布隆过滤器需要多个hash函数？"><a href="#为什么布隆过滤器需要多个hash函数？" class="headerlink" title="为什么布隆过滤器需要多个hash函数？"></a>为什么布隆过滤器需要多个hash函数？</h3><p>因为不同的key的hash值有可能会一样，这样误判的概率会很大，但是如果通过多个hash函数来计算，那么数据误判的概率就会低很多了</p>
+<h3 id="为什么布隆过滤器不可以删除？"><a href="#为什么布隆过滤器不可以删除？" class="headerlink" title="为什么布隆过滤器不可以删除？"></a>为什么布隆过滤器不可以删除？</h3><p>如果布隆过滤器把其中一个key的值删除了，也就是把数组的值置为0了，另一个key的hash值有可能也被删除了。所以不可以删除</p>
+<p>具体可以参考<a href="https://blog.csdn.net/CrankZ/article/details/84928562">布隆过滤器，原理+案例+代码实现</a></p>
+<h2 id="测试案例："><a href="#测试案例：" class="headerlink" title="测试案例："></a>测试案例：</h2><ul>
+<li><p>手写java代码，测试布隆过滤器误判情况</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">int</span> BF_CARDINAL_THRESHOLD <span class="token operator">=</span> <span class="token number">100000</span><span class="token punctuation">;</span>
+        <span class="token keyword">double</span> BF_FALSE_POSITIVE_RATE <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
+        <span class="token class-name">BloomFilter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span> subOrderFilter <span class="token operator">=</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token class-name">Funnels</span><span class="token punctuation">.</span><span class="token function">integerFunnel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">,</span> BF_FALSE_POSITIVE_RATE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token class-name">HashSet</span> st <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span> <span class="token punctuation">;</span> i <span class="token operator">&lt;=</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">;</span> i <span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span><span class="token punctuation">(</span>subOrderFilter<span class="token punctuation">.</span><span class="token function">mightContain</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                st<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>    <span class="token comment">//其实不存在，但是布隆过滤器认为它存在，这就是误判了</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                subOrderFilter<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"一共误判了："</span> <span class="token operator">+</span> st<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果使用这种方式来过滤，就会导致有一部分数据其实没有出现过，但是也会被过滤掉</p>
+</li>
+<li><p>在flink程序中使用布隆过滤器实时过滤</p>
+<blockquote>
+<p>这种情况下，会丢数据，其实感觉没啥意义。。。</p>
+</blockquote>
+</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">FlatMapFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>configuration<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>shaded<span class="token punctuation">.</span>guava18<span class="token punctuation">.</span>com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>hash<span class="token punctuation">.</span></span><span class="token class-name">BloomFilter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>shaded<span class="token punctuation">.</span>guava18<span class="token punctuation">.</span>com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>hash<span class="token punctuation">.</span></span><span class="token class-name">Funnels</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStreamSource</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">SingleOutputStreamOperator</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">ProcessFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">StandardCharsets</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * 使用布隆过滤器实时去重
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkBloomFilterDemo</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStreamSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> source <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">socketTextStream</span><span class="token punctuation">(</span><span class="token string">"localhost"</span><span class="token punctuation">,</span> <span class="token number">9999</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">SingleOutputStreamOperator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream1 <span class="token operator">=</span> source<span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlatMapFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token annotation punctuation">@Override</span>
+            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token class-name">String</span> s<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> arr <span class="token operator">=</span> s<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token class-name">String</span> str <span class="token operator">:</span> arr<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>x <span class="token operator">-></span> x<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">process</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">SubOrderDeduplicateProcessFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">;</span>
+        stream1<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 去重用的ProcessFunction</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">class</span> <span class="token class-name">SubOrderDeduplicateProcessFunc</span> <span class="token keyword">extends</span> <span class="token class-name">ProcessFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">long</span> serialVersionUID <span class="token operator">=</span> <span class="token number">1L</span><span class="token punctuation">;</span>
+        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> BF_CARDINAL_THRESHOLD <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">;</span>
+        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">double</span> BF_FALSE_POSITIVE_RATE <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">private</span> <span class="token keyword">volatile</span> <span class="token class-name">BloomFilter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> subOrderFilter<span class="token punctuation">;</span>
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token keyword">open</span><span class="token punctuation">(</span><span class="token class-name">Configuration</span> parameters<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+            subOrderFilter <span class="token operator">=</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token class-name">Funnels</span><span class="token punctuation">.</span><span class="token function">stringFunnel</span><span class="token punctuation">(</span><span class="token class-name">StandardCharsets</span><span class="token punctuation">.</span>UTF_8<span class="token punctuation">)</span><span class="token punctuation">,</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">,</span> BF_FALSE_POSITIVE_RATE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">processElement</span><span class="token punctuation">(</span><span class="token class-name">String</span> s<span class="token punctuation">,</span> <span class="token class-name">Context</span> context<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">String</span> subOrderId <span class="token operator">=</span> s<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>subOrderFilter<span class="token punctuation">.</span><span class="token function">mightContain</span><span class="token punctuation">(</span>subOrderId<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                subOrderFilter<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>subOrderId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+            subOrderFilter <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>使用布隆过滤器防止缓存击穿</li>
+<li>*不在布隆过滤器中的元素一定不存在数据库中。**<br>利用布隆过滤器的这个特点可以解决缓存穿透的问题，在服务启动的时候先把数据的查询条件，例如数据的 ID 映射到布隆过滤器上，当然如果新增数据时，除了写入到数据库中之外，也需要将数据的ID存入到布隆过滤器中。<br>我们在查询某条数据时，先判断这个查询的 ID 是否存在布隆过滤器中，如果不存在就直接返回空值，而不需要继续查询数据库和缓存，存在布隆过滤器中才继续查询数据库和缓存，这样就解决缓存穿透的问题。</li>
+</ul>
 ]]></content>
       <categories>
-        <category>Docker</category>
+        <category>Algorithm</category>
+        <category>BloomFilter</category>
       </categories>
       <tags>
-        <tag>Docker</tag>
+        <tag>Algorithm</tag>
       </tags>
   </entry>
   <entry>
@@ -884,6 +843,47 @@ mv  cloudera-service-monitor  cloudera-service-monitor_BAK<span aria-hidden="tru
       </categories>
       <tags>
         <tag>CM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Docker学习笔记</title>
+    <url>/2022/03/30/Docker%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Mac下Docker安装</li>
+<li>Docker常用命令</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Mac下Docker安装"><a href="#Mac下Docker安装" class="headerlink" title="Mac下Docker安装"></a>Mac下Docker安装</h2><p>安装docker很简单，直接到官网下载即可：<br><a href="https://docs.docker.com/desktop/mac/install/">Docker下载地址</a><br>然后使用dmg包安装即可</p>
+<h2 id="Docker常用命令"><a href="#Docker常用命令" class="headerlink" title="Docker常用命令"></a>Docker常用命令</h2><ol>
+<li>启动任务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">docker run -e MKL_SERVICE_FORCE_INTEL&#x3D;1 -p 47334:47334 -p 47335:47335 mindsdb&#x2F;mindsdb<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>停止任务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看容器ID
+docker ps | grep mindsdb
+#c6d6476faa30        mindsdb&#x2F;mindsdb     &quot;&#x2F;bin&#x2F;sh -c &#39;bash ...&quot;   39 minutes ago      Up 39 minutes       0.0.0.0:47334-47335-&gt;47334-47335&#x2F;tcp, 47336&#x2F;tcp   jovial_lovelace
+docker stop c6d6476faa30<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>删除image<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看images
+docker images
+#REPOSITORY                  TAG                 IMAGE ID            CREATED             SIZE
+#docker.io&#x2F;mindsdb&#x2F;mindsdb   latest              2df288cf59e0        8 days ago          11.6 GB
+docker rmi 2df288cf59e0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>上传/下载文件到容器<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 上传文件
+docker cp &#x2F;home&#x2F;temp.txt c6d6476faa30:&#x2F;data&#x2F;  #表示上传主机目录为 &#x2F;home&#x2F;temp.txt 的文件到 redis 容器的 &#x2F;data&#x2F; 路径下
+## 下载文件
+docker cp c6d6476faa30:&#x2F;data&#x2F;temp.txt &#x2F;home&#x2F;  #表示下载 redis 容器中路径为 &#x2F;data&#x2F;temp.txt 的文件到主键目录 &#x2F;home&#x2F; 中<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>进入容器中执行命令<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">docker exec -it c6d6476faa30 &#x2F;bin&#x2F;bash<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Docker</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
       </tags>
   </entry>
   <entry>
@@ -1731,6 +1731,195 @@ chown -R hdfs:hadoop dfs<span aria-hidden="true" class="line-numbers-rows"><span
       </tags>
   </entry>
   <entry>
+    <title>Hbase数据压缩</title>
+    <url>/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Hbase数据压缩</li>
+</ul>
+<h1 id="Hbase数据压缩"><a href="#Hbase数据压缩" class="headerlink" title="Hbase数据压缩"></a>Hbase数据压缩</h1><h2 id="压缩格式的选择"><a href="#压缩格式的选择" class="headerlink" title="压缩格式的选择"></a>压缩格式的选择</h2><p>常用的几种压缩格式：lzo，gzip，snappy，bzip2，我们简单做一下对比，方便我们在实际场景中选择不同的压缩格式。</p>
+<ol>
+<li>支持特性对比：<br><img src="/uploads/202303/%E5%8E%8B%E7%BC%A9%E6%A0%BC%E5%BC%8F%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94.png" alt="压缩格式特性对比"></li>
+</ol>
+<ul>
+<li>压缩相关codec实现在org.apache.hadoop.io.compress包下面</li>
+<li>gzip算法hadoop内置支持，使用时直接处理文本数据一样，使用方便，压缩比高，缺点就是不支持split。如果压缩后文件与块大小相当，可以考虑使用gzip压缩，比如：小时原始日志压缩成gzip文件，使用方便。</li>
+<li>bzip2 支持split，压缩比高，支持多文件，缺点就是慢。</li>
+<li>lzo 压缩/解压速度也比较快，合理的压缩率；支持split(需要建索引，文件修改后需要重新建索引)，支持hadoop native库，需要自己安装；</li>
+<li>snappy 压缩/解压速度也比较快，合理的压缩率,不支持split，支持hadoop native库，需要自己安装。可以用于map中间结果的压缩。</li>
+</ul>
+<ol start="2">
+<li>性能对比<br><img src="/uploads/202303/%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9%E5%8E%8B%E7%BC%A9%E6%AF%94.png" alt="数据压缩压缩比"><br>是否压缩数据以及使用何种压缩格式对性能具有重要的影响,一般原则：</li>
+</ol>
+<ul>
+<li>需要平衡压缩和解压缩数据所需的能力、读写数据所需的磁盘 IO，以及在网络中发送数据所需的网络带宽。正确平衡这些因素有赖于集群和数据的特征，以及您的使用模式。</li>
+<li>如果数据已压缩（例如 JPEG 格式的图像），则不建议进行压缩。事实上，结果文件实际上可能大于原文件。</li>
+<li>GZIP 压缩使用的 CPU 资源比 Snappy 或 LZO 更多，但可提供更高的压缩比。GZIP 通常是不常访问的冷数据的不错选择。而 Snappy 或 LZO 则更加适合经常访问的热数据。</li>
+<li>BZip2 还可以为某些文件类型生成比 GZip 更多的压缩，但是压缩和解压缩时会在一定程度上影响速度。HBase 不支持 BZip2 压缩。</li>
+<li>Snappy 的表现通常比 LZO 好。应该运行测试以查看您是否检测到明显区别。</li>
+<li>对于 MapReduce，如果您需要已压缩数据可拆分，BZip2、LZO 和 Snappy 格式都可拆分，但是 GZip 不可以。可拆分性与 HBase 数据无关。</li>
+<li>对于 MapReduce，可以压缩中间数据、输出或二者。相应地调整您为 MapReduce 作业提供的参数。</li>
+</ul>
+<h2 id="压缩方式"><a href="#压缩方式" class="headerlink" title="压缩方式"></a>压缩方式</h2><h3 id="创建表的时候指定"><a href="#创建表的时候指定" class="headerlink" title="创建表的时候指定"></a>创建表的时候指定</h3><ol>
+<li>直接在hbase建表<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create &#39;gjc_test&#39;,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在phoenix建表<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> ORACLEARCHIVESPACECOLLECTED_LATEST_BAK<span class="token punctuation">(</span>
+EID                  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DEVICEID             <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+FLUMETIMESTAMP       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+COLLECTEDTIME        <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+COLLECTCONFIGID      <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+UPLOADDATAMODELCODE  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+SOURCE_DB_ID         <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_FILE_SYSTEM       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_BLOCKS            <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_USED              <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_AVAILABLE         <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_PERCENT_USE       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_MOUNTED_ON        <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+CMDNOTEXIST          <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+EXECERROR            <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_PERCENT_USE_VALUE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+<span class="token keyword">CONSTRAINT</span> my_pk <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>EID<span class="token punctuation">,</span>DEVICEID<span class="token punctuation">,</span>FLUMETIMESTAMP<span class="token punctuation">,</span>SOURCE_DB_ID<span class="token punctuation">)</span>
+<span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="对已有的表的数据进行压缩"><a href="#对已有的表的数据进行压缩" class="headerlink" title="对已有的表的数据进行压缩"></a>对已有的表的数据进行压缩</h3></li>
+<li>在hbase中压缩<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 禁用表
+disable &#39;device_logs&#39;
+# 修改info列族的压缩格式
+alter &#39;device_logs&#39; ,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;
+# 启用表
+enable &#39;device_logs&#39;
+# 查看表信息
+describe &#39;device_logs&#39;
+# 手动触发major_compaction
+major_compact &#39;device_logs&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>通过phoenix方式压缩<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> SNMP_BIZ_CPU_LATEST <span class="token keyword">SET</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
+<span class="token comment">-- 在phoenix执行完后，如果想要数据文件立刻复制，需要手动触发major_compaction，在hbase执行</span>
+major_compact <span class="token string">'SNMP_BIZ_CPU_LATEST'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+注意：<br>这里踩了一个坑，如果hbase的表是使用phoenix建表的，那么数据压缩也需要使用phoneix去压缩，这里使用hbase压缩了100多个表，导致所有压缩的表在phoenix无法查询<br>原因： phoneix的数据编码和hbase的底层编码不一样。使用hbase数据压缩，相当于让hbase按照自己的编码格式去解析phoneix的底层数据，数据就乱了<br>这里使用了各种办法，最后都没有把数据恢复回来，最后没办法，把数据重写了。把roekey从表里其他字段获取出来<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> WINDOWSSECURITYCEV20201472COLLECTED<span class="token punctuation">(</span>
+    ROWKEY <span class="token keyword">VARCHAR</span> <span class="token operator">not</span> <span class="token boolean">null</span> <span class="token keyword">primary</span> <span class="token keyword">key</span><span class="token punctuation">,</span>
+    DEVICEID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    EID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COLLECTEDTIME <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COLLECTCONFIGID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    UPLOADDATAMODELCODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    DEVICECOLLECTDETAILID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    CODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    MESSAGE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    PS_CODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>            
+    <span class="token keyword">DATA</span>     <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>            
+    ERROR_MESSAGE   <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>     
+    OPERATING_SYSTEM  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>   
+    DOMAIN_CONTROLLER    <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    UPDATE_STATE_MESSAGE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COMPLIANCE          <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span> 
+    ENFORCEMENT       <span class="token keyword">VARCHAR</span>   
+<span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
+hbase org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hbase<span class="token punctuation">.</span>mapreduce<span class="token punctuation">.</span>CopyTable <span class="token comment">--new.name=WINDOWSSECURITYCEV20201472COLLECTED_BAK WINDOWSSECURITYCEV20201472COLLECTED</span>
+
+upsert <span class="token keyword">into</span> WINDOWSSECURITYCEV20201472COLLECTED
+<span class="token keyword">select</span> DEVICEID  <span class="token operator">||</span> to_char<span class="token punctuation">(</span>to_number<span class="token punctuation">(</span>to_date<span class="token punctuation">(</span>COLLECTEDTIME<span class="token punctuation">,</span><span class="token string">'yyyy-MM-dd hh:mm:ss'</span><span class="token punctuation">,</span><span class="token string">'GMT+8'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token string">'#'</span><span class="token punctuation">)</span>      <span class="token punctuation">,</span>
+       DEVICEID             <span class="token punctuation">,</span>
+       EID                  <span class="token punctuation">,</span>
+       COLLECTEDTIME        <span class="token punctuation">,</span>
+       COLLECTCONFIGID      <span class="token punctuation">,</span>
+       UPLOADDATAMODELCODE  <span class="token punctuation">,</span>
+       DEVICECOLLECTDETAILID<span class="token punctuation">,</span>
+       CODE                 <span class="token punctuation">,</span>
+       MESSAGE              <span class="token punctuation">,</span>
+       PS_CODE              <span class="token punctuation">,</span>
+       <span class="token keyword">DATA</span>                 <span class="token punctuation">,</span>
+       ERROR_MESSAGE        <span class="token punctuation">,</span>
+       OPERATING_SYSTEM     <span class="token punctuation">,</span>
+       DOMAIN_CONTROLLER    <span class="token punctuation">,</span>
+       UPDATE_STATE_MESSAGE <span class="token punctuation">,</span>
+       COMPLIANCE           <span class="token punctuation">,</span>
+       ENFORCEMENT          
+<span class="token keyword">from</span> WINDOWSSECURITYCEV20201472COLLECTED_BAK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="使用YCSB测试Hbase读写性能"><a href="#使用YCSB测试Hbase读写性能" class="headerlink" title="使用YCSB测试Hbase读写性能"></a>使用YCSB测试Hbase读写性能</h2>YCSB工具安装：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 到githup上下载ycsb-hbase20-binding-0.17.0.tar.gz
+https:&#x2F;&#x2F;github.com&#x2F;brianfrankcooper&#x2F;YCSB&#x2F;releases&#x2F;tag&#x2F;0.17.0
+cd &#x2F;root&#x2F;gujc&#x2F;ycsb-hbase20-binding-0.17.0&#x2F;workloads
+cat workloada
+recordcount&#x3D;150000
+operationcount&#x3D;150000
+workload&#x3D;site.ycsb.workloads.CoreWorkload
+
+readallfields&#x3D;true
+
+readproportion&#x3D;0.5
+updateproportion&#x3D;0.5
+scanproportion&#x3D;0
+insertproportion&#x3D;0
+
+requestdistribution&#x3D;zipfian
+# 生成数据
+bin&#x2F;ycsb load hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info
+# 测试数据
+bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="HBase中的Compaction详解"><a href="#HBase中的Compaction详解" class="headerlink" title="HBase中的Compaction详解"></a>HBase中的Compaction详解</h2>HBase是基于一种LSM-Tree（Log-Structured Merge Tree）存储模型设计的，写入路径上是先写入WAL（Write-Ahead-Log）即预写日志，再写入memstore缓存，满足一定条件后执行flush操作将缓存数据刷写到磁盘，生成一个HFile数据文件。随着数据不断写入，磁盘HFile文件就会越来越多，文件太多会影响HBase查询性能，主要体现在查询数据的io次数增加。为了优化查询性能，HBase会合并小的HFile以减少文件数量，这种合并HFile的操作称为Compaction，这也是为什么要进行Compaction的主要原因。<h3 id="Compaction的作用"><a href="#Compaction的作用" class="headerlink" title="Compaction的作用"></a>Compaction的作用</h3>其实Compaction操作属于资源密集型操作特别是IO密集型，这点后面也会提及到，Compaction其实就是以短时间内的IO消耗，以换取相对稳定的读取性能。<h3 id="Compaction-分类"><a href="#Compaction-分类" class="headerlink" title="Compaction 分类"></a>Compaction 分类</h3>HBase Compaction分为两种：Minor Compaction 与 Major Compaction，通常我们简称为小合并、大合并。<br><img src="/uploads/202303/Compaction%E5%88%86%E7%B1%BB.png" alt="hbase集群告警-压缩队列"><br>Minor Compaction：指选取一些小的、相邻的HFile将他们合并成一个更大的HFile。默认情况下，minor compaction会删除选取HFile中的TTL过期数据。<br>Major Compaction：指将一个Store中所有的HFile合并成一个HFile，这个过程会清理三类没有意义的数据：被删除的数据（打了Delete标记的数据）、TTL过期数据、版本号超过设定版本号的数据。另外，一般情况下，Major Compaction时间会持续比较长，整个过程会消耗大量系统资源，对上层业务有比较大的影响。因此，生产环境下通常关闭自动触发Major Compaction功能，改为手动在业务低峰期触发。<blockquote>
+<p>这里值得关注，默认情况下Minor Compaction也会删除数据，但只是删除合并HFile中的TTL过期数据。Major Compaction是完全删除无效数据，包括被删除的数据、TTL过期数据以及版本号过大的数据。</p>
+</blockquote>
+<h3 id="Compaction-触发条件"><a href="#Compaction-触发条件" class="headerlink" title="Compaction 触发条件"></a>Compaction 触发条件</h3>HBase触发Compaction的条件有三种：</li>
+<li>memstore Flush<br>可以说compaction的根源就在于flush，memstore 达到一定阈值或其他条件时就会触发flush刷写到磁盘生成HFile文件，正是因为HFile文件越来越多才需要compact。HBase每次flush之后，都会判断是否要进行compaction，一旦满足minor compaction或major compaction的条件便会触发执行。</li>
+<li>后台线程周期性检查<br>后台线程 CompactionChecker 会定期检查是否需要执行compaction，检查周期为hbase.server.thread.wakefrequency * hbase.server.compactchecker.interval.multiplier，这里主要考虑的是一段时间内没有写入请求仍然需要做compact检查。其中参数 hbase.server.thread.wakefrequency 默认值 10000 即 10s，是HBase服务端线程唤醒时间间隔，用于log roller、memstore flusher等操作周期性检查；参数 hbase.server.compactchecker.interval.multiplier 默认值1000，是compaction操作周期性检查乘数因子。10 * 1000 s 时间上约等于2hrs, 46mins, 40sec。</li>
+<li>手动触发<br>是指通过HBase Shell、Master UI界面或者HBase API等任一种方式 执行 compact、major_compact等命令。（这里主要指的是Major Compact）</li>
+</ol>
+<p>注意：当一个Region中的StoreFile数量达到一定数量或者总大小达到一定阈值时，HBase会将Minor Compact升级为Major Compact。</p>
+<h3 id="Compaction-参数解析"><a href="#Compaction-参数解析" class="headerlink" title="Compaction 参数解析"></a>Compaction 参数解析</h3><h4 id="Major-Compaction-参数"><a href="#Major-Compaction-参数" class="headerlink" title="Major Compaction 参数"></a>Major Compaction 参数</h4><p>Major Compaction涉及的参数比较少，主要有大合并时间间隔与一个抖动参数因子，如下：</p>
+<ol>
+<li><code>hbase.hregion.majorcompaction</code>:Major compaction周期性时间间隔，默认值604800000，单位ms。</li>
+</ol>
+<blockquote>
+<p>表示major compaction默认7天调度一次，HBase 0.96.x及之前默认为1天调度一次。设置为 0 时表示禁用自动触发major compaction。需要强调的是一般major compaction持续时间较长、系统资源消耗较大，对上层业务也有比较大的影响，一般生产环境下为了避免影响读写请求，会禁用自动触发major compaction。</p>
+</blockquote>
+<ol start="2">
+<li><code>hbase.hregion.majorcompaction.jitter</code>:Major compaction抖动参数，默认值0.5</li>
+</ol>
+<blockquote>
+<p>这个参数是为了避免major compaction同时在各个regionserver上同时发生，避免此操作给集群带来很大压力。 这样节点major compaction就会在 + 或 - 两者乘积的时间范围内随机发生。</p>
+</blockquote>
+<h3 id="Minor-Compaction-参数"><a href="#Minor-Compaction-参数" class="headerlink" title="Minor Compaction 参数"></a>Minor Compaction 参数</h3><p>Minor compaction涉及的参数比major compaction要多，各个参数的目标是为了选择合适的HFile：</p>
+<ol>
+<li><code>hbase.hstore.compaction.min</code> : 一次minor compaction最少合并的HFile数量，默认值 3。<blockquote>
+<p>表示至少有3个符合条件的HFile，minor compaction才会启动。一般情况下不建议调整该参数。如果要调整，不建议调小该参数，这样会带来更频繁的压缩，调大该参数的同时其他相关参数也应该做调整。早期参数名称为 hbase.hstore.compactionthreshold。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.max</code>: 一次minor compaction最多合并的HFile数量，默认值 10。<blockquote>
+<p>这个参数也是控制着一次压缩的时间。一般情况下不建议调整该参数。调大该值意味着一次compaction将会合并更多的HFile，压缩时间将会延长。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.min.size</code>:文件大小 &lt; 该参数值的HFile一定是适合进行minor compaction文件，默认值 128M（memstore flush size）<blockquote>
+<p>意味着小于该大小的HFile将会自动加入（automatic include）压缩队列。一般情况下不建议调整该参数。但是，在write-heavy就是写压力非常大的场景，可能需要微调该参数、减小参数值，假如每次memstore大小达到1~2M时就会flush生成HFile，此时生成的每个HFile都会加入压缩队列，而且压缩生成的HFile仍然可能小于该配置值会再次加入压缩队列，这样将会导致压缩队列持续很长。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.max.size</code>:文件大小 &gt; 该参数值的HFile将会被排除，不会加入minor compaction，默认值Long.MAX_VALUE<blockquote>
+<p>没有什么限制。一般情况下也不建议调整该参数。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.ratio</code>:这个ratio参数的作用是判断文件大小 &gt; hbase.hstore.compaction.min.size的HFile是否也是适合进行minor compaction的，默认值1.2<blockquote>
+<p>更大的值将压缩产生更大的HFile，建议取值范围在1.0~1.4之间。大多数场景下也不建议调整该参数。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.ratio.offpeak</code>: 此参数与compaction ratio参数含义相同，是在原有文件选择策略基础上增加了一个非高峰期的ratio控制，默认值5.0。<blockquote>
+<p>这个参数受另外两个参数 hbase.offpeak.start.hour 与 hbase.offpeak.end.hour 控制，这两个参数值为[0, 23]的整数，用于定义非高峰期时间段，默认值均为-1表示禁用非高峰期ratio设置。</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="Compaction-总结"><a href="#Compaction-总结" class="headerlink" title="Compaction 总结"></a>Compaction 总结</h3><p>HBase Compaction操作是为了数据读取做的优化，总的来说是以牺牲磁盘io来换取读性能的基本稳定。Compaction操作分为minor compaction与major compaction，其中major compaction消耗资源较大、对读写请求有一定影响，因此一般是禁用自动周期性执行而选择业务低峰期时手动执行。</p>
+<h2 id="hbase性能优化"><a href="#hbase性能优化" class="headerlink" title="hbase性能优化"></a>hbase性能优化</h2><p>在阿里云正式区做数据压缩的时候，因为这个集群内有一张表单表数据量就有6T，表太大了，不敢随便压缩，并且，hbase集群一直在告警<br><img src="/uploads/202303/hbase%E9%9B%86%E7%BE%A4%E5%91%8A%E8%AD%A6-%E5%8E%8B%E7%BC%A9%E9%98%9F%E5%88%97.png" alt="hbase集群告警-压缩队列"></p>
+<h3 id="分析原因"><a href="#分析原因" class="headerlink" title="分析原因"></a>分析原因</h3><p>这里分析了一下告警原因：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">5.6 T    6.3 T    &#x2F;hbase&#x2F;data&#x2F;default&#x2F;TraceV2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>TraceV2这张表每个小时能增长40G的数据，并且，该表设置了TTL，也就是说，每小时它要写40G数据，然后还要清理掉40G的数据。这么频繁的写操作，就会造成频繁的compaction</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>因此需要对hbase做性能优化</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hbase</category>
+      </categories>
+      <tags>
+        <tag>Hbase</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Iceberg学习笔记</title>
     <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2097,6 +2286,139 @@ Wrote minidump to &#x2F;var&#x2F;log&#x2F;impala-minidumps&#x2F;impalad&#x2F;c5d
       </tags>
   </entry>
   <entry>
+    <title>Kafka学习笔记</title>
+    <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Kafka简介（后补）</li>
+<li>Kafka可以干什么？（后补）</li>
+<li>Kafka安装与启动</li>
+<li>Kafka常用操作<a id="more"></a>
+<h2 id="Kafka简介"><a href="#Kafka简介" class="headerlink" title="Kafka简介"></a>Kafka简介</h2></li>
+</ul>
+<h2 id="Kafka可以干什么？"><a href="#Kafka可以干什么？" class="headerlink" title="Kafka可以干什么？"></a>Kafka可以干什么？</h2><h2 id="Kafka安装与启动"><a href="#Kafka安装与启动" class="headerlink" title="Kafka安装与启动"></a>Kafka安装与启动</h2><h3 id="Kafka安装"><a href="#Kafka安装" class="headerlink" title="Kafka安装"></a>Kafka安装</h3><p>Kafka需要用到java，安装前需要安装java，这里省略<br>Kafka可以使用内置的zookeeper，也可以使用单独的zookeeper，一般生产环境都是使用单独的zookeeper集群<br>zookeeper安装可以参考<a href="https://gujincheng.github.io/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Zookeeper学习笔记（一）</a><br>官网下载Kafka安装包，并解压</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf kafka-2.11.0.tar.gz -C .
+cd kafka-2.11.0&#x2F;config
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>修改server.properties</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">host.name&#x3D;golden-02
+# 指定kafka日志文件的存储目录
+log.dirs&#x3D;&#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F;kafka-logs
+# 指定zookeeper的连接地址，多个地址用逗号分隔
+zookeeper.connect&#x3D;golden-02:2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里设置了kafka-logs，手动生成了这个文件夹</p>
+<p>最后，设置Kakfa的环境变量</p>
+<h3 id="Kafka启动等操作"><a href="#Kafka启动等操作" class="headerlink" title="Kafka启动等操作"></a>Kafka启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
+# 关闭
+cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-stop.sh <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Kafka操作样例"><a href="#Kafka操作样例" class="headerlink" title="Kafka操作样例"></a>Kafka操作样例</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看所有topic
+bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --list
+## 创建topic
+bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --create --replication-factor 3 --partitions 1 --topic first
+## 删除topic
+bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --delete --topic first
+## 发送消息
+bin&#x2F;kafka-console-producer.sh --broker-list golden-02:9092 --topic first
+# 或者下面命令
+bin&#x2F;kafka-console-producer.sh --bootstrap-server golden-02:9092 --topic first
+## 消费消息
+bin&#x2F;kafka-console-consumer.sh  --bootstrap-server golden-02:9092  --from-beginning --topic first
+## 查看某个Topic的详情
+bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092  --describe --topic first
+## 查看某个group_id的消费情况，offset
+bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe --group fink-test
+
+## 重置offset
+kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset 210000 --execute
+kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset --to-latest --execute
+kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset --to-datetime 2022-10-25T12:30:00.000 --execute
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>选项说明：  </p>
+<ul>
+<li>–topic 定义topic名</li>
+<li>–replication-factor 定义副本数</li>
+<li>–partitions 定义分区数</li>
+</ul>
+<p>删除topic时删除不掉，日志提醒：<br><code>This will have no impact if delete.topic.enable is not set to true</code><br><img src="/uploads/202101/kafka-delete-error.png" alt="kafka-delete-error"><br>到kafka的server.properties里设置<code>delete.topic.enable=true</code></p>
+<h2 id="Kafka常见问题"><a href="#Kafka常见问题" class="headerlink" title="Kafka常见问题"></a>Kafka常见问题</h2><ul>
+<li>auto.offset.reset设置无效<blockquote>
+<p>原因:<code>auto.offset.reset</code>只会在Kafka中没有初始偏移量，或者服务器上不再存在当前偏移量的时候才会生效。<br>换句话说，如果当前<code>group_id</code>已经消费过这个<code>topic</code>（可以查到offset），这个参数就没用了，要再想从头开始消费，就得换个group_id了<br>官网说明：<br><img src="/uploads/202101/Kafka%E5%AE%98%E7%BD%91%E8%A7%A3%E9%87%8Aauto.offset.reset.png" alt="Kafka官网解释auto.offset.reset"></p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Kafka数据迁移"><a href="#Kafka数据迁移" class="headerlink" title="Kafka数据迁移"></a>Kafka数据迁移</h2><p>公司的kafka数据存储所在磁盘空间太小，后期扩容后，也没有把扩容后的磁盘加入到kafka。现在想把之前的磁盘换到新扩容的磁盘里</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp3 ~]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs         16G     0   16G   0% &#x2F;dev
+tmpfs            16G     0   16G   0% &#x2F;dev&#x2F;shm
+tmpfs            16G  856K   16G   1% &#x2F;run
+tmpfs            16G     0   16G   0% &#x2F;sys&#x2F;fs&#x2F;cgroup
+&#x2F;dev&#x2F;vda1        99G   86G  8.2G  92% &#x2F;
+&#x2F;dev&#x2F;vdb1       296G   90G  193G  32% &#x2F;data
+cm_processes     16G   29M   16G   1% &#x2F;run&#x2F;cloudera-scm-agent&#x2F;process
+tmpfs           3.1G     0  3.1G   0% &#x2F;run&#x2F;user&#x2F;0
+overlay          99G   86G  8.2G  92% &#x2F;var&#x2F;lib&#x2F;docker&#x2F;overlay2&#x2F;eab5e26d05206a9ae6591a28f66bebd4dc79529d2fcc462a135c855052fd49bd&#x2F;merged
+shm              64M     0   64M   0% &#x2F;var&#x2F;lib&#x2F;docker&#x2F;containers&#x2F;2733068e2bd0a33d90df3ce3a011a651e8d6a9ab81b4782fe2f9896701e48f1e&#x2F;shm<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>kafka数据存储在<code>/dev/vda1</code>磁盘下，现在想换到<code>/dev/vdb1</code><br>需要解决两个问题：</p>
+<ol>
+<li>kafka数据盘挂在新的文件夹下</li>
+<li>kakfa的历史数据需要移动到新的文件夹下</li>
+</ol>
+<p>但是不知道直接mv历史数据到新的磁盘下，数据会不会丢失，这里在自己电脑上做一下测试<br>本机的server.properties里配置的<code>log.dirs=/opt/modules/kafka-2.8.0/kafka-logs</code><br>目标是把数据迁移到<code>/tmp/kafka/kafka-logs</code><br>具体操作步骤：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 1. 创建kafkatopic
+bin&#x2F;kafka-topics.sh --bootstrap-server golden-cloud:9092 --create --replication-factor 1 --partitions 3 --topic first
+# 2. 向topic里发送4条数据，aaa&#x2F;bbb&#x2F;ccc&#x2F;ddd
+bin&#x2F;kafka-console-producer.sh --broker-list golden-cloud:9092 --topic first
+# 3.kafka服务不停止，直接mv文件夹
+cd &#x2F;tmp&#x2F;kafka&#x2F; &amp;&amp; mv &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F; .
+# 这时候kafka因为数据文件夹切换了，kafka服务报错停止
+[2022-03-31 16:57:50,559] ERROR Error while reading checkpoint file &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F;cleaner-offset-checkpoint (kafka.server.LogDirFailureChannel)
+java.nio.file.NoSuchFileException: &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F;cleaner-offset-checkpoint
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:214)
+	at java.nio.file.Files.newByteChannel(Files.java:361)
+	at java.nio.file.Files.newByteChannel(Files.java:407)
+	at java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:384)
+	at java.nio.file.Files.newInputStream(Files.java:152)
+	at java.nio.file.Files.newBufferedReader(Files.java:2784)
+...
+[2022-03-31 16:57:50,584] WARN [ReplicaManager broker&#x3D;0] Broker 0 stopped fetcher for partitions __consumer_offsets-22,__consumer_offsets-30,__consumer_offsets-8,__consumer_offsets-21,__consumer_offsets-4,__consumer_offsets-27,__consumer_offsets-7,__consumer_offsets-9,first-1,__consumer_offsets-46,__consumer_offsets-25,__consumer_offsets-35,__consumer_offsets-41,__consumer_offsets-33,__consumer_offsets-23,__consumer_offsets-49,__consumer_offsets-47,__consumer_offsets-16,__consumer_offsets-28,__consumer_offsets-31,__consumer_offsets-36,__consumer_offsets-42,__consumer_offsets-3,__consumer_offsets-18,first-2,__consumer_offsets-37,first-0,__consumer_offsets-15,__consumer_offsets-24,__consumer_offsets-38,__consumer_offsets-17,__consumer_offsets-48,__consumer_offsets-19,__consumer_offsets-11,__consumer_offsets-13,__consumer_offsets-2,__consumer_offsets-43,__consumer_offsets-6,__consumer_offsets-14,__consumer_offsets-20,__consumer_offsets-0,__consumer_offsets-44,__consumer_offsets-39,__consumer_offsets-12,__consumer_offsets-45,__consumer_offsets-1,__consumer_offsets-5,__consumer_offsets-26,__consumer_offsets-29,__consumer_offsets-34,__consumer_offsets-10,__consumer_offsets-32,__consumer_offsets-40 and stopped moving logs for partitions  because they are in the failed log directory &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs. (kafka.server.ReplicaManager)
+[2022-03-31 16:57:50,584] WARN Stopping serving logs in dir &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs (kafka.log.LogManager)
+[2022-03-31 16:57:50,586] ERROR Shutdown broker because all log dirs in &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs have failed (kafka.log.LogManager)
+
+# 4. 修改server.properties的配置
+log.dirs&#x3D;&#x2F;tmp&#x2F;kafka&#x2F;kafka-logs
+# 5. 重启kafka服务
+bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
+# 6. 消费kafka first topic的数据
+bin&#x2F;kafka-console-consumer.sh  --bootstrap-server golden-cloud:9092  --from-beginning --topic first
+bbb
+aaa
+ddd
+ccc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>结果表明，直接修改日志的文件夹，然后重启kafka服务，数据不会丢失</p>
+<p>线上操作步骤应该如下：</p>
+<ol>
+<li>修改<code>server.properties</code>配置文件的<code>log.dirs</code>,或者在CM页面修改kafka的<code>Data Directories log.dirs</code></li>
+<li>停止kafka服务，这个步骤可以不操作，报错也没关系，但是最好做一下</li>
+<li>复制kafka数据到新的数据文件夹</li>
+<li>重启kafka服务</li>
+<li>测试数据是否完整，一切正常后，删除原本数据文件夹</li>
+</ol>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Kafka</category>
+      </categories>
+      <tags>
+        <tag>Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mac使用笔记（一）</title>
     <url>/2021/05/20/Mac%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2434,139 +2756,6 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       <tags>
         <tag>Mac</tag>
         <tag>Sublime</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kafka学习笔记</title>
-    <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Kafka简介（后补）</li>
-<li>Kafka可以干什么？（后补）</li>
-<li>Kafka安装与启动</li>
-<li>Kafka常用操作<a id="more"></a>
-<h2 id="Kafka简介"><a href="#Kafka简介" class="headerlink" title="Kafka简介"></a>Kafka简介</h2></li>
-</ul>
-<h2 id="Kafka可以干什么？"><a href="#Kafka可以干什么？" class="headerlink" title="Kafka可以干什么？"></a>Kafka可以干什么？</h2><h2 id="Kafka安装与启动"><a href="#Kafka安装与启动" class="headerlink" title="Kafka安装与启动"></a>Kafka安装与启动</h2><h3 id="Kafka安装"><a href="#Kafka安装" class="headerlink" title="Kafka安装"></a>Kafka安装</h3><p>Kafka需要用到java，安装前需要安装java，这里省略<br>Kafka可以使用内置的zookeeper，也可以使用单独的zookeeper，一般生产环境都是使用单独的zookeeper集群<br>zookeeper安装可以参考<a href="https://gujincheng.github.io/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Zookeeper学习笔记（一）</a><br>官网下载Kafka安装包，并解压</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf kafka-2.11.0.tar.gz -C .
-cd kafka-2.11.0&#x2F;config
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>修改server.properties</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">host.name&#x3D;golden-02
-# 指定kafka日志文件的存储目录
-log.dirs&#x3D;&#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F;kafka-logs
-# 指定zookeeper的连接地址，多个地址用逗号分隔
-zookeeper.connect&#x3D;golden-02:2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里设置了kafka-logs，手动生成了这个文件夹</p>
-<p>最后，设置Kakfa的环境变量</p>
-<h3 id="Kafka启动等操作"><a href="#Kafka启动等操作" class="headerlink" title="Kafka启动等操作"></a>Kafka启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
-cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
-# 关闭
-cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-stop.sh <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="Kafka操作样例"><a href="#Kafka操作样例" class="headerlink" title="Kafka操作样例"></a>Kafka操作样例</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看所有topic
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --list
-## 创建topic
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --create --replication-factor 3 --partitions 1 --topic first
-## 删除topic
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --delete --topic first
-## 发送消息
-bin&#x2F;kafka-console-producer.sh --broker-list golden-02:9092 --topic first
-# 或者下面命令
-bin&#x2F;kafka-console-producer.sh --bootstrap-server golden-02:9092 --topic first
-## 消费消息
-bin&#x2F;kafka-console-consumer.sh  --bootstrap-server golden-02:9092  --from-beginning --topic first
-## 查看某个Topic的详情
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092  --describe --topic first
-## 查看某个group_id的消费情况，offset
-bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe --group fink-test
-
-## 重置offset
-kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset 210000 --execute
-kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset --to-latest --execute
-kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset --to-datetime 2022-10-25T12:30:00.000 --execute
-
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>选项说明：  </p>
-<ul>
-<li>–topic 定义topic名</li>
-<li>–replication-factor 定义副本数</li>
-<li>–partitions 定义分区数</li>
-</ul>
-<p>删除topic时删除不掉，日志提醒：<br><code>This will have no impact if delete.topic.enable is not set to true</code><br><img src="/uploads/202101/kafka-delete-error.png" alt="kafka-delete-error"><br>到kafka的server.properties里设置<code>delete.topic.enable=true</code></p>
-<h2 id="Kafka常见问题"><a href="#Kafka常见问题" class="headerlink" title="Kafka常见问题"></a>Kafka常见问题</h2><ul>
-<li>auto.offset.reset设置无效<blockquote>
-<p>原因:<code>auto.offset.reset</code>只会在Kafka中没有初始偏移量，或者服务器上不再存在当前偏移量的时候才会生效。<br>换句话说，如果当前<code>group_id</code>已经消费过这个<code>topic</code>（可以查到offset），这个参数就没用了，要再想从头开始消费，就得换个group_id了<br>官网说明：<br><img src="/uploads/202101/Kafka%E5%AE%98%E7%BD%91%E8%A7%A3%E9%87%8Aauto.offset.reset.png" alt="Kafka官网解释auto.offset.reset"></p>
-</blockquote>
-</li>
-</ul>
-<h2 id="Kafka数据迁移"><a href="#Kafka数据迁移" class="headerlink" title="Kafka数据迁移"></a>Kafka数据迁移</h2><p>公司的kafka数据存储所在磁盘空间太小，后期扩容后，也没有把扩容后的磁盘加入到kafka。现在想把之前的磁盘换到新扩容的磁盘里</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp3 ~]# df -h
-Filesystem      Size  Used Avail Use% Mounted on
-devtmpfs         16G     0   16G   0% &#x2F;dev
-tmpfs            16G     0   16G   0% &#x2F;dev&#x2F;shm
-tmpfs            16G  856K   16G   1% &#x2F;run
-tmpfs            16G     0   16G   0% &#x2F;sys&#x2F;fs&#x2F;cgroup
-&#x2F;dev&#x2F;vda1        99G   86G  8.2G  92% &#x2F;
-&#x2F;dev&#x2F;vdb1       296G   90G  193G  32% &#x2F;data
-cm_processes     16G   29M   16G   1% &#x2F;run&#x2F;cloudera-scm-agent&#x2F;process
-tmpfs           3.1G     0  3.1G   0% &#x2F;run&#x2F;user&#x2F;0
-overlay          99G   86G  8.2G  92% &#x2F;var&#x2F;lib&#x2F;docker&#x2F;overlay2&#x2F;eab5e26d05206a9ae6591a28f66bebd4dc79529d2fcc462a135c855052fd49bd&#x2F;merged
-shm              64M     0   64M   0% &#x2F;var&#x2F;lib&#x2F;docker&#x2F;containers&#x2F;2733068e2bd0a33d90df3ce3a011a651e8d6a9ab81b4782fe2f9896701e48f1e&#x2F;shm<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>kafka数据存储在<code>/dev/vda1</code>磁盘下，现在想换到<code>/dev/vdb1</code><br>需要解决两个问题：</p>
-<ol>
-<li>kafka数据盘挂在新的文件夹下</li>
-<li>kakfa的历史数据需要移动到新的文件夹下</li>
-</ol>
-<p>但是不知道直接mv历史数据到新的磁盘下，数据会不会丢失，这里在自己电脑上做一下测试<br>本机的server.properties里配置的<code>log.dirs=/opt/modules/kafka-2.8.0/kafka-logs</code><br>目标是把数据迁移到<code>/tmp/kafka/kafka-logs</code><br>具体操作步骤：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 1. 创建kafkatopic
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-cloud:9092 --create --replication-factor 1 --partitions 3 --topic first
-# 2. 向topic里发送4条数据，aaa&#x2F;bbb&#x2F;ccc&#x2F;ddd
-bin&#x2F;kafka-console-producer.sh --broker-list golden-cloud:9092 --topic first
-# 3.kafka服务不停止，直接mv文件夹
-cd &#x2F;tmp&#x2F;kafka&#x2F; &amp;&amp; mv &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F; .
-# 这时候kafka因为数据文件夹切换了，kafka服务报错停止
-[2022-03-31 16:57:50,559] ERROR Error while reading checkpoint file &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F;cleaner-offset-checkpoint (kafka.server.LogDirFailureChannel)
-java.nio.file.NoSuchFileException: &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F;cleaner-offset-checkpoint
-	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
-	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
-	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
-	at sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:214)
-	at java.nio.file.Files.newByteChannel(Files.java:361)
-	at java.nio.file.Files.newByteChannel(Files.java:407)
-	at java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:384)
-	at java.nio.file.Files.newInputStream(Files.java:152)
-	at java.nio.file.Files.newBufferedReader(Files.java:2784)
-...
-[2022-03-31 16:57:50,584] WARN [ReplicaManager broker&#x3D;0] Broker 0 stopped fetcher for partitions __consumer_offsets-22,__consumer_offsets-30,__consumer_offsets-8,__consumer_offsets-21,__consumer_offsets-4,__consumer_offsets-27,__consumer_offsets-7,__consumer_offsets-9,first-1,__consumer_offsets-46,__consumer_offsets-25,__consumer_offsets-35,__consumer_offsets-41,__consumer_offsets-33,__consumer_offsets-23,__consumer_offsets-49,__consumer_offsets-47,__consumer_offsets-16,__consumer_offsets-28,__consumer_offsets-31,__consumer_offsets-36,__consumer_offsets-42,__consumer_offsets-3,__consumer_offsets-18,first-2,__consumer_offsets-37,first-0,__consumer_offsets-15,__consumer_offsets-24,__consumer_offsets-38,__consumer_offsets-17,__consumer_offsets-48,__consumer_offsets-19,__consumer_offsets-11,__consumer_offsets-13,__consumer_offsets-2,__consumer_offsets-43,__consumer_offsets-6,__consumer_offsets-14,__consumer_offsets-20,__consumer_offsets-0,__consumer_offsets-44,__consumer_offsets-39,__consumer_offsets-12,__consumer_offsets-45,__consumer_offsets-1,__consumer_offsets-5,__consumer_offsets-26,__consumer_offsets-29,__consumer_offsets-34,__consumer_offsets-10,__consumer_offsets-32,__consumer_offsets-40 and stopped moving logs for partitions  because they are in the failed log directory &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs. (kafka.server.ReplicaManager)
-[2022-03-31 16:57:50,584] WARN Stopping serving logs in dir &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs (kafka.log.LogManager)
-[2022-03-31 16:57:50,586] ERROR Shutdown broker because all log dirs in &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs have failed (kafka.log.LogManager)
-
-# 4. 修改server.properties的配置
-log.dirs&#x3D;&#x2F;tmp&#x2F;kafka&#x2F;kafka-logs
-# 5. 重启kafka服务
-bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
-# 6. 消费kafka first topic的数据
-bin&#x2F;kafka-console-consumer.sh  --bootstrap-server golden-cloud:9092  --from-beginning --topic first
-bbb
-aaa
-ddd
-ccc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>结果表明，直接修改日志的文件夹，然后重启kafka服务，数据不会丢失</p>
-<p>线上操作步骤应该如下：</p>
-<ol>
-<li>修改<code>server.properties</code>配置文件的<code>log.dirs</code>,或者在CM页面修改kafka的<code>Data Directories log.dirs</code></li>
-<li>停止kafka服务，这个步骤可以不操作，报错也没关系，但是最好做一下</li>
-<li>复制kafka数据到新的数据文件夹</li>
-<li>重启kafka服务</li>
-<li>测试数据是否完整，一切正常后，删除原本数据文件夹</li>
-</ol>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Kafka</category>
-      </categories>
-      <tags>
-        <tag>Kafka</tag>
       </tags>
   </entry>
   <entry>
@@ -3041,39 +3230,6 @@ agent.sinks.logger.channel &#x3D; memory-channel<span aria-hidden="true" class="
       </tags>
   </entry>
   <entry>
-    <title>Redis杂记</title>
-    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>什么是Redis</li>
-<li>Redis有哪些优缺点</li>
-<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
-<li>Redis为什么这么快</li>
-<li>Redis的应用场景</li>
-<li>Redis持久化</li>
-<li>Redis踩的坑</li>
-</ul>
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/202106/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
-<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
-<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
-<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
-<p>这里记录一下两个命令：</p>
-<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Scala杂记</title>
     <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3139,6 +3295,39 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </categories>
       <tags>
         <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Redis杂记</title>
+    <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>什么是Redis</li>
+<li>Redis有哪些优缺点</li>
+<li>为什么要用 Redis 而不用 map/guava 做缓存?</li>
+<li>Redis为什么这么快</li>
+<li>Redis的应用场景</li>
+<li>Redis持久化</li>
+<li>Redis踩的坑</li>
+</ul>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><h3 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h3><p>Redis(Remote Dictionary Server) 是一个使用 C 语言编写的，开源的（BSD许可）高性能非关系型（NoSQL）的键值对数据库。<br>Redis 可以存储键和五种不同类型的值之间的映射。键的类型只能为字符串，值支持五种数据类型：字符串、列表、集合、散列表、有序集合。</p>
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p>Redis主要有5种数据类型，包括String，List，Set，Zset，Hash，满足大部分的使用要求<br><img src="/uploads/202106/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.png" alt="Redis数据类型"></p>
+<p>以上可以参考<a href="https://www.cnblogs.com/javazhiyin/p/13839357.html">Redis 常见面试题</a></p>
+<h2 id="Redis踩的坑"><a href="#Redis踩的坑" class="headerlink" title="Redis踩的坑"></a>Redis踩的坑</h2><p>最近在测试任务的时候，把reids的key和value写反了，导致生产环境的reids凭空多了200多万脏数据，在网上查了一个批量删除的命令，直接在生产环境执行了，导致redis宕机、OOM了</p>
+<p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
+<p>这里记录一下两个命令：</p>
+<h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>具体可以参考：<a href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -3332,32 +3521,41 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       </tags>
   </entry>
   <entry>
-    <title>StreamX学习笔记</title>
-    <url>/2022/10/19/StreamX%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <title>StreamPark学习笔记</title>
+    <url>/2022/10/19/StreamPark%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
-<li>StreamX简介</li>
-<li>StreamX源码调试</li>
+<li>StreamPark简介</li>
+<li>StreamPark源码调试</li>
 </ul>
 <a id="more"></a>
 
 
-<h2 id="StreamX简介"><a href="#StreamX简介" class="headerlink" title="StreamX简介"></a>StreamX简介</h2><p>StreamX 是主打一站式的实时计算平台，集成了项目编译、发布、参数配置、启动、停止、监控等诸多功能于一体， 大大简化了 Flink 任务的日常操作和维护，而且足够专注，比其他开源项目更加轻量</p>
-<h2 id="StreamX源码调试"><a href="#StreamX源码调试" class="headerlink" title="StreamX源码调试"></a>StreamX源码调试</h2><h3 id="下载StreamX源码并编译源码"><a href="#下载StreamX源码并编译源码" class="headerlink" title="下载StreamX源码并编译源码"></a>下载StreamX源码并编译源码</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone git@github.com:apache&#x2F;incubator-streampark.git
+<h2 id="StreamPark简介"><a href="#StreamPark简介" class="headerlink" title="StreamPark简介"></a>StreamPark简介</h2><p>StreamPark 是主打一站式的实时计算平台，集成了项目编译、发布、参数配置、启动、停止、监控等诸多功能于一体， 大大简化了 Flink 任务的日常操作和维护，而且足够专注，比其他开源项目更加轻量</p>
+<h2 id="StreamPark源码调试"><a href="#StreamPark源码调试" class="headerlink" title="StreamPark源码调试"></a>StreamPark源码调试</h2><h3 id="下载StreamPark源码并编译源码"><a href="#下载StreamPark源码并编译源码" class="headerlink" title="下载StreamPark源码并编译源码"></a>下载StreamPark源码并编译源码</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone git@github.com:apache&#x2F;incubator-streampark.git
 git checkout -b 1.2.3-release
 mvn clean install -DskipTests -Dscala.version&#x3D;2.12.13 -Dscala.binary.version&#x3D;2.12 -Pwebapp -T10<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>用IDEA打开streampark源码，勾选Profiles -&gt; webapp</p>
-<h3 id="StreamX本地调试"><a href="#StreamX本地调试" class="headerlink" title="StreamX本地调试"></a>StreamX本地调试</h3><p>查看StreamX安装目录bin/streampark.sh，查看项目的启动类为<code>org.apache.streampark.console.StreamParkConsoleBootstrap</code></p>
+<h3 id="StreamPark本地调试"><a href="#StreamPark本地调试" class="headerlink" title="StreamPark本地调试"></a>StreamPark本地调试</h3><p>查看StreamPark安装目录bin/streampark.sh，查看项目的启动类为<code>org.apache.streampark.console.StreamParkConsoleBootstrap</code></p>
+<ol>
+<li>在StreamParkConsoleBootstrap的VM中设置-Dapp.home=&lt;&lt;build.sh脚本执行完成后dist目录下解压过后的二进制包路径&gt;&gt;<br><img src="/uploads/202303/IDEA%E8%B0%83%E8%AF%95Streampark%E6%BA%90%E7%A0%81%E9%85%8D%E7%BD%AE.png" alt="IDEA调试Streampark源码配置"><br><img src="/uploads/202303/IDEA%E8%B0%83%E8%AF%95streampark%E6%BA%90%E7%A0%81%E9%85%8D%E7%BD%AEMysql%E9%A9%B1%E5%8A%A8.png" alt="IDEA调试streampark源码配置Mysql驱动"></li>
+<li>修改启动数据库配置<br>streampark-console/streampark-console-service/src/main/resources/application.yml</li>
+<li>执行数据库初始化脚本<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">source <span class="token operator">/</span>Users<span class="token operator">/</span>gujincheng<span class="token operator">/</span>code<span class="token operator">/</span>streampark<span class="token operator">/</span>streampark<span class="token operator">-</span>console<span class="token operator">/</span>streampark<span class="token operator">-</span>console<span class="token operator">-</span>service<span class="token operator">/</span>src<span class="token operator">/</span>main<span class="token operator">/</span>assembly<span class="token operator">/</span>script<span class="token operator">/</span><span class="token keyword">schema</span><span class="token operator">/</span>mysql<span class="token operator">-</span><span class="token keyword">schema</span><span class="token punctuation">.</span><span class="token keyword">sql</span>
+source <span class="token operator">/</span>Users<span class="token operator">/</span>gujincheng<span class="token operator">/</span>code<span class="token operator">/</span>streampark<span class="token operator">/</span>streampark<span class="token operator">-</span>console<span class="token operator">/</span>streampark<span class="token operator">-</span>console<span class="token operator">-</span>service<span class="token operator">/</span>src<span class="token operator">/</span>main<span class="token operator">/</span>assembly<span class="token operator">/</span>script<span class="token operator">/</span><span class="token keyword">data</span><span class="token operator">/</span>mysql<span class="token operator">-</span><span class="token keyword">data</span><span class="token punctuation">.</span><span class="token keyword">sql</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+</li>
+</ol>
 <h4 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h4><ol>
 <li><code>object TableExt is not a member of package org.apache.streampark.flink.core</code><br>这个问题很奇怪，按照网上查到的，在<code>project structure</code>里配置scala的sdk，没啥用，但是在代码里找到报错的类，点了点上下依赖，就成功了</li>
 </ol>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>StreamX</category>
+        <category>StreamPark</category>
       </categories>
       <tags>
-        <tag>StreamX</tag>
+        <tag>StreamPark</tag>
       </tags>
   </entry>
   <entry>
@@ -3407,45 +3605,6 @@ cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServe
       </categories>
       <tags>
         <tag>Zookeeper</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>azkban从编译开始安装</title>
-    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>如何下载Azkaban稳定版代码</li>
-<li>如何构建Azkaban源码</li>
-<li>如何配置Azkaban</li>
-<li>启动Azkaban注意点<a id="more"></a>
-<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
-</ul>
-<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
-<p>后来还是直接clone官网上的代码来构建</p>
-<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
-<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
-<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
-<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
-2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
-2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
-<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Azkaban</category>
-      </categories>
-      <tags>
-        <tag>Azkaban</tag>
       </tags>
   </entry>
   <entry>
@@ -3647,6 +3806,103 @@ sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<spa
       </tags>
   </entry>
   <entry>
+    <title>azkban从编译开始安装</title>
+    <url>/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>如何下载Azkaban稳定版代码</li>
+<li>如何构建Azkaban源码</li>
+<li>如何配置Azkaban</li>
+<li>启动Azkaban注意点<a id="more"></a>
+<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
+</ul>
+<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
+<p>后来还是直接clone官网上的代码来构建</p>
+<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
+<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
+<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
+<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
+2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
+2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
+2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
+2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
+<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Azkaban</category>
+      </categories>
+      <tags>
+        <tag>Azkaban</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hdfs块文件丢失</title>
+    <url>/2022/03/08/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>hdfs块文件丢失</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="hdfs块文件丢失"><a href="#hdfs块文件丢失" class="headerlink" title="hdfs块文件丢失"></a>hdfs块文件丢失</h2><p>最近公司集群扩容，运维那边不知道怎么操作的，导致hdfs的block块文件丢失了。</p>
+<p>个人猜测，公司的五台节点，都新挂载了一个新盘，datanode上配置了新盘，重启之后，hadoop集群肯定是要负载均衡一下的，迁移一些文件到新盘<br>这时候namenode会可能会进入安全模式，CM上很多组件都会报红，这时候我们的运维强制退出了安全模式，重启了hadoop集群，但是只是猜测，具体原因找不到了</p>
+<p>先说问题描述：<br>启动hive的时候，报如下报错日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory &#x2F;tmp&#x2F;hive&#x2F;root&#x2F;eceb6690-1510-4703-8a4b-60ea03c3fcec. Name node is in safe mode.
+The reported blocks 10427 needs additional 4373 blocks to reach the threshold 0.9990 of total blocks 14815.
+The number of live datanodes 3 has reached the minimum number 1. Safe mode will be turned off automatically once the thresholds have been reached. NamenodeHostName:ddp2
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.newSafemodeException(FSNamesystem.java:1448)
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkNameNodeSafeMode(FSNamesystem.java:1435)
+        ... 12 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错就是丢失了4373个block，导致namenode进入安全模式</p>
+<h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3><p>出现前面提到的问题主要原因是客户端写入的数据没有及时保存到磁盘中，从而导致数据丢失；又因为数据块丢失达到一定的比率，导致hdfs启动进入安全模式。</p>
+<p>为了弄清楚导致安全模式的原因，下面主要对hdfs安全模式和如何退出安全模式进行分析。</p>
+<h3 id="安全模式"><a href="#安全模式" class="headerlink" title="安全模式"></a>安全模式</h3><p>当 hdfs的NameNode节点启动时，会进入安全模式阶段。安全模式主要是为了系统启动的时候检查各个DataNode上数据块的有效性，同时根据策略必要的复制或者删除部分数据块。</p>
+<p>在此阶段，NameNode加载fsimage（Filesystem image：文件meta信息的持久化的检查点）文件到内存中，然后在editlog中执行相应的操作。加载fsimage文件包含文件metadata信息，但是不包含文件块位置的信息。</p>
+<p>DataNode启动的时候扫描本地磁盘，保存的block信息，然后将这些信息汇报给NameNode,让 NameNode得到块的位置信息，并对每个文件对应的数据块副本进行统计。</p>
+<p>如果hdfs数据量很大时，进入至退出安全模式时间较长。</p>
+<h3 id="安全模式退出条件"><a href="#安全模式退出条件" class="headerlink" title="安全模式退出条件"></a>安全模式退出条件</h3><p>当最小副本条件满足时，即一定比例（dfs.safemode.threshold.pct缺省值0.999f）的数据块都达到最小副本数，系统就会退出安全模式。当最小副本条件未达到要求时，就会对副本数不足的数据块安排DataNode进行复制，直至达到最小副本数。如果datanode丢失的block达到一定的比例（1-dfs.safemode.threshold.pct），则系统会一直处于安全模式状态即只读状态。而在安全模式下，系统会处于只读状态，NameNode不会处理任何块的复制和删除命令。</p>
+<p>dfs.safemode.threshold.pct（缺省值0.999f）表示HDFS启动的时候，如果DataNode上报的block个数达到了元 数据 记录的block个数的0.999倍才可以离开安全模式，否则一直是这种只读模式。如果设为1则HDFS永远是处于SafeMode。</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>比较粗暴的方式，删除损坏掉的block</p>
+<ol>
+<li>执行命令退出安全模式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop dfsadmin -safemode leave<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>执行健康检查，删除损坏掉的block。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs fsck  &#x2F;  -delete<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+这里的路径虽然写的是<code>/</code>，但是不是删除所有文件，是删除根目录以下的所有的损坏的块文件</li>
+</ol>
+<p>生产环境一般考虑先恢复： 找到数据块的位置和丢失的数据信息</p>
+<ol>
+<li>查看/所有分区信息：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs hdfs fsck &#x2F; -files -blocks -locations<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>恢复数据文件，前提是，datanode里的block文件还存在，如果不存在了，虽然信息提示SUCCESS，但是其实还是没有恢复成功<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs debug recoverLease -path $&#123;path&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+我这里使用恢复命令没有效果，直接到datanode的文件存储目录查看了以下，报找不到的block都找不到<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;data&#x2F;dfs&#x2F;dn&#x2F;current ## 通过查看hdfs-site.xml查看datanode的文件实际存储位置
+find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下，文件名包含blk_1073743358_2534的文件。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+</li>
+</ol>
+<p>通过查看hdfs-site.xmhjl找到datanode的日志文件路径：/var/log/hadoop-hdfs<br>查看datanode日志文件：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D1.png" alt="hdfs块文件丢失恢复1"><br>通过日志可以看出，之前的恢复命令有的成功，有的失败，这里分别找了成功和失败的block查看了一下，发现成功日志的block块是恢复成功了，但是失败的确实没有成功</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 以下文件是成功的block块的文件，查看block块所属哪个文件路径，可以通过hdfs hdfs fsck &#x2F; -files -blocks -locations命令查看
+[root@ddp3 tmp]# hadoop fs -ls &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041
+-rw-r-----   3 digiwin hadoop      70423 2022-03-01 11:13 &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>查看datanode3的log，找其中一块block查看具体的生成时间，已经从哪台节点复制过来的<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D2.png" alt="hdfs块文件丢失恢复2"><br>可以看出，blk_1073741854是2022-03-07 13:27:37从192.168.5.25复制过来的。<br>查看datanode3的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D3.png" alt="hdfs块文件丢失恢复3"><br>查看datanode5的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D4.png" alt="hdfs块文件丢失恢复4"><br>可以很明显的看出，blk_1073741854在dn5上是2022-03-04的时候生成的，但是dn3是2022-03-07新复制的<br>所以，数据恢复操作，要有一个前提，丢失的块不能没有副本，需要从其他副本节点复制过来</p>
+<p>这里也可以参考一下<a href="https://www.cnblogs.com/prayer21/p/4819789.html">HDFS中datanode节点block损坏后的自动恢复过程</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>git使用笔记</title>
     <url>/2022/08/26/git%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3708,64 +3964,6 @@ git push origin develop<span aria-hidden="true" class="line-numbers-rows"><span>
       </categories>
       <tags>
         <tag>git</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>hdfs块文件丢失</title>
-    <url>/2022/03/08/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>hdfs块文件丢失</li>
-</ul>
-<a id="more"></a>
-
-<h2 id="hdfs块文件丢失"><a href="#hdfs块文件丢失" class="headerlink" title="hdfs块文件丢失"></a>hdfs块文件丢失</h2><p>最近公司集群扩容，运维那边不知道怎么操作的，导致hdfs的block块文件丢失了。</p>
-<p>个人猜测，公司的五台节点，都新挂载了一个新盘，datanode上配置了新盘，重启之后，hadoop集群肯定是要负载均衡一下的，迁移一些文件到新盘<br>这时候namenode会可能会进入安全模式，CM上很多组件都会报红，这时候我们的运维强制退出了安全模式，重启了hadoop集群，但是只是猜测，具体原因找不到了</p>
-<p>先说问题描述：<br>启动hive的时候，报如下报错日志：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory &#x2F;tmp&#x2F;hive&#x2F;root&#x2F;eceb6690-1510-4703-8a4b-60ea03c3fcec. Name node is in safe mode.
-The reported blocks 10427 needs additional 4373 blocks to reach the threshold 0.9990 of total blocks 14815.
-The number of live datanodes 3 has reached the minimum number 1. Safe mode will be turned off automatically once the thresholds have been reached. NamenodeHostName:ddp2
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.newSafemodeException(FSNamesystem.java:1448)
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkNameNodeSafeMode(FSNamesystem.java:1435)
-        ... 12 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错就是丢失了4373个block，导致namenode进入安全模式</p>
-<h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3><p>出现前面提到的问题主要原因是客户端写入的数据没有及时保存到磁盘中，从而导致数据丢失；又因为数据块丢失达到一定的比率，导致hdfs启动进入安全模式。</p>
-<p>为了弄清楚导致安全模式的原因，下面主要对hdfs安全模式和如何退出安全模式进行分析。</p>
-<h3 id="安全模式"><a href="#安全模式" class="headerlink" title="安全模式"></a>安全模式</h3><p>当 hdfs的NameNode节点启动时，会进入安全模式阶段。安全模式主要是为了系统启动的时候检查各个DataNode上数据块的有效性，同时根据策略必要的复制或者删除部分数据块。</p>
-<p>在此阶段，NameNode加载fsimage（Filesystem image：文件meta信息的持久化的检查点）文件到内存中，然后在editlog中执行相应的操作。加载fsimage文件包含文件metadata信息，但是不包含文件块位置的信息。</p>
-<p>DataNode启动的时候扫描本地磁盘，保存的block信息，然后将这些信息汇报给NameNode,让 NameNode得到块的位置信息，并对每个文件对应的数据块副本进行统计。</p>
-<p>如果hdfs数据量很大时，进入至退出安全模式时间较长。</p>
-<h3 id="安全模式退出条件"><a href="#安全模式退出条件" class="headerlink" title="安全模式退出条件"></a>安全模式退出条件</h3><p>当最小副本条件满足时，即一定比例（dfs.safemode.threshold.pct缺省值0.999f）的数据块都达到最小副本数，系统就会退出安全模式。当最小副本条件未达到要求时，就会对副本数不足的数据块安排DataNode进行复制，直至达到最小副本数。如果datanode丢失的block达到一定的比例（1-dfs.safemode.threshold.pct），则系统会一直处于安全模式状态即只读状态。而在安全模式下，系统会处于只读状态，NameNode不会处理任何块的复制和删除命令。</p>
-<p>dfs.safemode.threshold.pct（缺省值0.999f）表示HDFS启动的时候，如果DataNode上报的block个数达到了元 数据 记录的block个数的0.999倍才可以离开安全模式，否则一直是这种只读模式。如果设为1则HDFS永远是处于SafeMode。</p>
-<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>比较粗暴的方式，删除损坏掉的block</p>
-<ol>
-<li>执行命令退出安全模式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop dfsadmin -safemode leave<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>执行健康检查，删除损坏掉的block。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs fsck  &#x2F;  -delete<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-这里的路径虽然写的是<code>/</code>，但是不是删除所有文件，是删除根目录以下的所有的损坏的块文件</li>
-</ol>
-<p>生产环境一般考虑先恢复： 找到数据块的位置和丢失的数据信息</p>
-<ol>
-<li>查看/所有分区信息：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs hdfs fsck &#x2F; -files -blocks -locations<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>恢复数据文件，前提是，datanode里的block文件还存在，如果不存在了，虽然信息提示SUCCESS，但是其实还是没有恢复成功<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs debug recoverLease -path $&#123;path&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-我这里使用恢复命令没有效果，直接到datanode的文件存储目录查看了以下，报找不到的block都找不到<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;data&#x2F;dfs&#x2F;dn&#x2F;current ## 通过查看hdfs-site.xml查看datanode的文件实际存储位置
-find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下，文件名包含blk_1073743358_2534的文件。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
-
-</li>
-</ol>
-<p>通过查看hdfs-site.xmhjl找到datanode的日志文件路径：/var/log/hadoop-hdfs<br>查看datanode日志文件：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D1.png" alt="hdfs块文件丢失恢复1"><br>通过日志可以看出，之前的恢复命令有的成功，有的失败，这里分别找了成功和失败的block查看了一下，发现成功日志的block块是恢复成功了，但是失败的确实没有成功</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 以下文件是成功的block块的文件，查看block块所属哪个文件路径，可以通过hdfs hdfs fsck &#x2F; -files -blocks -locations命令查看
-[root@ddp3 tmp]# hadoop fs -ls &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041
--rw-r-----   3 digiwin hadoop      70423 2022-03-01 11:13 &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>查看datanode3的log，找其中一块block查看具体的生成时间，已经从哪台节点复制过来的<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D2.png" alt="hdfs块文件丢失恢复2"><br>可以看出，blk_1073741854是2022-03-07 13:27:37从192.168.5.25复制过来的。<br>查看datanode3的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D3.png" alt="hdfs块文件丢失恢复3"><br>查看datanode5的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D4.png" alt="hdfs块文件丢失恢复4"><br>可以很明显的看出，blk_1073741854在dn5上是2022-03-04的时候生成的，但是dn3是2022-03-07新复制的<br>所以，数据恢复操作，要有一个前提，丢失的块不能没有副本，需要从其他副本节点复制过来</p>
-<p>这里也可以参考一下<a href="https://www.cnblogs.com/prayer21/p/4819789.html">HDFS中datanode节点block损坏后的自动恢复过程</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Hadoop</tag>
       </tags>
   </entry>
   <entry>
@@ -4353,46 +4551,6 @@ words <span class="token operator">=</span> <span class="token string-interpolat
       </tags>
   </entry>
   <entry>
-    <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
-    <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>安装jenkins</li>
-<li>通过pythonAPI实现参数化jenkins构建</li>
-</ul>
-<a id="more"></a>
-<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
-<ul>
-<li>在官网下载rpm包，手动安装，最费事</li>
-<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
-<li>直接下载官网上的war包：wget <a href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
-</ul>
-<p>我这里直接用的下载war包</p>
-<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
-<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
-<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
-<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
-<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
-<p><img src="/uploads/202101/jenkins-param.png" alt="hive-import-data"></p>
-<p>需要几个参数，就添加几个参数</p>
-<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
-server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
-server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>里面的执行shell：<br><img src="/uploads/202101/jenkins-build.png" alt="hive-import-data"></p>
-<p>最终的效果：<br><img src="/uploads/202101/jenkins-console.png" alt="hive-import-data"></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Jenkins</category>
-      </categories>
-      <tags>
-        <tag>Jenkins</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>spark on yarn遇到的问题</title>
     <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -4463,6 +4621,71 @@ org.apache.spark.SparkException: Yarn application has already ended! It might ha
       <tags>
         <tag>Spark</tag>
         <tag>Yarn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python调用jenkinsAPI构建jenkins，并传递参数</title>
+    <url>/2021/01/16/python%E8%B0%83%E7%94%A8jenkinsAPI%E6%9E%84%E5%BB%BAjenkins%EF%BC%8C%E5%B9%B6%E4%BC%A0%E9%80%92%E5%8F%82%E6%95%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>安装jenkins</li>
+<li>通过pythonAPI实现参数化jenkins构建</li>
+</ul>
+<a id="more"></a>
+<h2 id="安装jenkins"><a href="#安装jenkins" class="headerlink" title="安装jenkins"></a>安装jenkins</h2><p>安装jenkins很简单，可以用多种方式安装，这里知道的有：</p>
+<ul>
+<li>在官网下载rpm包，手动安装，最费事</li>
+<li>centos系统通过yum安装，ubuntu通过apt-get安装(不推荐，因为很多东西都使用了默认的)</li>
+<li>直接下载官网上的war包：wget <a href="http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war">http://ftp-chi.osuosl.org/pub/jenkins/war-stable/2.164.2/jenkins.war</a></li>
+</ul>
+<p>我这里直接用的下载war包</p>
+<h2 id="遇到的坑"><a href="#遇到的坑" class="headerlink" title="遇到的坑"></a>遇到的坑</h2><p>在安装之前，公司的服务器上已经有一个版本的jekins在运行了，所有参数都已经被设置过了，所以，重新安装的版本，虽然文件夹，用户都和以前的版本不一样，但是每次jenkins页面都是直接跳转上个版本的，并不会进入首次激活jenkins的界面</p>
+<p>原因是：公司的服务器上配置了JENKINS_HOME，但是jenkins在启动的时候，会首先获取JENKINS_HOME,并读取文件夹内的配置信息。</p>
+<p>解决办法：这里取了个巧，在每次启动jenkins的时候，手动指定JENKINS_HOME=/data/jenkins2,这样就不会读取上个版本的信息了</p>
+<h2 id="通过pythonAPI实现参数化jenkins构建"><a href="#通过pythonAPI实现参数化jenkins构建" class="headerlink" title="通过pythonAPI实现参数化jenkins构建"></a>通过pythonAPI实现参数化jenkins构建</h2><p>这里要实现的场景是，通过前端的页面，选择相应的下拉框，传递参数到后台jenkins，然后jenkins获取相应的参数，计算以这些参数为条件的数据。</p>
+<h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
+<p><img src="/uploads/202101/jenkins-param.png" alt="hive-import-data"></p>
+<p>需要几个参数，就添加几个参数</p>
+<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
+server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery'</span><span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>build_job<span class="token punctuation">(</span><span class="token string">'jxInstantQuery2'</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">'param1'</span><span class="token punctuation">:</span> <span class="token string">'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'</span><span class="token punctuation">,</span> <span class="token string">'param2'</span><span class="token punctuation">:</span> <span class="token string">'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>里面的执行shell：<br><img src="/uploads/202101/jenkins-build.png" alt="hive-import-data"></p>
+<p>最终的效果：<br><img src="/uploads/202101/jenkins-console.png" alt="hive-import-data"></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Jenkins</category>
+      </categories>
+      <tags>
+        <tag>Jenkins</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spark性能优化之序列化</title>
+    <url>/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/</url>
+    <content><![CDATA[<h3 id="序列化是干什么的？"><a href="#序列化是干什么的？" class="headerlink" title="序列化是干什么的？"></a>序列化是干什么的？</h3><p>序列化简单来说就保存对象在内存中的状态也可以说是实例化变量。这是Java提供的用来保存 Object state，一种保存对象状态的机制。只有实现了serializable接口的类的对象才能被实例化<br>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
+<h3 id="什么情况下会用到序列化？"><a href="#什么情况下会用到序列化？" class="headerlink" title="什么情况下会用到序列化？"></a>什么情况下会用到序列化？</h3><ul>
+<li>当你想把内存中的对象写入到硬盘时</li>
+<li>当你想用套接字在网络上传输对象时</li>
+<li>当你想通过RMI调用对象时(RMI总结来说就是远程调用对象，在一个jvm上调用另一个jvm的对象)</li>
+</ul>
+<h3 id="Spark为什么需要序列化？"><a href="#Spark为什么需要序列化？" class="headerlink" title="Spark为什么需要序列化？"></a>Spark为什么需要序列化？</h3><p>Spark是分布式执行引擎，其核心抽象是弹性分布式数据集RDD，其代表了分布在不同节点的数据。Spark的计算是在executor上分布式执行的，所以对象在执行中需要通过网络传输，或者持久化到本地磁盘的时候必须要经过序列化。</p>
+<h3 id="Spark支持的序列化"><a href="#Spark支持的序列化" class="headerlink" title="Spark支持的序列化"></a>Spark支持的序列化</h3><p>spark默认使用的是java序列化，java序列化的好处是非常灵活，开发起来很简单，缺点是速度较慢，在某些情况下序列化的结果也比较大<br>Spark也能使用Kryo（版本2）序列化对象。Kryo不但速度极快，而且产生的结果更为紧凑（通常能提高10倍）。Kryo的缺点是不支持所有类型，为了更好的性能，你需要提前注册程序中所使用的类（class）。</p>
+<h3 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h3><pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> SparkConf<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>setAppName<span class="token punctuation">(</span><span class="token string">"Test"</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span>set<span class="token punctuation">(</span><span class="token string">"spark.serializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.spark.serializer.KryoSerializer"</span><span class="token punctuation">)</span>   <span class="token comment">//声明序列化器为KryoSerializer</span>
+      <span class="token punctuation">.</span>registerKryoClasses<span class="token punctuation">(</span>Array<span class="token punctuation">(</span>classOf<span class="token punctuation">[</span>MyClass1<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass2<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass3<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment">//注册要序列化的自定义类型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>参考：<a href="https://tech.meituan.com/2016/04/29/spark-tuning-basic.html">https://tech.meituan.com/2016/04/29/spark-tuning-basic.html</a><br>原则八</p>
+<h3 id="spark性能调优"><a href="#spark性能调优" class="headerlink" title="spark性能调优"></a>spark性能调优</h3><p>有篇文章写得很好，可以参考下<br><a href="https://www.cnblogs.com/stillcoolme/p/10576563.html">https://www.cnblogs.com/stillcoolme/p/10576563.html</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
       </tags>
   </entry>
   <entry>
@@ -4576,31 +4799,6 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
 <p>具体问题：使用spark-sql读取hive表，<code>select *</code>可以读取，但是<code>select</code>字段名，就会报数组越界<br>在网上查了很多办法，最终查到原因应该是spark-sql和hive引擎解析orc的方式不一样。</p>
 <p>可以通过设置<code>set spark.sql.orc.impl = hive;</code>来解决<br>参考了<a href="https://support.huaweicloud.com/cmpntguide-mrs/mrs_01_1964.html">配置矢量化读取ORC数据</a><br><a href="http://support-it.huawei.com/docs/zh-cn/fusioninsight-all/maintenance-guide/zh-cn_topic_0261891154.html">spark查询ORC表失败，在hive可以正常查询</a></p>
 <h2 id="Cannot-overwrite-a-path-that-is-also-being-read-from"><a href="#Cannot-overwrite-a-path-that-is-also-being-read-from" class="headerlink" title="Cannot overwrite a path that is also being read from."></a>Cannot overwrite a path that is also being read from.</h2><p>1.设置 spark.sql.hive.convertMetastoreParquet=false或者spark.sql.hive.convertMetastoreOrc=false</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>spark性能优化之序列化</title>
-    <url>/2021/01/15/spark%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%BA%8F%E5%88%97%E5%8C%96/</url>
-    <content><![CDATA[<h3 id="序列化是干什么的？"><a href="#序列化是干什么的？" class="headerlink" title="序列化是干什么的？"></a>序列化是干什么的？</h3><p>序列化简单来说就保存对象在内存中的状态也可以说是实例化变量。这是Java提供的用来保存 Object state，一种保存对象状态的机制。只有实现了serializable接口的类的对象才能被实例化<br>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
-<h3 id="什么情况下会用到序列化？"><a href="#什么情况下会用到序列化？" class="headerlink" title="什么情况下会用到序列化？"></a>什么情况下会用到序列化？</h3><ul>
-<li>当你想把内存中的对象写入到硬盘时</li>
-<li>当你想用套接字在网络上传输对象时</li>
-<li>当你想通过RMI调用对象时(RMI总结来说就是远程调用对象，在一个jvm上调用另一个jvm的对象)</li>
-</ul>
-<h3 id="Spark为什么需要序列化？"><a href="#Spark为什么需要序列化？" class="headerlink" title="Spark为什么需要序列化？"></a>Spark为什么需要序列化？</h3><p>Spark是分布式执行引擎，其核心抽象是弹性分布式数据集RDD，其代表了分布在不同节点的数据。Spark的计算是在executor上分布式执行的，所以对象在执行中需要通过网络传输，或者持久化到本地磁盘的时候必须要经过序列化。</p>
-<h3 id="Spark支持的序列化"><a href="#Spark支持的序列化" class="headerlink" title="Spark支持的序列化"></a>Spark支持的序列化</h3><p>spark默认使用的是java序列化，java序列化的好处是非常灵活，开发起来很简单，缺点是速度较慢，在某些情况下序列化的结果也比较大<br>Spark也能使用Kryo（版本2）序列化对象。Kryo不但速度极快，而且产生的结果更为紧凑（通常能提高10倍）。Kryo的缺点是不支持所有类型，为了更好的性能，你需要提前注册程序中所使用的类（class）。</p>
-<h3 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h3><pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> SparkConf<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>setAppName<span class="token punctuation">(</span><span class="token string">"Test"</span><span class="token punctuation">)</span>
-      <span class="token punctuation">.</span>set<span class="token punctuation">(</span><span class="token string">"spark.serializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.spark.serializer.KryoSerializer"</span><span class="token punctuation">)</span>   <span class="token comment">//声明序列化器为KryoSerializer</span>
-      <span class="token punctuation">.</span>registerKryoClasses<span class="token punctuation">(</span>Array<span class="token punctuation">(</span>classOf<span class="token punctuation">[</span>MyClass1<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass2<span class="token punctuation">]</span><span class="token punctuation">,</span>classOf<span class="token punctuation">[</span>MyClass3<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment">//注册要序列化的自定义类型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>参考：<a href="https://tech.meituan.com/2016/04/29/spark-tuning-basic.html">https://tech.meituan.com/2016/04/29/spark-tuning-basic.html</a><br>原则八</p>
-<h3 id="spark性能调优"><a href="#spark性能调优" class="headerlink" title="spark性能调优"></a>spark性能调优</h3><p>有篇文章写得很好，可以参考下<br><a href="https://www.cnblogs.com/stillcoolme/p/10576563.html">https://www.cnblogs.com/stillcoolme/p/10576563.html</a></p>
 ]]></content>
       <categories>
         <category>大数据</category>
@@ -5408,155 +5606,6 @@ search:
       </tags>
   </entry>
   <entry>
-    <title>数据研发开发规范</title>
-    <url>/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>代码开发规范</li>
-<li>调度系统使用规范</li>
-<li>任务上线流程</li>
-<li>数仓分层与命名规范<a id="more"></a>
-
-
-
-</li>
-</ul>
-<p>众所周知，制订交通法规表面上是要限制行车权，实际上是保障公众的人身安全。试想如果没有限速，没有红绿灯，没有靠右行驶条款，谁还敢上路。消防局最主要的工作不是灭火，而是为了不发生火灾建立很多规范。如果发生火灾，说明前面的工作没有做到位。<br>同理，对于数仓开发来说，开发规范不是消灭开发的创造性、优雅性，而是限制过度个性化，推行相对标准化，以一种普遍认可的方式一起做事。<br>为此，针对数据研发而言，整理以下开发规范：</p>
-<ul>
-<li>代码开发规范</li>
-<li>调度系统使用规范</li>
-<li>任务上线流程</li>
-</ul>
-<p>设计开发规范的长远目标是从有到无，因为人人自觉遵守，规范和谐地融入开发整个流程，规范似乎消失了，但又无处不在。</p>
-<h2 id="代码开发规范"><a href="#代码开发规范" class="headerlink" title="代码开发规范"></a>代码开发规范</h2><p>数据研发分为离线任务和实时任务，两种任务的开发流程完全不同，故开发规范需要分别定制</p>
-<h3 id="离线任务"><a href="#离线任务" class="headerlink" title="离线任务"></a>离线任务</h3><h4 id="通用规范"><a href="#通用规范" class="headerlink" title="通用规范"></a>通用规范</h4><p>离线数仓的开发，主要是开发sql任务（hive sql/impala sql）,针对sql任务，制定以下规范：</p>
-<ol>
-<li>通过编写shell脚本来开发sql任务，一个shell脚本最终只输出一个结果表。中间生成的临时表需要在脚本最后删除</li>
-<li>任务的调度使用DolphinScheduler，每天定时启动</li>
-<li>默认情况下，执行引擎使用Hive-MR，除非对实效性要求很高，可以切换到Impala</li>
-<li>一个hive-cli只能执行一个sql，即一个sql语句不能含有多个<code>;</code></li>
-<li>脚本统一在自己本地开发，后上传到gitlab，通过DolphinScheduler的代码发布项目(projectDeploy)发布到线上</li>
-<li>如果引用的hive表是分区表，必须指定分区范围，如dt = ‘20220420’</li>
-<li>禁止使用<code>select *</code></li>
-<li>所有的报表和模型开发必须先出设计再进行开发</li>
-</ol>
-<h4 id="注释规范"><a href="#注释规范" class="headerlink" title="注释规范"></a>注释规范</h4><p>脚本的开头以及每个sql语句都必须有注视</p>
-<ol>
-<li>注释内容要清晰明了，含义准确，避免歧义 </li>
-<li>字段注释紧跟在字段后面 </li>
-<li>应对不易理解的分支条件表达式加注释 </li>
-<li>对重要的计算应说明其功能 </li>
-<li>过长的函数实现，应将其语句按实现的功能分段加以概括性说明 </li>
-<li>原则上所有表、字段、任务都需要添加注释，任务有特定的注释规范，见下文任务注释说明</li>
-</ol>
-<p>任务注释说明：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># # # # # # -CopyRight# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -
-#   AppName: offline_ods_bm_cust_info
-#   Description: 计算售前商机_客户基本信息表，保留历史与最新的数据
-#   Source Table:
-#        pom.stg_bm_cust_info
-#   Output Table:
-#        pom.ods_bm_cust_info
-#   Version 1.00
-#   Language:bash shell
-#   CreateDate: 2022&#x2F;04&#x2F;14 14:43
-#   Author: gujc
-#   ITCode: 17405
-#   Email: gujc@digiwin.com
-# # # # # # Update Log# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#   2022-04-15 修改history分区数据不全的问题
-# # # # # # Environment# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<ol>
-<li>提供任务名，方便任务创建时任务的获取以及平台中任务查询 </li>
-<li>提供创建者、创建日期、功能描述等信息，方便后期维护跟踪 </li>
-<li>提供代码变更历史，便于了解代码演进历史及依据 </li>
-<li>提供脚本依赖表清单，方便后续任务依赖配置 </li>
-<li>提供输出表清单，方便确认是否单个目标表</li>
-</ol>
-<h4 id="SQL编写规范"><a href="#SQL编写规范" class="headerlink" title="SQL编写规范"></a>SQL编写规范</h4><ol>
-<li>关键字最好大写，如SELECT、FROM、WHERE等，字段名不做要求</li>
-<li>字段排列要求</li>
-</ol>
-<ul>
-<li>SELECT 语句选择的字段按每行一个字段方式编排；</li>
-<li>SELECT 单词后面一个空格后直接跟首个选择的字段，其他字段前”,”点后放字段名</li>
-<li>建议每个SELECT的字段后面都有注释，至少在SQL的最外层的SELECT必须要有，并且多个字段的注释对其在同一列上<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> first_name               <span class="token comment">--第一个名字</span>
-      <span class="token punctuation">,</span>last_name                <span class="token comment">--最后一个名字</span>
-      <span class="token punctuation">,</span>salary                   <span class="token comment">--工资</span>
-      <span class="token punctuation">,</span>itcode                   <span class="token comment">--工号</span>
-<span class="token keyword">FROM</span> employee
-<span class="token keyword">WHERE</span> salary <span class="token operator">></span> <span class="token number">35000</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-</ul>
-<ol start="3">
-<li>SELECT子句排列要求<br>SELECT语句中所用到的FROM、WHERE、GROUP BY、HAVING、JOIN、UNION等子句</li>
-</ol>
-<ul>
-<li>换行编写</li>
-<li>与相应的SELECT语句对齐</li>
-<li>WHERE子句下面的逻辑判断符AND、OR等与WHERE左对齐编排<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> cust_id
-      <span class="token punctuation">,</span>num
-<span class="token keyword">FROM</span> cust 
-<span class="token keyword">WHERE</span> num <span class="token operator">>=</span> <span class="token number">100</span> 
-  <span class="token operator">AND</span> num <span class="token operator">&lt;=</span> <span class="token number">200</span>
-   <span class="token operator">OR</span> proname <span class="token operator">=</span> <span class="token string">'ORANGE'</span>
-<span class="token keyword">ORDER</span> <span class="token keyword">BY</span> num<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-</ul>
-<ol start="3">
-<li>算术运算符、逻辑运算符前后至少保留一个空格<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> <span class="token function">SUM</span><span class="token punctuation">(</span>t1<span class="token punctuation">.</span>num <span class="token operator">*</span> t2<span class="token punctuation">.</span>price<span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token number">2</span> <span class="token keyword">AS</span> total_amt
-<span class="token keyword">FROM</span> fruit_orders t1 
-<span class="token keyword">INNER</span> <span class="token keyword">JOIN</span> fruit_inventory t2 
-<span class="token keyword">ON</span> t1<span class="token punctuation">.</span>proid <span class="token operator">=</span> t2<span class="token punctuation">.</span>proid
-<span class="token keyword">WHERE</span> t2<span class="token punctuation">.</span>proname <span class="token operator">=</span> <span class="token string">'ORANGE'</span>
-  <span class="token operator">AND</span> num <span class="token operator">&lt;=</span> <span class="token number">200</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>一个sql语句最多join 3次，大于3次的，先创建临时表，关联临时表，这样可以使逻辑更清晰，并且方便调查数据问题</li>
-</ol>
-<p>其他规范可以参考<a href="https://zhuanlan.zhihu.com/p/453180860">HQL过程体开发规范</a></p>
-<h4 id="任务脚本案例"><a href="#任务脚本案例" class="headerlink" title="任务脚本案例"></a>任务脚本案例</h4><p>数仓脚本开发统一提交到<a href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a><br>为了方便编码，让数据研发人员专注于业务逻辑，这里对shell异常捕捉、执行引擎的选择等做了封装，开发人员只要按照固定的模版填充sql即可：</p>
-<ol>
-<li>删除hive临时表：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot; clear Temporary table $&#123;TABLE_TMP_01&#125;,write into Temporary table&quot;
-drop_tmp_table -tbn &quot;$&#123;TABLE_TMP_01&#125;&quot; -engine hive -env hwCloud<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-参数说明：</li>
-</ol>
-<p>-tbn：表名<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云</p>
-<ol start="2">
-<li>执行sql语句：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot;INSERT OVERWRITE TABLE partition active&quot;
-V_SQL&#x3D;&quot;
-INSERT OVERWRITE TABLE $&#123;TABLE_TMP_01&#125; partition(dp &#x3D; &#39;active&#39;,end_date &#x3D; &#39;99991231&#39;)
-SELECT activity_id          --活动id
-      ,activity_no          --活动编号
-      ,activity_name        --活动名称
-      ,transaction_times    --交易次数
-      ,contact_times        --接触次数
-      ,manage_status        --状态
-      ,tenantsid            --租户id
-FROM $&#123;TABLE_INPUT_01&#125; -- 因为每天取得数据都是最新的数据，所以，stg表就是最新的数据
-;
-&quot;
-runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -engine hive -env hwCloud || return $?<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-参数说明：</li>
-</ol>
-<p>-sql：要执行的sql语句<br>-msg：执行sql提示信息<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云<br>|| return $? : 获取代码执行状态 </p>
-<p>hive脚本案例可以查看DataWarehose/public/hive_templete.sh<br>impala脚本案例可以查看DataWarehose/public/impala_templete.sh</p>
-<h2 id="调度系统使用规范"><a href="#调度系统使用规范" class="headerlink" title="调度系统使用规范"></a>调度系统使用规范</h2><ul>
-<li>工作流按照项目划分，理论上，一个项目的所有任务都在一个工作流内</li>
-<li>一个job输出一个结果表，需要配置前置和后置依赖</li>
-<li>job名称统一按照时间粒度 + 输出结果表名来命名，例如offline_ods_pom_business_work_record,代表离线计算ods_pom_business_work_record<br>具体的项目案例，可以参考华为云上的pom项目</li>
-</ul>
-<h2 id="任务上线流程"><a href="#任务上线流程" class="headerlink" title="任务上线流程"></a>任务上线流程</h2><ul>
-<li>代码在本地开发完成后，需统一提交到<a href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a></li>
-<li>经由管理员codeReview之后合并到master分支</li>
-<li>在数据中台-项目管理-projectDeploy，选择相应的job执行代码分发<br><img src="/uploads/202204/%E6%95%B0%E4%BB%93%E9%A1%B9%E7%9B%AE%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B.png" alt="数仓项目上线流程"></li>
-</ul>
-]]></content>
-      <categories>
-        <category>数据仓库</category>
-        <category>开发规范</category>
-      </categories>
-      <tags>
-        <tag>数据仓库</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>获取yarn上application资源占用情况</title>
     <url>/2021/12/09/%E8%8E%B7%E5%8F%96yarn%E4%B8%8Aapplication%E8%B5%84%E6%BA%90%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -5749,6 +5798,155 @@ yarn logs -applicationId application_1641525781336_0011 -size 1000000000 &gt; ap
       </categories>
       <tags>
         <tag>监控</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据研发开发规范</title>
+    <url>/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>代码开发规范</li>
+<li>调度系统使用规范</li>
+<li>任务上线流程</li>
+<li>数仓分层与命名规范<a id="more"></a>
+
+
+
+</li>
+</ul>
+<p>众所周知，制订交通法规表面上是要限制行车权，实际上是保障公众的人身安全。试想如果没有限速，没有红绿灯，没有靠右行驶条款，谁还敢上路。消防局最主要的工作不是灭火，而是为了不发生火灾建立很多规范。如果发生火灾，说明前面的工作没有做到位。<br>同理，对于数仓开发来说，开发规范不是消灭开发的创造性、优雅性，而是限制过度个性化，推行相对标准化，以一种普遍认可的方式一起做事。<br>为此，针对数据研发而言，整理以下开发规范：</p>
+<ul>
+<li>代码开发规范</li>
+<li>调度系统使用规范</li>
+<li>任务上线流程</li>
+</ul>
+<p>设计开发规范的长远目标是从有到无，因为人人自觉遵守，规范和谐地融入开发整个流程，规范似乎消失了，但又无处不在。</p>
+<h2 id="代码开发规范"><a href="#代码开发规范" class="headerlink" title="代码开发规范"></a>代码开发规范</h2><p>数据研发分为离线任务和实时任务，两种任务的开发流程完全不同，故开发规范需要分别定制</p>
+<h3 id="离线任务"><a href="#离线任务" class="headerlink" title="离线任务"></a>离线任务</h3><h4 id="通用规范"><a href="#通用规范" class="headerlink" title="通用规范"></a>通用规范</h4><p>离线数仓的开发，主要是开发sql任务（hive sql/impala sql）,针对sql任务，制定以下规范：</p>
+<ol>
+<li>通过编写shell脚本来开发sql任务，一个shell脚本最终只输出一个结果表。中间生成的临时表需要在脚本最后删除</li>
+<li>任务的调度使用DolphinScheduler，每天定时启动</li>
+<li>默认情况下，执行引擎使用Hive-MR，除非对实效性要求很高，可以切换到Impala</li>
+<li>一个hive-cli只能执行一个sql，即一个sql语句不能含有多个<code>;</code></li>
+<li>脚本统一在自己本地开发，后上传到gitlab，通过DolphinScheduler的代码发布项目(projectDeploy)发布到线上</li>
+<li>如果引用的hive表是分区表，必须指定分区范围，如dt = ‘20220420’</li>
+<li>禁止使用<code>select *</code></li>
+<li>所有的报表和模型开发必须先出设计再进行开发</li>
+</ol>
+<h4 id="注释规范"><a href="#注释规范" class="headerlink" title="注释规范"></a>注释规范</h4><p>脚本的开头以及每个sql语句都必须有注视</p>
+<ol>
+<li>注释内容要清晰明了，含义准确，避免歧义 </li>
+<li>字段注释紧跟在字段后面 </li>
+<li>应对不易理解的分支条件表达式加注释 </li>
+<li>对重要的计算应说明其功能 </li>
+<li>过长的函数实现，应将其语句按实现的功能分段加以概括性说明 </li>
+<li>原则上所有表、字段、任务都需要添加注释，任务有特定的注释规范，见下文任务注释说明</li>
+</ol>
+<p>任务注释说明：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># # # # # # -CopyRight# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -
+#   AppName: offline_ods_bm_cust_info
+#   Description: 计算售前商机_客户基本信息表，保留历史与最新的数据
+#   Source Table:
+#        pom.stg_bm_cust_info
+#   Output Table:
+#        pom.ods_bm_cust_info
+#   Version 1.00
+#   Language:bash shell
+#   CreateDate: 2022&#x2F;04&#x2F;14 14:43
+#   Author: gujc
+#   ITCode: 17405
+#   Email: gujc@digiwin.com
+# # # # # # Update Log# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#   2022-04-15 修改history分区数据不全的问题
+# # # # # # Environment# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol>
+<li>提供任务名，方便任务创建时任务的获取以及平台中任务查询 </li>
+<li>提供创建者、创建日期、功能描述等信息，方便后期维护跟踪 </li>
+<li>提供代码变更历史，便于了解代码演进历史及依据 </li>
+<li>提供脚本依赖表清单，方便后续任务依赖配置 </li>
+<li>提供输出表清单，方便确认是否单个目标表</li>
+</ol>
+<h4 id="SQL编写规范"><a href="#SQL编写规范" class="headerlink" title="SQL编写规范"></a>SQL编写规范</h4><ol>
+<li>关键字最好大写，如SELECT、FROM、WHERE等，字段名不做要求</li>
+<li>字段排列要求</li>
+</ol>
+<ul>
+<li>SELECT 语句选择的字段按每行一个字段方式编排；</li>
+<li>SELECT 单词后面一个空格后直接跟首个选择的字段，其他字段前”,”点后放字段名</li>
+<li>建议每个SELECT的字段后面都有注释，至少在SQL的最外层的SELECT必须要有，并且多个字段的注释对其在同一列上<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> first_name               <span class="token comment">--第一个名字</span>
+      <span class="token punctuation">,</span>last_name                <span class="token comment">--最后一个名字</span>
+      <span class="token punctuation">,</span>salary                   <span class="token comment">--工资</span>
+      <span class="token punctuation">,</span>itcode                   <span class="token comment">--工号</span>
+<span class="token keyword">FROM</span> employee
+<span class="token keyword">WHERE</span> salary <span class="token operator">></span> <span class="token number">35000</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ul>
+<ol start="3">
+<li>SELECT子句排列要求<br>SELECT语句中所用到的FROM、WHERE、GROUP BY、HAVING、JOIN、UNION等子句</li>
+</ol>
+<ul>
+<li>换行编写</li>
+<li>与相应的SELECT语句对齐</li>
+<li>WHERE子句下面的逻辑判断符AND、OR等与WHERE左对齐编排<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> cust_id
+      <span class="token punctuation">,</span>num
+<span class="token keyword">FROM</span> cust 
+<span class="token keyword">WHERE</span> num <span class="token operator">>=</span> <span class="token number">100</span> 
+  <span class="token operator">AND</span> num <span class="token operator">&lt;=</span> <span class="token number">200</span>
+   <span class="token operator">OR</span> proname <span class="token operator">=</span> <span class="token string">'ORANGE'</span>
+<span class="token keyword">ORDER</span> <span class="token keyword">BY</span> num<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ul>
+<ol start="3">
+<li>算术运算符、逻辑运算符前后至少保留一个空格<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SELECT</span> <span class="token function">SUM</span><span class="token punctuation">(</span>t1<span class="token punctuation">.</span>num <span class="token operator">*</span> t2<span class="token punctuation">.</span>price<span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token number">2</span> <span class="token keyword">AS</span> total_amt
+<span class="token keyword">FROM</span> fruit_orders t1 
+<span class="token keyword">INNER</span> <span class="token keyword">JOIN</span> fruit_inventory t2 
+<span class="token keyword">ON</span> t1<span class="token punctuation">.</span>proid <span class="token operator">=</span> t2<span class="token punctuation">.</span>proid
+<span class="token keyword">WHERE</span> t2<span class="token punctuation">.</span>proname <span class="token operator">=</span> <span class="token string">'ORANGE'</span>
+  <span class="token operator">AND</span> num <span class="token operator">&lt;=</span> <span class="token number">200</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>一个sql语句最多join 3次，大于3次的，先创建临时表，关联临时表，这样可以使逻辑更清晰，并且方便调查数据问题</li>
+</ol>
+<p>其他规范可以参考<a href="https://zhuanlan.zhihu.com/p/453180860">HQL过程体开发规范</a></p>
+<h4 id="任务脚本案例"><a href="#任务脚本案例" class="headerlink" title="任务脚本案例"></a>任务脚本案例</h4><p>数仓脚本开发统一提交到<a href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a><br>为了方便编码，让数据研发人员专注于业务逻辑，这里对shell异常捕捉、执行引擎的选择等做了封装，开发人员只要按照固定的模版填充sql即可：</p>
+<ol>
+<li>删除hive临时表：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot; clear Temporary table $&#123;TABLE_TMP_01&#125;,write into Temporary table&quot;
+drop_tmp_table -tbn &quot;$&#123;TABLE_TMP_01&#125;&quot; -engine hive -env hwCloud<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+参数说明：</li>
+</ol>
+<p>-tbn：表名<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云</p>
+<ol start="2">
+<li>执行sql语句：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot;INSERT OVERWRITE TABLE partition active&quot;
+V_SQL&#x3D;&quot;
+INSERT OVERWRITE TABLE $&#123;TABLE_TMP_01&#125; partition(dp &#x3D; &#39;active&#39;,end_date &#x3D; &#39;99991231&#39;)
+SELECT activity_id          --活动id
+      ,activity_no          --活动编号
+      ,activity_name        --活动名称
+      ,transaction_times    --交易次数
+      ,contact_times        --接触次数
+      ,manage_status        --状态
+      ,tenantsid            --租户id
+FROM $&#123;TABLE_INPUT_01&#125; -- 因为每天取得数据都是最新的数据，所以，stg表就是最新的数据
+;
+&quot;
+runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -engine hive -env hwCloud || return $?<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+参数说明：</li>
+</ol>
+<p>-sql：要执行的sql语句<br>-msg：执行sql提示信息<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云<br>|| return $? : 获取代码执行状态 </p>
+<p>hive脚本案例可以查看DataWarehose/public/hive_templete.sh<br>impala脚本案例可以查看DataWarehose/public/impala_templete.sh</p>
+<h2 id="调度系统使用规范"><a href="#调度系统使用规范" class="headerlink" title="调度系统使用规范"></a>调度系统使用规范</h2><ul>
+<li>工作流按照项目划分，理论上，一个项目的所有任务都在一个工作流内</li>
+<li>一个job输出一个结果表，需要配置前置和后置依赖</li>
+<li>job名称统一按照时间粒度 + 输出结果表名来命名，例如offline_ods_pom_business_work_record,代表离线计算ods_pom_business_work_record<br>具体的项目案例，可以参考华为云上的pom项目</li>
+</ul>
+<h2 id="任务上线流程"><a href="#任务上线流程" class="headerlink" title="任务上线流程"></a>任务上线流程</h2><ul>
+<li>代码在本地开发完成后，需统一提交到<a href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a></li>
+<li>经由管理员codeReview之后合并到master分支</li>
+<li>在数据中台-项目管理-projectDeploy，选择相应的job执行代码分发<br><img src="/uploads/202204/%E6%95%B0%E4%BB%93%E9%A1%B9%E7%9B%AE%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B.png" alt="数仓项目上线流程"></li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+        <category>开发规范</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
       </tags>
   </entry>
   <entry>
