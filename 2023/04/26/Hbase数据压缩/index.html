@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202303/Compaction%E5%88%86%E7%B1%BB.png">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202303/hbase%E9%9B%86%E7%BE%A4%E5%91%8A%E8%AD%A6-%E5%8E%8B%E7%BC%A9%E9%98%9F%E5%88%97.png">
 <meta property="article:published_time" content="2023-04-26T02:03:26.000Z">
-<meta property="article:modified_time" content="2023-04-27T01:29:03.559Z">
+<meta property="article:modified_time" content="2023-04-27T08:49:25.115Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Hbase">
 <meta name="twitter:card" content="summary">
@@ -237,7 +237,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-04-27 09:29:03" itemprop="dateModified" datetime="2023-04-27T09:29:03+08:00">2023-04-27</time>
+                <time title="修改时间：2023-04-27 16:49:25" itemprop="dateModified" datetime="2023-04-27T16:49:25+08:00">2023-04-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -417,7 +417,7 @@ bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#
 <li>后台线程周期性检查<br>后台线程 CompactionChecker 会定期检查是否需要执行compaction，检查周期为hbase.server.thread.wakefrequency * hbase.server.compactchecker.interval.multiplier，这里主要考虑的是一段时间内没有写入请求仍然需要做compact检查。其中参数 hbase.server.thread.wakefrequency 默认值 10000 即 10s，是HBase服务端线程唤醒时间间隔，用于log roller、memstore flusher等操作周期性检查；参数 hbase.server.compactchecker.interval.multiplier 默认值1000，是compaction操作周期性检查乘数因子。10 * 1000 s 时间上约等于2hrs, 46mins, 40sec。</li>
 <li>手动触发<br>是指通过HBase Shell、Master UI界面或者HBase API等任一种方式 执行 compact、major_compact等命令。（这里主要指的是Major Compact）</li>
 </ol>
-<p>注意：当一个Region中的StoreFile数量达到一定数量或者总大小达到一定阈值时，HBase会将Minor Compact升级为Major Compact。</p>
+<p>注意：HBase RS内部设计了两个线程池：large compactions与small compactions，用来分开处理Compaction操作，如果待合并文件的总大小大于（2 * hbase.hstore.compaction.max * hbase.hregion.memstore.flush.size）则交给large compactions线程池处理，否则交给small compactions线程池处理。</p>
 <h3 id="Compaction-参数解析"><a href="#Compaction-参数解析" class="headerlink" title="Compaction 参数解析"></a>Compaction 参数解析</h3><h4 id="Major-Compaction-参数"><a href="#Major-Compaction-参数" class="headerlink" title="Major Compaction 参数"></a>Major Compaction 参数</h4><p>Major Compaction涉及的参数比较少，主要有大合并时间间隔与一个抖动参数因子，如下：</p>
 <ol>
 <li><code>hbase.hregion.majorcompaction</code>:Major compaction周期性时间间隔，默认值604800000，单位ms。</li>
@@ -459,6 +459,7 @@ bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#
 </li>
 </ol>
 <h3 id="Compaction-总结"><a href="#Compaction-总结" class="headerlink" title="Compaction 总结"></a>Compaction 总结</h3><p>HBase Compaction操作是为了数据读取做的优化，总的来说是以牺牲磁盘io来换取读性能的基本稳定。Compaction操作分为minor compaction与major compaction，其中major compaction消耗资源较大、对读写请求有一定影响，因此一般是禁用自动周期性执行而选择业务低峰期时手动执行。</p>
+<p>具体可以参考<a target="_blank" rel="noopener" href="http://hbasefly.com/2016/07/13/hbase-compaction-1/">HBase Compaction的前生今世－身世之旅</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/Lzx116/article/details/125215951">Hbase的MinorCompact过程解析及参数调优</a></p>
 <h2 id="hbase性能优化"><a href="#hbase性能优化" class="headerlink" title="hbase性能优化"></a>hbase性能优化</h2><p>在阿里云正式区做数据压缩的时候，因为这个集群内有一张表单表数据量就有6T，表太大了，不敢随便压缩，并且，hbase集群一直在告警<br><img src="/uploads/202303/hbase%E9%9B%86%E7%BE%A4%E5%91%8A%E8%AD%A6-%E5%8E%8B%E7%BC%A9%E9%98%9F%E5%88%97.png" alt="hbase集群告警-压缩队列"></p>
 <h3 id="分析原因"><a href="#分析原因" class="headerlink" title="分析原因"></a>分析原因</h3><p>这里分析了一下告警原因：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">5.6 T    6.3 T    &#x2F;hbase&#x2F;data&#x2F;default&#x2F;TraceV2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
