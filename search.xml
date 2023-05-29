@@ -945,30 +945,6 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       </tags>
   </entry>
   <entry>
-    <title>FlinkCDC原理</title>
-    <url>/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>FlinkCDC概述</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="FlinkCDC概述"><a href="#FlinkCDC概述" class="headerlink" title="FlinkCDC概述"></a>FlinkCDC概述</h2><p>支持 currentFetchEventTimeLag，currentEmitEventTimeLag，sourceIdleTime 监控指标<br>这些指标遵循 FLIP-33 [1] 的连接器指标规范，可以查看 FLIP-33 获取每个指标的含义。其中，<br>currentEmitEventTimeLag 指标记录的是 Source 发送一条记录到下游节点的时间点和该记录<br>在 DB 里产生时间点差值，用于衡量数据从 DB 产生到离开 Source 节点的延迟。用户可以通<br>过该指标判断 source 是否进入了 binlog 读取阶段：</p>
-<ul>
-<li>即当该指标为 0 时，代表还在全量历史读取阶段；</li>
-<li>当大于 0 时，则代表进入了 binlog 读取阶段。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Flink</category>
-        <category>CDC</category>
-      </categories>
-      <tags>
-        <tag>CDC</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
     <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
     <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
@@ -995,6 +971,30 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       <categories>
         <category>工具箱</category>
       </categories>
+  </entry>
+  <entry>
+    <title>FlinkCDC原理</title>
+    <url>/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>FlinkCDC概述</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="FlinkCDC概述"><a href="#FlinkCDC概述" class="headerlink" title="FlinkCDC概述"></a>FlinkCDC概述</h2><p>支持 currentFetchEventTimeLag，currentEmitEventTimeLag，sourceIdleTime 监控指标<br>这些指标遵循 FLIP-33 [1] 的连接器指标规范，可以查看 FLIP-33 获取每个指标的含义。其中，<br>currentEmitEventTimeLag 指标记录的是 Source 发送一条记录到下游节点的时间点和该记录<br>在 DB 里产生时间点差值，用于衡量数据从 DB 产生到离开 Source 节点的延迟。用户可以通<br>过该指标判断 source 是否进入了 binlog 读取阶段：</p>
+<ul>
+<li>即当该指标为 0 时，代表还在全量历史读取阶段；</li>
+<li>当大于 0 时，则代表进入了 binlog 读取阶段。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Flink</category>
+        <category>CDC</category>
+      </categories>
+      <tags>
+        <tag>CDC</tag>
+      </tags>
   </entry>
   <entry>
     <title>FlinkSQL学习笔记</title>
@@ -2249,6 +2249,56 @@ Wrote minidump to &#x2F;var&#x2F;log&#x2F;impala-minidumps&#x2F;impalad&#x2F;c5d
       </tags>
   </entry>
   <entry>
+    <title>Java面试题</title>
+    <url>/2021/11/18/Java%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Java面试题总结</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="Java基础面试题"><a href="#Java基础面试题" class="headerlink" title="Java基础面试题"></a>Java基础面试题</h2><p><strong><font size = 5>1. 抽象类和接口的区别？</font></strong><br><strong>相同点:</strong>  </p>
+<ol>
+<li>都位于继承的顶端,用于被其他类实现或继承;  </li>
+<li>都不能直接实例化对象;  </li>
+<li>都可以包含抽象方法,其子类都必须覆写这些抽象方法;  </li>
+</ol>
+<p><strong>区别:</strong>  </p>
+<ol>
+<li>抽象类为部分方法提供实现,避免子类重复实现这些方法,提高代码重用性;接口只能包含抽象方法,java1.8以后也有default修饰的方法，还有stastic的方法可以有方法体;  </li>
+<li>一个类只能继承一个直接父类(可能是抽象类),却可以实现多个接口;(接口弥补了Java的单继承)  </li>
+<li>抽象类是这个事物中应该具备的内容, 继承体系是一种 is..a关系  </li>
+<li>接口是这个事物中的额外内容,继承体系是一种 like..a关系  </li>
+</ol>
+<h2 id="常见JVM面试题及答案整理"><a href="#常见JVM面试题及答案整理" class="headerlink" title="常见JVM面试题及答案整理"></a>常见JVM面试题及答案整理</h2><p><strong><font size = 5>1. 什么情况下会发生栈内存溢出？</font></strong><br>栈是线程私有的，他的生命周期与线程相同，每个方法在执行的时候都会创建一个栈帧，用来存储局部变量表，操作数栈，动态链接，方法出口等信息。局部变量表又包含基本数据类型，对象引用类型<br>如果线程请求的栈深度大于虚拟机所允许的最大深度，将抛出StackOverflowError异常，方法递归调用产生这种结果。<br>如果Java虚拟机栈可以动态扩展，并且扩展的动作已经尝试过，但是无法申请到足够的内存去完成扩展，或者在新建立线程的时候没有足够的内存去创建对应的虚拟机栈，那么Java虚拟机将抛出一个OutOfMemory 异常。(线程启动过多)<br>参数 -Xss 去调整JVM栈的大小</p>
+<p>可以参考<a href="https://blog.csdn.net/qq_41701956/article/details/100074023">常见JVM面试题及答案整理</a></p>
+<p><strong><font size = 5>2. 你知道哪几种垃圾收集器，各自的优缺点，重点讲下cms和G1，包括原理，流程，优缺点。</font></strong><br>1）几种垃圾收集器：</p>
+<ul>
+<li>Serial收集器： 单线程的收集器，收集垃圾时，必须stop the world，使用复制算法。</li>
+<li>ParNew收集器： Serial收集器的多线程版本，也需要stop the world，复制算法。</li>
+<li>Parallel Scavenge收集器： 新生代收集器，复制算法的收集器，并发的多线程收集器，目标是达到一个可控的吞吐量。如果虚拟机总共运行100分钟，其中垃圾花掉1分钟，吞吐量就是99%。</li>
+<li>Serial Old收集器： 是Serial收集器的老年代版本，单线程收集器，使用标记整理算法。</li>
+<li>Parallel Old收集器： 是Parallel Scavenge收集器的老年代版本，使用多线程，标记-整理算法。</li>
+<li>CMS(Concurrent Mark Sweep) 收集器： 是一种以获得最短回收停顿时间为目标的收集器，标记清除算法，运作过程：初始标记，并发标记，重新标记，并发清除，收集结束会产生大量空间碎片。</li>
+<li>G1收集器： 标记整理算法实现，运作流程主要包括以下：初始标记，并发标记，最终标记，筛选标记。不会产生空间碎片，可以精确地控制停顿。<br>2）CMS收集器和G1收集器的区别：</li>
+<li>CMS收集器是老年代的收集器，可以配合新生代的Serial和ParNew收集器一起使用；</li>
+<li>G1收集器收集范围是老年代和新生代，不需要结合其他收集器使用；</li>
+<li>CMS收集器以最小的停顿时间为目标的收集器；</li>
+<li>G1收集器可预测垃圾回收的停顿时间</li>
+<li>CMS收集器是使用“标记-清除”算法进行的垃圾回收，容易产生内存碎片</li>
+<li>G1收集器使用的是“标记-整理”算法，进行了空间整合，降低了内存空间碎片。 </li>
+</ul>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Kafka学习笔记</title>
     <url>/2021/01/21/Kafka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2379,56 +2429,6 @@ ccc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span>
       </categories>
       <tags>
         <tag>Kafka</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java面试题</title>
-    <url>/2021/11/18/Java%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Java面试题总结</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="Java基础面试题"><a href="#Java基础面试题" class="headerlink" title="Java基础面试题"></a>Java基础面试题</h2><p><strong><font size = 5>1. 抽象类和接口的区别？</font></strong><br><strong>相同点:</strong>  </p>
-<ol>
-<li>都位于继承的顶端,用于被其他类实现或继承;  </li>
-<li>都不能直接实例化对象;  </li>
-<li>都可以包含抽象方法,其子类都必须覆写这些抽象方法;  </li>
-</ol>
-<p><strong>区别:</strong>  </p>
-<ol>
-<li>抽象类为部分方法提供实现,避免子类重复实现这些方法,提高代码重用性;接口只能包含抽象方法,java1.8以后也有default修饰的方法，还有stastic的方法可以有方法体;  </li>
-<li>一个类只能继承一个直接父类(可能是抽象类),却可以实现多个接口;(接口弥补了Java的单继承)  </li>
-<li>抽象类是这个事物中应该具备的内容, 继承体系是一种 is..a关系  </li>
-<li>接口是这个事物中的额外内容,继承体系是一种 like..a关系  </li>
-</ol>
-<h2 id="常见JVM面试题及答案整理"><a href="#常见JVM面试题及答案整理" class="headerlink" title="常见JVM面试题及答案整理"></a>常见JVM面试题及答案整理</h2><p><strong><font size = 5>1. 什么情况下会发生栈内存溢出？</font></strong><br>栈是线程私有的，他的生命周期与线程相同，每个方法在执行的时候都会创建一个栈帧，用来存储局部变量表，操作数栈，动态链接，方法出口等信息。局部变量表又包含基本数据类型，对象引用类型<br>如果线程请求的栈深度大于虚拟机所允许的最大深度，将抛出StackOverflowError异常，方法递归调用产生这种结果。<br>如果Java虚拟机栈可以动态扩展，并且扩展的动作已经尝试过，但是无法申请到足够的内存去完成扩展，或者在新建立线程的时候没有足够的内存去创建对应的虚拟机栈，那么Java虚拟机将抛出一个OutOfMemory 异常。(线程启动过多)<br>参数 -Xss 去调整JVM栈的大小</p>
-<p>可以参考<a href="https://blog.csdn.net/qq_41701956/article/details/100074023">常见JVM面试题及答案整理</a></p>
-<p><strong><font size = 5>2. 你知道哪几种垃圾收集器，各自的优缺点，重点讲下cms和G1，包括原理，流程，优缺点。</font></strong><br>1）几种垃圾收集器：</p>
-<ul>
-<li>Serial收集器： 单线程的收集器，收集垃圾时，必须stop the world，使用复制算法。</li>
-<li>ParNew收集器： Serial收集器的多线程版本，也需要stop the world，复制算法。</li>
-<li>Parallel Scavenge收集器： 新生代收集器，复制算法的收集器，并发的多线程收集器，目标是达到一个可控的吞吐量。如果虚拟机总共运行100分钟，其中垃圾花掉1分钟，吞吐量就是99%。</li>
-<li>Serial Old收集器： 是Serial收集器的老年代版本，单线程收集器，使用标记整理算法。</li>
-<li>Parallel Old收集器： 是Parallel Scavenge收集器的老年代版本，使用多线程，标记-整理算法。</li>
-<li>CMS(Concurrent Mark Sweep) 收集器： 是一种以获得最短回收停顿时间为目标的收集器，标记清除算法，运作过程：初始标记，并发标记，重新标记，并发清除，收集结束会产生大量空间碎片。</li>
-<li>G1收集器： 标记整理算法实现，运作流程主要包括以下：初始标记，并发标记，最终标记，筛选标记。不会产生空间碎片，可以精确地控制停顿。<br>2）CMS收集器和G1收集器的区别：</li>
-<li>CMS收集器是老年代的收集器，可以配合新生代的Serial和ParNew收集器一起使用；</li>
-<li>G1收集器收集范围是老年代和新生代，不需要结合其他收集器使用；</li>
-<li>CMS收集器以最小的停顿时间为目标的收集器；</li>
-<li>G1收集器可预测垃圾回收的停顿时间</li>
-<li>CMS收集器是使用“标记-清除”算法进行的垃圾回收，容易产生内存碎片</li>
-<li>G1收集器使用的是“标记-整理”算法，进行了空间整合，降低了内存空间碎片。 </li>
-</ul>
-]]></content>
-      <categories>
-        <category>面试题</category>
-        <category>Java</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -4604,6 +4604,117 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       </tags>
   </entry>
   <entry>
+    <title>shell解析json工具-jq</title>
+    <url>/2023/05/29/shell%E8%A7%A3%E6%9E%90json%E5%B7%A5%E5%85%B7-jq/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>json解析工具-jq简介</li>
+</ul>
+<h2 id="jq简介"><a href="#jq简介" class="headerlink" title="jq简介"></a>jq简介</h2><p>jq可以对json数据进行分片、过滤、映射和转换，和sed、awk、grep等命令一样，都可以让你轻松地把玩文本。它能轻松地把你拥有的数据转换成你期望的格式，而且需要写的程序通常也比你期望的更加简短。</p>
+<h3 id="jq安装"><a href="#jq安装" class="headerlink" title="jq安装"></a>jq安装</h3><p>在Linux下安装：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 安装EPEL源：
+yum install -y epel-release
+ 
+# 安装完EPEL源后，可以查看下jq包是否存在：
+yum list jq
+ 
+# 安装jq：
+yum install -y jq<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><ol>
+<li>使用 jq 美化 json 数据<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">jsonStr&#x3D;&#39;&#123;&quot;name&quot;:&quot;springcloud&quot;,&quot;processDefinitionId&quot;:&quot;&quot;,&quot;failureStrategy&quot;:&quot;CONTINUE&quot;,&quot;warningType&quot;:&quot;NONE&quot;,&quot;warningGroupId&quot;:&quot;0&quot;,&quot;taskDependType&quot;:&quot;TASK_POST&quot;,&quot;runMode&quot;:&quot;RUN_MODE_SERIAL&quot;,&quot;processInstancePriority&quot;:&quot;MEDIUM&quot;,&quot;workerGroup&quot;:&quot;default&quot;,&quot;runParam&quot;:[&#123;&quot;T_SID&quot;:&quot;tenantId&quot;,&quot;INS_NO&quot;:&quot;inspectionNo&quot;,&quot;partitionFields&quot;:&quot;partitionFields&quot;,&quot;batchNo&quot;:&quot;111&quot;,&quot;groupBy&quot;:&quot;battery_voltage,&quot;,&quot;orderBy&quot;:&quot;d,e&quot;,&quot;startLine&quot;:&quot;3&quot;,&quot;endLine&quot;:&quot;63&quot;,&quot;calculationType&quot;:&quot;1&quot;,&quot;matchNo&quot;:&quot;aaaaaaaaa1&quot;,&quot;planNo&quot;:&quot;bbbbbbbb2&quot;,&quot;sampleNo&quot;:&quot;ccccccc3&quot;,&quot;analysisModelNo&quot;:&quot;aaaa&quot;,&quot;startRowNo&quot;:&quot;1&quot;,&quot;endRowNo&quot;:&quot;1000&quot;&#125;]&#125;&#39;
+echo $jsonStr | jq .
+# 输出为：
+&#123;
+  &quot;name&quot;: &quot;springcloud&quot;,
+  &quot;processDefinitionId&quot;: &quot;&quot;,
+  &quot;failureStrategy&quot;: &quot;CONTINUE&quot;,
+  &quot;warningType&quot;: &quot;NONE&quot;,
+  &quot;warningGroupId&quot;: &quot;0&quot;,
+  &quot;taskDependType&quot;: &quot;TASK_POST&quot;,
+  &quot;runMode&quot;: &quot;RUN_MODE_SERIAL&quot;,
+  &quot;processInstancePriority&quot;: &quot;MEDIUM&quot;,
+  &quot;workerGroup&quot;: &quot;default&quot;,
+  &quot;runParam&quot;: [
+    &#123;
+      &quot;T_SID&quot;: &quot;tenantId&quot;,
+      &quot;INS_NO&quot;: &quot;inspectionNo&quot;,
+      &quot;partitionFields&quot;: &quot;partitionFields&quot;,
+      &quot;batchNo&quot;: &quot;111&quot;,
+      &quot;groupBy&quot;: &quot;battery_voltage,&quot;,
+      &quot;orderBy&quot;: &quot;d,e&quot;,
+      &quot;startLine&quot;: &quot;3&quot;,
+      &quot;endLine&quot;: &quot;63&quot;,
+      &quot;calculationType&quot;: &quot;1&quot;,
+      &quot;matchNo&quot;: &quot;aaaaaaaaa1&quot;,
+      &quot;planNo&quot;: &quot;bbbbbbbb2&quot;,
+      &quot;sampleNo&quot;: &quot;ccccccc3&quot;,
+      &quot;analysisModelNo&quot;: &quot;aaaa&quot;,
+      &quot;startRowNo&quot;: &quot;1&quot;,
+      &quot;endRowNo&quot;: &quot;1000&quot;
+    &#125;
+  ]
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>获取key的值<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo $jsonStr | jq -r &#39;.name&#39;
+# 输出  springcloud
+
+# 输出多个索引的值，可以用逗号分割
+echo $jsonStr | jq -r &#39;.name,.failureStrategy&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>数组操作 <code>.[], .[i], .[s:e],[s:],[:e]</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 语法：jq &#39;.[s:e]&#39;,返回的是数组或者列表的index从s开始（包括s）到e结束（不包括e）
+# jq &#39;.[i]&#39;代表取数组第i位，从0开始
+# [[s:],[:e] 分别代表取从s开始直到结尾&#x2F;从头开始直到e
+echo &#39;[&#123;&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true&#125;, &#123;&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false&#125;]&#39; | jq -r &#39;.[1]&#39;
+# 输出值
+&#123;
+  &quot;name&quot;: &quot;XML&quot;,
+  &quot;good&quot;: false
+&#125;
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>构造数组/对象 <code>[], &#123;&#125;</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo &#39;&#123;&quot;user&quot;:&quot;stedolan&quot;,&quot;titles&quot;:[&quot;JQ Primer&quot;, &quot;More JQ&quot;]&#125;&#39; | jq -r &#39;&#123;user, title: .titles[]&#125;&#39;
+# 输出：
+&#123;
+  &quot;user&quot;: &quot;stedolan&quot;,
+  &quot;title&quot;: &quot;JQ Primer&quot;
+&#125;
+&#123;
+  &quot;user&quot;: &quot;stedolan&quot;,
+  &quot;title&quot;: &quot;More JQ&quot;
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>括号的作用<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 可以直接计算加减乘除
+echo 1 | jq &#39;(.+2)*5&#39;    # 15
+echo &#123;1,2,3&#125; | jq &#39;(.+2)*5&#39;  # 15 20 25<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+<li>length求长度<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#如果是字符串是求的字符串的长度，如果是数组则求得是数组的长度
+echo &#39;[&#123;&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true&#125;, &#123;&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false&#125;]&#39; | jq -r &#39;. | length&#39;   # 2
+echo &#39;[&#123;&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true&#125;, &#123;&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false,&quot;a&quot;:1&#125;]&#39; | jq -r &#39;.[] | length&#39;  # 2 3
+echo $jsonStr | jq -r &#39;.name | length&#39;   # 11<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>输出所有的keys<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo $jsonStr | jq -r &#39;keys&#39;   
+# [
+#   &quot;failureStrategy&quot;,
+#   &quot;name&quot;,
+#   &quot;processDefinitionId&quot;,
+#   &quot;processInstancePriority&quot;,
+#   &quot;runMode&quot;,
+#   &quot;runParam&quot;,
+#   &quot;taskDependType&quot;,
+#   &quot;warningGroupId&quot;,
+#   &quot;warningType&quot;,
+#   &quot;workerGroup&quot;
+# ]<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>判断存不存在某个键<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo $jsonStr | jq &#39;has(&quot;name&quot;)&#39;  # true
+echo $jsonStr | jq &#39;has(&quot;aaa&quot;)&#39;  # false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>字符插入 <code>\(foo)</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo &#39;42&#39; | jq &#39;&quot;The input was \(.), which is one less than \(.+1)&quot;&#39;
+# &quot;The input was 42, which is one less than 43&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>if-then-else-end 条件<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo &#39;2&#39; | jq &#39;if . &#x3D;&#x3D; 0 then &quot;zero&quot; elif . &#x3D;&#x3D; 1 then &quot;one&quot; else &quot;many&quot; end&#39; # many<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Json</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spark on yarn遇到的问题</title>
     <url>/2021/01/18/spark%20on%20yarn%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -4794,95 +4905,6 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       </categories>
       <tags>
         <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>vim使用手册</title>
-    <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>vim使用手册<a id="more"></a>
-个人感觉，vim用熟了，比任何编辑器都好用，VIM的许多特性节省了时间和击键次数，并可以完成一些其他编辑器无法完成的功能，这里在网上找了几个经典案例，记录一下。</li>
-</ul>
-<p>与大部分其它编辑器不同，进入 Vim 后，缺省状态下键入的字符并不会插入到所编辑的文件之中。Vim 的模式（mode，可以简单地理解为“状态”）概念非常重要。需要知道，Vim 有以下几个模式：</p>
-<ul>
-<li>正常（normal）模式，缺省的编辑模式；下面如果不加特殊说明，提到的命令都直接在正常模式下输入；任何其它模式中都可以通过键盘上的 Esc 键回到正常模式。</li>
-<li>命令（command）模式，用于执行较长、较复杂的命令；在正常模式下输入“:”（一般命令）、“/”（正向搜索）或“?”（反向搜索）即可进入该模式；命令模式下的命令要输入回车键（Enter）才算完成。</li>
-<li>插入（insert）模式，输入文本时使用；在正常模式下键入“i”（insert）或“a”（append）即可进入插入模式（也有另外一些命令，如“c”，也可以进入插入模式，但这些命令有其它的作用）。</li>
-<li>可视（visual）模式，用于选定文本块；可以在正常模式下输入“v”（小写）来按字符选定，输入“V”（大写）来按行选定，或输入“Ctrl-V”来按方块选定。</li>
-</ul>
-<p>一般的发布版中还常常带有一个简单的 30 分钟的 Vim 教程，新手在操作系统的命令行上输入<code>vimtutor</code>命令即可开始学习。除上面的简单说明外，本文并不介绍最基本的 Vim 命令，Vim 的新手应该先通过教程熟悉一下 Vim，再继续往下阅读。</p>
-<h2 id="常用的指令序列"><a href="#常用的指令序列" class="headerlink" title="常用的指令序列"></a>常用的指令序列</h2><ul>
-<li><p>左右交换光标处两字符的位置：xp<br>命令拆分：</p>
-<ul>
-<li>x剪切当前字符</li>
-<li>p粘贴剪切的字符到光标后面</li>
-</ul>
-</li>
-<li><p>上下交换光标处两行的位置： ddp<br>命令拆分：</p>
-<ul>
-<li>dd 剪切当前行</li>
-<li>p 粘贴剪切的内容到光标的下一行</li>
-</ul>
-</li>
-<li><p>行转列：</p>
-<ul>
-<li><p>第一种, 多行合并成一行,即:<br>AAAAA<br>BBBBB<br>CCCCC<br>合并为:<br>AAAAA BBBBB CCCCC<br>方法1: normal状态下 3J 其中的3是范围,可以是书签或者搜索位置等方式实现,J为合并<br>注: 如果改为3gJ的话,则合并时各行没有空白AAAAABBBBBCCCCC, 下面方法类似,不再重复这两种合并方式的区别.</p>
-<p>方法2: 命令状态下 :1,3 join   或 :1,3 j    （注意j前面是空格）</p>
-<p>方法3: 传统一点的,替换换行符的方式,为避免最后一行也被换掉,范围缩小了,命令状态下  :1,2s/\n/ /</p>
-</li>
-<li><p>第二种,隔行合并,即:</p>
-<p>AAAAA<br>BBBBB<br>CCCCC<br>DDDDD</p>
-<p>合并为:</p>
-<p>AAAAA BBBBB<br>CCCCC DDDDD</p>
-<p>方法1: 借用一下宏录制功能, normal状态下 qaJjq 实现录制, 然后在合适的区域重复执行n遍,这里2遍即可,normal状态下2@a</p>
-<p>方法2: 命令状态下 :1,4g/^/ join  增加了g过滤后,合并变成了隔行处理</p>
-</li>
-</ul>
-</li>
-<li><p>在每行行首添加相同的内容<br>  :%s/^/要添加的内容</p>
-</li>
-<li><p>在每行行尾添加相同的内容<br>  :%s/$/要添加的内容</p>
-</li>
-<li><p>利用正则表达式删除代码段每行的行号<br>  :%s/^\s*[0-9]<em>\s</em>//gc</p>
-</li>
-<li><p>删除某一行之前的所有内容</p>
-<ul>
-<li>先找到这一行，复制这一行的内容，然后全文查找这一行的内容，这时候这一行是高亮的<br><img src="/uploads/202101/vim-select.png" alt="vim-select"></li>
-<li>然后gg回到第一行</li>
-<li>dn<br><img src="/uploads/202101/vim-dn.png" alt="vim-dn"></li>
-</ul>
-</li>
-</ul>
-<h2 id="在vim里使用类似Emacs里的orgmode"><a href="#在vim里使用类似Emacs里的orgmode" class="headerlink" title="在vim里使用类似Emacs里的orgmode"></a>在vim里使用类似Emacs里的orgmode</h2><ul>
-<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin &#39;jceb&#x2F;vim-orgmode&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>在vim命令行模式运行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">:PluginInstall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-之后就能直接用vim编辑.org文件，目前vim-orgmode有如下功能：<br>当前 vim orgmode不支持所有orgmode功能，但它非常有用。 已经支持的功能的简短列表：</li>
-<li>语法高亮显示</li>
-<li>标题的循环可见性( 折叠)</li>
-<li>在标题之间导航</li>
-<li>编辑文档的结构： 添加，移动，提升，表示标题和更多</li>
-<li>vim orgmode和外部( 文件，网页，等等 ) 中的超链接</li>
-<li>待办事项列表管理</li>
-<li>标题标记</li>
-<li>列表中的字母符号和项目符号符号和复选框支持</li>
-<li>基本日期处理</li>
-<li>导出到其他格式( 通过 Emacs’org模式</li>
-</ul>
-<h2 id="vim设置leader键"><a href="#vim设置leader键" class="headerlink" title="vim设置leader键"></a>vim设置leader键</h2><p>leader 键简单的说就是一个前缀键，可以自由设定<br>例如，绑定leader键为‘，’</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&quot; 设置 leader 键，例子为,键，也可以设置为其他的 默认为&quot;&#x2F;&quot;
-let mapleader&#x3D;&quot;,&quot;
- 
-&quot; 设置快捷键，关闭一个窗口
-map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这个例子中，在 vim 的<code>normal-mode</code>下，按空格键+w+q 就可以保存文件退出窗口<br>在这个leader的前提下，就不会有键冲突的的情况了</p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>vim</category>
-      </categories>
-      <tags>
-        <tag>vim</tag>
       </tags>
   </entry>
   <entry>
@@ -5157,6 +5179,95 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       </categories>
       <tags>
         <tag>starrocks</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vim使用手册</title>
+    <url>/2021/01/16/vim%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>vim使用手册<a id="more"></a>
+个人感觉，vim用熟了，比任何编辑器都好用，VIM的许多特性节省了时间和击键次数，并可以完成一些其他编辑器无法完成的功能，这里在网上找了几个经典案例，记录一下。</li>
+</ul>
+<p>与大部分其它编辑器不同，进入 Vim 后，缺省状态下键入的字符并不会插入到所编辑的文件之中。Vim 的模式（mode，可以简单地理解为“状态”）概念非常重要。需要知道，Vim 有以下几个模式：</p>
+<ul>
+<li>正常（normal）模式，缺省的编辑模式；下面如果不加特殊说明，提到的命令都直接在正常模式下输入；任何其它模式中都可以通过键盘上的 Esc 键回到正常模式。</li>
+<li>命令（command）模式，用于执行较长、较复杂的命令；在正常模式下输入“:”（一般命令）、“/”（正向搜索）或“?”（反向搜索）即可进入该模式；命令模式下的命令要输入回车键（Enter）才算完成。</li>
+<li>插入（insert）模式，输入文本时使用；在正常模式下键入“i”（insert）或“a”（append）即可进入插入模式（也有另外一些命令，如“c”，也可以进入插入模式，但这些命令有其它的作用）。</li>
+<li>可视（visual）模式，用于选定文本块；可以在正常模式下输入“v”（小写）来按字符选定，输入“V”（大写）来按行选定，或输入“Ctrl-V”来按方块选定。</li>
+</ul>
+<p>一般的发布版中还常常带有一个简单的 30 分钟的 Vim 教程，新手在操作系统的命令行上输入<code>vimtutor</code>命令即可开始学习。除上面的简单说明外，本文并不介绍最基本的 Vim 命令，Vim 的新手应该先通过教程熟悉一下 Vim，再继续往下阅读。</p>
+<h2 id="常用的指令序列"><a href="#常用的指令序列" class="headerlink" title="常用的指令序列"></a>常用的指令序列</h2><ul>
+<li><p>左右交换光标处两字符的位置：xp<br>命令拆分：</p>
+<ul>
+<li>x剪切当前字符</li>
+<li>p粘贴剪切的字符到光标后面</li>
+</ul>
+</li>
+<li><p>上下交换光标处两行的位置： ddp<br>命令拆分：</p>
+<ul>
+<li>dd 剪切当前行</li>
+<li>p 粘贴剪切的内容到光标的下一行</li>
+</ul>
+</li>
+<li><p>行转列：</p>
+<ul>
+<li><p>第一种, 多行合并成一行,即:<br>AAAAA<br>BBBBB<br>CCCCC<br>合并为:<br>AAAAA BBBBB CCCCC<br>方法1: normal状态下 3J 其中的3是范围,可以是书签或者搜索位置等方式实现,J为合并<br>注: 如果改为3gJ的话,则合并时各行没有空白AAAAABBBBBCCCCC, 下面方法类似,不再重复这两种合并方式的区别.</p>
+<p>方法2: 命令状态下 :1,3 join   或 :1,3 j    （注意j前面是空格）</p>
+<p>方法3: 传统一点的,替换换行符的方式,为避免最后一行也被换掉,范围缩小了,命令状态下  :1,2s/\n/ /</p>
+</li>
+<li><p>第二种,隔行合并,即:</p>
+<p>AAAAA<br>BBBBB<br>CCCCC<br>DDDDD</p>
+<p>合并为:</p>
+<p>AAAAA BBBBB<br>CCCCC DDDDD</p>
+<p>方法1: 借用一下宏录制功能, normal状态下 qaJjq 实现录制, 然后在合适的区域重复执行n遍,这里2遍即可,normal状态下2@a</p>
+<p>方法2: 命令状态下 :1,4g/^/ join  增加了g过滤后,合并变成了隔行处理</p>
+</li>
+</ul>
+</li>
+<li><p>在每行行首添加相同的内容<br>  :%s/^/要添加的内容</p>
+</li>
+<li><p>在每行行尾添加相同的内容<br>  :%s/$/要添加的内容</p>
+</li>
+<li><p>利用正则表达式删除代码段每行的行号<br>  :%s/^\s*[0-9]<em>\s</em>//gc</p>
+</li>
+<li><p>删除某一行之前的所有内容</p>
+<ul>
+<li>先找到这一行，复制这一行的内容，然后全文查找这一行的内容，这时候这一行是高亮的<br><img src="/uploads/202101/vim-select.png" alt="vim-select"></li>
+<li>然后gg回到第一行</li>
+<li>dn<br><img src="/uploads/202101/vim-dn.png" alt="vim-dn"></li>
+</ul>
+</li>
+</ul>
+<h2 id="在vim里使用类似Emacs里的orgmode"><a href="#在vim里使用类似Emacs里的orgmode" class="headerlink" title="在vim里使用类似Emacs里的orgmode"></a>在vim里使用类似Emacs里的orgmode</h2><ul>
+<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin &#39;jceb&#x2F;vim-orgmode&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在vim命令行模式运行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">:PluginInstall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+之后就能直接用vim编辑.org文件，目前vim-orgmode有如下功能：<br>当前 vim orgmode不支持所有orgmode功能，但它非常有用。 已经支持的功能的简短列表：</li>
+<li>语法高亮显示</li>
+<li>标题的循环可见性( 折叠)</li>
+<li>在标题之间导航</li>
+<li>编辑文档的结构： 添加，移动，提升，表示标题和更多</li>
+<li>vim orgmode和外部( 文件，网页，等等 ) 中的超链接</li>
+<li>待办事项列表管理</li>
+<li>标题标记</li>
+<li>列表中的字母符号和项目符号符号和复选框支持</li>
+<li>基本日期处理</li>
+<li>导出到其他格式( 通过 Emacs’org模式</li>
+</ul>
+<h2 id="vim设置leader键"><a href="#vim设置leader键" class="headerlink" title="vim设置leader键"></a>vim设置leader键</h2><p>leader 键简单的说就是一个前缀键，可以自由设定<br>例如，绑定leader键为‘，’</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&quot; 设置 leader 键，例子为,键，也可以设置为其他的 默认为&quot;&#x2F;&quot;
+let mapleader&#x3D;&quot;,&quot;
+ 
+&quot; 设置快捷键，关闭一个窗口
+map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这个例子中，在 vim 的<code>normal-mode</code>下，按空格键+w+q 就可以保存文件退出窗口<br>在这个leader的前提下，就不会有键冲突的的情况了</p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>vim</category>
+      </categories>
+      <tags>
+        <tag>vim</tag>
       </tags>
   </entry>
   <entry>
@@ -8599,203 +8710,6 @@ TBLPROPERTIES <span class="token punctuation">(</span><span class="token string"
       </tags>
   </entry>
   <entry>
-    <title>Flink学习笔记（三）</title>
-    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink状态管理</li>
-<li>Flink Checkpoint机制</li>
-<li>Flink精准一次探究</li>
-</ul>
-<a id="more"></a>
-<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
-<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
-<ul>
-<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
-<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
-<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
-<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
-</ul>
-<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
-<p><img src="/uploads/202106/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
-<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
-<ul>
-<li>数据的产出要保证实时性，延迟不能太高。</li>
-<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
-<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
-</ul>
-<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
-<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Managed State</th>
-<th>Raw State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>状态管理方式</td>
-<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
-<td>用户自己管理</td>
-</tr>
-<tr>
-<td>状态数据结构</td>
-<td>Flink提供的常用数据结构，如ListState、MapState等</td>
-<td>字节数组：byte[]</td>
-</tr>
-<tr>
-<td>使用场景</td>
-<td>绝大多数Flink算子</td>
-<td>用户自定义算子</td>
-</tr>
-</tbody></table>
-<p>两者的具体区别有：</p>
-<ul>
-<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
-<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
-<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
-</ul>
-<p>下文将重点介绍Managed State。</p>
-<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
-<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/202106/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/202106/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
-<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Keyed State</th>
-<th>Operator State</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>适用算子类型</td>
-<td>只适用于KeyedStream上的算子</td>
-<td>可以用于所有算子</td>
-</tr>
-<tr>
-<td>状态分配</td>
-<td>每个Key对应一个状态</td>
-<td>一个算子子任务对应一个状态</td>
-</tr>
-<tr>
-<td>创建和访问方式</td>
-<td>重写Rich Function，通过里面的RuntimeContext访问</td>
-<td>实现CheckpointedFunction等接口</td>
-</tr>
-<tr>
-<td>横向扩展</td>
-<td>状态随着Key自动在多个算子子任务上迁移</td>
-<td>有多种状态重新分配的方式</td>
-</tr>
-<tr>
-<td>支持的数据结构</td>
-<td>ValueState、ListState、MapState等</td>
-<td>ListState、BroadcastState等</td>
-</tr>
-</tbody></table>
-<p>上表总结了Keyed State和Operator State的区别。</p>
-<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/202106/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
-<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/202106/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
-<p>这几个状态的具体区别在于：</p>
-<ul>
-<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
-<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
-<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
-<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
-</ul>
-<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
-<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h3 id="如何理解flink中state-状态"><a href="#如何理解flink中state-状态" class="headerlink" title="如何理解flink中state(状态)"></a>如何理解flink中state(状态)</h3><p>state泛指：flink中有状态函数和运算符在各个元素(element)/事件(event)的处理过程中存储的数据（注意：状态数据可以修改和查询，可以自己维护，根据自己的业务场景，保存历史数据或者中间结果到状态(state)中）；<br>使用状态计算的例子：</p>
-<ul>
-<li>当应用程序搜索某些事件模式时，状态将存储到目前为止遇到的事件序列。</li>
-<li>在每分钟/小时/天聚合事件时，状态保存待处理的聚合。</li>
-<li>当在数据点流上训练机器学习模型时，状态保持模型参数的当前版本。</li>
-<li>当需要管理历史数据时，状态允许有效访问过去发生的事件。</li>
-</ul>
-<p>无状态计算指的是数据进入Flink后经过算子时只需要对当前数据进行处理就能得到想要的结果；<br>有状态计算就是需要和历史的一些状态或进行相关操作，才能计算出正确的结果；</p>
-<h3 id="flink中checkpoint执行流程"><a href="#flink中checkpoint执行流程" class="headerlink" title="flink中checkpoint执行流程"></a>flink中checkpoint执行流程</h3><ul>
-<li>checkpoint机制是Flink可靠性的基石，可以保证Flink集群在某个算子因为某些原因(如 异常退出)出现故障时，能够将整个应用流图的状态恢复到故障之前的某一状态，保 证应用流图状态的一致性。Flink的checkpoint机制原理来自“Chandy-Lamport algorithm”算法。 (分布式快照算)</li>
-<li>每个需要checkpoint的应用在启动时，Flink的JobManager为其创建一个 CheckpointCoordinator，CheckpointCoordinator全权负责本应用的快照制作。</li>
-<li>CheckpointCoordinator周期性的向该流应用的所有source算子发送barrier。</li>
-<li>当某个source算子收到一个barrier时，便暂停数据处理过程，然后将自己的当前状 态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告 自己快照制作情况，同时向自身所有下游算子广播该barrier，恢复数据处理</li>
-<li>下游算子收到barrier之后，会暂停自己的数据处理过程，然后将自身的相关状态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告自身 快照情况，同时向自身所有下游算子广播该barrier，恢复数据处理。</li>
-<li>每个算子按照步骤3不断制作快照并向下游广播，直到最后barrier传递到sink算子，快照制作完成。</li>
-<li>当CheckpointCoordinator收到所有算子的报告之后，认为该周期的快照制作成功; 否则，如果在规定的时间内没有收到所有算子的报告，则认为本周期快照制作失败 ;</li>
-</ul>
-<p>整个过程如下：</p>
-<ol>
-<li>JobManager端的 CheckPointCoordinator向 所有SourceTask发送CheckPointTrigger，Source Task会在数据流中安插CheckPoint barrier</li>
-<li>当task收到所有的barrier后，向自己的下游继续传递barrier，然后自身执行快照，并将自己的状态异步写入到持久化存储中。增量CheckPoint只是把最新的一部分更新写入到 外部存储；为了下游尽快做CheckPoint，所以会先发送barrier到下游，自身再同步进行快照</li>
-<li>当task完成备份后，会将备份数据的地址（state handle）通知给JobManager的CheckPointCoordinator；如果CheckPoint的持续时长超过 了CheckPoint设定的超时时间，CheckPointCoordinator 还没有收集完所有的 State Handle，CheckPointCoordinator就会认为本次CheckPoint失败，会把这次CheckPoint产生的所有 状态数据全部删除。</li>
-<li>最后 CheckPoint Coordinator 会把整个 StateHandle 封装成 completed CheckPoint Meta，写入到hdfs。</li>
-</ol>
-<h3 id="什么是barrier对齐？"><a href="#什么是barrier对齐？" class="headerlink" title="什么是barrier对齐？"></a>什么是barrier对齐？</h3><p><img src="/uploads/202106/barrier%E5%AF%B9%E9%BD%90.png" alt="barrier对齐"></p>
-<ul>
-<li>一旦Operator从输入流接收到CheckPoint barrier n，它就不能处理来自该流的任何数据记录，直到它从其他所有输入接收到barrier n为止。否则，它会混合属于快照n的记录和属于快照n + 1的记录；</li>
-<li>接收到barrier n的流暂时被搁置。从这些流接收的记录不会被处理，而是放入输入缓冲区。</li>
-<li>上图中第2个图，虽然数字流对应的barrier已经到达了，但是barrier之后的1、2、3这些数据只能放到buffer中，等待字母流的barrier到达；</li>
-<li>一旦最后所有输入流都接收到barrier n，Operator就会把缓冲区中pending 的输出数据发出去，然后把CheckPoint barrier n接着往下游发送</li>
-<li>这里还会对自身进行快照；之后，Operator将继续处理来自所有输入流的记录，在处理来自流的记录之前先处理来自输入缓冲区的记录。</li>
-</ul>
-<h3 id="什么是barrier不对齐？"><a href="#什么是barrier不对齐？" class="headerlink" title="什么是barrier不对齐？"></a>什么是barrier不对齐？</h3><p>checkpoint 是要等到所有的barrier全部都到才算完成</p>
-<ul>
-<li>上述图2中，当还有其他输入流的barrier还没有到达时，会把已到达的barrier之后的数据1、2、3搁置在缓冲区，等待其他流的barrier到达后才能处理</li>
-<li>barrier不对齐就是指当还有其他流的barrier还没到达时，为了不影响性能，也不用理会，直接处理barrier之后的数据。等到所有流的barrier的都到达后，就可以对该Operator做CheckPoint了；</li>
-</ul>
-<p>为什么要进行barrier对齐？不对齐到底行不行？<br>Exactly Once时必须barrier对齐，如果barrier不对齐就变成了At Least Once；</p>
-<h3 id="checkpoint中保存的是什么信息"><a href="#checkpoint中保存的是什么信息" class="headerlink" title="checkpoint中保存的是什么信息"></a>checkpoint中保存的是什么信息</h3><p>快照里面到底保存着什么信息呢？以flink消费kafka数据wordcount为例：<br>我们从Kafka读取到一条条的日志，从日志中解析出app_id，然后将统计的结果放到内存中一个Map集合，app_id做为key，对应的pv做为value，每次只需要将相应app_id 的pv值+1后put到Map中即可；<br>kafka topic：test；<br>flink运算流程如下：<br>kakfa的testtopic的分区 —&gt; Flink的source task —&gt; flink的pv计算task</p>
-<h3 id="如何自动获取最新的checkpoint？"><a href="#如何自动获取最新的checkpoint？" class="headerlink" title="如何自动获取最新的checkpoint？"></a>如何自动获取最新的checkpoint？</h3><p>现在只知道可以通过-s手动把最新的chk传入到执行程序里，那么如何在java里自动带入最新的chk呢？<br>在代码中设置如下参数：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token class-name">String</span> lastCheckpintPath <span class="token operator">=</span> <span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token function">getCkPath</span><span class="token punctuation">(</span>checkpointPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
-conf<span class="token punctuation">.</span><span class="token function">setString</span><span class="token punctuation">(</span><span class="token string">"execution.savepoint.path"</span><span class="token punctuation">,</span> lastCheckpintPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">getCkPath</span><span class="token punctuation">(</span><span class="token class-name">String</span> relativePath<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
-        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token string">"/core-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token string">"/hdfs-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">FileSystem</span> fs <span class="token operator">=</span> <span class="token class-name">FileSystem</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">FileStatus</span><span class="token punctuation">[</span><span class="token punctuation">]</span> listStatus <span class="token operator">=</span> fs<span class="token punctuation">.</span><span class="token function">listStatus</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>relativePath<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">FileStatus</span><span class="token punctuation">></span></span> latestFiles <span class="token operator">=</span> <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">stream</span><span class="token punctuation">(</span>listStatus<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">sorted</span><span class="token punctuation">(</span><span class="token class-name">Comparator</span><span class="token punctuation">.</span><span class="token function">comparing</span><span class="token punctuation">(</span><span class="token class-name">FileStatus</span><span class="token operator">::</span><span class="token function">getModificationTime</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">reversed</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">limit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token class-name">Collectors</span><span class="token punctuation">.</span><span class="token function">toList</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">CollectionUtils</span><span class="token punctuation">.</span><span class="token function">isNotEmpty</span><span class="token punctuation">(</span>latestFiles<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-            <span class="token class-name">FileStatus</span> fileStatus <span class="token operator">=</span> latestFiles<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token class-name">FileStatus</span><span class="token punctuation">[</span><span class="token punctuation">]</span> fileStatuses <span class="token operator">=</span> fs<span class="token punctuation">.</span><span class="token function">listStatus</span><span class="token punctuation">(</span>fileStatus<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">FileStatus</span> status <span class="token operator">:</span> fileStatuses<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-                <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token keyword">if</span> <span class="token punctuation">(</span>status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"chk"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-                    <span class="token keyword">return</span> status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token punctuation">&#125;</span>
-            <span class="token punctuation">&#125;</span>
-        <span class="token punctuation">&#125;</span>
-    <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> ex<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-        <span class="token class-name">System</span><span class="token punctuation">.</span>err<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>ex<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-    <span class="token keyword">return</span> <span class="token string">""</span><span class="token punctuation">;</span>
-<span class="token punctuation">&#125;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h2 id="Flink-Exactly-once语义探究"><a href="#Flink-Exactly-once语义探究" class="headerlink" title="Flink Exactly-once语义探究"></a>Flink Exactly-once语义探究</h2><p>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义;<br>Flink不是默认就有EOS的，flink 官方推荐所有需要保证EOS的sink 逻辑都继承TwoPhaseCommitSinkFunction抽象类。它具体定义如下四个抽象方法。需要我们去在子类中实现。</p>
-<pre><code class="java">protected abstract TXN beginTransaction() throws Exception;
-protected abstract void preCommit(TXN transaction) throws Exception;
-protected abstract void commit(TXN transaction);
-protected abstract void abort(TXN transaction);</code></pre>
-<p>beginTransaction(): 开始一个事务，返回事务信息的句柄。<br>preCommit :预提交（即提交请求）阶段的逻辑<br>commit():正式提交阶段的逻辑<br>abort():取消事务</p>
-<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作(继承TwoPhaseCommitSinkFunction抽象类)<br>使用kafka的sink已经自动实现了，但是，自己写的sink，需要自己继承TwoPhaseCommitSinkFunction抽象类</p>
-<h3 id="flink的二阶段提交"><a href="#flink的二阶段提交" class="headerlink" title="flink的二阶段提交"></a>flink的二阶段提交</h3><p>两阶段提交（two-phase commit, 2PC）是最基础的分布式一致性协议，应用广泛<br>2PC 在分布式系统中，为了让每个节点能够感知其他所有节点的事务执行情况，需要我们引入一个中心节点的凡是统一所有节点的执行逻辑和进度。这个中心节点叫做协调者（coordinator），而其中向中心节点汇报或者被中心节点调度的其他节点叫做参与者。</p>
-<h4 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h4><p><strong>请求阶段</strong><br>1、协调者向所有参与者发送准备请求与事务内容，询问是否可以准备事务提交，并等待参与者的响应。<br>2、参与者执行事务中的包含操作，并记录undo日志（用于回滚）和redo日志（用于重放），但是不真正提交。<br>3、参与者向协调者返回事务才做的执行结果，执行陈工返回yes,否则返回no.<br><strong>提交阶段（分成成功和失败两种情况）</strong><br>若所有的参与者都返回yes,说明事务可以提交。<br>1、协调者向所有参与者发送commit请求。<br>2、参与者收到commit 请求后，将事务真正的提交上去，并释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者ack消息，事务成功完成。<br><strong>事务回滚</strong><br>若有参与者返回no或者超时未返回，说明事务终端，需要回滚。<br>1、协调者向所有参与者发送rollback请求。<br>2、参与者收到rollback请求后，根据undo日志回滚到事务执行前的状态，释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者的ack消息，事务回滚完成。</p>
-<h4 id="2PC-的优缺点"><a href="#2PC-的优缺点" class="headerlink" title="2PC 的优缺点"></a>2PC 的优缺点</h4><p><strong>优点</strong><br>2PC的优点在于原理非常简单，容易理解及实现。<br><strong>缺点</strong><br>缺点主要有3个，列举如下：<br>（1）协调者存在单点问题。如果协调者挂了，整个2PC逻辑就彻底不能运行。<br>（2）、执行过程是完全同步的。各参与者在等待其他参与者响应的过程中都处于阻塞状态，大并发下有性能问题。<br>（3）、仍然存在不一致风险。如果由于网络异常等意外导致只有部分参与者收到了commit请求，就会造成部分参与者提交了事务而其他参与者未提交的情况。</p>
-<p>具体可以参考<a href="https://www.cnblogs.com/zhipeng-wang/p/14082806.html">flink的二阶段提交</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Flink学习笔记（一）</title>
     <url>/2021/01/19/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -9198,6 +9112,206 @@ cd &#x2F;opt&#x2F;modules&#x2F;flink-1.13.6 &amp;&amp; .&#x2F;bin&#x2F;start-clu
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>$&#123;flink.scope&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>需要注意的是，通过打包的方式运行的时候，需要把scope改成provided</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Flink学习笔记（三）</title>
+    <url>/2021/02/07/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink状态管理</li>
+<li>Flink Checkpoint机制</li>
+<li>Flink精准一次探究</li>
+</ul>
+<a id="more"></a>
+<h2 id="Flink状态管理"><a href="#Flink状态管理" class="headerlink" title="Flink状态管理"></a>Flink状态管理</h2><p>看到一篇文章，讲述的Flink的状态管理特别详细，忍不住想记录一下，哈哈<br>具体可以参考：<br><a href="https://blog.csdn.net/qq_42596142/article/details/104097745?ops_request_misc=&request_id=&biz_id=102&utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-1">Flink状态管理：Keyed State和Operator List State深度解析</a></p>
+<h3 id="为什么要管理状态"><a href="#为什么要管理状态" class="headerlink" title="为什么要管理状态"></a>为什么要管理状态</h3><p>有状态的计算是流处理框架要实现的重要功能，因为稍复杂的流处理场景都需要记录状态，然后在新流入数据的基础上不断更新状态。下面的几个场景都需要使用流处理的状态功能：</p>
+<ul>
+<li>数据流中的数据有重复，我们想对重复数据去重，需要记录哪些数据已经流入过应用，当新数据流入时，根据已流入过的数据来判断去重。</li>
+<li>检查输入流是否符合某个特定的模式，需要将之前流入的元素以状态的形式缓存下来。比如，判断一个温度传感器数据流中的温度是否在持续上升。</li>
+<li>对一个时间窗口内的数据进行聚合分析，分析一个小时内某项指标的75分位或99分位的数值。</li>
+<li>在线机器学习场景下，需要根据新流入数据不断更新机器学习的模型参数。</li>
+</ul>
+<p>我们知道，Flink的一个算子有多个子任务，每个子任务分布在不同实例上，我们可以把状态理解为某个算子子任务在其当前实例上的一个变量，变量记录了数据流的历史信息。当新数据流入时，我们可以结合历史信息来进行计算。实际上，Flink的状态是由算子的子任务来创建和管理的。一个状态更新和获取的流程如下图所示，一个算子子任务接收输入流，获取对应的状态，根据新的计算结果更新状态。一个简单的例子是对一个时间窗口内输入流的某个整数字段求和，那么当算子子任务接收到新元素时，会获取已经存储在状态中的数值，然后将当前输入加到状态上，并将状态数据更新。</p>
+<p><img src="/uploads/202106/Flink%E4%BB%BB%E5%8A%A1.png" alt="Flink任务"></p>
+<p>获取和更新状态的逻辑其实并不复杂，但流处理框架还需要解决以下几类问题：</p>
+<ul>
+<li>数据的产出要保证实时性，延迟不能太高。</li>
+<li>需要保证数据不丢不重，恰好计算一次，尤其是当状态数据非常大或者应用出现故障需要恢复时，要保证状态的计算不出任何错误。</li>
+<li>一般流处理任务都是7*24小时运行的，程序的可靠性非常高。<br>基于上述要求，我们不能将状态直接交由内存管理，因为内存的容量是有限制的，当状态数据稍微大一些时，就会出现内存不够的问题。假如我们使用一个持久化的备份系统，不断将内存中的状态备份起来，当流处理作业出现故障时，需要考虑如何从备份中恢复。而且，大数据应用一般是横向分布在多个节点上，流处理框架需要保证横向的伸缩扩展性。可见，状态的管理并不那么容易。</li>
+</ul>
+<p>作为一个计算框架，Flink提供了有状态的计算，封装了一些底层的实现，比如状态的高效存储、Checkpoint和Savepoint持久化备份机制、计算资源扩缩容等问题。因为Flink接管了这些问题，开发者只需调用Flink API，这样可以更加专注于业务逻辑。</p>
+<h3 id="Flink的几种状态类型"><a href="#Flink的几种状态类型" class="headerlink" title="Flink的几种状态类型"></a>Flink的几种状态类型</h3><h4 id="Managed-State和Raw-State"><a href="#Managed-State和Raw-State" class="headerlink" title="Managed State和Raw State"></a>Managed State和Raw State</h4><p>Flink有两种基本类型的状态：托管状态（Managed State）和原生状态（Raw State）。从名称中也能读出两者的区别：Managed State是由Flink管理的，Flink帮忙存储、恢复和优化，Raw State是开发者自己管理的，需要自己序列化。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Managed State</th>
+<th>Raw State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态管理方式</td>
+<td>Flink Runtime托管，自动存储、自动恢复、自动伸缩</td>
+<td>用户自己管理</td>
+</tr>
+<tr>
+<td>状态数据结构</td>
+<td>Flink提供的常用数据结构，如ListState、MapState等</td>
+<td>字节数组：byte[]</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>绝大多数Flink算子</td>
+<td>用户自定义算子</td>
+</tr>
+</tbody></table>
+<p>两者的具体区别有：</p>
+<ul>
+<li>从状态管理的方式上来说，Managed State由Flink Runtime托管，状态是自动存储、自动恢复的，Flink在存储管理和持久化上做了一些优化。当我们横向伸缩，或者说我们修改Flink应用的并行度时，状态也能自动重新分布到多个并行实例上。Raw State是用户自定义的状态。</li>
+<li>从状态的数据结构上来说，Managed State支持了一系列常见的数据结构，如ValueState、ListState、MapState等。Raw State只支持字节，任何上层数据结构需要序列化为字节数组。使用时，需要用户自己序列化，以非常底层的字节数组形式存储，Flink并不知道存储的是什么样的数据结构。</li>
+<li>从具体使用场景来说，绝大多数的算子都可以通过继承Rich函数类或其他提供好的接口类，在里面使用Managed State。Raw State是在已有算子和Managed State不够用时，用户自定义算子时使用。</li>
+</ul>
+<p>下文将重点介绍Managed State。</p>
+<h4 id="Keyed-State和Operator-State"><a href="#Keyed-State和Operator-State" class="headerlink" title="Keyed State和Operator State"></a>Keyed State和Operator State</h4><p>对Managed State继续细分，它又有两种类型：Keyed State和Operator State。这里先简单对比两种状态，后续还将展示具体的使用方法。</p>
+<p>Keyed State是KeyedStream上的状态。假如输入流按照id为Key进行了keyBy分组，形成一个KeyedStream，数据流中所有id为1的数据共享一个状态，可以访问和更新这个状态，以此类推，每个Key对应一个自己的状态。下图展示了Keyed State，因为一个算子子任务可以处理一到多个Key，算子子任务1处理了两种Key，两种Key分别对应自己的状态。<br><img src="/uploads/202106/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97KeyedState.png" alt="Flink状态计算KeyedState"><br>Operator State可以用在所有算子上，每个算子子任务或者说每个算子实例共享一个状态，流入这个算子子任务的数据可以访问和更新这个状态。下图展示了Operator State，算子子任务1上的所有数据可以共享第一个Operator State，以此类推，每个算子子任务上的数据共享自己的状态。<br><img src="/uploads/202106/Flink%E7%8A%B6%E6%80%81%E8%AE%A1%E7%AE%97OperatorState.png" alt="Flink状态计算OperatorState"><br>无论是Keyed State还是Operator State，Flink的状态都是基于本地的，即每个算子子任务维护着这个算子子任务对应的状态存储，算子子任务之间的状态不能相互访问。</p>
+<p>在之前各算子的介绍中曾提到，为了自定义Flink的算子，我们可以重写Rich Function接口类，比如RichFlatMapFunction。使用Keyed State时，我们也可以通过重写Rich Function接口类，在里面创建和访问状态。对于Operator State，我们还需进一步实现CheckpointedFunction接口。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Keyed State</th>
+<th>Operator State</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用算子类型</td>
+<td>只适用于KeyedStream上的算子</td>
+<td>可以用于所有算子</td>
+</tr>
+<tr>
+<td>状态分配</td>
+<td>每个Key对应一个状态</td>
+<td>一个算子子任务对应一个状态</td>
+</tr>
+<tr>
+<td>创建和访问方式</td>
+<td>重写Rich Function，通过里面的RuntimeContext访问</td>
+<td>实现CheckpointedFunction等接口</td>
+</tr>
+<tr>
+<td>横向扩展</td>
+<td>状态随着Key自动在多个算子子任务上迁移</td>
+<td>有多种状态重新分配的方式</td>
+</tr>
+<tr>
+<td>支持的数据结构</td>
+<td>ValueState、ListState、MapState等</td>
+<td>ListState、BroadcastState等</td>
+</tr>
+</tbody></table>
+<p>上表总结了Keyed State和Operator State的区别。</p>
+<h4 id="横向扩展问题"><a href="#横向扩展问题" class="headerlink" title="横向扩展问题"></a>横向扩展问题</h4><p>状态的横向扩展问题主要是指修改Flink应用的并行度，确切的说，每个算子的并行实例数或算子子任务数发生了变化，应用需要关停或启动一些算子子任务，某份在原来某个算子子任务上的状态数据需要平滑更新到新的算子子任务上。其实，Flink的Checkpoint就是一个非常好的在各算子间迁移状态数据的机制。算子的本地状态将数据生成快照（snapshot），保存到分布式存储（如HDFS）上。横向伸缩后，算子子任务个数变化，子任务重启，相应的状态从分布式存储上重建（restore）。<br><img src="/uploads/202106/%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95.png" alt="横向扩展"><br>对于Keyed State和Operator State这两种状态，他们的横向伸缩机制不太相同。由于每个Keyed State总是与某个Key相对应，当横向伸缩时，Key总会被自动分配到某个算子子任务上，因此Keyed State会自动在多个并行子任务之间迁移。对于一个非KeyedStream，流入算子子任务的数据可能会随着并行度的改变而改变。如上图所示，假如一个应用的并行度原来为2，那么数据会被分成两份并行地流入两个算子子任务，每个算子子任务有一份自己的状态，当并行度改为3时，数据流被拆成3支，或者并行度改为1，数据流合并为1支，此时状态的存储也相应发生了变化。对于横向伸缩问题，Operator State有两种状态分配方式：一种是均匀分配，另一种是将所有状态合并，再分发给每个实例上。</p>
+<h4 id="Keyed-State的使用方法"><a href="#Keyed-State的使用方法" class="headerlink" title="Keyed State的使用方法"></a>Keyed State的使用方法</h4><p>对于Keyed State，Flink提供了几种现成的数据结构供我们使用，包括ValueState、ListState等，他们的继承关系如下图所示。首先，State主要有三种实现，分别为ValueState、MapState和AppendingState，AppendingState又可以细分为ListState、ReducingState和AggregatingState。<br><img src="/uploads/202106/%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="继承关系"></p>
+<p>这几个状态的具体区别在于：</p>
+<ul>
+<li>ValueState[T]是单一变量的状态，T是某种具体的数据类型，比如Double、String，或我们自己定义的复杂数据结构。我们可以使用value()方法获取状态，使用update(value: T)更新状态。</li>
+<li>MapState[K, V]存储一个Key-Value map，其功能与Java的Map几乎相同。get(key: K)可以获取某个key下的value，put(key: K, value: V)可以对某个key设置value，contains(key: K)判断某个key是否存在，remove(key: K)删除某个key以及对应的value，entries(): java.lang.Iterable[java.util.Map.Entry[K, V]]返回MapState中所有的元素，iterator(): java.util.Iterator[java.util.Map.Entry[K, V]]返回一个迭代器。需要注意的是，MapState中的key和Keyed State的key不是同一个key。</li>
+<li>ListState[T]存储了一个由T类型数据组成的列表。我们可以使用add(value: T)或addAll(values: java.util.List[T])向状态中添加元素，使用get(): java.lang.Iterable[T]获取整个列表，使用update(values: java.util.List[T])来更新列表，新的列表将替换旧的列表。</li>
+<li>ReducingState[T]和AggregatingState[IN, OUT]与ListState[T]同属于MergingState[T]。与ListState[T]不同的是，ReducingState[T]只有一个元素，而不是一个列表。它的原理是新元素通过add(value: T)加入后，与已有的状态元素使用ReduceFunction合并为一个元素，并更新到状态里。AggregatingState[IN, OUT]与ReducingState[T]类似，也只有一个元素，只不过AggregatingState[IN, OUT]的输入和输出类型可以不一样。ReducingState[T]和AggregatingState[IN, OUT]与窗口上进行ReduceFunction和AggregateFunction很像，都是将新元素与已有元素做聚合。</li>
+</ul>
+<p>注意，Flink的核心代码目前使用Java实现的，而Java的很多类型与Scala的类型不太相同，比如List和Map。这里不再详细解释Java和Scala的数据类型的异同，但是开发者在使用Scala调用这些接口，比如状态的接口，需要注意将Java的类型转为Scala的类型。对于List和Map的转换，只需要需要引用import scala.collection.JavaConversions._，并在必要的地方添加后缀asScala或asJava来进行转换。此外，Scala和Java的空对象使用习惯不太相同，Java一般使用null表示空，Scala一般使用None。</p>
+<h2 id="Flink-Checkpoint机制"><a href="#Flink-Checkpoint机制" class="headerlink" title="Flink Checkpoint机制"></a>Flink Checkpoint机制</h2><h3 id="如何理解flink中state-状态"><a href="#如何理解flink中state-状态" class="headerlink" title="如何理解flink中state(状态)"></a>如何理解flink中state(状态)</h3><p>state泛指：flink中有状态函数和运算符在各个元素(element)/事件(event)的处理过程中存储的数据（注意：状态数据可以修改和查询，可以自己维护，根据自己的业务场景，保存历史数据或者中间结果到状态(state)中）；<br>使用状态计算的例子：</p>
+<ul>
+<li>当应用程序搜索某些事件模式时，状态将存储到目前为止遇到的事件序列。</li>
+<li>在每分钟/小时/天聚合事件时，状态保存待处理的聚合。</li>
+<li>当在数据点流上训练机器学习模型时，状态保持模型参数的当前版本。</li>
+<li>当需要管理历史数据时，状态允许有效访问过去发生的事件。</li>
+</ul>
+<p>无状态计算指的是数据进入Flink后经过算子时只需要对当前数据进行处理就能得到想要的结果；<br>有状态计算就是需要和历史的一些状态或进行相关操作，才能计算出正确的结果；</p>
+<h3 id="flink中checkpoint执行流程"><a href="#flink中checkpoint执行流程" class="headerlink" title="flink中checkpoint执行流程"></a>flink中checkpoint执行流程</h3><ul>
+<li>checkpoint机制是Flink可靠性的基石，可以保证Flink集群在某个算子因为某些原因(如 异常退出)出现故障时，能够将整个应用流图的状态恢复到故障之前的某一状态，保 证应用流图状态的一致性。Flink的checkpoint机制原理来自“Chandy-Lamport algorithm”算法。 (分布式快照算)</li>
+<li>每个需要checkpoint的应用在启动时，Flink的JobManager为其创建一个 CheckpointCoordinator，CheckpointCoordinator全权负责本应用的快照制作。</li>
+<li>CheckpointCoordinator周期性的向该流应用的所有source算子发送barrier。</li>
+<li>当某个source算子收到一个barrier时，便暂停数据处理过程，然后将自己的当前状 态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告 自己快照制作情况，同时向自身所有下游算子广播该barrier，恢复数据处理</li>
+<li>下游算子收到barrier之后，会暂停自己的数据处理过程，然后将自身的相关状态制作成快照，并保存到指定的持久化存储中，最后向CheckpointCoordinator报告自身 快照情况，同时向自身所有下游算子广播该barrier，恢复数据处理。</li>
+<li>每个算子按照步骤3不断制作快照并向下游广播，直到最后barrier传递到sink算子，快照制作完成。</li>
+<li>当CheckpointCoordinator收到所有算子的报告之后，认为该周期的快照制作成功; 否则，如果在规定的时间内没有收到所有算子的报告，则认为本周期快照制作失败 ;</li>
+</ul>
+<p>整个过程如下：</p>
+<ol>
+<li>JobManager端的 CheckPointCoordinator向 所有SourceTask发送CheckPointTrigger，Source Task会在数据流中安插CheckPoint barrier</li>
+<li>当task收到所有的barrier后，向自己的下游继续传递barrier，然后自身执行快照，并将自己的状态异步写入到持久化存储中。增量CheckPoint只是把最新的一部分更新写入到 外部存储；为了下游尽快做CheckPoint，所以会先发送barrier到下游，自身再同步进行快照</li>
+<li>当task完成备份后，会将备份数据的地址（state handle）通知给JobManager的CheckPointCoordinator；如果CheckPoint的持续时长超过 了CheckPoint设定的超时时间，CheckPointCoordinator 还没有收集完所有的 State Handle，CheckPointCoordinator就会认为本次CheckPoint失败，会把这次CheckPoint产生的所有 状态数据全部删除。</li>
+<li>最后 CheckPoint Coordinator 会把整个 StateHandle 封装成 completed CheckPoint Meta，写入到hdfs。</li>
+</ol>
+<h3 id="什么是barrier对齐？"><a href="#什么是barrier对齐？" class="headerlink" title="什么是barrier对齐？"></a>什么是barrier对齐？</h3><p><img src="/uploads/202106/barrier%E5%AF%B9%E9%BD%90.png" alt="barrier对齐"></p>
+<ul>
+<li>一旦Operator从输入流接收到CheckPoint barrier n，它就不能处理来自该流的任何数据记录，直到它从其他所有输入接收到barrier n为止。否则，它会混合属于快照n的记录和属于快照n + 1的记录；</li>
+<li>接收到barrier n的流暂时被搁置。从这些流接收的记录不会被处理，而是放入输入缓冲区。</li>
+<li>上图中第2个图，虽然数字流对应的barrier已经到达了，但是barrier之后的1、2、3这些数据只能放到buffer中，等待字母流的barrier到达；</li>
+<li>一旦最后所有输入流都接收到barrier n，Operator就会把缓冲区中pending 的输出数据发出去，然后把CheckPoint barrier n接着往下游发送</li>
+<li>这里还会对自身进行快照；之后，Operator将继续处理来自所有输入流的记录，在处理来自流的记录之前先处理来自输入缓冲区的记录。</li>
+</ul>
+<h3 id="什么是barrier不对齐？"><a href="#什么是barrier不对齐？" class="headerlink" title="什么是barrier不对齐？"></a>什么是barrier不对齐？</h3><p>checkpoint 是要等到所有的barrier全部都到才算完成</p>
+<ul>
+<li>上述图2中，当还有其他输入流的barrier还没有到达时，会把已到达的barrier之后的数据1、2、3搁置在缓冲区，等待其他流的barrier到达后才能处理</li>
+<li>barrier不对齐就是指当还有其他流的barrier还没到达时，为了不影响性能，也不用理会，直接处理barrier之后的数据。等到所有流的barrier的都到达后，就可以对该Operator做CheckPoint了；</li>
+</ul>
+<p>为什么要进行barrier对齐？不对齐到底行不行？<br>Exactly Once时必须barrier对齐，如果barrier不对齐就变成了At Least Once；</p>
+<h3 id="checkpoint中保存的是什么信息"><a href="#checkpoint中保存的是什么信息" class="headerlink" title="checkpoint中保存的是什么信息"></a>checkpoint中保存的是什么信息</h3><p>快照里面到底保存着什么信息呢？以flink消费kafka数据wordcount为例：<br>我们从Kafka读取到一条条的日志，从日志中解析出app_id，然后将统计的结果放到内存中一个Map集合，app_id做为key，对应的pv做为value，每次只需要将相应app_id 的pv值+1后put到Map中即可；<br>kafka topic：test；<br>flink运算流程如下：<br>kakfa的testtopic的分区 —&gt; Flink的source task —&gt; flink的pv计算task</p>
+<h3 id="如何自动获取最新的checkpoint？"><a href="#如何自动获取最新的checkpoint？" class="headerlink" title="如何自动获取最新的checkpoint？"></a>如何自动获取最新的checkpoint？</h3><p>现在只知道可以通过-s手动把最新的chk传入到执行程序里，那么如何在java里自动带入最新的chk呢？<br>在代码中设置如下参数：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">String</span> lastCheckpintPath <span class="token operator">=</span> <span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token function">getCkPath</span><span class="token punctuation">(</span>checkpointPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+conf<span class="token punctuation">.</span><span class="token function">setString</span><span class="token punctuation">(</span><span class="token string">"execution.savepoint.path"</span><span class="token punctuation">,</span> lastCheckpintPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">getCkPath</span><span class="token punctuation">(</span><span class="token class-name">String</span> relativePath<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token string">"/core-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">addResource</span><span class="token punctuation">(</span><span class="token class-name">CheckpointUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token string">"/hdfs-site.xml"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">FileSystem</span> fs <span class="token operator">=</span> <span class="token class-name">FileSystem</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">FileStatus</span><span class="token punctuation">[</span><span class="token punctuation">]</span> listStatus <span class="token operator">=</span> fs<span class="token punctuation">.</span><span class="token function">listStatus</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>relativePath<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">FileStatus</span><span class="token punctuation">></span></span> latestFiles <span class="token operator">=</span> <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">stream</span><span class="token punctuation">(</span>listStatus<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">sorted</span><span class="token punctuation">(</span><span class="token class-name">Comparator</span><span class="token punctuation">.</span><span class="token function">comparing</span><span class="token punctuation">(</span><span class="token class-name">FileStatus</span><span class="token operator">::</span><span class="token function">getModificationTime</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">reversed</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">limit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token class-name">Collectors</span><span class="token punctuation">.</span><span class="token function">toList</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">CollectionUtils</span><span class="token punctuation">.</span><span class="token function">isNotEmpty</span><span class="token punctuation">(</span>latestFiles<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">FileStatus</span> fileStatus <span class="token operator">=</span> latestFiles<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">FileStatus</span><span class="token punctuation">[</span><span class="token punctuation">]</span> fileStatuses <span class="token operator">=</span> fs<span class="token punctuation">.</span><span class="token function">listStatus</span><span class="token punctuation">(</span>fileStatus<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">FileStatus</span> status <span class="token operator">:</span> fileStatuses<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"chk"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">return</span> status<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> ex<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>err<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>ex<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token string">""</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Flink广播状态"><a href="#Flink广播状态" class="headerlink" title="Flink广播状态"></a>Flink广播状态</h2><p>即broadcaststate，广播至下游所有任务，在本地存储，broadcaststate必须是mapstate类型。对于dataset api中，广播在每个计算节点存储一份，对于datastream 而言，在每个并行度存在一份，算子的每个任务的状态都相同。同时flink watermark和CheckpointBarrier向下游传递时也是基于广播机制。</p>
+<blockquote>
+<p>注意：广播状态会在每个并行度里都保留一份，这就会导致状态被放大。比如，状态本身只有134M，但是，设置了20个并行度，最终在HDFS上的checkpoint会办成2.6G。所以，并行度的设置也会影响ck的大小</p>
+</blockquote>
+<h2 id="Flink-Exactly-once语义探究"><a href="#Flink-Exactly-once语义探究" class="headerlink" title="Flink Exactly-once语义探究"></a>Flink Exactly-once语义探究</h2><p>Flink通过实现两阶段提交和状态保存来实现端到端的一致性语义;<br>Flink不是默认就有EOS的，flink 官方推荐所有需要保证EOS的sink 逻辑都继承TwoPhaseCommitSinkFunction抽象类。它具体定义如下四个抽象方法。需要我们去在子类中实现。</p>
+<pre><code class="java">protected abstract TXN beginTransaction() throws Exception;
+protected abstract void preCommit(TXN transaction) throws Exception;
+protected abstract void commit(TXN transaction);
+protected abstract void abort(TXN transaction);</code></pre>
+<p>beginTransaction(): 开始一个事务，返回事务信息的句柄。<br>preCommit :预提交（即提交请求）阶段的逻辑<br>commit():正式提交阶段的逻辑<br>abort():取消事务</p>
+<h3 id="Flink实现端到端的精准一次"><a href="#Flink实现端到端的精准一次" class="headerlink" title="Flink实现端到端的精准一次"></a>Flink实现端到端的精准一次</h3><p>端到端精确一次: flink是通过两步提交的方式实现,内部和外部存储系统间的精确一次语义，即容错发生时每条输入消息依旧只会影响最终结果一次,需满足如下三点:<br>source: 支持数据可重放,即当容错发生后,支持读取上个state标记后的数据,如kafka offset<br>link内部:通设置精确一次的checkpoint保障了内部计算在容错时候的精确一次语义<br>sink:必须支持事物或者幂等操作(继承TwoPhaseCommitSinkFunction抽象类)<br>使用kafka的sink已经自动实现了，但是，自己写的sink，需要自己继承TwoPhaseCommitSinkFunction抽象类</p>
+<h3 id="flink的二阶段提交"><a href="#flink的二阶段提交" class="headerlink" title="flink的二阶段提交"></a>flink的二阶段提交</h3><p>两阶段提交（two-phase commit, 2PC）是最基础的分布式一致性协议，应用广泛<br>2PC 在分布式系统中，为了让每个节点能够感知其他所有节点的事务执行情况，需要我们引入一个中心节点的凡是统一所有节点的执行逻辑和进度。这个中心节点叫做协调者（coordinator），而其中向中心节点汇报或者被中心节点调度的其他节点叫做参与者。</p>
+<h4 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h4><p><strong>请求阶段</strong><br>1、协调者向所有参与者发送准备请求与事务内容，询问是否可以准备事务提交，并等待参与者的响应。<br>2、参与者执行事务中的包含操作，并记录undo日志（用于回滚）和redo日志（用于重放），但是不真正提交。<br>3、参与者向协调者返回事务才做的执行结果，执行陈工返回yes,否则返回no.<br><strong>提交阶段（分成成功和失败两种情况）</strong><br>若所有的参与者都返回yes,说明事务可以提交。<br>1、协调者向所有参与者发送commit请求。<br>2、参与者收到commit 请求后，将事务真正的提交上去，并释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者ack消息，事务成功完成。<br><strong>事务回滚</strong><br>若有参与者返回no或者超时未返回，说明事务终端，需要回滚。<br>1、协调者向所有参与者发送rollback请求。<br>2、参与者收到rollback请求后，根据undo日志回滚到事务执行前的状态，释放占用的事务资源，并向协调者返回ack。<br>3、协调者收到所有参与者的ack消息，事务回滚完成。</p>
+<h4 id="2PC-的优缺点"><a href="#2PC-的优缺点" class="headerlink" title="2PC 的优缺点"></a>2PC 的优缺点</h4><p><strong>优点</strong><br>2PC的优点在于原理非常简单，容易理解及实现。<br><strong>缺点</strong><br>缺点主要有3个，列举如下：<br>（1）协调者存在单点问题。如果协调者挂了，整个2PC逻辑就彻底不能运行。<br>（2）、执行过程是完全同步的。各参与者在等待其他参与者响应的过程中都处于阻塞状态，大并发下有性能问题。<br>（3）、仍然存在不一致风险。如果由于网络异常等意外导致只有部分参与者收到了commit请求，就会造成部分参与者提交了事务而其他参与者未提交的情况。</p>
+<p>具体可以参考<a href="https://www.cnblogs.com/zhipeng-wang/p/14082806.html">flink的二阶段提交</a></p>
 ]]></content>
       <categories>
         <category>大数据</category>
