@@ -223,7 +223,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2023-05-29 14:08:09 / 修改时间：14:39:47" itemprop="dateCreated datePublished" datetime="2023-05-29T14:08:09+08:00">2023-05-29</time>
+              <time title="创建时间：2023-05-29 14:08:09 / 修改时间：14:41:14" itemprop="dateCreated datePublished" datetime="2023-05-29T14:08:09+08:00">2023-05-29</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -271,103 +271,14 @@
 <ul>
 <li>json解析工具-jq简介</li>
 </ul>
-<h2 id="jq简介"><a href="#jq简介" class="headerlink" title="jq简介"></a>jq简介</h2><p>jq可以对json数据进行分片、过滤、映射和转换，和sed、awk、grep等命令一样，都可以让你轻松地把玩文本。它能轻松地把你拥有的数据转换成你期望的格式，而且需要写的程序通常也比你期望的更加简短。</p>
-<h3 id="jq安装"><a href="#jq安装" class="headerlink" title="jq安装"></a>jq安装</h3><p>在Linux下安装：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 安装EPEL源：
-yum install -y epel-release
- 
-# 安装完EPEL源后，可以查看下jq包是否存在：
-yum list jq
- 
-# 安装jq：
-yum install -y jq<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><ol>
-<li>使用 jq 美化 json 数据<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">jsonStr&#x3D;&#39;&#123;&quot;name&quot;:&quot;springcloud&quot;,&quot;processDefinitionId&quot;:&quot;&quot;,&quot;failureStrategy&quot;:&quot;CONTINUE&quot;,&quot;warningType&quot;:&quot;NONE&quot;,&quot;warningGroupId&quot;:&quot;0&quot;,&quot;taskDependType&quot;:&quot;TASK_POST&quot;,&quot;runMode&quot;:&quot;RUN_MODE_SERIAL&quot;,&quot;processInstancePriority&quot;:&quot;MEDIUM&quot;,&quot;workerGroup&quot;:&quot;default&quot;,&quot;runParam&quot;:[&#123;&quot;T_SID&quot;:&quot;tenantId&quot;,&quot;INS_NO&quot;:&quot;inspectionNo&quot;,&quot;partitionFields&quot;:&quot;partitionFields&quot;,&quot;batchNo&quot;:&quot;111&quot;,&quot;groupBy&quot;:&quot;battery_voltage,&quot;,&quot;orderBy&quot;:&quot;d,e&quot;,&quot;startLine&quot;:&quot;3&quot;,&quot;endLine&quot;:&quot;63&quot;,&quot;calculationType&quot;:&quot;1&quot;,&quot;matchNo&quot;:&quot;aaaaaaaaa1&quot;,&quot;planNo&quot;:&quot;bbbbbbbb2&quot;,&quot;sampleNo&quot;:&quot;ccccccc3&quot;,&quot;analysisModelNo&quot;:&quot;aaaa&quot;,&quot;startRowNo&quot;:&quot;1&quot;,&quot;endRowNo&quot;:&quot;1000&quot;&#125;]&#125;&#39;
-echo $jsonStr | jq .
-# 输出为：
-&#123;
-  &quot;name&quot;: &quot;springcloud&quot;,
-  &quot;processDefinitionId&quot;: &quot;&quot;,
-  &quot;failureStrategy&quot;: &quot;CONTINUE&quot;,
-  &quot;warningType&quot;: &quot;NONE&quot;,
-  &quot;warningGroupId&quot;: &quot;0&quot;,
-  &quot;taskDependType&quot;: &quot;TASK_POST&quot;,
-  &quot;runMode&quot;: &quot;RUN_MODE_SERIAL&quot;,
-  &quot;processInstancePriority&quot;: &quot;MEDIUM&quot;,
-  &quot;workerGroup&quot;: &quot;default&quot;,
-  &quot;runParam&quot;: [
-    &#123;
-      &quot;T_SID&quot;: &quot;tenantId&quot;,
-      &quot;INS_NO&quot;: &quot;inspectionNo&quot;,
-      &quot;partitionFields&quot;: &quot;partitionFields&quot;,
-      &quot;batchNo&quot;: &quot;111&quot;,
-      &quot;groupBy&quot;: &quot;battery_voltage,&quot;,
-      &quot;orderBy&quot;: &quot;d,e&quot;,
-      &quot;startLine&quot;: &quot;3&quot;,
-      &quot;endLine&quot;: &quot;63&quot;,
-      &quot;calculationType&quot;: &quot;1&quot;,
-      &quot;matchNo&quot;: &quot;aaaaaaaaa1&quot;,
-      &quot;planNo&quot;: &quot;bbbbbbbb2&quot;,
-      &quot;sampleNo&quot;: &quot;ccccccc3&quot;,
-      &quot;analysisModelNo&quot;: &quot;aaaa&quot;,
-      &quot;startRowNo&quot;: &quot;1&quot;,
-      &quot;endRowNo&quot;: &quot;1000&quot;
-    &#125;
-  ]
-&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>获取key的值<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo $jsonStr | jq -r &#39;.name&#39;
-# 输出  springcloud
-
-# 输出多个索引的值，可以用逗号分割
-echo $jsonStr | jq -r &#39;.name,.failureStrategy&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>数组操作 <code>.[], .[i], .[s:e],[s:],[:e]</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 语法：jq &#39;.[s:e]&#39;,返回的是数组或者列表的index从s开始（包括s）到e结束（不包括e）
-# jq &#39;.[i]&#39;代表取数组第i位，从0开始
-# [[s:],[:e] 分别代表取从s开始直到结尾&#x2F;从头开始直到e
-echo &#39;[&#123;&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true&#125;, &#123;&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false&#125;]&#39; | jq -r &#39;.[1]&#39;
-# 输出值
-&#123;
-  &quot;name&quot;: &quot;XML&quot;,
-  &quot;good&quot;: false
-&#125;
-
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>构造数组/对象 <code>[], &#123;&#125;</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo &#39;&#123;&quot;user&quot;:&quot;stedolan&quot;,&quot;titles&quot;:[&quot;JQ Primer&quot;, &quot;More JQ&quot;]&#125;&#39; | jq -r &#39;&#123;user, title: .titles[]&#125;&#39;
-# 输出：
-&#123;
-  &quot;user&quot;: &quot;stedolan&quot;,
-  &quot;title&quot;: &quot;JQ Primer&quot;
-&#125;
-&#123;
-  &quot;user&quot;: &quot;stedolan&quot;,
-  &quot;title&quot;: &quot;More JQ&quot;
-&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>括号的作用<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 可以直接计算加减乘除
-echo 1 | jq &#39;(.+2)*5&#39;    # 15
-echo &#123;1,2,3&#125; | jq &#39;(.+2)*5&#39;  # 15 20 25<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
-<li>length求长度<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#如果是字符串是求的字符串的长度，如果是数组则求得是数组的长度
-echo &#39;[&#123;&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true&#125;, &#123;&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false&#125;]&#39; | jq -r &#39;. | length&#39;   # 2
-echo &#39;[&#123;&quot;name&quot;:&quot;JSON&quot;, &quot;good&quot;:true&#125;, &#123;&quot;name&quot;:&quot;XML&quot;, &quot;good&quot;:false,&quot;a&quot;:1&#125;]&#39; | jq -r &#39;.[] | length&#39;  # 2 3
-echo $jsonStr | jq -r &#39;.name | length&#39;   # 11<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>输出所有的keys<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo $jsonStr | jq -r &#39;keys&#39;   
-# [
-#   &quot;failureStrategy&quot;,
-#   &quot;name&quot;,
-#   &quot;processDefinitionId&quot;,
-#   &quot;processInstancePriority&quot;,
-#   &quot;runMode&quot;,
-#   &quot;runParam&quot;,
-#   &quot;taskDependType&quot;,
-#   &quot;warningGroupId&quot;,
-#   &quot;warningType&quot;,
-#   &quot;workerGroup&quot;
-# ]<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>判断存不存在某个键<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo $jsonStr | jq &#39;has(&quot;name&quot;)&#39;  # true
-echo $jsonStr | jq &#39;has(&quot;aaa&quot;)&#39;  # false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
-<li>字符插入 <code>\(foo)</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo &#39;42&#39; | jq &#39;&quot;The input was \(.), which is one less than \(.+1)&quot;&#39;
-# &quot;The input was 42, which is one less than 43&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
-<li>if-then-else-end 条件<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo &#39;2&#39; | jq &#39;if . &#x3D;&#x3D; 0 then &quot;zero&quot; elif . &#x3D;&#x3D; 1 then &quot;one&quot; else &quot;many&quot; end&#39; # many<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-</ol>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/05/29/shell%E8%A7%A3%E6%9E%90json%E5%B7%A5%E5%85%B7-jq/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
