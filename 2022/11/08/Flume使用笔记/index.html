@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Flume简介 Flume采集kafka数据到hive">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-11-08T05:40:15.000Z">
-<meta property="article:modified_time" content="2023-07-19T09:51:12.155Z">
+<meta property="article:modified_time" content="2023-07-27T07:07:44.411Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flume">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-07-19 17:51:12" itemprop="dateModified" datetime="2023-07-19T17:51:12+08:00">2023-07-19</time>
+                <time title="修改时间：2023-07-27 15:07:44" itemprop="dateModified" datetime="2023-07-27T15:07:44+08:00">2023-07-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -379,26 +379,33 @@ agent.sinks &#x3D; kafka-sink
 
 # Source Configuration
 agent.sources.kafka-source.type &#x3D; org.apache.flume.source.kafka.KafkaSource
-agent.sources.kafka-source.kafka.bootstrap.servers &#x3D; ddp5:9092
-agent.sources.kafka-source.batchSize &#x3D; 1
-agent.sources.kafka-source.kafka.consumer.group.id &#x3D; flume-consumer-group1
-agent.sources.kafka-source.kafka.topics &#x3D; gjc_test
+agent.sources.kafka-source.kafka.bootstrap.servers &#x3D; 47.100.1.105:9094,47.100.1.105:9095,47.100.1.105:9096
+agent.sources.kafka-source.batchSize &#x3D; 10
+agent.sources.kafka-source.kafka.consumer.group.id &#x3D; flume-consumer-group-device_ops_1
+agent.sources.kafka-source.kafka.topics &#x3D; device_ops
+agent.sources.kafka-source.kafka.consumer.auto.offset.reset &#x3D; latest
 
 # Channel Configuration
 agent.channels.memory-channel.type &#x3D; memory
-#agent.channels.memory-channel.capacity &#x3D; 10000
+agent.channels.memory-channel.capacity &#x3D; 100000
 
 # Sink Configuration
 agent.sinks.kafka-sink.type &#x3D; org.apache.flume.sink.kafka.KafkaSink
-agent.sinks.kafka-sink.kafka.bootstrap.servers &#x3D; ddp5:9092
-agent.sinks.kafka-sink.kafka.topic &#x3D; gjc_test_1
-agent.sinks.kafka-sink.kafka.flumeBatchSize&#x3D; 1
+agent.sinks.kafka-sink.kafka.bootstrap.servers &#x3D; ddp3:9092,ddp4:9092,ddp5:9092
+agent.sinks.kafka-sink.kafka.topic &#x3D; device_ops
+# 用于控制 Kafka Sink 将多少个事件打包成一个批处理（batch）后一次性发送给 Kafka Broker。这个参数对于提高 Kafka Sink 的性能和吞吐量非常重要。
+# Flume Sink 并不会等待累积到 100 条数据才发送，而是在每个 Channel 事务提交时，根据当前 Channel 中的可用数据，组合成相应大小的批处理并发送给 Kafka Broker
+agent.sinks.kafka-sink.kafka.flumeBatchSize&#x3D; 1000
 agent.sinks.kafka-sink.kafka.producer.acks&#x3D; 1
-agent.sinks.kafka-sink.kafka.producer.linger.ms&#x3D; 1
+# 设置为正整数值（例如 100），Producer 会等待指定的毫秒数，让更多的消息加入到批次中，从而减少发送消息的频率，以提高吞吐量
+agent.sinks.kafka-sink.kafka.producer.linger.ms&#x3D; 10
+agent.sinks.kafka-sink.kafka.producer.max.request.size &#x3D; 10485760
+
+# 以在 Flume 的事件中指定不同的 Kafka Topic，而不必将所有事件发送到同一个 Topic。
 agent.sinks.kafka-sink.allowTopicOverride &#x3D; false
 # Bind Source and Sink to Channel
 agent.sources.kafka-source.channels &#x3D; memory-channel
-agent.sinks.kafka-sink.channel &#x3D; memory-channel<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+agent.sinks.kafka-sink.channel &#x3D; memory-channel<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>注意：这里一开始没有设置<code>agent.sinks.kafka-sink.allowTopicOverride = false</code>，导致数据写入不进去kafka，会报如下异常</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">23&#x2F;07&#x2F;19 17:35:33 ERROR kafka.KafkaSink: Failed to publish events
 java.lang.InterruptedException
@@ -411,6 +418,21 @@ java.lang.InterruptedException
         at org.apache.flume.sink.DefaultSinkProcessor.process(DefaultSinkProcessor.java:67)
         at org.apache.flume.SinkRunner$PollingRunner.run(SinkRunner.java:145)
         at java.lang.Thread.run(Thread.java:748)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">23&#x2F;07&#x2F;27 14:32:05 ERROR kafka.KafkaSink: Failed to publish events
+java.util.concurrent.ExecutionException: org.apache.kafka.common.errors.RecordTooLargeException: The message is 1120815 bytes when serialized which is larger than the maximum request size you have configured with the max.request.size configuration.
+        at org.apache.kafka.clients.producer.KafkaProducer$FutureFailure.&lt;init&gt;(KafkaProducer.java:1239)
+        at org.apache.kafka.clients.producer.KafkaProducer.doSend(KafkaProducer.java:918)
+        at org.apache.kafka.clients.producer.KafkaProducer.send(KafkaProducer.java:841)
+        at org.apache.flume.sink.kafka.KafkaSink.process(KafkaSink.java:227)
+        at org.apache.flume.sink.DefaultSinkProcessor.process(DefaultSinkProcessor.java:67)
+        at org.apache.flume.SinkRunner$PollingRunner.run(SinkRunner.java:145)
+        at java.lang.Thread.run(Thread.java:748)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>报错原因：<br>RecordTooLargeException 是 Kafka 的一个异常，它会在消息大小超过 Kafka 生产者配置的 max.request.size 参数限制时抛出。默认情况下，Kafka 生产者的 max.request.size 参数的默认值为 1048576 字节（1 MB），即单个消息的最大大小为 1 MB。</p>
+<p>解决方法：</p>
+<ol>
+<li>增加 max.request.size 的配置值<br><code>agent.sinks.kafka-sink.kafka.producer.max.request.size = 10485760</code></li>
+</ol>
 <p>可以参考：<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/66614945/apache-flume-with-kafka-source-kafka-sink-and-memory-channel-throwing-unknown">Apache flume with kafka source, kafka sink and memory channel</a></p>
 
     </div>
@@ -512,7 +534,7 @@ java.lang.InterruptedException
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">77</span>
+          <span class="site-state-item-count">78</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -525,7 +547,7 @@ java.lang.InterruptedException
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">56</span>
+        <span class="site-state-item-count">57</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Ambari编译 Ambari安装">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-03-02T08:28:40.000Z">
-<meta property="article:modified_time" content="2023-03-17T07:45:18.100Z">
+<meta property="article:modified_time" content="2023-08-02T01:37:38.316Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Ambari">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-03-17 15:45:18" itemprop="dateModified" datetime="2023-03-17T15:45:18+08:00">2023-03-17</time>
+                <time title="修改时间：2023-08-02 09:37:38" itemprop="dateModified" datetime="2023-08-02T09:37:38+08:00">2023-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -306,16 +306,95 @@ mvn versions:set -DnewVersion&#x3D;2.7.7.0.0
  
 pushd ambari-metrics
 mvn versions:set -DnewVersion&#x3D;2.7.7.0.0
-popd<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>修改源码里的pom文件<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pluginRepository</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>aliyun<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>aliyun<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>http://maven.aliyun.com/nexus/content/groups/public<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>layout</span><span class="token punctuation">></span></span>default<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>layout</span><span class="token punctuation">></span></span>
- <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pluginRepository</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3></li>
+popd<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="安装必要的软件"><a href="#安装必要的软件" class="headerlink" title="安装必要的软件"></a>安装必要的软件</h3></li>
 </ul>
 <ol>
+<li>java 1.8</li>
+<li>maven-3.6.3</li>
+<li>node &lt;= v11.15.0</li>
+<li>brunch<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># Find the node root directory
+cd &#96;npm root -g&#96;
+
+# Change Taobao source
+npm config set registry https:&#x2F;&#x2F;registry.npm.taobao.org
+npm info underscore
+
+# Install brunch-1.7.20
+npm install -g brunch@1.7.20
+
+# View the installed version
+brunch -V
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><code>yum install -y rpm-build gcc-c++ python-devel git</code></li>
+<li>安装yarn：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">npm install -g yarn # 这里要开外网<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="更换镜像源"><a href="#更换镜像源" class="headerlink" title="更换镜像源"></a>更换镜像源</h3>修改.m2/settings.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrors</span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!-- Amabri build mirror source --></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirror</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>alimaven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>aliyun maven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>http://maven.aliyun.com/nexus/content/groups/public/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrorOf</span><span class="token punctuation">></span></span>central<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrorOf</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirror</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirror</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>alimaven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrorOf</span><span class="token punctuation">></span></span>central<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrorOf</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>aliyun maven<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>http://maven.aliyun.com/nexus/content/repositories/central/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirror</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirror</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>nexus-hortonworks<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrorOf</span><span class="token punctuation">></span></span>*,!central<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrorOf</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>Nexus hortonworks<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>https://repo.hortonworks.com/content/groups/public/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirror</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirror</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>HDPReleases<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>HDP Releases<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span><span class="token punctuation">></span></span>http://repo.hortonworks.com/content/repositories/releases/<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>mirrorOf</span><span class="token punctuation">></span></span>central<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrorOf</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirror</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>mirrors</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="配置github-com"><a href="#配置github-com" class="headerlink" title="配置github.com"></a>配置github.com</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim &#x2F;etc&#x2F;hosts
+140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="修改-ambari-admin-pom-xml"><a href="#修改-ambari-admin-pom-xml" class="headerlink" title="修改 ambari-admin/pom.xml"></a>修改 ambari-admin/pom.xml</h3><pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"># 修改105
+vim ambari/ambari-admin/pom.xml
+
+# 修改前 和 修改后
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>argument</span><span class="token punctuation">></span></span>$&#123;basedir&#125;/src/main/resources/ui/admin-web/node_modules/bower/bin/bower<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>argument</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>argument</span><span class="token punctuation">></span></span>bower<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>argument</span><span class="token punctuation">></span></span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="修改依赖地址"><a href="#修改依赖地址" class="headerlink" title="修改依赖地址"></a>修改依赖地址</h3>修改 ambari-2.7.4/ambari-metrics/pom.xml 文件，依赖包修改为本地下载好的位置<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>properties</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>project.build.sourceEncoding</span><span class="token punctuation">></span></span>UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>project.build.sourceEncoding</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>python.ver</span><span class="token punctuation">></span></span>python <span class="token entity named-entity" title="&gt;">&amp;gt;</span>= 2.6<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>python.ver</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>deb.python.ver</span><span class="token punctuation">></span></span>python (<span class="token entity named-entity" title="&gt;">&amp;gt;</span>= 2.6)<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>deb.python.ver</span><span class="token punctuation">></span></span>
+  <span class="token comment">&lt;!--TODO change to HDP URL--></span>   
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hbase.tar</span><span class="token punctuation">></span></span>file:///opt/soft/hbase-2.1.0-bin.tar.gz<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>hbase.tar</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hbase.folder</span><span class="token punctuation">></span></span>hbase-2.1.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>hbase.folder</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hadoop.tar</span><span class="token punctuation">></span></span>file:///opt/soft/hadoop-3.1.1.tar.gz<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>hadoop.tar</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hadoop.folder</span><span class="token punctuation">></span></span>hadoop-3.1.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>hadoop.folder</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hadoop.version</span><span class="token punctuation">></span></span>3.1.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>hadoop.version</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>grafana.folder</span><span class="token punctuation">></span></span>grafana-10.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>grafana.folder</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>grafana.tar</span><span class="token punctuation">></span></span>file:///opt/soft/grafana-enterprise-10.0.0.linux-amd64.tar.gz<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>grafana.tar</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phoenix.tar</span><span class="token punctuation">></span></span>file:///opt/soft/phoenix-hbase-2.1-5.1.0-bin.tar.gz<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phoenix.tar</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phoenix.folder</span><span class="token punctuation">></span></span>phoenix-hbase-2.1-5.1.0-bin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phoenix.folder</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>resmonitor.install.dir</span><span class="token punctuation">></span></span>/usr/lib/python2.6/site-packages/resource_monitoring<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>resmonitor.install.dir</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>powermock.version</span><span class="token punctuation">></span></span>1.6.2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>powermock.version</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>fasterxml.jackson.version</span><span class="token punctuation">></span></span>2.10.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>fasterxml.jackson.version</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>fasterxml.jackson.databind.version</span><span class="token punctuation">></span></span>2.10.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>fasterxml.jackson.databind.version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>properties</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+修改ambari/ambari-metrics/ambari-metrics-timelineservice/pom.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>move</span>
+    <span class="token attr-name">file</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>$&#123;project.build.directory&#125;/embedded/$&#123;phoenix.folder&#125;/phoenix-server-hbase-2.1-5.1.0.jar<span class="token punctuation">"</span></span>
+    <span class="token attr-name">tofile</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>$&#123;project.build.directory&#125;/embedded/$&#123;hbase.folder&#125;/lib/phoenix-server-hbase-2.1-5.1.0.jar<span class="token punctuation">"</span></span>
+<span class="token punctuation">/></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<p>修改多处zookeeper的版本以及ambari-utility版本</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="修改多处源码pom文件"><a href="#修改多处源码pom文件" class="headerlink" title="修改多处源码pom文件"></a>修改多处源码pom文件</h3><p>ambari源码内多处pom文件写死了repository和mirror，里面的很多url都是访问不了的。<br>把这些都删除掉。</p>
+<p>可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_51205511/article/details/121861883">Ambari源码编译、安装（包括异常处理）</a><br><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.6">Ambari官网</a></p>
+<h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3><ol>
 <li><code>Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.4:install-node-and-yarn</code><pre class="line-numbers language-text" data-language="text"><code class="language-text">[ERROR] Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.4:install-node-and-yarn (install node and yarn) on project ambari-web: Could not download Yarn: Could not download https:&#x2F;&#x2F;github.com&#x2F;yarnpkg&#x2F;yarn&#x2F;releases&#x2F;download&#x2F;v0.23.2&#x2F;yarn-v0.23.2.tar.gz: Remote host closed connection during handshake: SSL peer shut down incorrectly -&gt; [Help 1]
 [ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
@@ -538,7 +617,7 @@ Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doe
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari%E7%BC%96%E8%AF%91"><span class="nav-number">1.</span> <span class="nav-text">Ambari编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98"><span class="nav-number">1.1.</span> <span class="nav-text">遇到问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari-%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Ambari 安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-Server-%E5%AE%89%E8%A3%85"><span class="nav-number">2.1.</span> <span class="nav-text">Ambari Server 安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-agent%E5%AE%89%E8%A3%85"><span class="nav-number">2.2.</span> <span class="nav-text">Ambari agent安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">遇到问题：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Apache-Hadoop%E7%AD%89%E7%BB%84%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">安装Apache Hadoop等组件</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari%E7%BC%96%E8%AF%91"><span class="nav-number">1.</span> <span class="nav-text">Ambari编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%BF%85%E8%A6%81%E7%9A%84%E8%BD%AF%E4%BB%B6"><span class="nav-number">1.1.</span> <span class="nav-text">安装必要的软件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E6%8D%A2%E9%95%9C%E5%83%8F%E6%BA%90"><span class="nav-number">1.2.</span> <span class="nav-text">更换镜像源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEgithub-com"><span class="nav-number">1.3.</span> <span class="nav-text">配置github.com</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9-ambari-admin-pom-xml"><span class="nav-number">1.4.</span> <span class="nav-text">修改 ambari-admin&#x2F;pom.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E4%BE%9D%E8%B5%96%E5%9C%B0%E5%9D%80"><span class="nav-number">1.5.</span> <span class="nav-text">修改依赖地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E5%A4%9A%E5%A4%84%E6%BA%90%E7%A0%81pom%E6%96%87%E4%BB%B6"><span class="nav-number">1.6.</span> <span class="nav-text">修改多处源码pom文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98"><span class="nav-number">1.7.</span> <span class="nav-text">遇到问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari-%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Ambari 安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-Server-%E5%AE%89%E8%A3%85"><span class="nav-number">2.1.</span> <span class="nav-text">Ambari Server 安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-agent%E5%AE%89%E8%A3%85"><span class="nav-number">2.2.</span> <span class="nav-text">Ambari agent安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">遇到问题：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Apache-Hadoop%E7%AD%89%E7%BB%84%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">安装Apache Hadoop等组件</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -554,7 +633,7 @@ Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doe
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">77</span>
+          <span class="site-state-item-count">78</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -567,7 +646,7 @@ Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doe
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">56</span>
+        <span class="site-state-item-count">57</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
