@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Ambari编译 Ambari安装">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-03-02T08:28:40.000Z">
-<meta property="article:modified_time" content="2023-08-02T01:37:38.316Z">
+<meta property="article:modified_time" content="2023-08-14T07:28:18.375Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Ambari">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-08-02 09:37:38" itemprop="dateModified" datetime="2023-08-02T09:37:38+08:00">2023-08-02</time>
+                <time title="修改时间：2023-08-14 15:28:18" itemprop="dateModified" datetime="2023-08-14T15:28:18+08:00">2023-08-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -450,7 +450,12 @@ wget https:&#x2F;&#x2F;github.com&#x2F;yarnpkg&#x2F;yarn&#x2F;releases&#x2F;down
 </li>
 </ol>
 <p>具体可以参考<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/585173462">国内网络编译，Ambari 2.7.6 全部模块源码编译笔记</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/suwei825/article/details/119544348">自建云服务器集群离线安装Ambari2.7.5和HDP3.1.5(一)</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/suwei825/article/details/119577210">自建云服务器集群离线安装Ambari2.7.5和HDP3.1.5(二)</a></p>
-<h2 id="Ambari-安装"><a href="#Ambari-安装" class="headerlink" title="Ambari 安装"></a>Ambari 安装</h2><h3 id="Ambari-Server-安装"><a href="#Ambari-Server-安装" class="headerlink" title="Ambari Server 安装"></a>Ambari Server 安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM-4-14-centos ~]# ambari-server setup
+<h2 id="Ambari-安装"><a href="#Ambari-安装" class="headerlink" title="Ambari 安装"></a>Ambari 安装</h2><h3 id="数据库初始化"><a href="#数据库初始化" class="headerlink" title="数据库初始化"></a>数据库初始化</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">CREATE</span> <span class="token keyword">USER</span> <span class="token string">'ambari'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'ambari@123'</span><span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> ambari<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'ambari'</span><span class="token variable">@'%'</span><span class="token punctuation">;</span>
+<span class="token comment">-- souce这个步骤需要在ambari-server setup之后操作</span>
+source <span class="token operator">/</span>var<span class="token operator">/</span>lib<span class="token operator">/</span>ambari<span class="token operator">-</span>server<span class="token operator">/</span>resources<span class="token operator">/</span>Ambari<span class="token operator">-</span>DDL<span class="token operator">-</span>MySQL<span class="token operator">-</span><span class="token keyword">CREATE</span><span class="token punctuation">.</span><span class="token keyword">sql</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo server.jdbc.driver.path&#x3D;&#x2F;usr&#x2F;share&#x2F;java&#x2F;mysql-connector-java.jar &gt;&gt; &#x2F;etc&#x2F;ambari-server&#x2F;conf&#x2F;ambari.properties<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="Ambari-Server-安装"><a href="#Ambari-Server-安装" class="headerlink" title="Ambari Server 安装"></a>Ambari Server 安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM-4-14-centos ~]# ambari-server setup
 Using python  &#x2F;usr&#x2F;bin&#x2F;python
 Setup ambari-server
 Checking SELinux...
@@ -617,7 +622,7 @@ Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doe
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari%E7%BC%96%E8%AF%91"><span class="nav-number">1.</span> <span class="nav-text">Ambari编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%BF%85%E8%A6%81%E7%9A%84%E8%BD%AF%E4%BB%B6"><span class="nav-number">1.1.</span> <span class="nav-text">安装必要的软件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E6%8D%A2%E9%95%9C%E5%83%8F%E6%BA%90"><span class="nav-number">1.2.</span> <span class="nav-text">更换镜像源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEgithub-com"><span class="nav-number">1.3.</span> <span class="nav-text">配置github.com</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9-ambari-admin-pom-xml"><span class="nav-number">1.4.</span> <span class="nav-text">修改 ambari-admin&#x2F;pom.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E4%BE%9D%E8%B5%96%E5%9C%B0%E5%9D%80"><span class="nav-number">1.5.</span> <span class="nav-text">修改依赖地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E5%A4%9A%E5%A4%84%E6%BA%90%E7%A0%81pom%E6%96%87%E4%BB%B6"><span class="nav-number">1.6.</span> <span class="nav-text">修改多处源码pom文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98"><span class="nav-number">1.7.</span> <span class="nav-text">遇到问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari-%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Ambari 安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-Server-%E5%AE%89%E8%A3%85"><span class="nav-number">2.1.</span> <span class="nav-text">Ambari Server 安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-agent%E5%AE%89%E8%A3%85"><span class="nav-number">2.2.</span> <span class="nav-text">Ambari agent安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">遇到问题：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Apache-Hadoop%E7%AD%89%E7%BB%84%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">安装Apache Hadoop等组件</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari%E7%BC%96%E8%AF%91"><span class="nav-number">1.</span> <span class="nav-text">Ambari编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%BF%85%E8%A6%81%E7%9A%84%E8%BD%AF%E4%BB%B6"><span class="nav-number">1.1.</span> <span class="nav-text">安装必要的软件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E6%8D%A2%E9%95%9C%E5%83%8F%E6%BA%90"><span class="nav-number">1.2.</span> <span class="nav-text">更换镜像源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEgithub-com"><span class="nav-number">1.3.</span> <span class="nav-text">配置github.com</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9-ambari-admin-pom-xml"><span class="nav-number">1.4.</span> <span class="nav-text">修改 ambari-admin&#x2F;pom.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E4%BE%9D%E8%B5%96%E5%9C%B0%E5%9D%80"><span class="nav-number">1.5.</span> <span class="nav-text">修改依赖地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E5%A4%9A%E5%A4%84%E6%BA%90%E7%A0%81pom%E6%96%87%E4%BB%B6"><span class="nav-number">1.6.</span> <span class="nav-text">修改多处源码pom文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98"><span class="nav-number">1.7.</span> <span class="nav-text">遇到问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari-%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">Ambari 安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">2.1.</span> <span class="nav-text">数据库初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-Server-%E5%AE%89%E8%A3%85"><span class="nav-number">2.2.</span> <span class="nav-text">Ambari Server 安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari-agent%E5%AE%89%E8%A3%85"><span class="nav-number">2.3.</span> <span class="nav-text">Ambari agent安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="nav-number">2.4.</span> <span class="nav-text">遇到问题：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Apache-Hadoop%E7%AD%89%E7%BB%84%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">安装Apache Hadoop等组件</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -633,20 +638,20 @@ Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doe
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">78</span>
+          <span class="site-state-item-count">79</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">57</span>
+        <span class="site-state-item-count">58</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">57</span>
+        <span class="site-state-item-count">58</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Bigtop编译Hadoop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="bigtop杂记">
+<meta property="og:url" content="https://gujincheng.github.io/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Bigtop编译Hadoop">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-08-07T06:20:49.000Z">
+<meta property="article:modified_time" content="2023-08-14T02:02:37.237Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Bigtop">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://gujincheng.github.io/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>bigtop杂记 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          bigtop杂记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-08-07 14:20:49" itemprop="dateCreated datePublished" datetime="2023-08-07T14:20:49+08:00">2023-08-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-08-14 10:02:37" itemprop="dateModified" datetime="2023-08-14T10:02:37+08:00">2023-08-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Bigtop/" itemprop="url" rel="index"><span itemprop="name">Bigtop</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="bigtop杂记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Bigtop编译Hadoop</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Bigtop简介"><a href="#Bigtop简介" class="headerlink" title="Bigtop简介"></a>Bigtop简介</h2><p>Bigtop 是 Apache 基金会的一个项目，旨在为基础设施工程师和数据科学家寻找领先的开源大数据组件的全面打包、测试和配置。 Bigtop 支持广泛的组件<br>使用Bigtop编译，官方推荐使用官方提供的docker<br>具体使用案例：</p>
+<pre class="line-numbers language-none"><code class="language-none">docker run --rm -u jenkins:jenkins -v &#96;pwd&#96;:&#x2F;ws --workdir &#x2F;ws bigtop&#x2F;slaves:trunk-ubuntu-20.04 bash -l -c &#39;.&#x2F;gradlew allclean ; .&#x2F;gradlew bigtop-groovy-pkg&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>命令解释：</p>
+<ol>
+<li><code>docker run</code>: 运行一个Docker容器。</li>
+<li><code>--rm</code>: 在容器退出后自动删除容器。这可以确保容器使用后不会留下垃圾。</li>
+<li><code>-u jenkins:jenkins</code>: 指定容器中执行命令的用户和用户组。在这里，用户为jenkins，用户组也为jenkins。</li>
+<li><code>-v pwd:/ws</code>: 将当前工作目录（pwd命令获取）挂载到容器中的/ws目录。这样可以将当前主机上的文件映射到容器内。</li>
+<li><code>--workdir /ws</code>: 设置容器的工作目录为/ws，即挂载的主机工作目录。</li>
+<li><code>bigtop/slaves:trunk-ubuntu-20.04</code>: 使用的Docker镜像。这个命令使用了名为bigtop/slaves的Docker镜像，版本为trunk-ubuntu-20.04。</li>
+<li><code>bash -l -c &#39;./gradlew allclean ; ./gradlew bigtop-groovy-pkg&#39;</code>: 在容器内执行的命令。这个命令首先运行两个Gradle任务，allclean和bigtop-groovy-pkg。</li>
+<li><code>bash -l</code>: 启动一个新的Bash shell，并加载所有配置文件，以确保正确的环境设置。</li>
+<li><code>-c</code>: 指定要在Bash shell中执行的命令。</li>
+</ol>
+<p>bigtop编译步骤：</p>
+<ol>
+<li>第一次启动bigtop，bigtop会自己下载一些自己的依赖</li>
+<li>初始化task参数，包含一些环境变量，各个组件的版本等</li>
+<li>下载组件源码，这里默认是从<code>APACHE_MIRROR = &quot;https://apache.osuosl.org&quot;</code>和<code>APACHE_ARCHIVE = &quot;https://archive.apache.org/dist&quot;</code>去下载<ol>
+<li>也可以指定git，让它从git上clone代码</li>
+</ol>
+</li>
+<li>编译代码</li>
+<li>生成rpm包</li>
+</ol>
+<p>注意：</p>
+<ol>
+<li>bigtop task参数在bigtop.bom里配置，比如编译hadoop：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#39;hadoop&#39; &#123;
+      name    &#x3D; &#39;hadoop&#39;
+      rpm_pkg_suffix &#x3D; &quot;_&quot; + bigtop.base_version.replace(&quot;.&quot;, &quot;_&quot;)
+      relNotes &#x3D; &#39;Apache Hadoop&#39;
+      version &#123; base &#x3D; &#39;3.3.4&#39;; pkg &#x3D; base; release &#x3D; 1 &#125;
+      tarball &#123; destination &#x3D; &quot;$&#123;name&#125;-$&#123;version.base&#125;.tar.gz&quot;
+                source      &#x3D; &quot;$&#123;name&#125;-$&#123;version.base&#125;-src.tar.gz&quot; &#125;
+      url     &#123; download_path &#x3D; &quot;&#x2F;$name&#x2F;common&#x2F;$name-$&#123;version.base&#125;&quot;
+                site &#x3D; &quot;$&#123;apache.APACHE_MIRROR&#125;&#x2F;$&#123;download_path&#125;&quot;
+                archive &#x3D; &quot;$&#123;apache.APACHE_ARCHIVE&#125;&#x2F;$&#123;download_path&#125;&quot; &#125;
+    &#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>bigtop下载的源码会在<code>bigtop/dl</code>下打成tar包，然后在<code>bigtop/output/hadoop</code>下打成rpm包。最后解压到<code>bigtop/build/hadoop/rpm/SOURCES</code>,编译的时候使用<code>bigtop/build/hadoop/rpm/BUILD</code>，并且源代码下载后，下次启动就会直接使用<code>bigtop/output/hadoop</code>下的rpm包，不会再次下载，并且，会先删除<code>bigtop/build/hadoop</code>下的文件，重新生成，所以，直接修改解压后的源码是没有用的。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -PparentDir&#x3D;&#x2F;usr&#x2F;bigtop<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+如果想使用自己修改后的源码编译，Bigtop也提供了指定git地址的方式，具体使用案例：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -Pgit_repo&#x3D;https:&#x2F;&#x2F;github.com&#x2F;gujincheng&#x2F;hadoop.git -Pgit_ref&#x3D;main -Pbase_version&#x3D;3.3.4 --info<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+这里需要注意:</li>
+<li>直接从githup上clone官方的源码，使用bigtop会报错，报错类似：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;usr&#x2F;bin&#x2F;cat &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;SOURCES&#x2F;patch3-fix-broken-dir-detection.diff | &#x2F;usr&#x2F;bin&#x2F;patch  -p1  --fuzz&#x3D;0 执行会失败<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+具体原因这里也没找到，解决办法：<br>先使用<code>./gradlew hadoop-rpm -PparentDir=/usr/bigtop</code>下载好源码，然后把该源码put到git上，然后在用git编译，这样就可以修改源码了<blockquote>
+<p>这里的原因是：bigtop会在bigtop/bigtop-packages/src/common/hadoop下有多个diff文件，bigtop会比较源码与diff文件，把diff文件里的内容打补丁到最终的源码里<br>解决办法： rm -rf bigtop/bigtop-packages/src/common/hadoop/*.diff</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="Bigtop编译Hadoop"><a href="#Bigtop编译Hadoop" class="headerlink" title="Bigtop编译Hadoop"></a>Bigtop编译Hadoop</h2><ol>
+<li>下载bigtop<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;bigtop.git -b release-3.2.0<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>安装hadoop必要的依赖<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum -y install fuse-devel cmake cmake3 lzo-devel openssl-devel<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>使用bigtop编译hadoop<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -Pgit_repo&#x3D;https:&#x2F;&#x2F;github.com&#x2F;gujincheng&#x2F;hadoop.git -Pgit_ref&#x3D;main -Pbase_version&#x3D;3.3.4 -PparentDir&#x3D;&#x2F;usr&#x2F;bigtop --info<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="报错"><a href="#报错" class="headerlink" title="报错"></a>报错</h3></li>
+<li><code>Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.11.2:yarn (yarn install) on project hadoop-yarn-applications-catalog-webapp: Failed to run task: &#39;yarn &#39; failed. org.apache.commons.exec.ExecuteException: Process exited with an error: 1 (Exit value: 1) -&gt; [Help 1]</code><br>原因：node版本与pom中版本不一致<br>确认编辑报错位置：hadoop-yarn-applications-catalog-webapp（cd hadoop-3.3.4-src/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-catalog/hadoop-yarn-applications-catalog-webapp）</li>
+</ol>
+<p>修改pom.xml文件中<nodeVersion>v14.21.3</nodeVersion>与系统版本一致</p>
+<ol start="2">
+<li><code>org.codehaus.mojo:exec-maven-plugin:1.3.1:exec (ember build) on project hadoop-yarn-ui: Command execution failed.</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILD&#x2F;hadoop-3.3.4-src&#x2F;hadoop-yarn-project&#x2F;hadoop-yarn&#x2F;hadoop-yarn-ui&#x2F;target&#x2F;webapp&#x2F;node_modules&#x2F;temp&#x2F;lib&#x2F;temp.js:273
+exports.dir               &#x3D; path.resolve(os.tmpDir());
+                                            ^
+
+TypeError: os.tmpDir is not a function
+    at Object.&lt;anonymous&gt; (&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILD&#x2F;hadoop-3.3.4-src&#x2F;hadoop-yarn-project&#x2F;hadoop-yarn&#x2F;hadoop-yarn-ui&#x2F;target&#x2F;webapp&#x2F;node_modules&#x2F;temp&#x2F;lib&#x2F;temp.js:273:45)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+原因：os.tmpDir() 方法在 Node.js 版本 12.20.0 中被废弃，并在 Node.js 版本 14.0.0 中被移除。因此，在 Node.js 版本 14.0.0 及以后的版本中，os.tmpDir() 方法将不再可用。<br>解决办法:</li>
+<li>需要把node版本换到v14.0之前,修改`hadoop-yarn-api/hadoop-yarn-applications/hadoop-yarn-applications-catalog/hadoop-yarn-applications-catalog-webapp/pom.xml,把nodeVersion改成v13.14.0</li>
+<li>添加<code>--ignore-engines</code><pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>generate-resources<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>yarn install<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>yarn<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arguments</span><span class="token punctuation">></span></span>install --ignore-engines<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arguments</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><code>com.github.eirslett:frontend-maven-plugin:1.11.2:yarn (yarn install) on project hadoop-yarn-applications-catalog-webapp</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[INFO] error triple-beam@1.4.1: The engine &quot;node&quot; is incompatible with this module. Expected version &quot;&gt;&#x3D; 14.0.0&quot;. Got &quot;13.14.0&quot;
+[INFO] error Found incompatible module.
+[INFO] error Found incompatible module.info Visit https:&#x2F;&#x2F;yarnpkg.com&#x2F;en&#x2F;docs&#x2F;cli&#x2F;install for documentation about this command.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+这里添加使用<code>--ignore-engines</code>禁用或忽略对项目所需 Node.js 版本的引擎检查<br>在```修改：<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>generate-resources<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>yarn install<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>yarn<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arguments</span><span class="token punctuation">></span></span>install --ignore-engines<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arguments</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+最终编译成功：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-mapreduce-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-namenode-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-secondarynamenode-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-zkfc-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-journalnode-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-datanode-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-dfsrouter-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-httpfs-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-kms-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-resourcemanager-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-nodemanager-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-proxyserver-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-timelineserver-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-mapreduce-historyserver-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-router-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-client-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-conf-pseudo-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-doc-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfs-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfs-devel-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfspp-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfspp-devel-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-fuse-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-debuginfo-3.3.4-1.el7.x86_64.rpm
+执行(%clean): &#x2F;bin&#x2F;sh -e &#x2F;var&#x2F;tmp&#x2F;rpm-tmp.eo0qaR
++ umask 022
++ cd &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;&#x2F;BUILD
++ cd hadoop-3.3.4-src
++ &#x2F;usr&#x2F;bin&#x2F;rm -rf &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILDROOT&#x2F;hadoop-3.3.4-1.el7.x86_64
++ exit 0
+执行(--clean): &#x2F;bin&#x2F;sh -e &#x2F;var&#x2F;tmp&#x2F;rpm-tmp.cwdAe5
++ umask 022
++ cd &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;&#x2F;BUILD
++ rm -rf hadoop-3.3.4-src
++ exit 0
+[ant:touch] Creating &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;.rpm
+:hadoop-rpm (Thread[Execution worker for &#39;:&#39;,5,main]) completed. Took 38 mins 23.831 secs.
+
+BUILD SUCCESSFUL in 39m 14s
+31 actionable tasks: 5 executed, 26 up-to-date<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Bigtop/" rel="tag"># Bigtop</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/08/01/SQL%E6%9D%82%E8%AE%B0/" rel="prev" title="SQL杂记">
+      <i class="fa fa-chevron-left"></i> SQL杂记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Bigtop%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Bigtop简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bigtop%E7%BC%96%E8%AF%91Hadoop"><span class="nav-number">2.</span> <span class="nav-text">Bigtop编译Hadoop</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%A5%E9%94%99"><span class="nav-number">2.1.</span> <span class="nav-text">报错</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
