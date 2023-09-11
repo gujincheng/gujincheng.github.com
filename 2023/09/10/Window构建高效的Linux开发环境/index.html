@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  什么是WSL？ 安装WSL WSl常用命令">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Window构建高效的Linux开发环境">
+<meta property="og:url" content="https://gujincheng.github.io/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  什么是WSL？ 安装WSL WSl常用命令">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-09-10T04:14:37.000Z">
+<meta property="article:modified_time" content="2023-09-11T08:30:39.862Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="WSL">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://gujincheng.github.io/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Window构建高效的Linux开发环境 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Window构建高效的Linux开发环境
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-09-10 12:14:37" itemprop="dateCreated datePublished" datetime="2023-09-10T12:14:37+08:00">2023-09-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-09-11 16:30:39" itemprop="dateModified" datetime="2023-09-11T16:30:39+08:00">2023-09-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/WSL/" itemprop="url" rel="index"><span itemprop="name">WSL</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" class="post-meta-item leancloud_visitors" data-flag-title="Window构建高效的Linux开发环境" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>什么是WSL？</li>
+<li>安装WSL</li>
+<li>WSl常用命令</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="什么是WSL？"><a href="#什么是WSL？" class="headerlink" title="什么是WSL？"></a>什么是WSL？</h2><p>WSL是Windows子系统Linux的缩写。它是一个Windows 10的特性，允许用户在Windows操作系统中运行Linux内核。WSL不是虚拟机，也不是仿真器，它实现了Linux内核与Windows之间的精细互操作。</p>
+<h3 id="WSL存在的目的"><a href="#WSL存在的目的" class="headerlink" title="WSL存在的目的"></a>WSL存在的目的</h3><p>Windows和Linux是两个不同的操作系统，用户如果需要同时使用它们，需要在同一台设备上安装不同的操作系统。WSL的存在正是为了解决这一问题，它可以让Windows用户在本地机器上同时运行Windows和Linux，而无需使用虚拟机或者双重启动来执行类似的任务。</p>
+<h3 id="WSL有哪些版本？"><a href="#WSL有哪些版本？" class="headerlink" title="WSL有哪些版本？"></a>WSL有哪些版本？</h3><p>WSL1是Microsoft于2016年首次发布的版本，它与Windows内核紧密集成。WSL2则是2020年发布的全新版本，它使用完整的Linux内核，可以快速运行Linux二进制代码，提高性能和兼容性。两个版本都提供了Linux命令行界面和标准的Linux软件包，例如bash、ssh和grep等工具。</p>
+<h3 id="WSL与WSL2有什么区别？"><a href="#WSL与WSL2有什么区别？" class="headerlink" title="WSL与WSL2有什么区别？"></a>WSL与WSL2有什么区别？</h3><p>WSL2相比WSL1，在性能和兼容性方面有显著提高，主要原因是它使用完整的Linux内核。在WSL2中，Linux内核以Hyper-V轻量级虚拟化的形式运行在Windows操作系统上，提供了对Docker等Linux容器的原生支持，同时还增强了文件系统访问和文件I/O性能。<br>但是，WSL2的启动时间和内存占用都比WSL1高，需要占用更多的存储空间。用户可以根据具体需求灵活选择哪个版本更适合自己。</p>
+<h2 id="安装WSL"><a href="#安装WSL" class="headerlink" title="安装WSL"></a>安装WSL</h2><p>开发人员可以在 Windows 计算机上同时访问 Windows 和 Linux 的强大功能。 通过适用于 Linux 的 Windows 子系统 (WSL)，开发人员可以安装 Linux 发行版（例如 Ubuntu、OpenSUSE、Kali、Debian、Arch Linux 等），并直接在 Windows 上使用 Linux 应用程序、实用程序和 Bash 命令行工具，不用进行任何修改，也无需承担传统虚拟机或双启动设置的费用。</p>
+<h3 id="先决条件"><a href="#先决条件" class="headerlink" title="先决条件"></a>先决条件</h3><p>必须运行 Windows 10 版本 2004 及更高版本（内部版本 19041 及更高版本）或 Windows 11 才能使用以下命令。 如果使用的是更早的版本，请参阅手动安装页。</p>
+<h3 id="安装-WSL-命令"><a href="#安装-WSL-命令" class="headerlink" title="安装 WSL 命令"></a>安装 WSL 命令</h3><p>现在，可以使用单个命令安装运行 WSL 所需的一切内容。 在管理员模式下打开 PowerShell 或 Windows 命令提示符，方法是右键单击并选择“以管理员身份运行”，输入 wsl –install 命令，然后重启计算机。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wsl --install<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="将-WSL-2-设置为默认版本"><a href="#将-WSL-2-设置为默认版本" class="headerlink" title="将 WSL 2 设置为默认版本"></a>将 WSL 2 设置为默认版本</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wsl --set-default-version 2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="更改默认安装的-Linux-发行版"><a href="#更改默认安装的-Linux-发行版" class="headerlink" title="更改默认安装的 Linux 发行版"></a>更改默认安装的 Linux 发行版</h3><p>默认情况下，安装的 Linux 分发版为 Ubuntu。 可以使用 -d 标志进行更改。</p>
+<ul>
+<li>若要更改安装的发行版，请输入：<code>wsl --install -d &lt;Distribution Name&gt;</code>。 将 <code>&lt;Distribution Name&gt;</code> 替换为要安装的发行版的名称。</li>
+<li>若要查看可通过在线商店下载的可用 Linux 发行版列表，请输入：<code>wsl --list --online</code> 或 <code>wsl -l -o</code></li>
+<li>若要在初始安装后安装其他 Linux 发行版，还可使用命令：<code>wsl --install -d &lt;Distribution Name&gt;</code>。</li>
+</ul>
+<h3 id="检查正在运行的-WSL-版本"><a href="#检查正在运行的-WSL-版本" class="headerlink" title="检查正在运行的 WSL 版本"></a>检查正在运行的 WSL 版本</h3><h2 id="WSl常用命令"><a href="#WSl常用命令" class="headerlink" title="WSl常用命令"></a>WSl常用命令</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 列出可用的 Linux 发行版
+wsl --list --online
+# 列出已安装的 Linux 发行版
+wsl -l -v 
+# 或者wsl --list --verbose
+#############################################################
+#  NAME                   STATE           VERSION
+#* docker-desktop         Stopped         2
+#  Ubuntu                 Stopped         2
+#  docker-desktop-data    Stopped         2
+#  CentOS7                Stopped         2
+  
+# 设置默认 Linux 发行版
+wsl --set-default CentOS7
+
+# 更新 WSL
+wsl --update
+# 检查 WSL 状态
+wsl --status
+
+# 通过 PowerShell 或 CMD 运行特定的 Linux 发行版
+wsl --distribution CentOS7 --user root
+
+# 更改发行版的默认用户
+&lt;DistributionName&gt; config --default-user &lt;Username&gt;
+
+# 关闭
+wsl --shutdown  
+
+# 导入和导出发行版
+# 导出路径默认在C:\Users\Golden下
+#wsl --export &lt;Distribution Name&gt; &lt;FileName&gt;
+wsl --export CentOS7 CentOS7-Origion.tar.gz
+#wsl --import &lt;Distribution Name&gt; &lt;InstallLocation&gt; &lt;FileName&gt;
+wsl --import CentOS7-Origion D:\WSL\Centos7-Origion C:\Users\Golden\CentOS7-Origion.tar.gz
+# 注销或卸载 Linux 发行版
+wsl --unregister CentOS7-Origion<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="WSL安装Centos"><a href="#WSL安装Centos" class="headerlink" title="WSL安装Centos"></a>WSL安装Centos</h3><p>具体参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_38979465/article/details/131750084">windows10在WSL2中安装Centos发行版+git+miniconda+vscode</a></p>
+<h2 id="安装并配置oh-my-posh"><a href="#安装并配置oh-my-posh" class="headerlink" title="安装并配置oh-my-posh"></a>安装并配置oh-my-posh</h2><p>具体参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_62888264/article/details/132551059">【保姆级教程】使用oh-my-posh美化Windows终端</a></p>
+<h2 id="在Centos配置oh-my-zsh"><a href="#在Centos配置oh-my-zsh" class="headerlink" title="在Centos配置oh-my-zsh"></a>在Centos配置oh-my-zsh</h2><p>需要先安装git</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install git
+yum install curl-devel expat-devel gettext-devel openssl-devel zlib-devel gcc perl-ExtUtils-MakeMaker
+wget https:&#x2F;&#x2F;gitee.com&#x2F;heyuanfly&#x2F;install-oh-my-zsh&#x2F;raw&#x2F;master&#x2F;centos-install-oh-my-zsh.sh
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>centos-install-oh-my-zsh.sh里的内容：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install -y vim  
+yum install -y zsh
+yum install -y git
+wget https:&#x2F;&#x2F;gitee.com&#x2F;heyuanfly&#x2F;ohmyzsh&#x2F;raw&#x2F;master&#x2F;tools&#x2F;install.sh
+chmod +x install.sh
+.&#x2F;install.sh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/zenghao36/article/details/127980176">CentOS安装Oh my zsh</a><br>剩下的就是跟mac安装ohmyzsh是一样的，可以看另一篇博客<a href="https://gujincheng.github.io/2021/05/20/Mac%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/">Mac使用笔记（一）</a></p>
+<h3 id="安装完ls后的颜色不对，可执行文件是红色的"><a href="#安装完ls后的颜色不对，可执行文件是红色的" class="headerlink" title="安装完ls后的颜色不对，可执行文件是红色的"></a>安装完ls后的颜色不对，可执行文件是红色的</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">dircolors --print-database &gt; ~&#x2F;.dir_colors
+vim .zshrc
+# 在.zshrc里添加以下内容
+alias ls&#x3D;&#39;ls -F --show-control-chars --color&#x3D;auto&#39; 
+eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96; <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/WSL/" rel="tag"># WSL</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/" rel="prev" title="bigtop杂记">
+      <i class="fa fa-chevron-left"></i> bigtop杂记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFWSL%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是WSL？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WSL%E5%AD%98%E5%9C%A8%E7%9A%84%E7%9B%AE%E7%9A%84"><span class="nav-number">1.1.</span> <span class="nav-text">WSL存在的目的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WSL%E6%9C%89%E5%93%AA%E4%BA%9B%E7%89%88%E6%9C%AC%EF%BC%9F"><span class="nav-number">1.2.</span> <span class="nav-text">WSL有哪些版本？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WSL%E4%B8%8EWSL2%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">1.3.</span> <span class="nav-text">WSL与WSL2有什么区别？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85WSL"><span class="nav-number">2.</span> <span class="nav-text">安装WSL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%88%E5%86%B3%E6%9D%A1%E4%BB%B6"><span class="nav-number">2.1.</span> <span class="nav-text">先决条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-WSL-%E5%91%BD%E4%BB%A4"><span class="nav-number">2.2.</span> <span class="nav-text">安装 WSL 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%86-WSL-2-%E8%AE%BE%E7%BD%AE%E4%B8%BA%E9%BB%98%E8%AE%A4%E7%89%88%E6%9C%AC"><span class="nav-number">2.3.</span> <span class="nav-text">将 WSL 2 设置为默认版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E6%94%B9%E9%BB%98%E8%AE%A4%E5%AE%89%E8%A3%85%E7%9A%84-Linux-%E5%8F%91%E8%A1%8C%E7%89%88"><span class="nav-number">2.4.</span> <span class="nav-text">更改默认安装的 Linux 发行版</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5%E6%AD%A3%E5%9C%A8%E8%BF%90%E8%A1%8C%E7%9A%84-WSL-%E7%89%88%E6%9C%AC"><span class="nav-number">2.5.</span> <span class="nav-text">检查正在运行的 WSL 版本</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WSl%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">WSl常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WSL%E5%AE%89%E8%A3%85Centos"><span class="nav-number">3.1.</span> <span class="nav-text">WSL安装Centos</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%B9%B6%E9%85%8D%E7%BD%AEoh-my-posh"><span class="nav-number">4.</span> <span class="nav-text">安装并配置oh-my-posh</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8Centos%E9%85%8D%E7%BD%AEoh-my-zsh"><span class="nav-number">5.</span> <span class="nav-text">在Centos配置oh-my-zsh</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%AE%8Cls%E5%90%8E%E7%9A%84%E9%A2%9C%E8%89%B2%E4%B8%8D%E5%AF%B9%EF%BC%8C%E5%8F%AF%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6%E6%98%AF%E7%BA%A2%E8%89%B2%E7%9A%84"><span class="nav-number">5.1.</span> <span class="nav-text">安装完ls后的颜色不对，可执行文件是红色的</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">80</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

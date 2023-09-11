@@ -1,6 +1,162 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>bigtop杂记</title>
+    <url>/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Bigtop编译Hadoop</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Bigtop简介"><a href="#Bigtop简介" class="headerlink" title="Bigtop简介"></a>Bigtop简介</h2><p>Bigtop 是 Apache 基金会的一个项目，旨在为基础设施工程师和数据科学家寻找领先的开源大数据组件的全面打包、测试和配置。 Bigtop 支持广泛的组件<br>使用Bigtop编译，官方推荐使用官方提供的docker<br>具体使用案例：</p>
+<pre class="line-numbers language-none"><code class="language-none">docker run --rm -u jenkins:jenkins -v &#96;pwd&#96;:&#x2F;ws --workdir &#x2F;ws bigtop&#x2F;slaves:trunk-ubuntu-20.04 bash -l -c &#39;.&#x2F;gradlew allclean ; .&#x2F;gradlew bigtop-groovy-pkg&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>命令解释：</p>
+<ol>
+<li><code>docker run</code>: 运行一个Docker容器。</li>
+<li><code>--rm</code>: 在容器退出后自动删除容器。这可以确保容器使用后不会留下垃圾。</li>
+<li><code>-u jenkins:jenkins</code>: 指定容器中执行命令的用户和用户组。在这里，用户为jenkins，用户组也为jenkins。</li>
+<li><code>-v pwd:/ws</code>: 将当前工作目录（pwd命令获取）挂载到容器中的/ws目录。这样可以将当前主机上的文件映射到容器内。</li>
+<li><code>--workdir /ws</code>: 设置容器的工作目录为/ws，即挂载的主机工作目录。</li>
+<li><code>bigtop/slaves:trunk-ubuntu-20.04</code>: 使用的Docker镜像。这个命令使用了名为bigtop/slaves的Docker镜像，版本为trunk-ubuntu-20.04。</li>
+<li><code>bash -l -c &#39;./gradlew allclean ; ./gradlew bigtop-groovy-pkg&#39;</code>: 在容器内执行的命令。这个命令首先运行两个Gradle任务，allclean和bigtop-groovy-pkg。</li>
+<li><code>bash -l</code>: 启动一个新的Bash shell，并加载所有配置文件，以确保正确的环境设置。</li>
+<li><code>-c</code>: 指定要在Bash shell中执行的命令。</li>
+</ol>
+<p>bigtop编译步骤：</p>
+<ol>
+<li>第一次启动bigtop，bigtop会自己下载一些自己的依赖</li>
+<li>初始化task参数，包含一些环境变量，各个组件的版本等</li>
+<li>下载组件源码，这里默认是从<code>APACHE_MIRROR = &quot;https://apache.osuosl.org&quot;</code>和<code>APACHE_ARCHIVE = &quot;https://archive.apache.org/dist&quot;</code>去下载<ol>
+<li>也可以指定git，让它从git上clone代码</li>
+</ol>
+</li>
+<li>编译代码</li>
+<li>生成rpm包</li>
+</ol>
+<p>注意：</p>
+<ol>
+<li>bigtop task参数在bigtop.bom里配置，比如编译hadoop：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#39;hadoop&#39; &#123;
+      name    &#x3D; &#39;hadoop&#39;
+      rpm_pkg_suffix &#x3D; &quot;_&quot; + bigtop.base_version.replace(&quot;.&quot;, &quot;_&quot;)
+      relNotes &#x3D; &#39;Apache Hadoop&#39;
+      version &#123; base &#x3D; &#39;3.3.4&#39;; pkg &#x3D; base; release &#x3D; 1 &#125;
+      tarball &#123; destination &#x3D; &quot;$&#123;name&#125;-$&#123;version.base&#125;.tar.gz&quot;
+                source      &#x3D; &quot;$&#123;name&#125;-$&#123;version.base&#125;-src.tar.gz&quot; &#125;
+      url     &#123; download_path &#x3D; &quot;&#x2F;$name&#x2F;common&#x2F;$name-$&#123;version.base&#125;&quot;
+                site &#x3D; &quot;$&#123;apache.APACHE_MIRROR&#125;&#x2F;$&#123;download_path&#125;&quot;
+                archive &#x3D; &quot;$&#123;apache.APACHE_ARCHIVE&#125;&#x2F;$&#123;download_path&#125;&quot; &#125;
+    &#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>bigtop下载的源码会在<code>bigtop/dl</code>下打成tar包，然后在<code>bigtop/output/hadoop</code>下打成rpm包。最后解压到<code>bigtop/build/hadoop/rpm/SOURCES</code>,编译的时候使用<code>bigtop/build/hadoop/rpm/BUILD</code>，并且源代码下载后，下次启动就会直接使用<code>bigtop/output/hadoop</code>下的rpm包，不会再次下载，并且，会先删除<code>bigtop/build/hadoop</code>下的文件，重新生成，所以，直接修改解压后的源码是没有用的。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -PparentDir&#x3D;&#x2F;usr&#x2F;bigtop<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+如果想使用自己修改后的源码编译，Bigtop也提供了指定git地址的方式，具体使用案例：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -Pgit_repo&#x3D;https:&#x2F;&#x2F;github.com&#x2F;gujincheng&#x2F;hadoop.git -Pgit_ref&#x3D;main -Pbase_version&#x3D;3.3.4 --info<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+这里需要注意:</li>
+<li>直接从githup上clone官方的源码，使用bigtop会报错，报错类似：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;usr&#x2F;bin&#x2F;cat &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;SOURCES&#x2F;patch3-fix-broken-dir-detection.diff | &#x2F;usr&#x2F;bin&#x2F;patch  -p1  --fuzz&#x3D;0 执行会失败<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+具体原因这里也没找到，解决办法：<br>先使用<code>./gradlew hadoop-rpm -PparentDir=/usr/bigtop</code>下载好源码，然后把该源码put到git上，然后在用git编译，这样就可以修改源码了<blockquote>
+<p>这里的原因是：bigtop会在bigtop/bigtop-packages/src/common/hadoop下有多个diff文件，bigtop会比较源码与diff文件，把diff文件里的内容打补丁到最终的源码里<br>解决办法： rm -rf bigtop/bigtop-packages/src/common/hadoop/*.diff</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="Bigtop编译Hadoop"><a href="#Bigtop编译Hadoop" class="headerlink" title="Bigtop编译Hadoop"></a>Bigtop编译Hadoop</h2><ol>
+<li>下载bigtop<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;bigtop.git -b release-3.2.0<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>安装hadoop必要的依赖<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum -y install fuse-devel cmake cmake3 lzo-devel openssl-devel<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>使用bigtop编译hadoop<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -Pgit_repo&#x3D;https:&#x2F;&#x2F;github.com&#x2F;gujincheng&#x2F;hadoop.git -Pgit_ref&#x3D;main -Pbase_version&#x3D;3.3.4 -PparentDir&#x3D;&#x2F;usr&#x2F;bigtop --info<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="报错"><a href="#报错" class="headerlink" title="报错"></a>报错</h3></li>
+<li><code>Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.11.2:yarn (yarn install) on project hadoop-yarn-applications-catalog-webapp: Failed to run task: &#39;yarn &#39; failed. org.apache.commons.exec.ExecuteException: Process exited with an error: 1 (Exit value: 1) -&gt; [Help 1]</code><br>原因：node版本与pom中版本不一致<br>确认编辑报错位置：hadoop-yarn-applications-catalog-webapp（cd hadoop-3.3.4-src/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-catalog/hadoop-yarn-applications-catalog-webapp）</li>
+</ol>
+<p>修改pom.xml文件中<nodeVersion>v14.21.3</nodeVersion>与系统版本一致</p>
+<ol start="2">
+<li><code>org.codehaus.mojo:exec-maven-plugin:1.3.1:exec (ember build) on project hadoop-yarn-ui: Command execution failed.</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILD&#x2F;hadoop-3.3.4-src&#x2F;hadoop-yarn-project&#x2F;hadoop-yarn&#x2F;hadoop-yarn-ui&#x2F;target&#x2F;webapp&#x2F;node_modules&#x2F;temp&#x2F;lib&#x2F;temp.js:273
+exports.dir               &#x3D; path.resolve(os.tmpDir());
+                                            ^
+
+TypeError: os.tmpDir is not a function
+    at Object.&lt;anonymous&gt; (&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILD&#x2F;hadoop-3.3.4-src&#x2F;hadoop-yarn-project&#x2F;hadoop-yarn&#x2F;hadoop-yarn-ui&#x2F;target&#x2F;webapp&#x2F;node_modules&#x2F;temp&#x2F;lib&#x2F;temp.js:273:45)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+原因：os.tmpDir() 方法在 Node.js 版本 12.20.0 中被废弃，并在 Node.js 版本 14.0.0 中被移除。因此，在 Node.js 版本 14.0.0 及以后的版本中，os.tmpDir() 方法将不再可用。<br>解决办法:</li>
+<li>需要把node版本换到v14.0之前,修改`hadoop-yarn-api/hadoop-yarn-applications/hadoop-yarn-applications-catalog/hadoop-yarn-applications-catalog-webapp/pom.xml,把nodeVersion改成v13.14.0</li>
+<li>添加<code>--ignore-engines</code><pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>generate-resources<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>yarn install<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>yarn<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arguments</span><span class="token punctuation">></span></span>install --ignore-engines<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arguments</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><code>com.github.eirslett:frontend-maven-plugin:1.11.2:yarn (yarn install) on project hadoop-yarn-applications-catalog-webapp</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[INFO] error triple-beam@1.4.1: The engine &quot;node&quot; is incompatible with this module. Expected version &quot;&gt;&#x3D; 14.0.0&quot;. Got &quot;13.14.0&quot;
+[INFO] error Found incompatible module.
+[INFO] error Found incompatible module.info Visit https:&#x2F;&#x2F;yarnpkg.com&#x2F;en&#x2F;docs&#x2F;cli&#x2F;install for documentation about this command.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+这里添加使用<code>--ignore-engines</code>禁用或忽略对项目所需 Node.js 版本的引擎检查<br>在```修改：<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>generate-resources<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>yarn install<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>yarn<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arguments</span><span class="token punctuation">></span></span>install --ignore-engines<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arguments</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+最终编译成功：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-mapreduce-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-namenode-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-secondarynamenode-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-zkfc-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-journalnode-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-datanode-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-dfsrouter-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-httpfs-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-kms-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-resourcemanager-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-nodemanager-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-proxyserver-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-timelineserver-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-mapreduce-historyserver-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-router-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-client-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-conf-pseudo-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-doc-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfs-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfs-devel-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfspp-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfspp-devel-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-fuse-3.3.4-1.el7.x86_64.rpm
+写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-debuginfo-3.3.4-1.el7.x86_64.rpm
+执行(%clean): &#x2F;bin&#x2F;sh -e &#x2F;var&#x2F;tmp&#x2F;rpm-tmp.eo0qaR
++ umask 022
++ cd &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;&#x2F;BUILD
++ cd hadoop-3.3.4-src
++ &#x2F;usr&#x2F;bin&#x2F;rm -rf &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILDROOT&#x2F;hadoop-3.3.4-1.el7.x86_64
++ exit 0
+执行(--clean): &#x2F;bin&#x2F;sh -e &#x2F;var&#x2F;tmp&#x2F;rpm-tmp.cwdAe5
++ umask 022
++ cd &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;&#x2F;BUILD
++ rm -rf hadoop-3.3.4-src
++ exit 0
+[ant:touch] Creating &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;.rpm
+:hadoop-rpm (Thread[Execution worker for &#39;:&#39;,5,main]) completed. Took 38 mins 23.831 secs.
+
+BUILD SUCCESSFUL in 39m 14s
+31 actionable tasks: 5 executed, 26 up-to-date<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Bigtop</category>
+      </categories>
+      <tags>
+        <tag>Bigtop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Ambari编译安装</title>
     <url>/2023/03/02/Ambari%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -271,159 +427,88 @@ Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doe
       </tags>
   </entry>
   <entry>
-    <title>bigtop杂记</title>
-    <url>/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/</url>
+    <title>CM宕机问题调查与修复</title>
+    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
     <content><![CDATA[<p>本文主要包括：</p>
 <ul>
-<li>Bigtop编译Hadoop</li>
+<li>CM宕机问题调查与修复</li>
 </ul>
 <a id="more"></a>
 
-<h2 id="Bigtop简介"><a href="#Bigtop简介" class="headerlink" title="Bigtop简介"></a>Bigtop简介</h2><p>Bigtop 是 Apache 基金会的一个项目，旨在为基础设施工程师和数据科学家寻找领先的开源大数据组件的全面打包、测试和配置。 Bigtop 支持广泛的组件<br>使用Bigtop编译，官方推荐使用官方提供的docker<br>具体使用案例：</p>
-<pre class="line-numbers language-none"><code class="language-none">docker run --rm -u jenkins:jenkins -v &#96;pwd&#96;:&#x2F;ws --workdir &#x2F;ws bigtop&#x2F;slaves:trunk-ubuntu-20.04 bash -l -c &#39;.&#x2F;gradlew allclean ; .&#x2F;gradlew bigtop-groovy-pkg&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>命令解释：</p>
-<ol>
-<li><code>docker run</code>: 运行一个Docker容器。</li>
-<li><code>--rm</code>: 在容器退出后自动删除容器。这可以确保容器使用后不会留下垃圾。</li>
-<li><code>-u jenkins:jenkins</code>: 指定容器中执行命令的用户和用户组。在这里，用户为jenkins，用户组也为jenkins。</li>
-<li><code>-v pwd:/ws</code>: 将当前工作目录（pwd命令获取）挂载到容器中的/ws目录。这样可以将当前主机上的文件映射到容器内。</li>
-<li><code>--workdir /ws</code>: 设置容器的工作目录为/ws，即挂载的主机工作目录。</li>
-<li><code>bigtop/slaves:trunk-ubuntu-20.04</code>: 使用的Docker镜像。这个命令使用了名为bigtop/slaves的Docker镜像，版本为trunk-ubuntu-20.04。</li>
-<li><code>bash -l -c &#39;./gradlew allclean ; ./gradlew bigtop-groovy-pkg&#39;</code>: 在容器内执行的命令。这个命令首先运行两个Gradle任务，allclean和bigtop-groovy-pkg。</li>
-<li><code>bash -l</code>: 启动一个新的Bash shell，并加载所有配置文件，以确保正确的环境设置。</li>
-<li><code>-c</code>: 指定要在Bash shell中执行的命令。</li>
-</ol>
-<p>bigtop编译步骤：</p>
-<ol>
-<li>第一次启动bigtop，bigtop会自己下载一些自己的依赖</li>
-<li>初始化task参数，包含一些环境变量，各个组件的版本等</li>
-<li>下载组件源码，这里默认是从<code>APACHE_MIRROR = &quot;https://apache.osuosl.org&quot;</code>和<code>APACHE_ARCHIVE = &quot;https://archive.apache.org/dist&quot;</code>去下载<ol>
-<li>也可以指定git，让它从git上clone代码</li>
-</ol>
-</li>
-<li>编译代码</li>
-<li>生成rpm包</li>
-</ol>
-<p>注意：</p>
-<ol>
-<li>bigtop task参数在bigtop.bom里配置，比如编译hadoop：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#39;hadoop&#39; &#123;
-      name    &#x3D; &#39;hadoop&#39;
-      rpm_pkg_suffix &#x3D; &quot;_&quot; + bigtop.base_version.replace(&quot;.&quot;, &quot;_&quot;)
-      relNotes &#x3D; &#39;Apache Hadoop&#39;
-      version &#123; base &#x3D; &#39;3.3.4&#39;; pkg &#x3D; base; release &#x3D; 1 &#125;
-      tarball &#123; destination &#x3D; &quot;$&#123;name&#125;-$&#123;version.base&#125;.tar.gz&quot;
-                source      &#x3D; &quot;$&#123;name&#125;-$&#123;version.base&#125;-src.tar.gz&quot; &#125;
-      url     &#123; download_path &#x3D; &quot;&#x2F;$name&#x2F;common&#x2F;$name-$&#123;version.base&#125;&quot;
-                site &#x3D; &quot;$&#123;apache.APACHE_MIRROR&#125;&#x2F;$&#123;download_path&#125;&quot;
-                archive &#x3D; &quot;$&#123;apache.APACHE_ARCHIVE&#125;&#x2F;$&#123;download_path&#125;&quot; &#125;
-    &#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>bigtop下载的源码会在<code>bigtop/dl</code>下打成tar包，然后在<code>bigtop/output/hadoop</code>下打成rpm包。最后解压到<code>bigtop/build/hadoop/rpm/SOURCES</code>,编译的时候使用<code>bigtop/build/hadoop/rpm/BUILD</code>，并且源代码下载后，下次启动就会直接使用<code>bigtop/output/hadoop</code>下的rpm包，不会再次下载，并且，会先删除<code>bigtop/build/hadoop</code>下的文件，重新生成，所以，直接修改解压后的源码是没有用的。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -PparentDir&#x3D;&#x2F;usr&#x2F;bigtop<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-如果想使用自己修改后的源码编译，Bigtop也提供了指定git地址的方式，具体使用案例：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -Pgit_repo&#x3D;https:&#x2F;&#x2F;github.com&#x2F;gujincheng&#x2F;hadoop.git -Pgit_ref&#x3D;main -Pbase_version&#x3D;3.3.4 --info<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-这里需要注意:</li>
-<li>直接从githup上clone官方的源码，使用bigtop会报错，报错类似：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;usr&#x2F;bin&#x2F;cat &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;SOURCES&#x2F;patch3-fix-broken-dir-detection.diff | &#x2F;usr&#x2F;bin&#x2F;patch  -p1  --fuzz&#x3D;0 执行会失败<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-具体原因这里也没找到，解决办法：<br>先使用<code>./gradlew hadoop-rpm -PparentDir=/usr/bigtop</code>下载好源码，然后把该源码put到git上，然后在用git编译，这样就可以修改源码了<blockquote>
-<p>这里的原因是：bigtop会在bigtop/bigtop-packages/src/common/hadoop下有多个diff文件，bigtop会比较源码与diff文件，把diff文件里的内容打补丁到最终的源码里<br>解决办法： rm -rf bigtop/bigtop-packages/src/common/hadoop/*.diff</p>
-</blockquote>
-</li>
-</ol>
-<h2 id="Bigtop编译Hadoop"><a href="#Bigtop编译Hadoop" class="headerlink" title="Bigtop编译Hadoop"></a>Bigtop编译Hadoop</h2><ol>
-<li>下载bigtop<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;bigtop.git -b release-3.2.0<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>安装hadoop必要的依赖<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum -y install fuse-devel cmake cmake3 lzo-devel openssl-devel<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>使用bigtop编译hadoop<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;gradlew hadoop-rpm -Pgit_repo&#x3D;https:&#x2F;&#x2F;github.com&#x2F;gujincheng&#x2F;hadoop.git -Pgit_ref&#x3D;main -Pbase_version&#x3D;3.3.4 -PparentDir&#x3D;&#x2F;usr&#x2F;bigtop --info<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="报错"><a href="#报错" class="headerlink" title="报错"></a>报错</h3></li>
-<li><code>Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.11.2:yarn (yarn install) on project hadoop-yarn-applications-catalog-webapp: Failed to run task: &#39;yarn &#39; failed. org.apache.commons.exec.ExecuteException: Process exited with an error: 1 (Exit value: 1) -&gt; [Help 1]</code><br>原因：node版本与pom中版本不一致<br>确认编辑报错位置：hadoop-yarn-applications-catalog-webapp（cd hadoop-3.3.4-src/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-catalog/hadoop-yarn-applications-catalog-webapp）</li>
-</ol>
-<p>修改pom.xml文件中<nodeVersion>v14.21.3</nodeVersion>与系统版本一致</p>
-<ol start="2">
-<li><code>org.codehaus.mojo:exec-maven-plugin:1.3.1:exec (ember build) on project hadoop-yarn-ui: Command execution failed.</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILD&#x2F;hadoop-3.3.4-src&#x2F;hadoop-yarn-project&#x2F;hadoop-yarn&#x2F;hadoop-yarn-ui&#x2F;target&#x2F;webapp&#x2F;node_modules&#x2F;temp&#x2F;lib&#x2F;temp.js:273
-exports.dir               &#x3D; path.resolve(os.tmpDir());
-                                            ^
+<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
+<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
+com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
+        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
+        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+        at java.lang.Thread.run(Thread.java:748)
+Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at java.io.RandomAccessFile.open0(Native Method)
+        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
+        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
+        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
+        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
+        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
+        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
+<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
+● cloudera-scm-agent.service - Cloudera Manager Agent Service
+   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
+   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
+  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+ Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
 
-TypeError: os.tmpDir is not a function
-    at Object.&lt;anonymous&gt; (&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILD&#x2F;hadoop-3.3.4-src&#x2F;hadoop-yarn-project&#x2F;hadoop-yarn&#x2F;hadoop-yarn-ui&#x2F;target&#x2F;webapp&#x2F;node_modules&#x2F;temp&#x2F;lib&#x2F;temp.js:273:45)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-原因：os.tmpDir() 方法在 Node.js 版本 12.20.0 中被废弃，并在 Node.js 版本 14.0.0 中被移除。因此，在 Node.js 版本 14.0.0 及以后的版本中，os.tmpDir() 方法将不再可用。<br>解决办法:</li>
-<li>需要把node版本换到v14.0之前,修改`hadoop-yarn-api/hadoop-yarn-applications/hadoop-yarn-applications-catalog/hadoop-yarn-applications-catalog-webapp/pom.xml,把nodeVersion改成v13.14.0</li>
-<li>添加<code>--ignore-engines</code><pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
-   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>generate-resources<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
-   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>yarn install<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
-   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>yarn<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
-   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
-   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arguments</span><span class="token punctuation">></span></span>install --ignore-engines<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arguments</span><span class="token punctuation">></span></span>
-   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li><code>com.github.eirslett:frontend-maven-plugin:1.11.2:yarn (yarn install) on project hadoop-yarn-applications-catalog-webapp</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[INFO] error triple-beam@1.4.1: The engine &quot;node&quot; is incompatible with this module. Expected version &quot;&gt;&#x3D; 14.0.0&quot;. Got &quot;13.14.0&quot;
-[INFO] error Found incompatible module.
-[INFO] error Found incompatible module.info Visit https:&#x2F;&#x2F;yarnpkg.com&#x2F;en&#x2F;docs&#x2F;cli&#x2F;install for documentation about this command.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-这里添加使用<code>--ignore-engines</code>禁用或忽略对项目所需 Node.js 版本的引擎检查<br>在```修改：<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>execution</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>phase</span><span class="token punctuation">></span></span>generate-resources<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>phase</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>yarn install<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goals</span><span class="token punctuation">></span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>goal</span><span class="token punctuation">></span></span>yarn<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goal</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>goals</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>arguments</span><span class="token punctuation">></span></span>install --ignore-engines<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>arguments</span><span class="token punctuation">></span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>execution</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-最终编译成功：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-mapreduce-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-namenode-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-secondarynamenode-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-zkfc-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-journalnode-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-datanode-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-dfsrouter-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-httpfs-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-kms-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-resourcemanager-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-nodemanager-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-proxyserver-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-timelineserver-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-mapreduce-historyserver-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-yarn-router-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-client-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-conf-pseudo-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-doc-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfs-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfs-devel-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfspp-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-libhdfspp-devel-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-hdfs-fuse-3.3.4-1.el7.x86_64.rpm
-写道:&#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;RPMS&#x2F;x86_64&#x2F;hadoop-debuginfo-3.3.4-1.el7.x86_64.rpm
-执行(%clean): &#x2F;bin&#x2F;sh -e &#x2F;var&#x2F;tmp&#x2F;rpm-tmp.eo0qaR
-+ umask 022
-+ cd &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;&#x2F;BUILD
-+ cd hadoop-3.3.4-src
-+ &#x2F;usr&#x2F;bin&#x2F;rm -rf &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;BUILDROOT&#x2F;hadoop-3.3.4-1.el7.x86_64
-+ exit 0
-执行(--clean): &#x2F;bin&#x2F;sh -e &#x2F;var&#x2F;tmp&#x2F;rpm-tmp.cwdAe5
-+ umask 022
-+ cd &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;rpm&#x2F;&#x2F;BUILD
-+ rm -rf hadoop-3.3.4-src
-+ exit 0
-[ant:touch] Creating &#x2F;home&#x2F;gujc&#x2F;bigtop&#x2F;build&#x2F;hadoop&#x2F;.rpm
-:hadoop-rpm (Thread[Execution worker for &#39;:&#39;,5,main]) completed. Took 38 mins 23.831 secs.
-
-BUILD SUCCESSFUL in 39m 14s
-31 actionable tasks: 5 executed, 26 up-to-date<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-
-
-
-
-</li>
-</ol>
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
+<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
 ]]></content>
       <categories>
         <category>大数据</category>
-        <category>Bigtop</category>
+        <category>CM</category>
       </categories>
       <tags>
-        <tag>Bigtop</tag>
+        <tag>CM</tag>
       </tags>
   </entry>
   <entry>
@@ -565,307 +650,6 @@ BUILD SUCCESSFUL in 39m 14s
       </categories>
       <tags>
         <tag>Algorithm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CM宕机问题调查与修复</title>
-    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>CM宕机问题调查与修复</li>
-</ul>
-<a id="more"></a>
-
-<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
-<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
-com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
-        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
-        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
-        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-        at java.lang.Thread.run(Thread.java:748)
-Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at java.io.RandomAccessFile.open0(Native Method)
-        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
-        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
-        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
-        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
-        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
-        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
-<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
-● cloudera-scm-agent.service - Cloudera Manager Agent Service
-   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
-   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
-  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
- Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
-
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
-<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>CM</category>
-      </categories>
-      <tags>
-        <tag>CM</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Cloudera Manager CDH离线安装</title>
-    <url>/2022/03/11/Cloudera-Manager-CDH%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>CM离线安装<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="CM离线安装"><a href="#CM离线安装" class="headerlink" title="CM离线安装"></a>CM离线安装</h2><h3 id="安装准备"><a href="#安装准备" class="headerlink" title="安装准备"></a>安装准备</h3><p>准备3台虚拟机<br>golden-01<br>golden-02<br>golden-03<br>并设置免秘钥登录，这里忽略</p>
-<p>下载cdh6.2.0，在百度网盘下载：<br><a href="https://pan.baidu.com/s/1QlWyMRSRJNcaStsZMSdmLg">https://pan.baidu.com/s/1QlWyMRSRJNcaStsZMSdmLg</a>  提取码：ietj</p>
-<h3 id="关闭防火墙与关闭-SELINUX"><a href="#关闭防火墙与关闭-SELINUX" class="headerlink" title="关闭防火墙与关闭 SELINUX"></a>关闭防火墙与关闭 SELINUX</h3><ol>
-<li>关闭防火墙<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">systemctl stop firewalld  ## 关闭防火墙
-systemctl disable firewalld ###禁止防火墙开机自启<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
-<li>关闭SELINUX，只需要关闭一个需要配置http文件服务的虚拟机就可以<br>vim /etc/selinux/config —&gt; SELINUX=disabled (修改)<br>这里改完了需要重启虚拟机<br>这里如果不关闭SELINUX，下面视同httpd访问文件的时候，会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">You don&#39;t have permission to access upload&#x2F; on this server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-
-</li>
-</ol>
-<h3 id="配置NTP服务（所有节点）"><a href="#配置NTP服务（所有节点）" class="headerlink" title="配置NTP服务（所有节点）"></a>配置NTP服务（所有节点）</h3><p>修改时区（改为中国标准时区）</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ln -sf &#x2F;usr&#x2F;share&#x2F;zoneinfo&#x2F;Asia&#x2F;Shanghai &#x2F;etc&#x2F;localtime
-## 安装ntp
-yum -y install ntp <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>ntp主机配置 vi /etc/ntp.conf<br>在文件里新增server ntp.aliyun.com，并把原始的server给注释掉<br>重启<code>service ntpd restart</code></p>
-<h3 id="配置本地服务器（选定任意一台主机即可）"><a href="#配置本地服务器（选定任意一台主机即可）" class="headerlink" title="配置本地服务器（选定任意一台主机即可）"></a>配置本地服务器（选定任意一台主机即可）</h3><p>配置的本地文件服务器的目的是为了，让之后其他节点可以从这直接下载</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum install -y httpd  ##安装httpd
-service httpd start 启用htttpd
-cd &#x2F;var&#x2F;www&#x2F;html&#x2F;  &amp;&amp; mkdir cdh6  &amp;&amp; mkdir cm6
-## 把下载的rpm放到文件服务cm6里
-cp &#x2F;home&#x2F;golden&#x2F;cdh6.2.0&#x2F;cm6&#x2F;* &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6&#x2F;
-cp &#x2F;home&#x2F;golden&#x2F;cdh6.2.0&#x2F;oracle-j2sdk1.8-1.8.0+update181-1.x86_64.rpm &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这里注意，启用httpd服务以后，防火墙和selinux必须都关闭，否则，就会报如下错误：</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">You don&#39;t have permission to access upload&#x2F; on this server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>生成yum源的描述的目录信息 可以让其他节点知道到这里下载</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum install -y createrepo  ##下载createrepo命令
-## 进入到cm6安装包的httpd资源位置
-cd &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6
-##创建yum源的描述meta
-createrepo .<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>在<strong>所有节点上</strong>添加yum源的配置文件</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cat &gt;&gt; &#x2F;etc&#x2F;yum.repos.d&#x2F;cm6.repo &lt;&lt; EOF
-[cm6-local]
-name&#x3D;cm6-local
-baseurl&#x3D;http:&#x2F;&#x2F;192.168.233.133&#x2F;cm6&#x2F;
-enabled&#x3D;1
-gpgcheck&#x3D;0
-EOF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>查看yum配置源是否生效</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum clean all
-yum repolist
-yum makecache<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<h3 id="JDK安装"><a href="#JDK安装" class="headerlink" title="JDK安装"></a>JDK安装</h3><p>前面安装了2次，都是使用自己配置JAVA_HOME的方式，都没问题，但是，最后一次使用了CentOS7精简版的，还是使用自己配置JAVA_HOME的方式，发现cloudera-manager-server启动不成功<br>通过<code>journalctl -u cloudera-manager-server</code>以及<code>journalctl -xe</code>来查看启动日志，发现，报找不到java。但是java安装没有问题<br>最后使用了yum安装了jdk问题解决了</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install -y oracle-j2sdk1.8-1.8.0+update181-1.x86_64<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<h3 id="clouder-server-与agent安装"><a href="#clouder-server-与agent安装" class="headerlink" title="clouder server 与agent安装"></a>clouder server 与agent安装</h3><h4 id="安装cm6相关依赖（所有节点）"><a href="#安装cm6相关依赖（所有节点）" class="headerlink" title="安装cm6相关依赖（所有节点）"></a>安装cm6相关依赖（所有节点）</h4><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum -y install chkconfig python bind-utils psmisc libxslt zlib sqlite cyrus-sasl-plain cyrus-sasl-gssapi fuse fuse-libs redhat-lsb httpd mod_ssl<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h4 id="安装Cloudera-Manager-Server"><a href="#安装Cloudera-Manager-Server" class="headerlink" title="安装Cloudera Manager Server"></a>安装Cloudera Manager Server</h4><p>这一步只需要在CM Server节点上操作。<br>执行下面的命令：</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 安装openjdk8
-yum install oracle-j2sdk1.8   ##这里不知道需不需要安装，因为我本机已经安装了java了。这里先不安装，如果报错再重来
-# 安装 cm manager(只需在server节点安装)
-yum install cloudera-manager-daemons cloudera-manager-agent cloudera-manager-server<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="配置本地Parcel存储库"><a href="#配置本地Parcel存储库" class="headerlink" title="配置本地Parcel存储库"></a>配置本地Parcel存储库</h3><p>Cloudera Manager Server安装完成后，进入到本地Parcel存储库目录：</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cd &#x2F;opt&#x2F;cloudera&#x2F;parcel-repo  ## Cloudera Manager Server完成以后，该目录就已经生成了<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>将第一部分下载的CDH parcels文件上传至该目录下，然后执行修改sha文件：</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">mv &#x2F;data6&#x2F;upload&#x2F;parcels&#x2F;* &#x2F;opt&#x2F;cloudera&#x2F;parcel-repo&#x2F;
-mv CDH-6.3.0-1.cdh6.3.0.p0.1279813-el7.parcel.sha1 CDH-6.3.0-1.cdh6.3.0.p0.1279813-el7.parcel.sha<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
-<h3 id="配置mysql-jdbc驱动"><a href="#配置mysql-jdbc驱动" class="headerlink" title="配置mysql jdbc驱动"></a>配置mysql jdbc驱动</h3><p>从前面下载好的mysql-connector-java-5.1.47.tar.gz包中解压出mysql-connector-java-5.1.47-bin.jar文件，将mysql-connector-java-5.1.47-bin.jar文件上传至CM Server节点上的/usr/share/java/目录下并重命名为mysql-connector-java.jar（如果/usr/share/java/目录不存在，需要手动创建）：</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cd &#x2F;usr&#x2F;share&#x2F;java  &amp;&amp; mv &#x2F;home&#x2F;golden&#x2F;mysql-connector-java-5.1.47.jar .<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="创建CDH所需要的数据库"><a href="#创建CDH所需要的数据库" class="headerlink" title="创建CDH所需要的数据库"></a>创建CDH所需要的数据库</h3><p>根据所需要安装的服务参照下表创建对应的数据库以及数据库用户，数据库必须使用utf8编码，创建数据库时要记录好用户名及对应密码：</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- scm</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> scm <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> scm<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'scm'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'scm'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- amon</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> amon <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> amon<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'amon'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'amon'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- rman</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> rman <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> rman<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'rman'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'rman'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- hue</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> hue <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span> 
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> hue<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hue'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hue'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- hive</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> metastore <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> metastore<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hive'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hive'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- sentry</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> sentry <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>   
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> sentry<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'sentry'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'sentry'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- nav</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> nav <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>      
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> nav<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'nav'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'nav'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- navms</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> navms <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> navms<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'navms'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'navms'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- oozie</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> oozie <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> oozie<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'oozie'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'oozie'</span><span class="token punctuation">;</span>
-
-<span class="token comment">-- hive</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> hive <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> hive<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hive'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hive'</span><span class="token punctuation">;</span>
-<span class="token comment">-- flush</span>
-FLUSH <span class="token keyword">PRIVILEGES</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="设置Cloudera-Manager-数据库"><a href="#设置Cloudera-Manager-数据库" class="headerlink" title="设置Cloudera Manager 数据库"></a>设置Cloudera Manager 数据库</h3><p>Cloudera Manager Server包含一个配置数据库的脚本。</p>
-<ul>
-<li>mysql数据库与CM Server是同一台主机<br>执行命令：<code>/opt/cloudera/cm/schema/scm_prepare_database.sh mysql scm scm</code></li>
-<li>mysql数据库与CM Server不在同一台主机上<br>执行命令：<code>/opt/cloudera/cm/schema/scm_prepare_database.sh mysql -h &lt;mysql-host-ip&gt; --scm-host &lt;cm-server-ip&gt; scm scm</code><br>执行如下命令：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;opt&#x2F;cloudera&#x2F;cm&#x2F;schema&#x2F;scm_prepare_database.sh mysql -uroot -h golden-02 -p&#39;Gjc123!@#&#39; --scm-host golden-01 scm scm scm<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-这里卡了很久，报了如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR Exception when creating&#x2F;dropping database with user &#39;root&#39; and jdbc url &#39;jdbc:mysql:&#x2F;&#x2F;golden-02&#x2F;?useUnicode&#x3D;true&amp;characterEncoding&#x3D;UTF-8&#39;
-com.mysql.jdbc.exceptions.jdbc4.CommunicationsException: Communications link failure
-
-The last packet successfully received from the server was 202 milliseconds ago.  The last packet sent successfully to the server was 197 milliseconds ago.
-	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)[:1.8.0_321]
-	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)[:1.8.0_321]
-	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)[:1.8.0_321]
-	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)[:1.8.0_321]
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-找了很久的问题，首先是安装的mysql不支持远程连接，需要做如下配置：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">grant</span> <span class="token keyword">all</span> <span class="token keyword">privileges</span> <span class="token keyword">on</span> <span class="token operator">*</span><span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">to</span> root<span class="token variable">@'%'</span> identified <span class="token keyword">by</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">;</span>
-flush <span class="token keyword">privileges</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-配置了以后，还是报错，找了很久，最终找到原因，是因为下载的<code>mysql-connector-java-5.1.47-bin.jar</code>有问题，重新下载了一个，问题解决</li>
-</ul>
-<h3 id="安装CDH节点"><a href="#安装CDH节点" class="headerlink" title="安装CDH节点"></a>安装CDH节点</h3><h4 id="启动Cloudera-Manager-Server服务"><a href="#启动Cloudera-Manager-Server服务" class="headerlink" title="启动Cloudera Manager Server服务"></a>启动Cloudera Manager Server服务</h4><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">systemctl start cloudera-scm-server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>然后等待Cloudera Manager Server启动，可能需要稍等一会儿，可以通过命令<code>tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log</code>去监控服务启动状态。<br>当看到<code>INFO WebServerImpl:com.cloudera.server.cmf.WebServerImpl: Started Jetty server.</code>日志打印出来后，说明服务启动成功，可以通过浏览器访问<code>Cloudera Manager WEB</code>界面了。</p>
-<h4 id="访问Cloudera-Manager-WEB界面"><a href="#访问Cloudera-Manager-WEB界面" class="headerlink" title="访问Cloudera Manager WEB界面"></a>访问Cloudera Manager WEB界面</h4><ul>
-<li>打开浏览器，访问地址：http://<server_host>:7180，默认账号和密码都为admin：</li>
-<li>首先是Cloudera Manager的欢迎页面，点击页面右下角的【继续】按钮进行下一步</li>
-<li>勾选接受条款，点击【继续】进行下一步：</li>
-<li>版本选择,这里我就选择免费版了：</li>
-<li>选择版本以后会出现第二个欢迎界面，不过这个是安装集群的欢迎页：</li>
-<li>选择主机,这一步是要搜索并选择用于安装CDH集群的主机，在主机名称后面的输入框中输入各个节点的hostname，中间使用英文逗号分隔开，然后点击搜索，在结果列表中勾选要安装CDH的节点即可：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E9%85%8D%E7%BD%AE%E4%B8%BB%E6%9C%BA.png" alt="CM离线安装_配置主机"></li>
-<li>指定存储库<code>Cloudera Manager Agent</code>这里选择自定义，填写上面使用httpd搭建好的Cloudera Manager YUM 库URL：</li>
-<li>CDH and other software 如果我们之前的【配置本地Parcel存储库】步骤操作无误的话，这里会自动选择【使用Parcel】，并加载出CDH版本，但是这里一直没有识别出来，还报了如下错误：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E8%AF%86%E5%88%AB%E4%B8%8D%E5%88%B0parcel-repo.png" alt="CM离线安装_识别不到parcel-repo"><br>找到问题原因：是因为parcel文件的<code>.sha1</code>需要改成<code>.sha</code>，修改完以后，就能识别出来了<br>这里一开始还跟着教程先用yum安装了<code>cloudera-manager-agent</code>，安装完了更报错，这里不要安装<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E6%AD%A3%E5%B8%B8%E8%AF%86%E5%88%AB%E5%88%B0parcel-repo.png" alt="CM离线安装_正常识别到parcel-repo"></li>
-<li>JDK安装选项，这里jdk已经安装了，不要勾选</li>
-<li>SSH登录配置，用于配置集群主机之间的SSH登录，填写root用户的密码，根据集群配置填写合适的【同时安装数量】值即可：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E6%8F%90%E4%BE%9BSSH%E7%99%BB%E5%BD%95%E5%87%AD%E6%8D%AE.png" alt="CM离线安装_提供SSH登录凭据"></li>
-<li>安装Agent</li>
-<li>安装Parcels</li>
-<li>主机检查，<code>Inspect Network Performance </code>和<code>Inspect Network Performance</code>需要点击的，一开始以为是自动检查，一直等着<br>然后标黄了几个选项：<br>Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10。当前设置为 30。使用 sysctl 命令在运行时更改该设置并编辑 /etc/sysctl.conf，以在重启后保存该设置。您可以继续进行安装，但 Cloudera Manager 可能会报告您的主机由于交换而运行状况不良。<br>已启用透明大页面压缩，可能会导致重大性能问题。请运行echo never &gt; /sys/kernel/mm/transparent_hugepage/defrag和echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled以禁用此设置，然后将同一命令添加到 /etc/rc.local 等初始化脚本中，以便在系统重启时予以设置。<br>安装上面的提示执行即可；<br>但是有一点，报找不到java，这个有点不知道怎么解决了，这里先跳过了，点击<code>I understand this risks</code></li>
-</ul>
-<h3 id="安装CDH集群"><a href="#安装CDH集群" class="headerlink" title="安装CDH集群"></a>安装CDH集群</h3><h4 id="选择服务类型"><a href="#选择服务类型" class="headerlink" title="选择服务类型"></a>选择服务类型</h4><p>这里我选择自定义服务，然后选择很多组件，hdfs、zk、yarn、hbase、kafka等等</p>
-<h4 id="角色分配"><a href="#角色分配" class="headerlink" title="角色分配"></a>角色分配</h4><p>这里会有默认设置，然后把需要手动设置的手动设置一下，点击继续</p>
-<h4 id="数据库设置"><a href="#数据库设置" class="headerlink" title="数据库设置"></a>数据库设置</h4><p>这里根据要求设置即可<br>后面的步骤就没有什么问题了，可以参考下面的两篇文章。</p>
-<p>这里参考了<br><a href="https://segmentfault.com/a/1190000021809645">CentOS7 Cloudera Manager6 完全离线安装 CDH6 集群</a><br><a href="https://blog.csdn.net/weixin_45682234/article/details/105844209">cdh6.2离线安装（傻瓜式安装教程）</a></p>
-<h2 id="CDH日志清理"><a href="#CDH日志清理" class="headerlink" title="CDH日志清理"></a>CDH日志清理</h2><p>随着CM运行的时间越来越长，它所产生的日志文件也越来越大，需要定期去清理这些日志文件<br>在网上找了一个博客，用了他的自动化脚本，然后CM的监控页面都出问题了，无语了<br>以下是脚本：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#!&#x2F;bin&#x2F;bash
-
-# 清理日志
-cd &#x2F;var&#x2F;log&#x2F;hadoop-mapreduce
-rm -rf *.out.* 
-rm -rf *.log.*
-
-cd &#x2F;var&#x2F;log&#x2F;hadoop-hdfs
-rm -rf *.out.* 
-rm -rf *.log.*
-
-cd &#x2F;var&#x2F;log&#x2F;zookeeper
-rm -rf *.out.* 
-rm -rf *.log.*
-
-cd &#x2F;var&#x2F;log&#x2F;hive
-rm -rf *.out.* 
-rm -rf *.log.*
-
-cd &#x2F;var&#x2F;log&#x2F;cloudera-scm-agent
-rm -rf *.out.* 
-rm -rf *.log.*
-
-cd &#x2F;var&#x2F;log&#x2F;audit
-rm -rf *.out.* 
-rm -rf *.log.*
-
-cd &#x2F;var&#x2F;log&#x2F;hadoop-yarn
-rm -rf *.out.* 
-rm -rf *.log.*
-
-cd &#x2F;var&#x2F;log&#x2F;hue-httpd
-rm -rf *.out.* 
-rm -rf *.log.*
-
-# 清理监控日志
-cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;type&#x2F;partitions
-rm -rf type*
-cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;stream&#x2F;partitions
-rm -rf stream*
-cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;ts_stream_rollup_PT600S&#x2F;partitions&#x2F;
-rm -rf ts_stream*
-cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;ts_type_rollup_PT600S&#x2F;partitions&#x2F;
-rm -rf ts_type*
-
-cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;stream&#x2F;partitions&#x2F;
-rm -rf stream*
-cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;type&#x2F;partitions&#x2F;
-rm -rf type*
-cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;ts_stream_rollup_PT600S&#x2F;partitions&#x2F;
-rm -rf ts_stream*
-cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;ts_type_rollup_PT600S&#x2F;partitions&#x2F;
-rm -rf ts_type*<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>执行完成之后，监控页面如下图：<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%95%85%E9%9A%9C.png" alt="CM监控页面故障"></p>
-<p>解决办法：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv cloudera-host-monitor&#x2F; cloudera-host-monitor_BAK
-mv  cloudera-service-monitor  cloudera-service-monitor_BAK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>然后重启Cloudera Management Service，然后就不报错了，但是，都是无数据了，也好理解，都删除了嘛<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%97%A0%E6%95%B0%E6%8D%AE.png" alt="CM监控页面无数据"><br>等待了一会，页面现实正常：<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%81%A2%E5%A4%8D%E6%AD%A3%E5%B8%B8.png" alt="CM监控页面恢复正常"></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>CM</category>
-      </categories>
-      <tags>
-        <tag>CM</tag>
       </tags>
   </entry>
   <entry>
@@ -1086,6 +870,222 @@ done<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
       </tags>
   </entry>
   <entry>
+    <title>Cloudera Manager CDH离线安装</title>
+    <url>/2022/03/11/Cloudera-Manager-CDH%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>CM离线安装<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="CM离线安装"><a href="#CM离线安装" class="headerlink" title="CM离线安装"></a>CM离线安装</h2><h3 id="安装准备"><a href="#安装准备" class="headerlink" title="安装准备"></a>安装准备</h3><p>准备3台虚拟机<br>golden-01<br>golden-02<br>golden-03<br>并设置免秘钥登录，这里忽略</p>
+<p>下载cdh6.2.0，在百度网盘下载：<br><a href="https://pan.baidu.com/s/1QlWyMRSRJNcaStsZMSdmLg">https://pan.baidu.com/s/1QlWyMRSRJNcaStsZMSdmLg</a>  提取码：ietj</p>
+<h3 id="关闭防火墙与关闭-SELINUX"><a href="#关闭防火墙与关闭-SELINUX" class="headerlink" title="关闭防火墙与关闭 SELINUX"></a>关闭防火墙与关闭 SELINUX</h3><ol>
+<li>关闭防火墙<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">systemctl stop firewalld  ## 关闭防火墙
+systemctl disable firewalld ###禁止防火墙开机自启<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>关闭SELINUX，只需要关闭一个需要配置http文件服务的虚拟机就可以<br>vim /etc/selinux/config —&gt; SELINUX=disabled (修改)<br>这里改完了需要重启虚拟机<br>这里如果不关闭SELINUX，下面视同httpd访问文件的时候，会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">You don&#39;t have permission to access upload&#x2F; on this server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+</li>
+</ol>
+<h3 id="配置NTP服务（所有节点）"><a href="#配置NTP服务（所有节点）" class="headerlink" title="配置NTP服务（所有节点）"></a>配置NTP服务（所有节点）</h3><p>修改时区（改为中国标准时区）</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ln -sf &#x2F;usr&#x2F;share&#x2F;zoneinfo&#x2F;Asia&#x2F;Shanghai &#x2F;etc&#x2F;localtime
+## 安装ntp
+yum -y install ntp <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>ntp主机配置 vi /etc/ntp.conf<br>在文件里新增server ntp.aliyun.com，并把原始的server给注释掉<br>重启<code>service ntpd restart</code></p>
+<h3 id="配置本地服务器（选定任意一台主机即可）"><a href="#配置本地服务器（选定任意一台主机即可）" class="headerlink" title="配置本地服务器（选定任意一台主机即可）"></a>配置本地服务器（选定任意一台主机即可）</h3><p>配置的本地文件服务器的目的是为了，让之后其他节点可以从这直接下载</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum install -y httpd  ##安装httpd
+service httpd start 启用htttpd
+cd &#x2F;var&#x2F;www&#x2F;html&#x2F;  &amp;&amp; mkdir cdh6  &amp;&amp; mkdir cm6
+## 把下载的rpm放到文件服务cm6里
+cp &#x2F;home&#x2F;golden&#x2F;cdh6.2.0&#x2F;cm6&#x2F;* &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6&#x2F;
+cp &#x2F;home&#x2F;golden&#x2F;cdh6.2.0&#x2F;oracle-j2sdk1.8-1.8.0+update181-1.x86_64.rpm &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里注意，启用httpd服务以后，防火墙和selinux必须都关闭，否则，就会报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">You don&#39;t have permission to access upload&#x2F; on this server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>生成yum源的描述的目录信息 可以让其他节点知道到这里下载</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum install -y createrepo  ##下载createrepo命令
+## 进入到cm6安装包的httpd资源位置
+cd &#x2F;var&#x2F;www&#x2F;html&#x2F;cm6
+##创建yum源的描述meta
+createrepo .<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在<strong>所有节点上</strong>添加yum源的配置文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cat &gt;&gt; &#x2F;etc&#x2F;yum.repos.d&#x2F;cm6.repo &lt;&lt; EOF
+[cm6-local]
+name&#x3D;cm6-local
+baseurl&#x3D;http:&#x2F;&#x2F;192.168.233.133&#x2F;cm6&#x2F;
+enabled&#x3D;1
+gpgcheck&#x3D;0
+EOF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>查看yum配置源是否生效</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum clean all
+yum repolist
+yum makecache<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h3 id="JDK安装"><a href="#JDK安装" class="headerlink" title="JDK安装"></a>JDK安装</h3><p>前面安装了2次，都是使用自己配置JAVA_HOME的方式，都没问题，但是，最后一次使用了CentOS7精简版的，还是使用自己配置JAVA_HOME的方式，发现cloudera-manager-server启动不成功<br>通过<code>journalctl -u cloudera-manager-server</code>以及<code>journalctl -xe</code>来查看启动日志，发现，报找不到java。但是java安装没有问题<br>最后使用了yum安装了jdk问题解决了</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install -y oracle-j2sdk1.8-1.8.0+update181-1.x86_64<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="clouder-server-与agent安装"><a href="#clouder-server-与agent安装" class="headerlink" title="clouder server 与agent安装"></a>clouder server 与agent安装</h3><h4 id="安装cm6相关依赖（所有节点）"><a href="#安装cm6相关依赖（所有节点）" class="headerlink" title="安装cm6相关依赖（所有节点）"></a>安装cm6相关依赖（所有节点）</h4><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">yum -y install chkconfig python bind-utils psmisc libxslt zlib sqlite cyrus-sasl-plain cyrus-sasl-gssapi fuse fuse-libs redhat-lsb httpd mod_ssl<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h4 id="安装Cloudera-Manager-Server"><a href="#安装Cloudera-Manager-Server" class="headerlink" title="安装Cloudera Manager Server"></a>安装Cloudera Manager Server</h4><p>这一步只需要在CM Server节点上操作。<br>执行下面的命令：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"># 安装openjdk8
+yum install oracle-j2sdk1.8   ##这里不知道需不需要安装，因为我本机已经安装了java了。这里先不安装，如果报错再重来
+# 安装 cm manager(只需在server节点安装)
+yum install cloudera-manager-daemons cloudera-manager-agent cloudera-manager-server<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="配置本地Parcel存储库"><a href="#配置本地Parcel存储库" class="headerlink" title="配置本地Parcel存储库"></a>配置本地Parcel存储库</h3><p>Cloudera Manager Server安装完成后，进入到本地Parcel存储库目录：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cd &#x2F;opt&#x2F;cloudera&#x2F;parcel-repo  ## Cloudera Manager Server完成以后，该目录就已经生成了<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>将第一部分下载的CDH parcels文件上传至该目录下，然后执行修改sha文件：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">mv &#x2F;data6&#x2F;upload&#x2F;parcels&#x2F;* &#x2F;opt&#x2F;cloudera&#x2F;parcel-repo&#x2F;
+mv CDH-6.3.0-1.cdh6.3.0.p0.1279813-el7.parcel.sha1 CDH-6.3.0-1.cdh6.3.0.p0.1279813-el7.parcel.sha<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h3 id="配置mysql-jdbc驱动"><a href="#配置mysql-jdbc驱动" class="headerlink" title="配置mysql jdbc驱动"></a>配置mysql jdbc驱动</h3><p>从前面下载好的mysql-connector-java-5.1.47.tar.gz包中解压出mysql-connector-java-5.1.47-bin.jar文件，将mysql-connector-java-5.1.47-bin.jar文件上传至CM Server节点上的/usr/share/java/目录下并重命名为mysql-connector-java.jar（如果/usr/share/java/目录不存在，需要手动创建）：</p>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">cd &#x2F;usr&#x2F;share&#x2F;java  &amp;&amp; mv &#x2F;home&#x2F;golden&#x2F;mysql-connector-java-5.1.47.jar .<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="创建CDH所需要的数据库"><a href="#创建CDH所需要的数据库" class="headerlink" title="创建CDH所需要的数据库"></a>创建CDH所需要的数据库</h3><p>根据所需要安装的服务参照下表创建对应的数据库以及数据库用户，数据库必须使用utf8编码，创建数据库时要记录好用户名及对应密码：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- scm</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> scm <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> scm<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'scm'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'scm'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- amon</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> amon <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> amon<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'amon'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'amon'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- rman</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> rman <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> rman<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'rman'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'rman'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- hue</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> hue <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span> 
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> hue<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hue'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hue'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- hive</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> metastore <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> metastore<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hive'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hive'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- sentry</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> sentry <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>   
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> sentry<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'sentry'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'sentry'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- nav</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> nav <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>      
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> nav<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'nav'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'nav'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- navms</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> navms <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> navms<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'navms'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'navms'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- oozie</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> oozie <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> oozie<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'oozie'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'oozie'</span><span class="token punctuation">;</span>
+
+<span class="token comment">-- hive</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">DATABASE</span> hive <span class="token keyword">DEFAULT</span> <span class="token keyword">CHARACTER</span> <span class="token keyword">SET</span> utf8 <span class="token keyword">DEFAULT</span> <span class="token keyword">COLLATE</span> utf8_general_ci<span class="token punctuation">;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">ALL</span> <span class="token keyword">ON</span> hive<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">TO</span> <span class="token string">'hive'</span><span class="token variable">@'%'</span> IDENTIFIED <span class="token keyword">BY</span> <span class="token string">'hive'</span><span class="token punctuation">;</span>
+<span class="token comment">-- flush</span>
+FLUSH <span class="token keyword">PRIVILEGES</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="设置Cloudera-Manager-数据库"><a href="#设置Cloudera-Manager-数据库" class="headerlink" title="设置Cloudera Manager 数据库"></a>设置Cloudera Manager 数据库</h3><p>Cloudera Manager Server包含一个配置数据库的脚本。</p>
+<ul>
+<li>mysql数据库与CM Server是同一台主机<br>执行命令：<code>/opt/cloudera/cm/schema/scm_prepare_database.sh mysql scm scm</code></li>
+<li>mysql数据库与CM Server不在同一台主机上<br>执行命令：<code>/opt/cloudera/cm/schema/scm_prepare_database.sh mysql -h &lt;mysql-host-ip&gt; --scm-host &lt;cm-server-ip&gt; scm scm</code><br>执行如下命令：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;opt&#x2F;cloudera&#x2F;cm&#x2F;schema&#x2F;scm_prepare_database.sh mysql -uroot -h golden-02 -p&#39;Gjc123!@#&#39; --scm-host golden-01 scm scm scm<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+这里卡了很久，报了如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR Exception when creating&#x2F;dropping database with user &#39;root&#39; and jdbc url &#39;jdbc:mysql:&#x2F;&#x2F;golden-02&#x2F;?useUnicode&#x3D;true&amp;characterEncoding&#x3D;UTF-8&#39;
+com.mysql.jdbc.exceptions.jdbc4.CommunicationsException: Communications link failure
+
+The last packet successfully received from the server was 202 milliseconds ago.  The last packet sent successfully to the server was 197 milliseconds ago.
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)[:1.8.0_321]
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)[:1.8.0_321]
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)[:1.8.0_321]
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)[:1.8.0_321]
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+找了很久的问题，首先是安装的mysql不支持远程连接，需要做如下配置：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">grant</span> <span class="token keyword">all</span> <span class="token keyword">privileges</span> <span class="token keyword">on</span> <span class="token operator">*</span><span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">to</span> root<span class="token variable">@'%'</span> identified <span class="token keyword">by</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">;</span>
+flush <span class="token keyword">privileges</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+配置了以后，还是报错，找了很久，最终找到原因，是因为下载的<code>mysql-connector-java-5.1.47-bin.jar</code>有问题，重新下载了一个，问题解决</li>
+</ul>
+<h3 id="安装CDH节点"><a href="#安装CDH节点" class="headerlink" title="安装CDH节点"></a>安装CDH节点</h3><h4 id="启动Cloudera-Manager-Server服务"><a href="#启动Cloudera-Manager-Server服务" class="headerlink" title="启动Cloudera Manager Server服务"></a>启动Cloudera Manager Server服务</h4><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">systemctl start cloudera-scm-server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>然后等待Cloudera Manager Server启动，可能需要稍等一会儿，可以通过命令<code>tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log</code>去监控服务启动状态。<br>当看到<code>INFO WebServerImpl:com.cloudera.server.cmf.WebServerImpl: Started Jetty server.</code>日志打印出来后，说明服务启动成功，可以通过浏览器访问<code>Cloudera Manager WEB</code>界面了。</p>
+<h4 id="访问Cloudera-Manager-WEB界面"><a href="#访问Cloudera-Manager-WEB界面" class="headerlink" title="访问Cloudera Manager WEB界面"></a>访问Cloudera Manager WEB界面</h4><ul>
+<li>打开浏览器，访问地址：http://<server_host>:7180，默认账号和密码都为admin：</li>
+<li>首先是Cloudera Manager的欢迎页面，点击页面右下角的【继续】按钮进行下一步</li>
+<li>勾选接受条款，点击【继续】进行下一步：</li>
+<li>版本选择,这里我就选择免费版了：</li>
+<li>选择版本以后会出现第二个欢迎界面，不过这个是安装集群的欢迎页：</li>
+<li>选择主机,这一步是要搜索并选择用于安装CDH集群的主机，在主机名称后面的输入框中输入各个节点的hostname，中间使用英文逗号分隔开，然后点击搜索，在结果列表中勾选要安装CDH的节点即可：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E9%85%8D%E7%BD%AE%E4%B8%BB%E6%9C%BA.png" alt="CM离线安装_配置主机"></li>
+<li>指定存储库<code>Cloudera Manager Agent</code>这里选择自定义，填写上面使用httpd搭建好的Cloudera Manager YUM 库URL：</li>
+<li>CDH and other software 如果我们之前的【配置本地Parcel存储库】步骤操作无误的话，这里会自动选择【使用Parcel】，并加载出CDH版本，但是这里一直没有识别出来，还报了如下错误：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E8%AF%86%E5%88%AB%E4%B8%8D%E5%88%B0parcel-repo.png" alt="CM离线安装_识别不到parcel-repo"><br>找到问题原因：是因为parcel文件的<code>.sha1</code>需要改成<code>.sha</code>，修改完以后，就能识别出来了<br>这里一开始还跟着教程先用yum安装了<code>cloudera-manager-agent</code>，安装完了更报错，这里不要安装<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E6%AD%A3%E5%B8%B8%E8%AF%86%E5%88%AB%E5%88%B0parcel-repo.png" alt="CM离线安装_正常识别到parcel-repo"></li>
+<li>JDK安装选项，这里jdk已经安装了，不要勾选</li>
+<li>SSH登录配置，用于配置集群主机之间的SSH登录，填写root用户的密码，根据集群配置填写合适的【同时安装数量】值即可：<br><img src="/uploads/202203/CM%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85_%E6%8F%90%E4%BE%9BSSH%E7%99%BB%E5%BD%95%E5%87%AD%E6%8D%AE.png" alt="CM离线安装_提供SSH登录凭据"></li>
+<li>安装Agent</li>
+<li>安装Parcels</li>
+<li>主机检查，<code>Inspect Network Performance </code>和<code>Inspect Network Performance</code>需要点击的，一开始以为是自动检查，一直等着<br>然后标黄了几个选项：<br>Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10。当前设置为 30。使用 sysctl 命令在运行时更改该设置并编辑 /etc/sysctl.conf，以在重启后保存该设置。您可以继续进行安装，但 Cloudera Manager 可能会报告您的主机由于交换而运行状况不良。<br>已启用透明大页面压缩，可能会导致重大性能问题。请运行echo never &gt; /sys/kernel/mm/transparent_hugepage/defrag和echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled以禁用此设置，然后将同一命令添加到 /etc/rc.local 等初始化脚本中，以便在系统重启时予以设置。<br>安装上面的提示执行即可；<br>但是有一点，报找不到java，这个有点不知道怎么解决了，这里先跳过了，点击<code>I understand this risks</code></li>
+</ul>
+<h3 id="安装CDH集群"><a href="#安装CDH集群" class="headerlink" title="安装CDH集群"></a>安装CDH集群</h3><h4 id="选择服务类型"><a href="#选择服务类型" class="headerlink" title="选择服务类型"></a>选择服务类型</h4><p>这里我选择自定义服务，然后选择很多组件，hdfs、zk、yarn、hbase、kafka等等</p>
+<h4 id="角色分配"><a href="#角色分配" class="headerlink" title="角色分配"></a>角色分配</h4><p>这里会有默认设置，然后把需要手动设置的手动设置一下，点击继续</p>
+<h4 id="数据库设置"><a href="#数据库设置" class="headerlink" title="数据库设置"></a>数据库设置</h4><p>这里根据要求设置即可<br>后面的步骤就没有什么问题了，可以参考下面的两篇文章。</p>
+<p>这里参考了<br><a href="https://segmentfault.com/a/1190000021809645">CentOS7 Cloudera Manager6 完全离线安装 CDH6 集群</a><br><a href="https://blog.csdn.net/weixin_45682234/article/details/105844209">cdh6.2离线安装（傻瓜式安装教程）</a></p>
+<h2 id="CDH日志清理"><a href="#CDH日志清理" class="headerlink" title="CDH日志清理"></a>CDH日志清理</h2><p>随着CM运行的时间越来越长，它所产生的日志文件也越来越大，需要定期去清理这些日志文件<br>在网上找了一个博客，用了他的自动化脚本，然后CM的监控页面都出问题了，无语了<br>以下是脚本：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#!&#x2F;bin&#x2F;bash
+
+# 清理日志
+cd &#x2F;var&#x2F;log&#x2F;hadoop-mapreduce
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;hadoop-hdfs
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;zookeeper
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;hive
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;cloudera-scm-agent
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;audit
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;hadoop-yarn
+rm -rf *.out.* 
+rm -rf *.log.*
+
+cd &#x2F;var&#x2F;log&#x2F;hue-httpd
+rm -rf *.out.* 
+rm -rf *.log.*
+
+# 清理监控日志
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;type&#x2F;partitions
+rm -rf type*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;stream&#x2F;partitions
+rm -rf stream*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;ts_stream_rollup_PT600S&#x2F;partitions&#x2F;
+rm -rf ts_stream*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-host-monitor&#x2F;ts&#x2F;ts_type_rollup_PT600S&#x2F;partitions&#x2F;
+rm -rf ts_type*
+
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;stream&#x2F;partitions&#x2F;
+rm -rf stream*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;type&#x2F;partitions&#x2F;
+rm -rf type*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;ts_stream_rollup_PT600S&#x2F;partitions&#x2F;
+rm -rf ts_stream*
+cd &#x2F;var&#x2F;lib&#x2F;cloudera-service-monitor&#x2F;ts&#x2F;ts_type_rollup_PT600S&#x2F;partitions&#x2F;
+rm -rf ts_type*<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>执行完成之后，监控页面如下图：<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%95%85%E9%9A%9C.png" alt="CM监控页面故障"></p>
+<p>解决办法：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv cloudera-host-monitor&#x2F; cloudera-host-monitor_BAK
+mv  cloudera-service-monitor  cloudera-service-monitor_BAK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>然后重启Cloudera Management Service，然后就不报错了，但是，都是无数据了，也好理解，都删除了嘛<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%97%A0%E6%95%B0%E6%8D%AE.png" alt="CM监控页面无数据"><br>等待了一会，页面现实正常：<br><img src="/uploads/202203/CM%E7%9B%91%E6%8E%A7%E9%A1%B5%E9%9D%A2%E6%81%A2%E5%A4%8D%E6%AD%A3%E5%B8%B8.png" alt="CM监控页面恢复正常"></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>CM</category>
+      </categories>
+      <tags>
+        <tag>CM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker学习笔记</title>
     <url>/2022/03/30/Docker%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -1223,6 +1223,30 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       <categories>
         <category>工具箱</category>
       </categories>
+  </entry>
+  <entry>
+    <title>FlinkCDC原理</title>
+    <url>/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>FlinkCDC概述</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="FlinkCDC概述"><a href="#FlinkCDC概述" class="headerlink" title="FlinkCDC概述"></a>FlinkCDC概述</h2><p>支持 currentFetchEventTimeLag，currentEmitEventTimeLag，sourceIdleTime 监控指标<br>这些指标遵循 FLIP-33 [1] 的连接器指标规范，可以查看 FLIP-33 获取每个指标的含义。其中，<br>currentEmitEventTimeLag 指标记录的是 Source 发送一条记录到下游节点的时间点和该记录<br>在 DB 里产生时间点差值，用于衡量数据从 DB 产生到离开 Source 节点的延迟。用户可以通<br>过该指标判断 source 是否进入了 binlog 读取阶段：</p>
+<ul>
+<li>即当该指标为 0 时，代表还在全量历史读取阶段；</li>
+<li>当大于 0 时，则代表进入了 binlog 读取阶段。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Flink</category>
+        <category>CDC</category>
+      </categories>
+      <tags>
+        <tag>CDC</tag>
+      </tags>
   </entry>
   <entry>
     <title>FlinkSQL学习笔记</title>
@@ -1371,30 +1395,6 @@ o_orderstatus string
       </categories>
       <tags>
         <tag>Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>FlinkCDC原理</title>
-    <url>/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>FlinkCDC概述</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="FlinkCDC概述"><a href="#FlinkCDC概述" class="headerlink" title="FlinkCDC概述"></a>FlinkCDC概述</h2><p>支持 currentFetchEventTimeLag，currentEmitEventTimeLag，sourceIdleTime 监控指标<br>这些指标遵循 FLIP-33 [1] 的连接器指标规范，可以查看 FLIP-33 获取每个指标的含义。其中，<br>currentEmitEventTimeLag 指标记录的是 Source 发送一条记录到下游节点的时间点和该记录<br>在 DB 里产生时间点差值，用于衡量数据从 DB 产生到离开 Source 节点的延迟。用户可以通<br>过该指标判断 source 是否进入了 binlog 读取阶段：</p>
-<ul>
-<li>即当该指标为 0 时，代表还在全量历史读取阶段；</li>
-<li>当大于 0 时，则代表进入了 binlog 读取阶段。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Flink</category>
-        <category>CDC</category>
-      </categories>
-      <tags>
-        <tag>CDC</tag>
       </tags>
   </entry>
   <entry>
@@ -1967,6 +1967,39 @@ java.util.concurrent.ExecutionException: org.apache.kafka.common.errors.RecordTo
       </tags>
   </entry>
   <entry>
+    <title>Hadoop杂记</title>
+    <url>/2022/03/31/Hadoop%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>hdfs的url在什么情况下指定ip:port</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="hdfs的url在什么情况下指定ip-port"><a href="#hdfs的url在什么情况下指定ip-port" class="headerlink" title="hdfs的url在什么情况下指定ip:port"></a>hdfs的url在什么情况下指定ip:port</h2><p>我们在使用hdfs的时候，一般情况下都是不指定ip:port的，原因是，在hadoop的core-site.xml里，我们配置了如下的参数</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&lt;property&gt;
+  &lt;name&gt;fs.defaultFS&lt;&#x2F;name&gt;
+  &lt;value&gt;hdfs:&#x2F;&#x2F;golden-02:9000&lt;&#x2F;value&gt;
+&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在我们指定hdfs的路径的时候，hadoop会自动代入<code>golden-02:9000</code>，例如：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs -ls &#x2F;flink&#x2F;checkpoint&#x2F;cdc<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这时候我们不需要指定<code>hdfs://golden-02:9000/flink/checkpoint/cdc</code>也能访问</p>
+<p>但是，如果不使用hadoop，例如使用flink访问hdfs上的文件，那么，hdfs://就是必须要添加的了，这里有2中指定方式：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs://golden-02:9000/flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs:///flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>可以指定以<code>hdfs://golden-02:9000</code>开头，也就是我们<code>fs.defaultFS</code>里配置的内容<br>也可以直接以<code>hdfs:///</code>开头，注意，这里是3个<code>/</code>，这两个都是一样的，因为flink程序会加载hadoop相关的配置的<br>这里推荐使用<code>hdfs:///</code>，因为namenode有可能会切换standby，切换了standby不知道还能不能访问到<br>如果不知道<code>fs.defaultFS</code>里的配置在哪里找，可以直接打开hive客户端，执行如下语句</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">hive<span class="token operator">></span> <span class="token keyword">set</span> fs<span class="token punctuation">.</span>defaultFS<span class="token punctuation">;</span>
+<span class="token number">22</span><span class="token operator">/</span><span class="token number">03</span><span class="token operator">/</span><span class="token number">31</span> <span class="token number">15</span>:<span class="token number">36</span>:<span class="token number">26</span> INFO conf<span class="token punctuation">.</span>HiveConf: <span class="token keyword">Using</span> the <span class="token keyword">default</span> <span class="token keyword">value</span> passed <span class="token operator">in</span> <span class="token keyword">for</span> log id: <span class="token number">488</span>dc8a0<span class="token operator">-</span>b332<span class="token operator">-</span><span class="token number">4854</span><span class="token operator">-</span>b2a1<span class="token operator">-</span><span class="token number">585</span>b69a15bf6
+fs<span class="token punctuation">.</span>defaultFS<span class="token operator">=</span>hdfs:<span class="token comment">//digiwin-hdfs2</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hadoop集群扩容</title>
     <url>/2022/03/08/Hadoop%E9%9B%86%E7%BE%A4%E6%89%A9%E5%AE%B9/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -2012,39 +2045,6 @@ chown -R hdfs:hadoop dfs<span aria-hidden="true" class="line-numbers-rows"><span
 <p><img src="/uploads/202203/Hadoop%E7%A3%81%E7%9B%98%E6%89%A9%E5%AE%B9%E9%9B%86%E7%BE%A4%E9%87%8D%E5%90%AF.png" alt="Hadoop磁盘扩容集群重启"><br>4. 可以通过查看hdfs-site.xml找到datanode的日志文件路径：/var/log/hadoop-hdfs，查看datanode的执行日志<br>可以参考<a href="https://blog.csdn.net/weixin_34348805/article/details/92378306">CDH（Hadoop）集群磁盘扩容</a></p>
 <h3 id="添加数据节点扩容"><a href="#添加数据节点扩容" class="headerlink" title="添加数据节点扩容"></a>添加数据节点扩容</h3><p>可以参考<a href="https://juejin.cn/post/6844904117832253454">基于CDH6扩容</a></p>
 ]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Hadoop</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hadoop杂记</title>
-    <url>/2022/03/31/Hadoop%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>hdfs的url在什么情况下指定ip:port</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="hdfs的url在什么情况下指定ip-port"><a href="#hdfs的url在什么情况下指定ip-port" class="headerlink" title="hdfs的url在什么情况下指定ip:port"></a>hdfs的url在什么情况下指定ip:port</h2><p>我们在使用hdfs的时候，一般情况下都是不指定ip:port的，原因是，在hadoop的core-site.xml里，我们配置了如下的参数</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&lt;property&gt;
-  &lt;name&gt;fs.defaultFS&lt;&#x2F;name&gt;
-  &lt;value&gt;hdfs:&#x2F;&#x2F;golden-02:9000&lt;&#x2F;value&gt;
-&lt;&#x2F;property&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>在我们指定hdfs的路径的时候，hadoop会自动代入<code>golden-02:9000</code>，例如：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs -ls &#x2F;flink&#x2F;checkpoint&#x2F;cdc<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>这时候我们不需要指定<code>hdfs://golden-02:9000/flink/checkpoint/cdc</code>也能访问</p>
-<p>但是，如果不使用hadoop，例如使用flink访问hdfs上的文件，那么，hdfs://就是必须要添加的了，这里有2中指定方式：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java">env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs://golden-02:9000/flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs:///flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>可以指定以<code>hdfs://golden-02:9000</code>开头，也就是我们<code>fs.defaultFS</code>里配置的内容<br>也可以直接以<code>hdfs:///</code>开头，注意，这里是3个<code>/</code>，这两个都是一样的，因为flink程序会加载hadoop相关的配置的<br>这里推荐使用<code>hdfs:///</code>，因为namenode有可能会切换standby，切换了standby不知道还能不能访问到<br>如果不知道<code>fs.defaultFS</code>里的配置在哪里找，可以直接打开hive客户端，执行如下语句</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">hive<span class="token operator">></span> <span class="token keyword">set</span> fs<span class="token punctuation">.</span>defaultFS<span class="token punctuation">;</span>
-<span class="token number">22</span><span class="token operator">/</span><span class="token number">03</span><span class="token operator">/</span><span class="token number">31</span> <span class="token number">15</span>:<span class="token number">36</span>:<span class="token number">26</span> INFO conf<span class="token punctuation">.</span>HiveConf: <span class="token keyword">Using</span> the <span class="token keyword">default</span> <span class="token keyword">value</span> passed <span class="token operator">in</span> <span class="token keyword">for</span> log id: <span class="token number">488</span>dc8a0<span class="token operator">-</span>b332<span class="token operator">-</span><span class="token number">4854</span><span class="token operator">-</span>b2a1<span class="token operator">-</span><span class="token number">585</span>b69a15bf6
-fs<span class="token punctuation">.</span>defaultFS<span class="token operator">=</span>hdfs:<span class="token comment">//digiwin-hdfs2</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>]]></content>
       <categories>
         <category>大数据</category>
         <category>Hadoop</category>
@@ -2788,6 +2788,10 @@ ccc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span>
 <li>测试数据是否完整，一切正常后，删除原本数据文件夹</li>
 </ol>
 <h2 id="kafka配置外网访问"><a href="#kafka配置外网访问" class="headerlink" title="kafka配置外网访问"></a>kafka配置外网访问</h2><p>具体可以参考<a href="https://www.dianjilingqu.com/620803.html">kafka配置外网访问</a></p>
+<h2 id="编译kafka"><a href="#编译kafka" class="headerlink" title="编译kafka"></a>编译kafka</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;kafka.git -b 2.8.1
+cd kafka
+.&#x2F;gradlew -PscalaVersion&#x3D;2.12.13 clean releaseTarGz -x signArchives<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>默认情况下，Kafka的发行版压缩包会生成在core/build/distributions目录中</p>
 ]]></content>
       <categories>
         <category>大数据</category>
@@ -3194,6 +3198,20 @@ mvn deploy:deploy-file -DgroupId&#x3D;com.cloudera -DartifactId&#x3D;ImpalaJDBC4
       </categories>
       <tags>
         <tag>Maven</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MongoDB杂记</title>
+    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>MongoDB</category>
+      </categories>
+      <tags>
+        <tag>MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -3627,20 +3645,6 @@ agent.sinks.logger.channel &#x3D; memory-channel<span aria-hidden="true" class="
       </tags>
   </entry>
   <entry>
-    <title>MongoDB杂记</title>
-    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>MongoDB</category>
-      </categories>
-      <tags>
-        <tag>MongoDB</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Redis杂记</title>
     <url>/2021/01/18/Redis%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3739,6 +3743,108 @@ mysql<span class="token operator">></span> <span class="token keyword">select</s
       </tags>
   </entry>
   <entry>
+    <title>Scala杂记</title>
+    <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>使用Scala解析Json</li>
+</ul>
+<a id="more"></a>
+<h3 id="解析json"><a href="#解析json" class="headerlink" title="解析json"></a>解析json</h3><p>个人认为，解析json用的最多的就是fastjson了<br>使用前需要在pom文件中引用：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.alibaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>fastjson<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.2.47<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>compile<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>代码案例：</p>
+<pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> jsonStr <span class="token operator">=</span>
+  <span class="token triple-quoted-string string">"""
+    |[
+    |        &#123;
+    |            "type_name" : "aa",
+    |            "score" : 0.9995,
+    |            "classcode" : "a1:0.2136;a2:0.2136;a3:0.2136;a4:0.1582;a5:0.1578;a6:0.0429;a7:0.0004"
+    |        &#125;,
+    |        &#123;
+    |            "type_name" : "bb",
+    |            "score" : 0.0005,
+    |            "classcode" : "b1:0.5000;b2:0.5000"
+    |        &#125;
+    |    ]
+    |"""</span><span class="token punctuation">.</span>stripMargin
+<span class="token keyword">val</span> typeTageArr <span class="token operator">=</span> mutable<span class="token punctuation">.</span>ArrayBuffer<span class="token punctuation">[</span>Map<span class="token punctuation">[</span><span class="token builtin">String</span><span class="token punctuation">,</span><span class="token builtin">String</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token string">""</span><span class="token punctuation">.</span>equals<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token string">"[]"</span><span class="token punctuation">.</span>equals<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">val</span> jsonArr <span class="token operator">=</span> JSON<span class="token punctuation">.</span>parseArray<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span>
+  <span class="token keyword">val</span> houses <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token number">0</span> until jsonArr<span class="token punctuation">.</span>size<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>map<span class="token punctuation">(</span>jsonArr<span class="token punctuation">.</span>getJSONObject<span class="token punctuation">)</span><span class="token punctuation">.</span>toArray
+  <span class="token keyword">for</span><span class="token punctuation">(</span>jsMap <span class="token keyword">&lt;-</span> houses<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    <span class="token keyword">val</span> typeName <span class="token operator">=</span> jsMap<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type_name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>toString
+    <span class="token keyword">val</span> classCode <span class="token operator">=</span> jsMap<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"classcode"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>toString<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">";"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>map<span class="token punctuation">(</span>x <span class="token keyword">=></span> x<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">":"</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>mkString<span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span>
+    typeTageArr <span class="token operator">+=</span> Map<span class="token punctuation">(</span><span class="token string">"type"</span> <span class="token operator">-></span> typeName<span class="token punctuation">,</span><span class="token string">"classTags"</span> <span class="token operator">-></span> classCode<span class="token punctuation">)</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="array转json"><a href="#array转json" class="headerlink" title="array转json"></a>array转json</h3><p>一开始使用JSON.toJSONString(typeTageArr)这种方式，但是报如下错</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">error: ambiguous reference to overloaded definition,
+both method toJSONString in object JSON of type (x$1: Any, x$2: com.alibaba.fastjson.serializer.SerializerFeature*)String
+and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>从报错的信息当中我们得知是scala对对重载定义的模糊引用造成，从fastjson的源码中可以看到，有两个toJSONString的方法：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> emptyFilters<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">,</span> <span class="token class-name">SerializerFeature</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> features<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> DEFAULT_GENERATE_FEATURE<span class="token punctuation">,</span> features<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在第二个方法中SerializerFeature… features 是一个可变长参数，带有变长参数的方法重载使得scala在调用方法时感到“模糊”，就无法匹配参数的类型</p>
+<p>所以在array或者map转json对象的时候，使用json4s比较好<br>使用案例：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span></span><span class="token class-name">JsonDSL</span><span class="token punctuation">.</span>_
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span>jackson<span class="token punctuation">.</span></span><span class="token class-name">JsonMethods</span><span class="token punctuation">.</span>_
+<span class="token function">compact</span><span class="token punctuation">(</span><span class="token function">render</span><span class="token punctuation">(</span>typeTageArr<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>使用起来很方便</p>
+<h2 id="Scala中调用方法和函数"><a href="#Scala中调用方法和函数" class="headerlink" title="Scala中调用方法和函数"></a>Scala中调用方法和函数</h2><p>Scala中的+ - * / %等操作符的作用与Java一样，位操作符 &amp; | ^ &gt;&gt; &lt;&lt;也一样。只是有一点特别的：这些操作符实际上是方法。例如：<br><code>a + b</code>是<code>a.+(b)</code>的简写<br><code>a 方法 b</code>可以写成 <code>a.方法(b)</code></p>
+<h2 id="Scala-方法和函数的区别"><a href="#Scala-方法和函数的区别" class="headerlink" title="Scala 方法和函数的区别"></a>Scala 方法和函数的区别</h2><p>可以参考<a href="https://www.huaweicloud.com/articles/da048fd844830f817cc39b6cf484cc16.html">Scala 方法与函数</a><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Scala</category>
+      </categories>
+      <tags>
+        <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Scala面试题</title>
+    <url>/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Scala面试题总结</li>
+</ul>
+<a id="more"></a>
+
+
+<p><strong><font size = 5>1. 方法和函数的区别？</font></strong><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
+<p><strong><font size = 5>2. Scala类型系统中Nil, Null, None, Nothing四个类型的区别？？</font></strong><br>Null是一个trait（特质），是所以引用类型AnyRef的一个子类型，null是Null唯一的实例。<br>Nothing也是一个trait（特质），是所有类型Any（包括值类型和引用类型）的子类型，它不在有子类型，它也没有实例，实际上为了一个方法抛出异常，通常会设置一个默认返回类型。<br>Nil代表一个List空类型，等同List[Nothing]<br>None是Option monad的空标识（深入了解请参考问题Q11）</p>
+<p><strong><font size = 5>3. 什么是高阶函数？</font></strong><br>高阶函数指能接受或者返回其他函数的函数，scala中的filter map flatMap函数都能接受其他函数作为参数。</p>
+<p><strong><font size = 5>4. 什么是隐式转换？</font></strong><br>通过隐式转换，程序员可以在编写Scala程序时故意漏掉一些信息，让编译器去尝试在编译期间自动推导出这些信息来，这种特性可以极大的减少代码量，忽略那些冗长，过于细节的代码<br>隐式转换必须满足无歧义规则，在声明隐式参数的类型是最好使用特别的或自定义的数据类型，不要使用Int,String这些常用类型，避免碰巧匹配<br>调用方法：</p>
+<ol>
+<li>将方法或变量标记为implicit</li>
+<li>将方法的参数列表标记为implicit</li>
+<li>将类标记为implicit</li>
+</ol>
+<p>Scala支持3种形式的隐式转换：<br>隐式值：用于给方法提供参数<br>隐式视图：用于类型间转换或使针对某类型的方法能调用成功<br>隐式类：使用implicit声明类</p>
+<p><strong><font size = 5>5. scala的模式匹配？</font></strong><br>有点类似于Java语言的 switch，但其实还是有很大的不同的</p>
+<ul>
+<li>java 的 switch 仅仅会做一些基本类型的匹配，然后执行一些动作，并且是没有返回值的。</li>
+<li>scala 的模式匹配除了可以匹配数值，同时它还能匹配类型，同时它还是有返回值的</li>
+</ul>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>Scala</category>
+      </categories>
+      <tags>
+        <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Selenium与PhantomJS踩过的坑</title>
     <url>/2021/01/16/Selenium%E4%B8%8EPhantomJS%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3806,74 +3912,6 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       <tags>
         <tag>Selenium</tag>
         <tag>PhantomJS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Scala杂记</title>
-    <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>使用Scala解析Json</li>
-</ul>
-<a id="more"></a>
-<h3 id="解析json"><a href="#解析json" class="headerlink" title="解析json"></a>解析json</h3><p>个人认为，解析json用的最多的就是fastjson了<br>使用前需要在pom文件中引用：</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.alibaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>fastjson<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.2.47<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>compile<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>代码案例：</p>
-<pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> jsonStr <span class="token operator">=</span>
-  <span class="token triple-quoted-string string">"""
-    |[
-    |        &#123;
-    |            "type_name" : "aa",
-    |            "score" : 0.9995,
-    |            "classcode" : "a1:0.2136;a2:0.2136;a3:0.2136;a4:0.1582;a5:0.1578;a6:0.0429;a7:0.0004"
-    |        &#125;,
-    |        &#123;
-    |            "type_name" : "bb",
-    |            "score" : 0.0005,
-    |            "classcode" : "b1:0.5000;b2:0.5000"
-    |        &#125;
-    |    ]
-    |"""</span><span class="token punctuation">.</span>stripMargin
-<span class="token keyword">val</span> typeTageArr <span class="token operator">=</span> mutable<span class="token punctuation">.</span>ArrayBuffer<span class="token punctuation">[</span>Map<span class="token punctuation">[</span><span class="token builtin">String</span><span class="token punctuation">,</span><span class="token builtin">String</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token string">""</span><span class="token punctuation">.</span>equals<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token string">"[]"</span><span class="token punctuation">.</span>equals<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-  <span class="token keyword">val</span> jsonArr <span class="token operator">=</span> JSON<span class="token punctuation">.</span>parseArray<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span>
-  <span class="token keyword">val</span> houses <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token number">0</span> until jsonArr<span class="token punctuation">.</span>size<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>map<span class="token punctuation">(</span>jsonArr<span class="token punctuation">.</span>getJSONObject<span class="token punctuation">)</span><span class="token punctuation">.</span>toArray
-  <span class="token keyword">for</span><span class="token punctuation">(</span>jsMap <span class="token keyword">&lt;-</span> houses<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-    <span class="token keyword">val</span> typeName <span class="token operator">=</span> jsMap<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type_name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>toString
-    <span class="token keyword">val</span> classCode <span class="token operator">=</span> jsMap<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"classcode"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>toString<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">";"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>map<span class="token punctuation">(</span>x <span class="token keyword">=></span> x<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">":"</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>mkString<span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span>
-    typeTageArr <span class="token operator">+=</span> Map<span class="token punctuation">(</span><span class="token string">"type"</span> <span class="token operator">-></span> typeName<span class="token punctuation">,</span><span class="token string">"classTags"</span> <span class="token operator">-></span> classCode<span class="token punctuation">)</span>
-  <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="array转json"><a href="#array转json" class="headerlink" title="array转json"></a>array转json</h3><p>一开始使用JSON.toJSONString(typeTageArr)这种方式，但是报如下错</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">error: ambiguous reference to overloaded definition,
-both method toJSONString in object JSON of type (x$1: Any, x$2: com.alibaba.fastjson.serializer.SerializerFeature*)String
-and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>从报错的信息当中我们得知是scala对对重载定义的模糊引用造成，从fastjson的源码中可以看到，有两个toJSONString的方法：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> emptyFilters<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-
-<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">,</span> <span class="token class-name">SerializerFeature</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> features<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> DEFAULT_GENERATE_FEATURE<span class="token punctuation">,</span> features<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>在第二个方法中SerializerFeature… features 是一个可变长参数，带有变长参数的方法重载使得scala在调用方法时感到“模糊”，就无法匹配参数的类型</p>
-<p>所以在array或者map转json对象的时候，使用json4s比较好<br>使用案例：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span></span><span class="token class-name">JsonDSL</span><span class="token punctuation">.</span>_
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span>jackson<span class="token punctuation">.</span></span><span class="token class-name">JsonMethods</span><span class="token punctuation">.</span>_
-<span class="token function">compact</span><span class="token punctuation">(</span><span class="token function">render</span><span class="token punctuation">(</span>typeTageArr<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>使用起来很方便</p>
-<h2 id="Scala中调用方法和函数"><a href="#Scala中调用方法和函数" class="headerlink" title="Scala中调用方法和函数"></a>Scala中调用方法和函数</h2><p>Scala中的+ - * / %等操作符的作用与Java一样，位操作符 &amp; | ^ &gt;&gt; &lt;&lt;也一样。只是有一点特别的：这些操作符实际上是方法。例如：<br><code>a + b</code>是<code>a.+(b)</code>的简写<br><code>a 方法 b</code>可以写成 <code>a.方法(b)</code></p>
-<h2 id="Scala-方法和函数的区别"><a href="#Scala-方法和函数的区别" class="headerlink" title="Scala 方法和函数的区别"></a>Scala 方法和函数的区别</h2><p>可以参考<a href="https://www.huaweicloud.com/articles/da048fd844830f817cc39b6cf484cc16.html">Scala 方法与函数</a><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Scala</category>
-      </categories>
-      <tags>
-        <tag>Scala</tag>
       </tags>
   </entry>
   <entry>
@@ -3963,40 +4001,6 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       </tags>
   </entry>
   <entry>
-    <title>Scala面试题</title>
-    <url>/2021/12/06/Scala%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Scala面试题总结</li>
-</ul>
-<a id="more"></a>
-
-
-<p><strong><font size = 5>1. 方法和函数的区别？</font></strong><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
-<p><strong><font size = 5>2. Scala类型系统中Nil, Null, None, Nothing四个类型的区别？？</font></strong><br>Null是一个trait（特质），是所以引用类型AnyRef的一个子类型，null是Null唯一的实例。<br>Nothing也是一个trait（特质），是所有类型Any（包括值类型和引用类型）的子类型，它不在有子类型，它也没有实例，实际上为了一个方法抛出异常，通常会设置一个默认返回类型。<br>Nil代表一个List空类型，等同List[Nothing]<br>None是Option monad的空标识（深入了解请参考问题Q11）</p>
-<p><strong><font size = 5>3. 什么是高阶函数？</font></strong><br>高阶函数指能接受或者返回其他函数的函数，scala中的filter map flatMap函数都能接受其他函数作为参数。</p>
-<p><strong><font size = 5>4. 什么是隐式转换？</font></strong><br>通过隐式转换，程序员可以在编写Scala程序时故意漏掉一些信息，让编译器去尝试在编译期间自动推导出这些信息来，这种特性可以极大的减少代码量，忽略那些冗长，过于细节的代码<br>隐式转换必须满足无歧义规则，在声明隐式参数的类型是最好使用特别的或自定义的数据类型，不要使用Int,String这些常用类型，避免碰巧匹配<br>调用方法：</p>
-<ol>
-<li>将方法或变量标记为implicit</li>
-<li>将方法的参数列表标记为implicit</li>
-<li>将类标记为implicit</li>
-</ol>
-<p>Scala支持3种形式的隐式转换：<br>隐式值：用于给方法提供参数<br>隐式视图：用于类型间转换或使针对某类型的方法能调用成功<br>隐式类：使用implicit声明类</p>
-<p><strong><font size = 5>5. scala的模式匹配？</font></strong><br>有点类似于Java语言的 switch，但其实还是有很大的不同的</p>
-<ul>
-<li>java 的 switch 仅仅会做一些基本类型的匹配，然后执行一些动作，并且是没有返回值的。</li>
-<li>scala 的模式匹配除了可以匹配数值，同时它还能匹配类型，同时它还是有返回值的</li>
-</ul>
-]]></content>
-      <categories>
-        <category>面试题</category>
-        <category>Scala</category>
-      </categories>
-      <tags>
-        <tag>Scala</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>StreamPark学习笔记</title>
     <url>/2022/10/19/StreamPark%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -4032,6 +4036,101 @@ source <span class="token operator">/</span>Users<span class="token operator">/<
       </categories>
       <tags>
         <tag>StreamPark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Window构建高效的Linux开发环境</title>
+    <url>/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>什么是WSL？</li>
+<li>安装WSL</li>
+<li>WSl常用命令</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="什么是WSL？"><a href="#什么是WSL？" class="headerlink" title="什么是WSL？"></a>什么是WSL？</h2><p>WSL是Windows子系统Linux的缩写。它是一个Windows 10的特性，允许用户在Windows操作系统中运行Linux内核。WSL不是虚拟机，也不是仿真器，它实现了Linux内核与Windows之间的精细互操作。</p>
+<h3 id="WSL存在的目的"><a href="#WSL存在的目的" class="headerlink" title="WSL存在的目的"></a>WSL存在的目的</h3><p>Windows和Linux是两个不同的操作系统，用户如果需要同时使用它们，需要在同一台设备上安装不同的操作系统。WSL的存在正是为了解决这一问题，它可以让Windows用户在本地机器上同时运行Windows和Linux，而无需使用虚拟机或者双重启动来执行类似的任务。</p>
+<h3 id="WSL有哪些版本？"><a href="#WSL有哪些版本？" class="headerlink" title="WSL有哪些版本？"></a>WSL有哪些版本？</h3><p>WSL1是Microsoft于2016年首次发布的版本，它与Windows内核紧密集成。WSL2则是2020年发布的全新版本，它使用完整的Linux内核，可以快速运行Linux二进制代码，提高性能和兼容性。两个版本都提供了Linux命令行界面和标准的Linux软件包，例如bash、ssh和grep等工具。</p>
+<h3 id="WSL与WSL2有什么区别？"><a href="#WSL与WSL2有什么区别？" class="headerlink" title="WSL与WSL2有什么区别？"></a>WSL与WSL2有什么区别？</h3><p>WSL2相比WSL1，在性能和兼容性方面有显著提高，主要原因是它使用完整的Linux内核。在WSL2中，Linux内核以Hyper-V轻量级虚拟化的形式运行在Windows操作系统上，提供了对Docker等Linux容器的原生支持，同时还增强了文件系统访问和文件I/O性能。<br>但是，WSL2的启动时间和内存占用都比WSL1高，需要占用更多的存储空间。用户可以根据具体需求灵活选择哪个版本更适合自己。</p>
+<h2 id="安装WSL"><a href="#安装WSL" class="headerlink" title="安装WSL"></a>安装WSL</h2><p>开发人员可以在 Windows 计算机上同时访问 Windows 和 Linux 的强大功能。 通过适用于 Linux 的 Windows 子系统 (WSL)，开发人员可以安装 Linux 发行版（例如 Ubuntu、OpenSUSE、Kali、Debian、Arch Linux 等），并直接在 Windows 上使用 Linux 应用程序、实用程序和 Bash 命令行工具，不用进行任何修改，也无需承担传统虚拟机或双启动设置的费用。</p>
+<h3 id="先决条件"><a href="#先决条件" class="headerlink" title="先决条件"></a>先决条件</h3><p>必须运行 Windows 10 版本 2004 及更高版本（内部版本 19041 及更高版本）或 Windows 11 才能使用以下命令。 如果使用的是更早的版本，请参阅手动安装页。</p>
+<h3 id="安装-WSL-命令"><a href="#安装-WSL-命令" class="headerlink" title="安装 WSL 命令"></a>安装 WSL 命令</h3><p>现在，可以使用单个命令安装运行 WSL 所需的一切内容。 在管理员模式下打开 PowerShell 或 Windows 命令提示符，方法是右键单击并选择“以管理员身份运行”，输入 wsl –install 命令，然后重启计算机。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wsl --install<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="将-WSL-2-设置为默认版本"><a href="#将-WSL-2-设置为默认版本" class="headerlink" title="将 WSL 2 设置为默认版本"></a>将 WSL 2 设置为默认版本</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wsl --set-default-version 2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="更改默认安装的-Linux-发行版"><a href="#更改默认安装的-Linux-发行版" class="headerlink" title="更改默认安装的 Linux 发行版"></a>更改默认安装的 Linux 发行版</h3><p>默认情况下，安装的 Linux 分发版为 Ubuntu。 可以使用 -d 标志进行更改。</p>
+<ul>
+<li>若要更改安装的发行版，请输入：<code>wsl --install -d &lt;Distribution Name&gt;</code>。 将 <code>&lt;Distribution Name&gt;</code> 替换为要安装的发行版的名称。</li>
+<li>若要查看可通过在线商店下载的可用 Linux 发行版列表，请输入：<code>wsl --list --online</code> 或 <code>wsl -l -o</code></li>
+<li>若要在初始安装后安装其他 Linux 发行版，还可使用命令：<code>wsl --install -d &lt;Distribution Name&gt;</code>。</li>
+</ul>
+<h3 id="检查正在运行的-WSL-版本"><a href="#检查正在运行的-WSL-版本" class="headerlink" title="检查正在运行的 WSL 版本"></a>检查正在运行的 WSL 版本</h3><h2 id="WSl常用命令"><a href="#WSl常用命令" class="headerlink" title="WSl常用命令"></a>WSl常用命令</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 列出可用的 Linux 发行版
+wsl --list --online
+# 列出已安装的 Linux 发行版
+wsl -l -v 
+# 或者wsl --list --verbose
+#############################################################
+#  NAME                   STATE           VERSION
+#* docker-desktop         Stopped         2
+#  Ubuntu                 Stopped         2
+#  docker-desktop-data    Stopped         2
+#  CentOS7                Stopped         2
+  
+# 设置默认 Linux 发行版
+wsl --set-default CentOS7
+
+# 更新 WSL
+wsl --update
+# 检查 WSL 状态
+wsl --status
+
+# 通过 PowerShell 或 CMD 运行特定的 Linux 发行版
+wsl --distribution CentOS7 --user root
+
+# 更改发行版的默认用户
+&lt;DistributionName&gt; config --default-user &lt;Username&gt;
+
+# 关闭
+wsl --shutdown  
+
+# 导入和导出发行版
+# 导出路径默认在C:\Users\Golden下
+#wsl --export &lt;Distribution Name&gt; &lt;FileName&gt;
+wsl --export CentOS7 CentOS7-Origion.tar.gz
+#wsl --import &lt;Distribution Name&gt; &lt;InstallLocation&gt; &lt;FileName&gt;
+wsl --import CentOS7-Origion D:\WSL\Centos7-Origion C:\Users\Golden\CentOS7-Origion.tar.gz
+# 注销或卸载 Linux 发行版
+wsl --unregister CentOS7-Origion<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="WSL安装Centos"><a href="#WSL安装Centos" class="headerlink" title="WSL安装Centos"></a>WSL安装Centos</h3><p>具体参考<a href="https://blog.csdn.net/weixin_38979465/article/details/131750084">windows10在WSL2中安装Centos发行版+git+miniconda+vscode</a></p>
+<h2 id="安装并配置oh-my-posh"><a href="#安装并配置oh-my-posh" class="headerlink" title="安装并配置oh-my-posh"></a>安装并配置oh-my-posh</h2><p>具体参考<a href="https://blog.csdn.net/qq_62888264/article/details/132551059">【保姆级教程】使用oh-my-posh美化Windows终端</a></p>
+<h2 id="在Centos配置oh-my-zsh"><a href="#在Centos配置oh-my-zsh" class="headerlink" title="在Centos配置oh-my-zsh"></a>在Centos配置oh-my-zsh</h2><p>需要先安装git</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install git
+yum install curl-devel expat-devel gettext-devel openssl-devel zlib-devel gcc perl-ExtUtils-MakeMaker
+wget https:&#x2F;&#x2F;gitee.com&#x2F;heyuanfly&#x2F;install-oh-my-zsh&#x2F;raw&#x2F;master&#x2F;centos-install-oh-my-zsh.sh
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>centos-install-oh-my-zsh.sh里的内容：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install -y vim  
+yum install -y zsh
+yum install -y git
+wget https:&#x2F;&#x2F;gitee.com&#x2F;heyuanfly&#x2F;ohmyzsh&#x2F;raw&#x2F;master&#x2F;tools&#x2F;install.sh
+chmod +x install.sh
+.&#x2F;install.sh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>具体可以参考<a href="https://blog.csdn.net/zenghao36/article/details/127980176">CentOS安装Oh my zsh</a><br>剩下的就是跟mac安装ohmyzsh是一样的，可以看另一篇博客<a href="https://gujincheng.github.io/2021/05/20/Mac%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/">Mac使用笔记（一）</a></p>
+<h3 id="安装完ls后的颜色不对，可执行文件是红色的"><a href="#安装完ls后的颜色不对，可执行文件是红色的" class="headerlink" title="安装完ls后的颜色不对，可执行文件是红色的"></a>安装完ls后的颜色不对，可执行文件是红色的</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">dircolors --print-database &gt; ~&#x2F;.dir_colors
+vim .zshrc
+# 在.zshrc里添加以下内容
+alias ls&#x3D;&#39;ls -F --show-control-chars --color&#x3D;auto&#39; 
+eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96; <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+]]></content>
+      <categories>
+        <category>WSL</category>
+      </categories>
+      <tags>
+        <tag>WSL</tag>
       </tags>
   </entry>
   <entry>
@@ -5759,83 +5858,6 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       </tags>
   </entry>
   <entry>
-    <title>数据仓库-数据质量</title>
-    <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>数据质量基本概念</li>
-<li>影响因素</li>
-<li>评估维度</li>
-<li>实施流程<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="数据质量基本概念"><a href="#数据质量基本概念" class="headerlink" title="数据质量基本概念"></a>数据质量基本概念</h2><ul>
-<li>数据质量管理（Data Quality Management），是指对数据从计划、获取、存储、共享、维护、应用、消亡生命周期的每个阶段里可能引发的各类数据质量问题，进行识别、度量、监控、预警等一系列管理活动，并通过改善和提高组织的管理水平使得数据质量获得进一步提高</li>
-<li>数据质量管理不是一时的数据治理手段，而是循环的管理过程。其终极目标是通过可靠的数据，提升数据在使用中的价值，并最终为企业赢得经济效益</li>
-</ul>
-<h2 id="影响因素"><a href="#影响因素" class="headerlink" title="影响因素"></a>影响因素</h2><p>数据问题的来源可能产生于从数据源头到数据存储介质的各个环节。在数据采集阶段，数据的真实性、准确性、完整性、时效性都会影响数据质量。除此之外，数据的加工、存储过程都有可能涉及对原始数据的修改，从而引发数据的质量问题。所以，技术、流程、管理等多方面的因素都有可能会影响到数据质量。</p>
-<h2 id="评估维度"><a href="#评估维度" class="headerlink" title="评估维度"></a>评估维度</h2><ul>
-<li>完整性<br>数据完整性问题包含数据条目不完整，数据属性不完整等</li>
-<li>一致性<br>多源数据的数据模型不一致，如命名不一致，数据编码不一致，含义不一致，生命周期不一致等</li>
-<li>准确性<br>准确性也叫可靠性，不可靠的数据可能会导致严重的问题，会造成有缺陷的方法和糟糕的决策</li>
-<li>唯一性<br>用于识别和度量重复数据，冗余数据，重复数据是导致业务无法协同，流程无法追溯的重要因素，也是数据治理需要解 决的最基本的数据问题</li>
-<li>关联性<br>数据关联性问题是指存在数据关联的数据关系缺失或错误，例如：函数关系、相关系数、主外键关系、索引关系等。存在数据关联性问题，会直接影响数据分析的结果，进而影响管理决策。</li>
-<li>真实性<br>数据必须真实准确的反映客观的实体存在或真实的业务，真实可靠的原始统计数据是企业统计工作的灵魂</li>
-<li>及时性<br>数据的及时性(In-time)是指能否在需要的时候获到数据，数据的及时性与企业的数据处理速度及效率有直接的关系，是影响业务处理和管理效率的关键指标。</li>
-<li>逻辑检查<br>不同表字段之间可能会有逻辑关联，需要稽核</li>
-<li>离群值检查<br>部分数据可能会偏离其他数据，比如同一个商品金额大家都是100元，而有一条数据是1W</li>
-<li>自定义规则<br>由需求方自定义相关规则</li>
-<li>波动稽核<br>与上周环比稽核波动情况 </li>
-<li>强弱规则<br>每个规则的权重应该是不一样的，需要配置优先级，这对后续的告警方式是有帮助的</li>
-</ul>
-]]></content>
-      <categories>
-        <category>数据仓库</category>
-        <category>数据质量</category>
-      </categories>
-      <tags>
-        <tag>数据仓库</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>数据仓库面试题</title>
-    <url>/2021/11/18/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>数据仓库面试题总结</li>
-</ul>
-<a id="more"></a>
-
-<p><strong><font size = 5>1. 全量表(df),增量表(di),追加表(da)，拉链表(dz)的区别及使用场景？</font></strong></p>
-<p><strong><font size = 5>2. 星型模型和雪花模型？</font></strong></p>
-<p><strong><font size = 5>3. 缓慢变化维如何处理，几种方式？</font></strong></p>
-<ol>
-<li>直接覆盖历史数据</li>
-<li>采用拉链表，把记录的过程都记录下来</li>
-<li>增加预留资源，每次变化，把新变化的数据放到备用字段</li>
-<li>字段透传，把变化的纬度透传到上层的事实表，这样就不用关联了</li>
-</ol>
-<p><strong><font size = 5>4. 说说你从0-1搭建数仓都做了什么？你觉得最有挑战的是什么？</font></strong></p>
-<p><strong><font size = 5>5. 流批一体有什么好处？为什么要搞流批一体？</font></strong><br>传统数仓Lambda架构，数据分析需求基于流、批两套计算引擎产出，这种分离的架构不仅会带来两套开发成本，也导致数据逻辑和口径难以对齐<br><a href="https://baijiahao.baidu.com/s?id=1685957539299113384&wfr=spider&for=pc">为什么阿里云要做流批一体？</a><br>流批一体首先是架构上的流批一体，不仅仅是计算引擎流批一体，存储引擎也需要流批一体，计算引擎可以使用flink，存储引擎，现在常用的可以使用Hudi，Iceberg</p>
-<p><strong><font size = 5>6. left semi join和left jion区别？</font></strong></p>
-<ul>
-<li><code>left semi join</code>左半连接,是 in(keySet) 的关系，遇到右表重复记录，左表会跳过；<br>当右表不存在的时候，左表数据不会显示; 相当于SQL的in语句，注意，结果中是没有B表的字段的<br>LEFT SEMI JOIN 是 IN/EXISTS 子查询的一种更高效的实现。</li>
-<li><code>left join</code>:当右表不存在的时候，则会显示NULL</li>
-</ul>
-<p>数仓面试题可以参考<br><a href="https://blog.csdn.net/qq_28680977/article/details/108460523">2020大厂面试题-数仓篇</a></p>
-<p>参考<br><a href="https://mp.weixin.qq.com/s/0mgy07WAMBYNBP6er8_hDA">(终极版)2021大数据面试真题(务必进来看一下)</a></p>
-]]></content>
-      <categories>
-        <category>面试题</category>
-        <category>大数据</category>
-        <category>数据仓库</category>
-      </categories>
-      <tags>
-        <tag>数据仓库</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>基于githup搭建个人博客网站</title>
     <url>/2021/01/14/%E5%9F%BA%E4%BA%8Egithup%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E7%BD%91%E7%AB%99/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -6117,6 +6139,83 @@ search:
       </categories>
       <tags>
         <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据仓库-数据质量</title>
+    <url>/2021/08/03/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>数据质量基本概念</li>
+<li>影响因素</li>
+<li>评估维度</li>
+<li>实施流程<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="数据质量基本概念"><a href="#数据质量基本概念" class="headerlink" title="数据质量基本概念"></a>数据质量基本概念</h2><ul>
+<li>数据质量管理（Data Quality Management），是指对数据从计划、获取、存储、共享、维护、应用、消亡生命周期的每个阶段里可能引发的各类数据质量问题，进行识别、度量、监控、预警等一系列管理活动，并通过改善和提高组织的管理水平使得数据质量获得进一步提高</li>
+<li>数据质量管理不是一时的数据治理手段，而是循环的管理过程。其终极目标是通过可靠的数据，提升数据在使用中的价值，并最终为企业赢得经济效益</li>
+</ul>
+<h2 id="影响因素"><a href="#影响因素" class="headerlink" title="影响因素"></a>影响因素</h2><p>数据问题的来源可能产生于从数据源头到数据存储介质的各个环节。在数据采集阶段，数据的真实性、准确性、完整性、时效性都会影响数据质量。除此之外，数据的加工、存储过程都有可能涉及对原始数据的修改，从而引发数据的质量问题。所以，技术、流程、管理等多方面的因素都有可能会影响到数据质量。</p>
+<h2 id="评估维度"><a href="#评估维度" class="headerlink" title="评估维度"></a>评估维度</h2><ul>
+<li>完整性<br>数据完整性问题包含数据条目不完整，数据属性不完整等</li>
+<li>一致性<br>多源数据的数据模型不一致，如命名不一致，数据编码不一致，含义不一致，生命周期不一致等</li>
+<li>准确性<br>准确性也叫可靠性，不可靠的数据可能会导致严重的问题，会造成有缺陷的方法和糟糕的决策</li>
+<li>唯一性<br>用于识别和度量重复数据，冗余数据，重复数据是导致业务无法协同，流程无法追溯的重要因素，也是数据治理需要解 决的最基本的数据问题</li>
+<li>关联性<br>数据关联性问题是指存在数据关联的数据关系缺失或错误，例如：函数关系、相关系数、主外键关系、索引关系等。存在数据关联性问题，会直接影响数据分析的结果，进而影响管理决策。</li>
+<li>真实性<br>数据必须真实准确的反映客观的实体存在或真实的业务，真实可靠的原始统计数据是企业统计工作的灵魂</li>
+<li>及时性<br>数据的及时性(In-time)是指能否在需要的时候获到数据，数据的及时性与企业的数据处理速度及效率有直接的关系，是影响业务处理和管理效率的关键指标。</li>
+<li>逻辑检查<br>不同表字段之间可能会有逻辑关联，需要稽核</li>
+<li>离群值检查<br>部分数据可能会偏离其他数据，比如同一个商品金额大家都是100元，而有一条数据是1W</li>
+<li>自定义规则<br>由需求方自定义相关规则</li>
+<li>波动稽核<br>与上周环比稽核波动情况 </li>
+<li>强弱规则<br>每个规则的权重应该是不一样的，需要配置优先级，这对后续的告警方式是有帮助的</li>
+</ul>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+        <category>数据质量</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据仓库面试题</title>
+    <url>/2021/11/18/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>数据仓库面试题总结</li>
+</ul>
+<a id="more"></a>
+
+<p><strong><font size = 5>1. 全量表(df),增量表(di),追加表(da)，拉链表(dz)的区别及使用场景？</font></strong></p>
+<p><strong><font size = 5>2. 星型模型和雪花模型？</font></strong></p>
+<p><strong><font size = 5>3. 缓慢变化维如何处理，几种方式？</font></strong></p>
+<ol>
+<li>直接覆盖历史数据</li>
+<li>采用拉链表，把记录的过程都记录下来</li>
+<li>增加预留资源，每次变化，把新变化的数据放到备用字段</li>
+<li>字段透传，把变化的纬度透传到上层的事实表，这样就不用关联了</li>
+</ol>
+<p><strong><font size = 5>4. 说说你从0-1搭建数仓都做了什么？你觉得最有挑战的是什么？</font></strong></p>
+<p><strong><font size = 5>5. 流批一体有什么好处？为什么要搞流批一体？</font></strong><br>传统数仓Lambda架构，数据分析需求基于流、批两套计算引擎产出，这种分离的架构不仅会带来两套开发成本，也导致数据逻辑和口径难以对齐<br><a href="https://baijiahao.baidu.com/s?id=1685957539299113384&wfr=spider&for=pc">为什么阿里云要做流批一体？</a><br>流批一体首先是架构上的流批一体，不仅仅是计算引擎流批一体，存储引擎也需要流批一体，计算引擎可以使用flink，存储引擎，现在常用的可以使用Hudi，Iceberg</p>
+<p><strong><font size = 5>6. left semi join和left jion区别？</font></strong></p>
+<ul>
+<li><code>left semi join</code>左半连接,是 in(keySet) 的关系，遇到右表重复记录，左表会跳过；<br>当右表不存在的时候，左表数据不会显示; 相当于SQL的in语句，注意，结果中是没有B表的字段的<br>LEFT SEMI JOIN 是 IN/EXISTS 子查询的一种更高效的实现。</li>
+<li><code>left join</code>:当右表不存在的时候，则会显示NULL</li>
+</ul>
+<p>数仓面试题可以参考<br><a href="https://blog.csdn.net/qq_28680977/article/details/108460523">2020大厂面试题-数仓篇</a></p>
+<p>参考<br><a href="https://mp.weixin.qq.com/s/0mgy07WAMBYNBP6er8_hDA">(终极版)2021大数据面试真题(务必进来看一下)</a></p>
+]]></content>
+      <categories>
+        <category>面试题</category>
+        <category>大数据</category>
+        <category>数据仓库</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
       </tags>
   </entry>
   <entry>
@@ -7300,6 +7399,19 @@ cd hive-2.3.9&#x2F;conf &amp;&amp; cp hive-default.xml.template hive-site.xml<sp
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.db.type<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>mysql<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>
+            Expects one of [derby, oracle, mysql, mssql, postgres].
+            Type of database used by the metastore. Information schema <span class="token entity named-entity" title="&amp;">&amp;amp;</span> JDBCStorageHandler depend on it.
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.metastore.warehouse.dir<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>/user/hive/warehouse<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>location of default database for the warehouse<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>javax.jdo.option.ConnectionURL<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>jdbc:mysql://golden-02:3306/hive?characterEncoding=UTF-8<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
@@ -7344,8 +7456,9 @@ cd hive-2.3.9&#x2F;conf &amp;&amp; cp hive-default.xml.template hive-site.xml<sp
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.server2.enable.doAs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>去mysql官网下载jdbc-connect的jar包放到hive/lib文件夹</li>
+<li>初始化hive元数据库<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">schematool -initSchema -dbType mysql<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
 <li>启动hive<br>报如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument(ZLjava&#x2F;lang&#x2F;String;Ljava&#x2F;lang&#x2F;Object;)V
 	at org.apache.hadoop.conf.Configuration.set(Configuration.java:1357)
 	at org.apache.hadoop.conf.Configuration.set(Configuration.java:1338)
@@ -7403,8 +7516,44 @@ Error: Could not open client transport with JDBC Uri: jdbc:hive2:&#x2F;&#x2F;gol
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.application.classpath<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>/opt/modules/hadoop-3.0.0/etc/hadoop:/opt/modules/hadoop-3.0.0/share/hadoop/common/lib/*:/opt/modules/hadoop-3.0.0/share/  hadoop/common/*:/opt/modules/hadoop-3.0.0/share/hadoop/hdfs:/opt/modules/hadoop-3.0.0/share/hadoop/hdfs/lib/*:/opt/modules/hadoop-3.0.0/share/hadoop/hdfs/*:/opt/modules/hadoop-3.0.0/share/hadoop/mapreduce/*:/opt/modules/hadoop-3.0.0/share/hadoop/yarn:/opt/    modules/hadoop-3.0.0/share/hadoop/yarn/lib/*:/opt/modules/hadoop-3.0.0/share/hadoop/yarn/*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
-
+<ul>
+<li>启动hiveserver2<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml">   <span class="token comment">&lt;!-- hiveserver2服务的端口号以及绑定的主机名--></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.server2.thrift.port<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>10000<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hive.server2.thrift.bind.host<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>localhost<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+启动后，连接不上hiveserver2，并且也不报错<br>解决办法：<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token comment">&lt;!-- 在core-site.xml里添加以下内容 --></span>
+<span class="token comment">&lt;!-- 如果连接不上10000 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hadoop.proxyuser.root.hosts<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hadoop.proxyuser.root.groups<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hadoop.proxyuser.master.hosts<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span> #master配置的主机名 hostname命令查看主机名
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hadoop.proxyuser.master.groups<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>     #master配置的主机名
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hadoop.proxyuser.hive.hosts<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hadoop.proxyuser.hive.groups<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>*<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+重启hadoop，并重启hiveserver2</li>
+</ul>
 <h4 id="安装SQLServer"><a href="#安装SQLServer" class="headerlink" title="安装SQLServer"></a>安装SQLServer</h4><ul>
 <li>安装sqlserver<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">curl -o &#x2F;etc&#x2F;yum.repos.d&#x2F;mssql-server.repo https:&#x2F;&#x2F;packages.microsoft.com&#x2F;config&#x2F;rhel&#x2F;7&#x2F;mssql-server-2019.repo
 yum install -y mssql-server
@@ -8924,9 +9073,24 @@ cd &#x2F;opt&#x2F;modules&#x2F;flink-1.13.6 &amp;&amp; .&#x2F;bin&#x2F;start-clu
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-clients_2.11<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>$&#123;flink.scope&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>flink-runtime-web_$&#123;scala.binary.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>$&#123;flink.version&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>$&#123;flink.scope&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>获取flink env换一种获取：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+conf<span class="token punctuation">.</span><span class="token function">setInteger</span><span class="token punctuation">(</span><span class="token class-name">RestOptions</span><span class="token punctuation">.</span>PORT<span class="token punctuation">,</span> <span class="token number">8081</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">createLocalEnvironmentWithWebUI</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>需要注意的是，通过打包的方式运行的时候，需要把scope改成provided</p>
-]]></content>
+<h3 id="IDEA本地提交FLINK任务到远程的集群"><a href="#IDEA本地提交FLINK任务到远程的集群" class="headerlink" title="IDEA本地提交FLINK任务到远程的集群"></a>IDEA本地提交FLINK任务到远程的集群</h3><p>这个和在IDEA上运行flink任务是不一样的，这个是提交任务到远程的集群</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RemoteEnvironmentTest</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">ExecutionEnvironment</span> remoteEnv <span class="token operator">=</span> <span class="token class-name">ExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">createRemoteEnvironment</span><span class="token punctuation">(</span><span class="token string">"node"</span><span class="token punctuation">,</span> <span class="token number">6123</span><span class="token punctuation">,</span> <span class="token string">"C://flink-lib//flink/Users/admin/Downloads/online_training.jar"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> source <span class="token operator">=</span> remoteEnv<span class="token punctuation">.</span><span class="token function">readTextFile</span><span class="token punctuation">(</span><span class="token string">"hdfs://127.0.0.1:9000/test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        source<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token keyword">new</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
       <categories>
         <category>大数据</category>
         <category>Flink</category>
@@ -9205,6 +9369,22 @@ protected abstract void abort(TXN transaction);</code></pre>
 <li>创建数据库–<code>-gdbname</code>需要改成<code>-gdbName</code>，换行去掉，都放在一行 </li>
 <li>配置数据库监听 ，这里看初尝Oracle遇到的坑</li>
 </ol>
+<h2 id="启动Oracle"><a href="#启动Oracle" class="headerlink" title="启动Oracle"></a>启动Oracle</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 进入oracle用户
+su - oracle
+# 进入sqlplus
+sqlplus &#x2F; as sysdba
+# startup 数据库
+startup
+# 查看数据库中pdb列表：
+show pdbs;
+# 可以看到，默认是MOUNTED,需要手动打开
+alter pluggable database all open;
+# 再次查看状态
+show pdbs;
+# 退出sqlplus
+exit
+# 启动监听
+lsnrctl start<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="初尝Oracle遇到的坑"><a href="#初尝Oracle遇到的坑" class="headerlink" title="初尝Oracle遇到的坑"></a>初尝Oracle遇到的坑</h2><h3 id="配置数据库监听"><a href="#配置数据库监听" class="headerlink" title="配置数据库监听"></a>配置数据库监听</h3><p>未配置监听前执行</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lsnrctl status
 ## 因为没配置过，所以会报错，具体日志看参考文档<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
