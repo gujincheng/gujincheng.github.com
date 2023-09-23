@@ -1,6 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>BloomFilter</title>
+    <url>/2021/11/29/BloomFilter/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>布隆过滤器原理</li>
+<li>布隆过滤器使用案例</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="布隆过滤器原理"><a href="#布隆过滤器原理" class="headerlink" title="布隆过滤器原理"></a>布隆过滤器原理</h2><p>布隆过滤器（Bloom Filter）是1970年由布隆提出的，它实际上是由一个很长的二进制向量和一系列随意映射函数组成。<br>它是一种基于概率的数据结构，主要用来判断某个元素是否在集合内，它具有运行速度快（时间效率），占用内存小的优点（空间效率），但是有一定的误识别率和删除困难的问题。它能够告诉你某个元素一定不在集合内或可能在集合内。</p>
+<h3 id="算法："><a href="#算法：" class="headerlink" title="算法："></a>算法：</h3><ol>
+<li>首先需要k个hash函数，每个函数可以把key散列成为1个整数</li>
+<li>初始化时，需要一个长度为n比特的数组，每个比特位初始化为0</li>
+<li>某个key加入集合时，用k个hash函数计算出k个散列值，并把数组中对应的比特位置为1</li>
+<li>判断某个key是否在集合时，用k个hash函数计算出k个散列值，并查询数组中对应的比特位，如果所有的比特位都是1，认为在集合中。</li>
+</ol>
+<h3 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h3><p>不需要存储key，节省空间</p>
+<h3 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h3><ol>
+<li>算法判断key在集合中时，有一定的概率key其实不在集合中</li>
+<li>无法删除</li>
+</ol>
+<h3 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h3><ul>
+<li><p>False Position<br>集合里没有某元素，查找结果是有该元素。<br>也就是误判，这种情况在布隆过滤器中可能会出现。</p>
+</li>
+<li><p>False Negative<br>集合里有某元素，查找结果是没有该元素。<br>也就是少判，这种情况在布隆过滤器中一定不会出现</p>
+</li>
+</ul>
+<blockquote>
+<p>布隆过滤器只会多判不会少判。宁可错杀不可放过<br>想用布隆过滤器判断元素不存在，这个概率不是100%，<br>布隆过滤器认为不存在的情况， 确实是一定不会存在，但是，还有可能原本本身不存在，但是它会认为它存在的，比实际的要少</p>
+</blockquote>
+<p>Bloom Filter不会动态增长，运行过程中维护的始终只是m位的bitset，所以空间复杂度只有O(m);<br>Bloom Filter的插入与属于操作主要都是在计算k个hash，所以都是O(k)。</p>
+<h2 id="个人感悟："><a href="#个人感悟：" class="headerlink" title="个人感悟："></a>个人感悟：</h2><h3 id="为什么布隆过滤器需要多个hash函数？"><a href="#为什么布隆过滤器需要多个hash函数？" class="headerlink" title="为什么布隆过滤器需要多个hash函数？"></a>为什么布隆过滤器需要多个hash函数？</h3><p>因为不同的key的hash值有可能会一样，这样误判的概率会很大，但是如果通过多个hash函数来计算，那么数据误判的概率就会低很多了</p>
+<h3 id="为什么布隆过滤器不可以删除？"><a href="#为什么布隆过滤器不可以删除？" class="headerlink" title="为什么布隆过滤器不可以删除？"></a>为什么布隆过滤器不可以删除？</h3><p>如果布隆过滤器把其中一个key的值删除了，也就是把数组的值置为0了，另一个key的hash值有可能也被删除了。所以不可以删除</p>
+<p>具体可以参考<a href="https://blog.csdn.net/CrankZ/article/details/84928562">布隆过滤器，原理+案例+代码实现</a></p>
+<h2 id="测试案例："><a href="#测试案例：" class="headerlink" title="测试案例："></a>测试案例：</h2><ul>
+<li><p>手写java代码，测试布隆过滤器误判情况</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">int</span> BF_CARDINAL_THRESHOLD <span class="token operator">=</span> <span class="token number">100000</span><span class="token punctuation">;</span>
+        <span class="token keyword">double</span> BF_FALSE_POSITIVE_RATE <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
+        <span class="token class-name">BloomFilter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span> subOrderFilter <span class="token operator">=</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token class-name">Funnels</span><span class="token punctuation">.</span><span class="token function">integerFunnel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">,</span> BF_FALSE_POSITIVE_RATE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token class-name">HashSet</span> st <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span> <span class="token punctuation">;</span> i <span class="token operator">&lt;=</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">;</span> i <span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span><span class="token punctuation">(</span>subOrderFilter<span class="token punctuation">.</span><span class="token function">mightContain</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                st<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>    <span class="token comment">//其实不存在，但是布隆过滤器认为它存在，这就是误判了</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                subOrderFilter<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"一共误判了："</span> <span class="token operator">+</span> st<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果使用这种方式来过滤，就会导致有一部分数据其实没有出现过，但是也会被过滤掉</p>
+</li>
+<li><p>在flink程序中使用布隆过滤器实时过滤</p>
+<blockquote>
+<p>这种情况下，会丢数据，其实感觉没啥意义。。。</p>
+</blockquote>
+</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">FlatMapFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>configuration<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>shaded<span class="token punctuation">.</span>guava18<span class="token punctuation">.</span>com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>hash<span class="token punctuation">.</span></span><span class="token class-name">BloomFilter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>shaded<span class="token punctuation">.</span>guava18<span class="token punctuation">.</span>com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>hash<span class="token punctuation">.</span></span><span class="token class-name">Funnels</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStreamSource</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">SingleOutputStreamOperator</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">ProcessFunction</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">StandardCharsets</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * 使用布隆过滤器实时去重
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkBloomFilterDemo</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStreamSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> source <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">socketTextStream</span><span class="token punctuation">(</span><span class="token string">"localhost"</span><span class="token punctuation">,</span> <span class="token number">9999</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">SingleOutputStreamOperator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream1 <span class="token operator">=</span> source<span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlatMapFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token annotation punctuation">@Override</span>
+            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token class-name">String</span> s<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> arr <span class="token operator">=</span> s<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token class-name">String</span> str <span class="token operator">:</span> arr<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>x <span class="token operator">-></span> x<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">process</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">SubOrderDeduplicateProcessFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">;</span>
+        stream1<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 去重用的ProcessFunction</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">class</span> <span class="token class-name">SubOrderDeduplicateProcessFunc</span> <span class="token keyword">extends</span> <span class="token class-name">ProcessFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">long</span> serialVersionUID <span class="token operator">=</span> <span class="token number">1L</span><span class="token punctuation">;</span>
+        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> BF_CARDINAL_THRESHOLD <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">;</span>
+        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">double</span> BF_FALSE_POSITIVE_RATE <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">private</span> <span class="token keyword">volatile</span> <span class="token class-name">BloomFilter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> subOrderFilter<span class="token punctuation">;</span>
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token keyword">open</span><span class="token punctuation">(</span><span class="token class-name">Configuration</span> parameters<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+            subOrderFilter <span class="token operator">=</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token class-name">Funnels</span><span class="token punctuation">.</span><span class="token function">stringFunnel</span><span class="token punctuation">(</span><span class="token class-name">StandardCharsets</span><span class="token punctuation">.</span>UTF_8<span class="token punctuation">)</span><span class="token punctuation">,</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">,</span> BF_FALSE_POSITIVE_RATE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">processElement</span><span class="token punctuation">(</span><span class="token class-name">String</span> s<span class="token punctuation">,</span> <span class="token class-name">Context</span> context<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">String</span> subOrderId <span class="token operator">=</span> s<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>subOrderFilter<span class="token punctuation">.</span><span class="token function">mightContain</span><span class="token punctuation">(</span>subOrderId<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                subOrderFilter<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>subOrderId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+
+        <span class="token annotation punctuation">@Override</span>
+        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+            subOrderFilter <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>使用布隆过滤器防止缓存击穿</li>
+<li>*不在布隆过滤器中的元素一定不存在数据库中。**<br>利用布隆过滤器的这个特点可以解决缓存穿透的问题，在服务启动的时候先把数据的查询条件，例如数据的 ID 映射到布隆过滤器上，当然如果新增数据时，除了写入到数据库中之外，也需要将数据的ID存入到布隆过滤器中。<br>我们在查询某条数据时，先判断这个查询的 ID 是否存在布隆过滤器中，如果不存在就直接返回空值，而不需要继续查询数据库和缓存，存在布隆过滤器中才继续查询数据库和缓存，这样就解决缓存穿透的问题。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Algorithm</category>
+        <category>BloomFilter</category>
+      </categories>
+      <tags>
+        <tag>Algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>bigtop杂记</title>
     <url>/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -509,147 +650,6 @@ Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span
       </categories>
       <tags>
         <tag>CM</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>BloomFilter</title>
-    <url>/2021/11/29/BloomFilter/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>布隆过滤器原理</li>
-<li>布隆过滤器使用案例</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="布隆过滤器原理"><a href="#布隆过滤器原理" class="headerlink" title="布隆过滤器原理"></a>布隆过滤器原理</h2><p>布隆过滤器（Bloom Filter）是1970年由布隆提出的，它实际上是由一个很长的二进制向量和一系列随意映射函数组成。<br>它是一种基于概率的数据结构，主要用来判断某个元素是否在集合内，它具有运行速度快（时间效率），占用内存小的优点（空间效率），但是有一定的误识别率和删除困难的问题。它能够告诉你某个元素一定不在集合内或可能在集合内。</p>
-<h3 id="算法："><a href="#算法：" class="headerlink" title="算法："></a>算法：</h3><ol>
-<li>首先需要k个hash函数，每个函数可以把key散列成为1个整数</li>
-<li>初始化时，需要一个长度为n比特的数组，每个比特位初始化为0</li>
-<li>某个key加入集合时，用k个hash函数计算出k个散列值，并把数组中对应的比特位置为1</li>
-<li>判断某个key是否在集合时，用k个hash函数计算出k个散列值，并查询数组中对应的比特位，如果所有的比特位都是1，认为在集合中。</li>
-</ol>
-<h3 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h3><p>不需要存储key，节省空间</p>
-<h3 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h3><ol>
-<li>算法判断key在集合中时，有一定的概率key其实不在集合中</li>
-<li>无法删除</li>
-</ol>
-<h3 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h3><ul>
-<li><p>False Position<br>集合里没有某元素，查找结果是有该元素。<br>也就是误判，这种情况在布隆过滤器中可能会出现。</p>
-</li>
-<li><p>False Negative<br>集合里有某元素，查找结果是没有该元素。<br>也就是少判，这种情况在布隆过滤器中一定不会出现</p>
-</li>
-</ul>
-<blockquote>
-<p>布隆过滤器只会多判不会少判。宁可错杀不可放过<br>想用布隆过滤器判断元素不存在，这个概率不是100%，<br>布隆过滤器认为不存在的情况， 确实是一定不会存在，但是，还有可能原本本身不存在，但是它会认为它存在的，比实际的要少</p>
-</blockquote>
-<p>Bloom Filter不会动态增长，运行过程中维护的始终只是m位的bitset，所以空间复杂度只有O(m);<br>Bloom Filter的插入与属于操作主要都是在计算k个hash，所以都是O(k)。</p>
-<h2 id="个人感悟："><a href="#个人感悟：" class="headerlink" title="个人感悟："></a>个人感悟：</h2><h3 id="为什么布隆过滤器需要多个hash函数？"><a href="#为什么布隆过滤器需要多个hash函数？" class="headerlink" title="为什么布隆过滤器需要多个hash函数？"></a>为什么布隆过滤器需要多个hash函数？</h3><p>因为不同的key的hash值有可能会一样，这样误判的概率会很大，但是如果通过多个hash函数来计算，那么数据误判的概率就会低很多了</p>
-<h3 id="为什么布隆过滤器不可以删除？"><a href="#为什么布隆过滤器不可以删除？" class="headerlink" title="为什么布隆过滤器不可以删除？"></a>为什么布隆过滤器不可以删除？</h3><p>如果布隆过滤器把其中一个key的值删除了，也就是把数组的值置为0了，另一个key的hash值有可能也被删除了。所以不可以删除</p>
-<p>具体可以参考<a href="https://blog.csdn.net/CrankZ/article/details/84928562">布隆过滤器，原理+案例+代码实现</a></p>
-<h2 id="测试案例："><a href="#测试案例：" class="headerlink" title="测试案例："></a>测试案例：</h2><ul>
-<li><p>手写java代码，测试布隆过滤器误判情况</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">int</span> BF_CARDINAL_THRESHOLD <span class="token operator">=</span> <span class="token number">100000</span><span class="token punctuation">;</span>
-        <span class="token keyword">double</span> BF_FALSE_POSITIVE_RATE <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
-        <span class="token class-name">BloomFilter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span> subOrderFilter <span class="token operator">=</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token class-name">Funnels</span><span class="token punctuation">.</span><span class="token function">integerFunnel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">,</span> BF_FALSE_POSITIVE_RATE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        
-        <span class="token class-name">HashSet</span> st <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span> <span class="token punctuation">;</span> i <span class="token operator">&lt;=</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">;</span> i <span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-            <span class="token keyword">if</span><span class="token punctuation">(</span>subOrderFilter<span class="token punctuation">.</span><span class="token function">mightContain</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-                st<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>    <span class="token comment">//其实不存在，但是布隆过滤器认为它存在，这就是误判了</span>
-            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
-                subOrderFilter<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token punctuation">&#125;</span>
-        <span class="token punctuation">&#125;</span>
-        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"一共误判了："</span> <span class="token operator">+</span> st<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>如果使用这种方式来过滤，就会导致有一部分数据其实没有出现过，但是也会被过滤掉</p>
-</li>
-<li><p>在flink程序中使用布隆过滤器实时过滤</p>
-<blockquote>
-<p>这种情况下，会丢数据，其实感觉没啥意义。。。</p>
-</blockquote>
-</li>
-</ul>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">FlatMapFunction</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>configuration<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>shaded<span class="token punctuation">.</span>guava18<span class="token punctuation">.</span>com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>hash<span class="token punctuation">.</span></span><span class="token class-name">BloomFilter</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>shaded<span class="token punctuation">.</span>guava18<span class="token punctuation">.</span>com<span class="token punctuation">.</span>google<span class="token punctuation">.</span>common<span class="token punctuation">.</span>hash<span class="token punctuation">.</span></span><span class="token class-name">Funnels</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStreamSource</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">SingleOutputStreamOperator</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>functions<span class="token punctuation">.</span></span><span class="token class-name">ProcessFunction</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">StandardCharsets</span><span class="token punctuation">;</span>
-
-<span class="token comment">/**
- * 使用布隆过滤器实时去重
- */</span>
-<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkBloomFilterDemo</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">DataStreamSource</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> source <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">socketTextStream</span><span class="token punctuation">(</span><span class="token string">"localhost"</span><span class="token punctuation">,</span> <span class="token number">9999</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-        <span class="token class-name">SingleOutputStreamOperator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream1 <span class="token operator">=</span> source<span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FlatMapFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-            <span class="token annotation punctuation">@Override</span>
-            <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token class-name">String</span> s<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-                <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> arr <span class="token operator">=</span> s<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token class-name">String</span> str <span class="token operator">:</span> arr<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token punctuation">&#125;</span>
-            <span class="token punctuation">&#125;</span>
-        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>x <span class="token operator">-></span> x<span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">process</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">SubOrderDeduplicateProcessFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">;</span>
-        stream1<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-    <span class="token comment">// 去重用的ProcessFunction</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">class</span> <span class="token class-name">SubOrderDeduplicateProcessFunc</span> <span class="token keyword">extends</span> <span class="token class-name">ProcessFunction</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">long</span> serialVersionUID <span class="token operator">=</span> <span class="token number">1L</span><span class="token punctuation">;</span>
-        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> BF_CARDINAL_THRESHOLD <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">;</span>
-        <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">double</span> BF_FALSE_POSITIVE_RATE <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
-
-        <span class="token keyword">private</span> <span class="token keyword">volatile</span> <span class="token class-name">BloomFilter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> subOrderFilter<span class="token punctuation">;</span>
-
-        <span class="token annotation punctuation">@Override</span>
-        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token keyword">open</span><span class="token punctuation">(</span><span class="token class-name">Configuration</span> parameters<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-            subOrderFilter <span class="token operator">=</span> <span class="token class-name">BloomFilter</span><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token class-name">Funnels</span><span class="token punctuation">.</span><span class="token function">stringFunnel</span><span class="token punctuation">(</span><span class="token class-name">StandardCharsets</span><span class="token punctuation">.</span>UTF_8<span class="token punctuation">)</span><span class="token punctuation">,</span> BF_CARDINAL_THRESHOLD<span class="token punctuation">,</span> BF_FALSE_POSITIVE_RATE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span>
-
-
-        <span class="token annotation punctuation">@Override</span>
-        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">processElement</span><span class="token punctuation">(</span><span class="token class-name">String</span> s<span class="token punctuation">,</span> <span class="token class-name">Context</span> context<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-            <span class="token class-name">String</span> subOrderId <span class="token operator">=</span> s<span class="token punctuation">;</span>
-            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>subOrderFilter<span class="token punctuation">.</span><span class="token function">mightContain</span><span class="token punctuation">(</span>subOrderId<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-                subOrderFilter<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>subOrderId<span class="token punctuation">)</span><span class="token punctuation">;</span>
-                collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token punctuation">&#125;</span>
-        <span class="token punctuation">&#125;</span>
-
-
-        <span class="token annotation punctuation">@Override</span>
-        <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-            subOrderFilter <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<ul>
-<li>使用布隆过滤器防止缓存击穿</li>
-<li>*不在布隆过滤器中的元素一定不存在数据库中。**<br>利用布隆过滤器的这个特点可以解决缓存穿透的问题，在服务启动的时候先把数据的查询条件，例如数据的 ID 映射到布隆过滤器上，当然如果新增数据时，除了写入到数据库中之外，也需要将数据的ID存入到布隆过滤器中。<br>我们在查询某条数据时，先判断这个查询的 ID 是否存在布隆过滤器中，如果不存在就直接返回空值，而不需要继续查询数据库和缓存，存在布隆过滤器中才继续查询数据库和缓存，这样就解决缓存穿透的问题。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Algorithm</category>
-        <category>BloomFilter</category>
-      </categories>
-      <tags>
-        <tag>Algorithm</tag>
       </tags>
   </entry>
   <entry>
@@ -3201,20 +3201,6 @@ mvn deploy:deploy-file -DgroupId&#x3D;com.cloudera -DartifactId&#x3D;ImpalaJDBC4
       </tags>
   </entry>
   <entry>
-    <title>MongoDB杂记</title>
-    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>MongoDB</category>
-      </categories>
-      <tags>
-        <tag>MongoDB</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mqtt调研</title>
     <url>/2022/10/27/Mqtt%E8%B0%83%E7%A0%94/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3678,6 +3664,20 @@ agent.sinks.logger.channel &#x3D; memory-channel<span aria-hidden="true" class="
       </tags>
   </entry>
   <entry>
+    <title>MongoDB杂记</title>
+    <url>/2021/01/18/MongoDB%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>MongoDB</category>
+      </categories>
+      <tags>
+        <tag>MongoDB</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>SQL杂记</title>
     <url>/2023/08/01/SQL%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -3740,74 +3740,6 @@ mysql<span class="token operator">></span> <span class="token keyword">select</s
       </categories>
       <tags>
         <tag>SQL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Scala杂记</title>
-    <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>使用Scala解析Json</li>
-</ul>
-<a id="more"></a>
-<h3 id="解析json"><a href="#解析json" class="headerlink" title="解析json"></a>解析json</h3><p>个人认为，解析json用的最多的就是fastjson了<br>使用前需要在pom文件中引用：</p>
-<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.alibaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>fastjson<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.2.47<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>compile<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>代码案例：</p>
-<pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> jsonStr <span class="token operator">=</span>
-  <span class="token triple-quoted-string string">"""
-    |[
-    |        &#123;
-    |            "type_name" : "aa",
-    |            "score" : 0.9995,
-    |            "classcode" : "a1:0.2136;a2:0.2136;a3:0.2136;a4:0.1582;a5:0.1578;a6:0.0429;a7:0.0004"
-    |        &#125;,
-    |        &#123;
-    |            "type_name" : "bb",
-    |            "score" : 0.0005,
-    |            "classcode" : "b1:0.5000;b2:0.5000"
-    |        &#125;
-    |    ]
-    |"""</span><span class="token punctuation">.</span>stripMargin
-<span class="token keyword">val</span> typeTageArr <span class="token operator">=</span> mutable<span class="token punctuation">.</span>ArrayBuffer<span class="token punctuation">[</span>Map<span class="token punctuation">[</span><span class="token builtin">String</span><span class="token punctuation">,</span><span class="token builtin">String</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token string">""</span><span class="token punctuation">.</span>equals<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token string">"[]"</span><span class="token punctuation">.</span>equals<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-  <span class="token keyword">val</span> jsonArr <span class="token operator">=</span> JSON<span class="token punctuation">.</span>parseArray<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span>
-  <span class="token keyword">val</span> houses <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token number">0</span> until jsonArr<span class="token punctuation">.</span>size<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>map<span class="token punctuation">(</span>jsonArr<span class="token punctuation">.</span>getJSONObject<span class="token punctuation">)</span><span class="token punctuation">.</span>toArray
-  <span class="token keyword">for</span><span class="token punctuation">(</span>jsMap <span class="token keyword">&lt;-</span> houses<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-    <span class="token keyword">val</span> typeName <span class="token operator">=</span> jsMap<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type_name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>toString
-    <span class="token keyword">val</span> classCode <span class="token operator">=</span> jsMap<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"classcode"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>toString<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">";"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>map<span class="token punctuation">(</span>x <span class="token keyword">=></span> x<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">":"</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>mkString<span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span>
-    typeTageArr <span class="token operator">+=</span> Map<span class="token punctuation">(</span><span class="token string">"type"</span> <span class="token operator">-></span> typeName<span class="token punctuation">,</span><span class="token string">"classTags"</span> <span class="token operator">-></span> classCode<span class="token punctuation">)</span>
-  <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="array转json"><a href="#array转json" class="headerlink" title="array转json"></a>array转json</h3><p>一开始使用JSON.toJSONString(typeTageArr)这种方式，但是报如下错</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">error: ambiguous reference to overloaded definition,
-both method toJSONString in object JSON of type (x$1: Any, x$2: com.alibaba.fastjson.serializer.SerializerFeature*)String
-and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>从报错的信息当中我们得知是scala对对重载定义的模糊引用造成，从fastjson的源码中可以看到，有两个toJSONString的方法：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> emptyFilters<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-
-<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">,</span> <span class="token class-name">SerializerFeature</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> features<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> DEFAULT_GENERATE_FEATURE<span class="token punctuation">,</span> features<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>在第二个方法中SerializerFeature… features 是一个可变长参数，带有变长参数的方法重载使得scala在调用方法时感到“模糊”，就无法匹配参数的类型</p>
-<p>所以在array或者map转json对象的时候，使用json4s比较好<br>使用案例：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span></span><span class="token class-name">JsonDSL</span><span class="token punctuation">.</span>_
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span>jackson<span class="token punctuation">.</span></span><span class="token class-name">JsonMethods</span><span class="token punctuation">.</span>_
-<span class="token function">compact</span><span class="token punctuation">(</span><span class="token function">render</span><span class="token punctuation">(</span>typeTageArr<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>使用起来很方便</p>
-<h2 id="Scala中调用方法和函数"><a href="#Scala中调用方法和函数" class="headerlink" title="Scala中调用方法和函数"></a>Scala中调用方法和函数</h2><p>Scala中的+ - * / %等操作符的作用与Java一样，位操作符 &amp; | ^ &gt;&gt; &lt;&lt;也一样。只是有一点特别的：这些操作符实际上是方法。例如：<br><code>a + b</code>是<code>a.+(b)</code>的简写<br><code>a 方法 b</code>可以写成 <code>a.方法(b)</code></p>
-<h2 id="Scala-方法和函数的区别"><a href="#Scala-方法和函数的区别" class="headerlink" title="Scala 方法和函数的区别"></a>Scala 方法和函数的区别</h2><p>可以参考<a href="https://www.huaweicloud.com/articles/da048fd844830f817cc39b6cf484cc16.html">Scala 方法与函数</a><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Scala</category>
-      </categories>
-      <tags>
-        <tag>Scala</tag>
       </tags>
   </entry>
   <entry>
@@ -4001,6 +3933,74 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       </tags>
   </entry>
   <entry>
+    <title>Scala杂记</title>
+    <url>/2021/01/18/Scala%E6%9D%82%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>使用Scala解析Json</li>
+</ul>
+<a id="more"></a>
+<h3 id="解析json"><a href="#解析json" class="headerlink" title="解析json"></a>解析json</h3><p>个人认为，解析json用的最多的就是fastjson了<br>使用前需要在pom文件中引用：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.alibaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>fastjson<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.2.47<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scope</span><span class="token punctuation">></span></span>compile<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scope</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>代码案例：</p>
+<pre class="line-numbers language-scala" data-language="scala"><code class="language-scala"><span class="token keyword">val</span> jsonStr <span class="token operator">=</span>
+  <span class="token triple-quoted-string string">"""
+    |[
+    |        &#123;
+    |            "type_name" : "aa",
+    |            "score" : 0.9995,
+    |            "classcode" : "a1:0.2136;a2:0.2136;a3:0.2136;a4:0.1582;a5:0.1578;a6:0.0429;a7:0.0004"
+    |        &#125;,
+    |        &#123;
+    |            "type_name" : "bb",
+    |            "score" : 0.0005,
+    |            "classcode" : "b1:0.5000;b2:0.5000"
+    |        &#125;
+    |    ]
+    |"""</span><span class="token punctuation">.</span>stripMargin
+<span class="token keyword">val</span> typeTageArr <span class="token operator">=</span> mutable<span class="token punctuation">.</span>ArrayBuffer<span class="token punctuation">[</span>Map<span class="token punctuation">[</span><span class="token builtin">String</span><span class="token punctuation">,</span><span class="token builtin">String</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token string">""</span><span class="token punctuation">.</span>equals<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token string">"[]"</span><span class="token punctuation">.</span>equals<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">val</span> jsonArr <span class="token operator">=</span> JSON<span class="token punctuation">.</span>parseArray<span class="token punctuation">(</span>jsonStr<span class="token punctuation">)</span>
+  <span class="token keyword">val</span> houses <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token number">0</span> until jsonArr<span class="token punctuation">.</span>size<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>map<span class="token punctuation">(</span>jsonArr<span class="token punctuation">.</span>getJSONObject<span class="token punctuation">)</span><span class="token punctuation">.</span>toArray
+  <span class="token keyword">for</span><span class="token punctuation">(</span>jsMap <span class="token keyword">&lt;-</span> houses<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    <span class="token keyword">val</span> typeName <span class="token operator">=</span> jsMap<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type_name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>toString
+    <span class="token keyword">val</span> classCode <span class="token operator">=</span> jsMap<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"classcode"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>toString<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">";"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>map<span class="token punctuation">(</span>x <span class="token keyword">=></span> x<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">":"</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>mkString<span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span>
+    typeTageArr <span class="token operator">+=</span> Map<span class="token punctuation">(</span><span class="token string">"type"</span> <span class="token operator">-></span> typeName<span class="token punctuation">,</span><span class="token string">"classTags"</span> <span class="token operator">-></span> classCode<span class="token punctuation">)</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="array转json"><a href="#array转json" class="headerlink" title="array转json"></a>array转json</h3><p>一开始使用JSON.toJSONString(typeTageArr)这种方式，但是报如下错</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">error: ambiguous reference to overloaded definition,
+both method toJSONString in object JSON of type (x$1: Any, x$2: com.alibaba.fastjson.serializer.SerializerFeature*)String
+and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>从报错的信息当中我们得知是scala对对重载定义的模糊引用造成，从fastjson的源码中可以看到，有两个toJSONString的方法：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> emptyFilters<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">,</span> <span class="token class-name">SerializerFeature</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> features<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> DEFAULT_GENERATE_FEATURE<span class="token punctuation">,</span> features<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在第二个方法中SerializerFeature… features 是一个可变长参数，带有变长参数的方法重载使得scala在调用方法时感到“模糊”，就无法匹配参数的类型</p>
+<p>所以在array或者map转json对象的时候，使用json4s比较好<br>使用案例：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span></span><span class="token class-name">JsonDSL</span><span class="token punctuation">.</span>_
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>json4s<span class="token punctuation">.</span>jackson<span class="token punctuation">.</span></span><span class="token class-name">JsonMethods</span><span class="token punctuation">.</span>_
+<span class="token function">compact</span><span class="token punctuation">(</span><span class="token function">render</span><span class="token punctuation">(</span>typeTageArr<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>使用起来很方便</p>
+<h2 id="Scala中调用方法和函数"><a href="#Scala中调用方法和函数" class="headerlink" title="Scala中调用方法和函数"></a>Scala中调用方法和函数</h2><p>Scala中的+ - * / %等操作符的作用与Java一样，位操作符 &amp; | ^ &gt;&gt; &lt;&lt;也一样。只是有一点特别的：这些操作符实际上是方法。例如：<br><code>a + b</code>是<code>a.+(b)</code>的简写<br><code>a 方法 b</code>可以写成 <code>a.方法(b)</code></p>
+<h2 id="Scala-方法和函数的区别"><a href="#Scala-方法和函数的区别" class="headerlink" title="Scala 方法和函数的区别"></a>Scala 方法和函数的区别</h2><p>可以参考<a href="https://www.huaweicloud.com/articles/da048fd844830f817cc39b6cf484cc16.html">Scala 方法与函数</a><br>Scala 方法与函数,二者在语义上的区别很小,Scala 方法是类的一部分，而函数是一个对象可以赋值给一个变量。换句话来说在类中定义的函数即是方法。<br>Scala 中使用<code>val</code>语句可以定义函数，<code>def</code>语句定义方法。</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Scala</category>
+      </categories>
+      <tags>
+        <tag>Scala</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>StreamPark学习笔记</title>
     <url>/2022/10/19/StreamPark%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -4122,9 +4122,7 @@ vim .zshrc
 # 在.zshrc里添加以下内容
 alias ls&#x3D;&#39;ls -F --show-control-chars --color&#x3D;auto&#39; 
 eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96; <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-
+<h2 id="结合docker与WSL一起使用"><a href="#结合docker与WSL一起使用" class="headerlink" title="结合docker与WSL一起使用"></a>结合docker与WSL一起使用</h2><p>具体可以参考<a href="https://cloud.tencent.com/developer/article/2273544">在WSL2中安装CentOS发行版</a><br>这个案例里讲解了如何从docker里导出镜像，然后在WSL里安装，因为在windows里使用docker，需要启动docker desktop，还需要翻墙才能打开，这时候就可以直接用WSL启动了</p>
 ]]></content>
       <categories>
         <category>WSL</category>
@@ -4219,6 +4217,61 @@ cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServe
       </categories>
       <tags>
         <tag>Azkaban</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>emacs手动安装、解决不能使用中文输入法</title>
+    <url>/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>emacs下载杆状</li>
+<li>解决不能使用中文输入法</li>
+</ul>
+<a id="more"></a>
+<h2 id="emacs的安装"><a href="#emacs的安装" class="headerlink" title="emacs的安装"></a>emacs的安装</h2><h3 id="emacs的下载，解压"><a href="#emacs的下载，解压" class="headerlink" title="emacs的下载，解压"></a>emacs的下载，解压</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wget http:&#x2F;&#x2F;mirrors.ustc.edu.cn&#x2F;gnu&#x2F;emacs&#x2F;emacs-25.3.tar.gz
+tar -zxf emacs-25.3.tar.gz -C &#x2F;opt&#x2F;modules
+cd &#x2F;opt&#x2F;modules&#x2F;emacs-25.3&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h3 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;configure --prefix&#x3D;&#x2F;usr&#x2F;local --with-x-toolkit&#x3D;gtk<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里会报错。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">You seem to be running X, but no X development libraries
+were found.  You should install the relevant development files for X
+and for the toolkit you want, such as Gtk+, Lesstif or Motif.  Also make
+sure you have development files for image handling, i.e.
+tiff, gif, jpeg, png and xpm.
+If you are sure you want Emacs compiled without X window support, pass
+  --without-x
+to configure.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>需要下载相关依赖</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get install libxpm-dev
+sudo apt-get install libjpeg62-dev
+sudo apt-get install libgif-dev
+sudo apt-get install libtiff5-dev
+sudo apt-get install libncurses5-dev
+sudo apt-get install libgtk2.0-dev<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>重新编译后正常</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">make
+sudo make install<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>到此，emac的安装已经结束</p>
+<h3 id="安装spacemacs"><a href="#安装spacemacs" class="headerlink" title="安装spacemacs"></a>安装spacemacs</h3><p>spacemacs可以在emacs里使用vim的命令，让emacs更人性化一点。</p>
+<p>安装很简单，就是clone项目到~/.emacs.d目录去</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;syl20bnr&#x2F;spacemacs ~&#x2F;.emacs.d<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>安装完spacemacs，第一次启动emacs会加载很多包，没关系，等一会就好了</p>
+<h3 id="解决emacs不能使用中文输入法"><a href="#解决emacs不能使用中文输入法" class="headerlink" title="解决emacs不能使用中文输入法"></a>解决emacs不能使用中文输入法</h3><p>我的环境是ubuntu16.04，系统语言是English，但是在vim里，gedit都可以输入中文。只有emacs不行，在网上查了原因，是emacs自带的一个bug，因为比较久远，不会再修复了<br>这里在修复之前，已经安装了搜狗输入法</p>
+<p>这里的处理办法是：<br>    在 .bashrc文件下添加：<br>    export LC_CTYPE=zh_CN.UTF-8<br>这样不会修改整个系统的环境，但是只针对自己这个用户来书，够用了。但是报了没有zh_CN.UTF-8这个文件</p>
+<p>原因是系统中还没有中文语言包<br>这里安装一下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get install  -y language-pack-zh-hans
+sudo apt-get install -y language-pack-zh-hant
+cd &#x2F;usr&#x2F;share&#x2F;locales    
+sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/uploads/202101/emacs-install-error.png" alt="emacs-install-error"><br>这里的报错不用管<br>然后重启电脑就好了。</p>
+<h3 id="Emacs-Org-mode"><a href="#Emacs-Org-mode" class="headerlink" title="Emacs Org-mode"></a>Emacs Org-mode</h3><p>使用emacs生成 表格是真的方便</p>
+<h4 id="生成表格"><a href="#生成表格" class="headerlink" title="生成表格"></a>生成表格</h4><p><code>C-c |</code>    :生成表格，在buffer区域会提示输入N*M,代表N列M行的表格（注意，这里的<code>*</code>其实输入的是<code>x</code>）<br>使用<code>TAB</code>格式化表格</p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>emacs</tag>
       </tags>
   </entry>
   <entry>
@@ -4362,61 +4415,6 @@ cd flink-connector-clickhouse &amp;&amp; mvn clean package<span aria-hidden="tru
       </categories>
       <tags>
         <tag>clickhouse</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>emacs手动安装、解决不能使用中文输入法</title>
-    <url>/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>emacs下载杆状</li>
-<li>解决不能使用中文输入法</li>
-</ul>
-<a id="more"></a>
-<h2 id="emacs的安装"><a href="#emacs的安装" class="headerlink" title="emacs的安装"></a>emacs的安装</h2><h3 id="emacs的下载，解压"><a href="#emacs的下载，解压" class="headerlink" title="emacs的下载，解压"></a>emacs的下载，解压</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wget http:&#x2F;&#x2F;mirrors.ustc.edu.cn&#x2F;gnu&#x2F;emacs&#x2F;emacs-25.3.tar.gz
-tar -zxf emacs-25.3.tar.gz -C &#x2F;opt&#x2F;modules
-cd &#x2F;opt&#x2F;modules&#x2F;emacs-25.3&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<h3 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;configure --prefix&#x3D;&#x2F;usr&#x2F;local --with-x-toolkit&#x3D;gtk<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>这里会报错。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">You seem to be running X, but no X development libraries
-were found.  You should install the relevant development files for X
-and for the toolkit you want, such as Gtk+, Lesstif or Motif.  Also make
-sure you have development files for image handling, i.e.
-tiff, gif, jpeg, png and xpm.
-If you are sure you want Emacs compiled without X window support, pass
-  --without-x
-to configure.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>需要下载相关依赖</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get install libxpm-dev
-sudo apt-get install libjpeg62-dev
-sudo apt-get install libgif-dev
-sudo apt-get install libtiff5-dev
-sudo apt-get install libncurses5-dev
-sudo apt-get install libgtk2.0-dev<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>重新编译后正常</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">make
-sudo make install<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>到此，emac的安装已经结束</p>
-<h3 id="安装spacemacs"><a href="#安装spacemacs" class="headerlink" title="安装spacemacs"></a>安装spacemacs</h3><p>spacemacs可以在emacs里使用vim的命令，让emacs更人性化一点。</p>
-<p>安装很简单，就是clone项目到~/.emacs.d目录去</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;syl20bnr&#x2F;spacemacs ~&#x2F;.emacs.d<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>安装完spacemacs，第一次启动emacs会加载很多包，没关系，等一会就好了</p>
-<h3 id="解决emacs不能使用中文输入法"><a href="#解决emacs不能使用中文输入法" class="headerlink" title="解决emacs不能使用中文输入法"></a>解决emacs不能使用中文输入法</h3><p>我的环境是ubuntu16.04，系统语言是English，但是在vim里，gedit都可以输入中文。只有emacs不行，在网上查了原因，是emacs自带的一个bug，因为比较久远，不会再修复了<br>这里在修复之前，已经安装了搜狗输入法</p>
-<p>这里的处理办法是：<br>    在 .bashrc文件下添加：<br>    export LC_CTYPE=zh_CN.UTF-8<br>这样不会修改整个系统的环境，但是只针对自己这个用户来书，够用了。但是报了没有zh_CN.UTF-8这个文件</p>
-<p>原因是系统中还没有中文语言包<br>这里安装一下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get install  -y language-pack-zh-hans
-sudo apt-get install -y language-pack-zh-hant
-cd &#x2F;usr&#x2F;share&#x2F;locales    
-sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p><img src="/uploads/202101/emacs-install-error.png" alt="emacs-install-error"><br>这里的报错不用管<br>然后重启电脑就好了。</p>
-<h3 id="Emacs-Org-mode"><a href="#Emacs-Org-mode" class="headerlink" title="Emacs Org-mode"></a>Emacs Org-mode</h3><p>使用emacs生成 表格是真的方便</p>
-<h4 id="生成表格"><a href="#生成表格" class="headerlink" title="生成表格"></a>生成表格</h4><p><code>C-c |</code>    :生成表格，在buffer区域会提示输入N*M,代表N列M行的表格（注意，这里的<code>*</code>其实输入的是<code>x</code>）<br>使用<code>TAB</code>格式化表格</p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>emacs</tag>
       </tags>
   </entry>
   <entry>
@@ -5092,47 +5090,6 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       </tags>
   </entry>
   <entry>
-    <title>python实现scp功能</title>
-    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
-    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
-<p>直接上代码：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
-<span class="token keyword">import</span> sys
-
-<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
-    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
-    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
-    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-
-<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
-    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
-    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
-    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
-    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
-    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
-<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
-</ul>
-<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>scp</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>python杂记</title>
     <url>/2021/01/18/python%E6%9D%82%E8%AE%B0/</url>
     <content><![CDATA[<h2 id="使用-args简化输入代码"><a href="#使用-args简化输入代码" class="headerlink" title="使用**args简化输入代码"></a>使用**args简化输入代码</h2><p>test(<strong>kwargs)</strong> 的作用则是把字典 kwargs 变成关键字参数传递。比如，如果 kwargs 等于 {‘a’:1,’b’:2,’c’:3} ，那这个代码就等价于 test(a=1,b=2,c=3) 。</p>
@@ -5186,6 +5143,47 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       </categories>
       <tags>
         <tag>Jenkins</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python实现scp功能</title>
+    <url>/2021/01/16/python%E5%AE%9E%E7%8E%B0scp%E5%8A%9F%E8%83%BD/</url>
+    <content><![CDATA[<p>最近公司有一个需求，需要把服务器A上的任务放到服务器B上，因为B上有HTTP，并且可以被外网访问，但是直接通过shell的scp，每次都需要输入密码。这里用python简单实现一下</p>
+<p>直接上代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> paramiko
+<span class="token keyword">import</span> sys
+
+<span class="token keyword">def</span> <span class="token function">deleteRemoteFile</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ssh <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SSHClient<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    ssh<span class="token punctuation">.</span>set_missing_host_key_policy<span class="token punctuation">(</span>paramiko<span class="token punctuation">.</span>AutoAddPolicy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">#第一次登录的认证信息</span>
+    ssh<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>hostname<span class="token operator">=</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span> <span class="token comment"># 连接服务器</span>
+    stdin<span class="token punctuation">,</span> stdout<span class="token punctuation">,</span> stderr <span class="token operator">=</span> ssh<span class="token punctuation">.</span>exec_command<span class="token punctuation">(</span><span class="token string">'rm /home/gold/data//*'</span><span class="token punctuation">)</span> <span class="token comment"># 执行命令</span>
+    ssh<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">def</span> <span class="token function">uploadFile2Remote</span><span class="token punctuation">(</span>dt<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    transport <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>Transport<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'192.168.72.208'</span><span class="token punctuation">,</span> <span class="token number">65522</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>connect<span class="token punctuation">(</span>username<span class="token operator">=</span><span class="token string">'gold'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'gold!23'</span><span class="token punctuation">)</span>
+    sftp <span class="token operator">=</span> paramiko<span class="token punctuation">.</span>SFTPClient<span class="token punctuation">.</span>from_transport<span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
+    sftp<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">'/home/gold/data/broad.png'</span><span class="token punctuation">,</span> <span class="token string">'/home/gold/data/broad_%s.png'</span> <span class="token operator">%</span> dt<span class="token punctuation">)</span>
+    transport<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    unix_ts <span class="token operator">=</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+    deleteRemoteFile<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+    uploadFile2Remote<span class="token punctuation">(</span>unix_ts<span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><ul>
+<li>这里有一个坑，就是sftp在put的时候，需要把在208服务器上的文件名写出来，代码执行的逻辑想当于先touch 一个文件，然后往这个文件里写数据，如果不加文件名，直接到文件夹，就会报错</li>
+</ul>
+<p>具体的可以参考：<br><a href="https://www.cnblogs.com/fang123456/p/7235688.html">python实现ssh及sftp功能</a></p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>scp</tag>
       </tags>
   </entry>
   <entry>
