@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  HttpFS高并发写HDFS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HttpFS高并发写HDFS">
+<meta property="og:url" content="https://gujincheng.github.io/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  HttpFS高并发写HDFS">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-11-16T01:54:56.000Z">
+<meta property="article:modified_time" content="2023-11-16T02:55:13.443Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Hadoop">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://gujincheng.github.io/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>HttpFS高并发写HDFS | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          HttpFS高并发写HDFS
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-11-16 09:54:56 / 修改时间：10:55:13" itemprop="dateCreated datePublished" datetime="2023-11-16T09:54:56+08:00">2023-11-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hadoop/" itemprop="url" rel="index"><span itemprop="name">Hadoop</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/" class="post-meta-item leancloud_visitors" data-flag-title="HttpFS高并发写HDFS" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>HttpFS高并发写HDFS</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="HttpFS配置与启动"><a href="#HttpFS配置与启动" class="headerlink" title="HttpFS配置与启动"></a>HttpFS配置与启动</h2><p>这个网上很多，这里就不赘述了</p>
+<h2 id="HttpFS与WebHDFS的区别"><a href="#HttpFS与WebHDFS的区别" class="headerlink" title="HttpFS与WebHDFS的区别"></a>HttpFS与WebHDFS的区别</h2><h3 id="WebHDFS概述"><a href="#WebHDFS概述" class="headerlink" title="WebHDFS概述"></a>WebHDFS概述</h3><p>WebHDFS 提供了访问HDFS的RESTful接口，内置组件，默认开启。 WebHDFS 使得集群外的客户端可以不用安装HADOOP和JAVA环境就可以对HDFS进行访问，且客户端不受语言限制。 当客户端请求某文件时，WebHDFS会将其重定向到该资源所在的datanode。端口默认是9870</p>
+<blockquote>
+<p>说到底：WebHDFS是为了让用户可以使用Restful风格访问HDFS，但是，它还是通过直接与datanode通信写数据，写数据的协议还是用的hdfs协议。性能比较高<br>但是，使用WebHDFS还是需要client与hadoop集群在一个内网内，如果client在外网，就访问不到datanode</p>
+</blockquote>
+<p>其他的概述可以在网上看，可以参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/626249321">HDFS API的RESTful风格–WebHDFS</a></p>
+<h3 id="HttpFS概述"><a href="#HttpFS概述" class="headerlink" title="HttpFS概述"></a>HttpFS概述</h3><p>HttpFS 是一个提供 REST HTTP 网关的服务器，支持所有 HDFS 文件系统操作（读取和写入）。它可以与 webhdfs REST HTTP API 互操作。</p>
+<ul>
+<li>HttpFS 是一个提供RESTful 接口的网关的服务器，该网关支持所有HDFS文件系统操作</li>
+<li>对于文件CURD的操作全部提交给HttpFS服务进行中转，然后由HttpFS去跟HDFS集群交互</li>
+<li>HttpFS是一个独立于HDFS的服务，若使用需要手动安装。本质上是一个代理服务</li>
+<li>HttpFS本身是Java Web应用程序。使用内置的Jetty服务器对外提供服务</li>
+<li>HttpFS默认端口号为14000</li>
+</ul>
+<h3 id="WebHDFS-与-HttpFs-之间的主要区别"><a href="#WebHDFS-与-HttpFs-之间的主要区别" class="headerlink" title="WebHDFS 与 HttpFs 之间的主要区别"></a>WebHDFS 与 HttpFs 之间的主要区别</h3><p>WebHDFS 需要访问集群的所有节点，并且当读取某些数据时，它会直接从该节点传输，而在 HttpFs 中，单个节点的作用类似于“网关”，并且将 是到客户端节点的单点数据传输。 因此，HttpFs 在大文件传输期间可能会被阻塞，但好处是我们最大限度地减少了访问 HDFS 所需的占用空间。</p>
+<h2 id="Java通过HttpFS写数据到HDFS"><a href="#Java通过HttpFS写数据到HDFS" class="headerlink" title="Java通过HttpFS写数据到HDFS"></a>Java通过HttpFS写数据到HDFS</h2><h3 id="写Partquet-Textfile文件"><a href="#写Partquet-Textfile文件" class="headerlink" title="写Partquet/Textfile文件"></a>写Partquet/Textfile文件</h3><p>写parquet文件网上资料很多，我这里主要是借助hive-exec包来对数据类型转换，否则自己转换，怕出现数据准确性问题，特别是decimal/timestamp</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>dmp<span class="token punctuation">.</span>utils</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>dmp<span class="token punctuation">.</span>constant<span class="token punctuation">.</span></span><span class="token class-name">Constants</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>dmp<span class="token punctuation">.</span>model<span class="token punctuation">.</span></span><span class="token class-name">HiveTableMeta</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>dmp<span class="token punctuation">.</span>model<span class="token punctuation">.</span></span><span class="token class-name">TbbSourceBean</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>dmp<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span></span><span class="token class-name">ParquetDataSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>dmp<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span></span><span class="token class-name">ParquetDataWrite</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>commons<span class="token punctuation">.</span>codec<span class="token punctuation">.</span>digest<span class="token punctuation">.</span></span><span class="token class-name">DigestUtils</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>conf<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>fs<span class="token punctuation">.</span></span><span class="token class-name">FSDataOutputStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>fs<span class="token punctuation">.</span></span><span class="token class-name">FileStatus</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>fs<span class="token punctuation">.</span></span><span class="token class-name">FileSystem</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>fs<span class="token punctuation">.</span></span><span class="token class-name">Path</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hive<span class="token punctuation">.</span>common<span class="token punctuation">.</span>type<span class="token punctuation">.</span></span><span class="token class-name">Timestamp</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hive<span class="token punctuation">.</span>serde2<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">DecimalTypeInfo</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hive<span class="token punctuation">.</span>serde2<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeInfo</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hive<span class="token punctuation">.</span>serde2<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>log4j<span class="token punctuation">.</span></span><span class="token class-name">LogManager</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>log4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span>column<span class="token punctuation">.</span></span><span class="token class-name">ParquetProperties</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span>example<span class="token punctuation">.</span>data<span class="token punctuation">.</span></span><span class="token class-name">Group</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span>example<span class="token punctuation">.</span>data<span class="token punctuation">.</span>simple<span class="token punctuation">.</span></span><span class="token class-name">SimpleGroupFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span></span><span class="token class-name">ParquetFileWriter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span></span><span class="token class-name">ParquetWriter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>example<span class="token punctuation">.</span></span><span class="token class-name">ExampleParquetWriter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>metadata<span class="token punctuation">.</span></span><span class="token class-name">CompressionCodecName</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>parquet<span class="token punctuation">.</span>schema<span class="token punctuation">.</span></span><span class="token class-name">MessageType</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">ArrayList</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">List</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Map</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>regex<span class="token punctuation">.</span></span><span class="token class-name">Matcher</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>regex<span class="token punctuation">.</span></span><span class="token class-name">Pattern</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>stream<span class="token punctuation">.</span></span><span class="token class-name">Collectors</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">HiveTableWriteUtil</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Logger</span> logger <span class="token operator">=</span> <span class="token class-name">LogManager</span><span class="token punctuation">.</span><span class="token function">getLogger</span><span class="token punctuation">(</span><span class="token class-name">ImpalaJdbcUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> PARQUET <span class="token operator">=</span> <span class="token string">"parquet"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> TEXTFILE <span class="token operator">=</span> <span class="token string">"textfile"</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">TbbSourceBean</span> <span class="token function">getSourceData</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">InputStream</span> inputStream <span class="token operator">=</span> <span class="token class-name">HiveTableWriteUtil</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token string">"/tbb_table_parquet_format.json"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">BufferedReader</span> reader <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">BufferedReader</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">InputStreamReader</span><span class="token punctuation">(</span>inputStream<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> line <span class="token operator">=</span> reader<span class="token punctuation">.</span><span class="token function">readLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">TbbSourceBean</span> tbbSourceBean <span class="token operator">=</span> <span class="token class-name">GsonUtil</span><span class="token punctuation">.</span><span class="token function">fromJson</span><span class="token punctuation">(</span>line<span class="token punctuation">,</span> <span class="token class-name">TbbSourceBean</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> tbbSourceBean<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">TbbSourceBean</span> tbbSourceBean <span class="token operator">=</span> <span class="token function">getSourceData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Map</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">Object</span><span class="token punctuation">></span><span class="token punctuation">></span></span> partition <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token function">doFileLoad</span><span class="token punctuation">(</span><span class="token string">"test_dev"</span><span class="token punctuation">,</span> <span class="token string">"test"</span><span class="token punctuation">,</span> <span class="token string">"tbb_table_parquet_format"</span><span class="token punctuation">,</span>partition<span class="token punctuation">,</span>tbbSourceBean<span class="token punctuation">.</span><span class="token function">getData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>tbbSourceBean<span class="token punctuation">.</span><span class="token function">getSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>TEXTFILE<span class="token punctuation">,</span><span class="token string">"\u0001"</span><span class="token punctuation">,</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+
+
+    <span class="token comment">/**
+     * 入口方法
+     * @param env                   Constants.TEST_DEV/PROD_HW/TEST_HW/TEST_HW/PROD_AZURE
+     * @param database              数据库
+     * @param tableName             表名
+     * @param partitionList         分区列表，如果不是分区表，new JSONArray()即可
+     * @param hiveData              hive表的数据
+     * @param hiveTableMeta         列信息
+     * @param fileType              parquet/textfile
+     * @param delimiter             默认：\u0001
+     * @param isTruncate            true/false
+     * @throws Exception
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">doFileLoad</span><span class="token punctuation">(</span><span class="token class-name">String</span> env<span class="token punctuation">,</span> <span class="token class-name">String</span> database<span class="token punctuation">,</span> <span class="token class-name">String</span> tableName<span class="token punctuation">,</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Map</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">Object</span><span class="token punctuation">></span><span class="token punctuation">></span></span> partitionList<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">List</span><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span><span class="token punctuation">></span></span> hiveData<span class="token punctuation">,</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">HiveTableMeta</span><span class="token punctuation">></span></span> hiveTableMeta <span class="token punctuation">,</span><span class="token class-name">String</span> fileType<span class="token punctuation">,</span><span class="token class-name">String</span> delimiter<span class="token punctuation">,</span> <span class="token keyword">boolean</span> isTruncate<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">int</span> maxRetryCount <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> currentRetryCount <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>currentRetryCount <span class="token operator">&lt;</span> maxRetryCount<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span><span class="token punctuation">(</span>PARQUET<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>fileType<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token function">writeJSONDataWithParquet</span><span class="token punctuation">(</span>env<span class="token punctuation">,</span>database<span class="token punctuation">,</span>tableName<span class="token punctuation">,</span>partitionList<span class="token punctuation">,</span>hiveData<span class="token punctuation">,</span>hiveTableMeta<span class="token punctuation">,</span>isTruncate<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>TEXTFILE<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>fileType<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token function">writeJSONDataWithText</span><span class="token punctuation">(</span>env<span class="token punctuation">,</span>database<span class="token punctuation">,</span>tableName<span class="token punctuation">,</span>partitionList<span class="token punctuation">,</span>hiveData<span class="token punctuation">,</span>hiveTableMeta<span class="token punctuation">,</span>delimiter<span class="token punctuation">,</span>isTruncate<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string">"当前仅支持parquet、textfile"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            currentRetryCount<span class="token operator">++</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>currentRetryCount <span class="token operator">==</span> maxRetryCount<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string">"&lt;============= 数据写入异常，已经重试5次，本次写入失败，请联系中台人员 =============>"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 这里的hiveData就是tbb从地端接受过来的jsonarray，这种数据只会遍历一次，时间复杂度低
+     * @param env
+     * @param database
+     * @param tableName
+     * @param partitionList
+     * @param hiveData
+     *          &#123;"schema":[&#123;"column_name":"TB003","column_type":"string"&#125;,&#123;"column_name":"MB002","column_type":"string"&#125;,&#123;"column_name":"TA001_2","column_type":"string"&#125;],
+     *          "data":[["004BYS015C30102-075","Y閥鑄件本體 WCB","511-1110707017"]]&#125;
+     * @param hiveTableMeta
+     * @param isTruncate
+     * @throws Exception
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">writeJSONDataWithParquet</span><span class="token punctuation">(</span><span class="token class-name">String</span> env<span class="token punctuation">,</span> <span class="token class-name">String</span> database<span class="token punctuation">,</span> <span class="token class-name">String</span> tableName<span class="token punctuation">,</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Map</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">Object</span><span class="token punctuation">></span><span class="token punctuation">></span></span> partitionList<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">List</span><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span><span class="token punctuation">></span></span> hiveData<span class="token punctuation">,</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">HiveTableMeta</span><span class="token punctuation">></span></span> hiveTableMeta<span class="token punctuation">,</span> <span class="token keyword">boolean</span> isTruncate<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token class-name">HadoopUtil</span><span class="token punctuation">.</span><span class="token function">getHdfsConfiguration</span><span class="token punctuation">(</span>env<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">FileSystem</span> fileSystem <span class="token operator">=</span> <span class="token class-name">FileSystem</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> defaultPath <span class="token operator">=</span> <span class="token function">getHiveTableDefaultPath</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">,</span>database<span class="token punctuation">,</span> tableName<span class="token punctuation">,</span> partitionList<span class="token punctuation">,</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> defaultPathTemp <span class="token operator">=</span> <span class="token function">getHiveTableDefaultPath</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">,</span>database<span class="token punctuation">,</span> tableName<span class="token punctuation">,</span> partitionList<span class="token punctuation">,</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Path</span> hdfsFilePath <span class="token operator">=</span> <span class="token function">getTableHdfsFilePath</span><span class="token punctuation">(</span>defaultPath<span class="token punctuation">,</span>PARQUET<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Path</span> hdfsFilePathTemp <span class="token operator">=</span> <span class="token function">getTableHdfsFilePath</span><span class="token punctuation">(</span>defaultPathTemp<span class="token punctuation">,</span>PARQUET<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+            <span class="token class-name">MessageType</span> messageType <span class="token operator">=</span> <span class="token function">getParquetSchema</span><span class="token punctuation">(</span>hiveTableMeta<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">ExampleParquetWriter</span><span class="token punctuation">.</span><span class="token class-name">Builder</span> builder <span class="token operator">=</span> <span class="token class-name">ExampleParquetWriter</span>
+                    <span class="token punctuation">.</span><span class="token function">builder</span><span class="token punctuation">(</span>hdfsFilePathTemp<span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">withWriteMode</span><span class="token punctuation">(</span><span class="token class-name">ParquetFileWriter</span><span class="token punctuation">.</span><span class="token class-name">Mode</span><span class="token punctuation">.</span>OVERWRITE<span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">withWriterVersion</span><span class="token punctuation">(</span><span class="token class-name">ParquetProperties</span><span class="token punctuation">.</span><span class="token class-name">WriterVersion</span><span class="token punctuation">.</span>PARQUET_1_0<span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">withCompressionCodec</span><span class="token punctuation">(</span><span class="token class-name">CompressionCodecName</span><span class="token punctuation">.</span>SNAPPY<span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">withConf</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span><span class="token function">withRowGroupSize</span><span class="token punctuation">(</span><span class="token number">1024</span><span class="token operator">*</span><span class="token number">1024</span><span class="token operator">*</span><span class="token number">1</span><span class="token punctuation">)</span>   <span class="token comment">//1M数据flush一次，防止webhdfs性能问题导致Error Writing request body to server 问题</span>
+                    <span class="token punctuation">.</span><span class="token function">withType</span><span class="token punctuation">(</span>messageType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+            <span class="token class-name">ParquetWriter</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Group</span><span class="token punctuation">></span></span> writer <span class="token operator">=</span> builder<span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">SimpleGroupFactory</span> groupFactory <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SimpleGroupFactory</span><span class="token punctuation">(</span>messageType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> hiveData<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">Group</span> group <span class="token operator">=</span> groupFactory<span class="token punctuation">.</span><span class="token function">newGroup</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                writer<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span><span class="token function">jsonArrayConvernParquetGroup</span><span class="token punctuation">(</span>group<span class="token punctuation">,</span> hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span> hiveTableMeta<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            writer<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string">"写入parquet文件到"</span> <span class="token operator">+</span> hdfsFilePathTemp<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"失败，请检查"</span> <span class="token operator">+</span> e<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">// 移动数据文件到目标文件夹</span>
+        <span class="token function">moveFileToTargetPath</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">,</span>isTruncate<span class="token punctuation">,</span>hdfsFilePathTemp<span class="token punctuation">,</span>hdfsFilePath<span class="token punctuation">,</span>defaultPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 写text文件到hdfs，不传入metadata，数据类型为[[1,2,3,4],[2,3,4,5]]
+     * 此方法性能比上面的高，但对用户不友好
+     * @param env
+     * @param database
+     * @param tableName
+     * @param partitionList
+     * @param hiveData
+     * @param delimiter
+     * @throws Exception
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">writeJSONDataWithText</span><span class="token punctuation">(</span><span class="token class-name">String</span> env<span class="token punctuation">,</span> <span class="token class-name">String</span> database<span class="token punctuation">,</span> <span class="token class-name">String</span> tableName<span class="token punctuation">,</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Map</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">Object</span><span class="token punctuation">></span><span class="token punctuation">></span></span> partitionList<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">List</span><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span><span class="token punctuation">></span></span> hiveData<span class="token punctuation">,</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">HiveTableMeta</span><span class="token punctuation">></span></span> hiveTableMeta<span class="token punctuation">,</span><span class="token class-name">String</span> delimiter<span class="token punctuation">,</span><span class="token keyword">boolean</span> isTruncate<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token class-name">HadoopUtil</span><span class="token punctuation">.</span><span class="token function">getHdfsConfiguration</span><span class="token punctuation">(</span>env<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">FileSystem</span> fileSystem <span class="token operator">=</span> <span class="token class-name">FileSystem</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> defaultPath <span class="token operator">=</span> <span class="token function">getHiveTableDefaultPath</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">,</span>database<span class="token punctuation">,</span> tableName<span class="token punctuation">,</span> partitionList<span class="token punctuation">,</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> defaultPathTemp <span class="token operator">=</span> <span class="token function">getHiveTableDefaultPath</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">,</span>database<span class="token punctuation">,</span> tableName<span class="token punctuation">,</span> partitionList<span class="token punctuation">,</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Path</span> hdfsFilePath <span class="token operator">=</span> <span class="token function">getTableHdfsFilePath</span><span class="token punctuation">(</span>defaultPath<span class="token punctuation">,</span>TEXTFILE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Path</span> hdfsFilePathTemp <span class="token operator">=</span> <span class="token function">getTableHdfsFilePath</span><span class="token punctuation">(</span>defaultPathTemp<span class="token punctuation">,</span>TEXTFILE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+            <span class="token class-name">FSDataOutputStream</span> outputStream <span class="token operator">=</span> fileSystem<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span>hdfsFilePathTemp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> hiveData<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> colArray <span class="token operator">=</span> hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">stream</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token class-name">Object</span><span class="token operator">::</span><span class="token function">toString</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token class-name">Collectors</span><span class="token punctuation">.</span><span class="token function">toList</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>colArray<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> hiveTableMeta<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token class-name">String</span> colValue <span class="token operator">=</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span>delimiter<span class="token punctuation">,</span> colArray<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"\n"</span><span class="token punctuation">;</span>
+                    outputStream<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span>colValue<span class="token punctuation">.</span><span class="token function">getBytes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                    logger<span class="token punctuation">.</span><span class="token function">warn</span><span class="token punctuation">(</span><span class="token string">"数据列数："</span> <span class="token operator">+</span> colArray<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">" != 表列数："</span> <span class="token operator">+</span> hiveTableMeta<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+
+            <span class="token punctuation">&#125;</span>
+            <span class="token comment">// 关闭流</span>
+            outputStream<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+            <span class="token comment">// 移动数据文件到目标文件夹</span>
+            <span class="token function">moveFileToTargetPath</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">,</span>isTruncate<span class="token punctuation">,</span>hdfsFilePathTemp<span class="token punctuation">,</span>hdfsFilePath<span class="token punctuation">,</span>defaultPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string">"写入text文件到"</span> <span class="token operator">+</span> hdfsFilePathTemp<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"失败，请检查"</span> <span class="token operator">+</span> e<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 删除指定文件夹下所有文件
+     * @param fileSystem
+     * @param path
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">truncateHdfsData</span><span class="token punctuation">(</span><span class="token class-name">FileSystem</span> fileSystem <span class="token punctuation">,</span> <span class="token class-name">Path</span> path<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">.</span><span class="token function">exists</span><span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                <span class="token class-name">FileStatus</span><span class="token punctuation">[</span><span class="token punctuation">]</span> fileStatuses <span class="token operator">=</span>  fileSystem<span class="token punctuation">.</span><span class="token function">listStatus</span><span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">FileStatus</span> fileStatus <span class="token operator">:</span> fileStatuses<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    fileSystem<span class="token punctuation">.</span><span class="token function">delete</span><span class="token punctuation">(</span>fileStatus<span class="token punctuation">.</span><span class="token function">getPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> ioException<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">RuntimeException</span><span class="token punctuation">(</span><span class="token string">"删除文件失败:"</span><span class="token operator">+</span> ioException<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">moveFileToTargetPath</span><span class="token punctuation">(</span><span class="token class-name">FileSystem</span> fileSystem <span class="token punctuation">,</span><span class="token keyword">boolean</span> isTruncate<span class="token punctuation">,</span><span class="token class-name">Path</span> hdfsFilePathTemp<span class="token punctuation">,</span><span class="token class-name">Path</span> hdfsFilePath<span class="token punctuation">,</span><span class="token class-name">String</span> defaultPath<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 写入前清理数据</span>
+        <span class="token keyword">if</span><span class="token punctuation">(</span>isTruncate<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token class-name">Path</span> path <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>defaultPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            logger<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"正在清理："</span> <span class="token operator">+</span> path<span class="token punctuation">.</span><span class="token function">toUri</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"下数据"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">truncateHdfsData</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">,</span>path<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">if</span><span class="token punctuation">(</span>fileSystem<span class="token punctuation">.</span><span class="token function">rename</span><span class="token punctuation">(</span>hdfsFilePathTemp<span class="token punctuation">,</span>hdfsFilePath<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            logger<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"数据移动到目标文件夹："</span> <span class="token operator">+</span> <span class="token string">"成功"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">IOException</span><span class="token punctuation">(</span><span class="token string">"数据移动到目标文件夹：失败"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">/**
+     * 获取表在hdfs的路径
+     * @param database
+     * @param tableName
+     * @param partitionList dt=20230111
+     * @return
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">getHiveTableDefaultPath</span><span class="token punctuation">(</span><span class="token class-name">FileSystem</span> fileSystem<span class="token punctuation">,</span> <span class="token class-name">String</span> database<span class="token punctuation">,</span> <span class="token class-name">String</span> tableName<span class="token punctuation">,</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Map</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">Object</span><span class="token punctuation">></span><span class="token punctuation">></span></span> partitionList<span class="token punctuation">,</span> <span class="token keyword">boolean</span> isTmp<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> defaultPath <span class="token operator">=</span> <span class="token string">""</span> <span class="token punctuation">;</span>
+        <span class="token keyword">try</span><span class="token punctuation">&#123;</span>
+            defaultPath <span class="token operator">=</span> isTmp <span class="token operator">?</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"/tmp/hive/dofileload/%s.db/%s/"</span><span class="token punctuation">,</span> database<span class="token punctuation">,</span> tableName<span class="token punctuation">)</span> <span class="token operator">:</span>
+                    <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"/user/hive/warehouse/%s.db/%s/"</span><span class="token punctuation">,</span> database<span class="token punctuation">,</span> tableName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> partitionList<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> partition <span class="token operator">=</span> partitionList<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Object</span> key<span class="token operator">:</span> partition<span class="token punctuation">.</span><span class="token function">keySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    defaultPath <span class="token operator">+=</span> key <span class="token operator">+</span> <span class="token string">"="</span> <span class="token operator">+</span> partition<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"/"</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>fileSystem<span class="token punctuation">.</span><span class="token function">exists</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>defaultPath<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                logger<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span> <span class="token string">"hdfs上路径不存在，创建: "</span> <span class="token operator">+</span> defaultPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                fileSystem<span class="token punctuation">.</span><span class="token function">mkdirs</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>defaultPath<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">RuntimeException</span><span class="token punctuation">(</span><span class="token string">"创建HDFS路径："</span> <span class="token operator">+</span> defaultPath <span class="token operator">+</span> <span class="token string">"失败，请检查:"</span> <span class="token operator">+</span> e<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> defaultPath<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 获取表在hdfs的路径
+     * @param defaultPath
+     * @param fileType
+     * @return
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">Path</span> <span class="token function">getTableHdfsFilePath</span><span class="token punctuation">(</span><span class="token class-name">String</span> defaultPath<span class="token punctuation">,</span><span class="token class-name">String</span> fileType<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token keyword">long</span> timestamp <span class="token operator">=</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> fileName <span class="token operator">=</span> <span class="token class-name">DigestUtils</span><span class="token punctuation">.</span><span class="token function">md5Hex</span><span class="token punctuation">(</span>defaultPath<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"_"</span> <span class="token operator">+</span> timestamp <span class="token operator">+</span> <span class="token punctuation">(</span>PARQUET<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>fileType<span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token string">".parq"</span> <span class="token operator">:</span> <span class="token string">".text"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        defaultPath <span class="token operator">+=</span> fileName<span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Path</span><span class="token punctuation">(</span>defaultPath<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+
+
+    <span class="token comment">/**
+     * 获取parqut的MessageType
+     * @param tableMetaData
+     * @return
+     * @throws Exception
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">MessageType</span> <span class="token function">getParquetSchema</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">HiveTableMeta</span><span class="token punctuation">></span></span> tableMetaData<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> columnNames <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">TypeInfo</span><span class="token punctuation">></span></span> columnTypes <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">HiveTableMeta</span> hiveTableMeta <span class="token operator">:</span> tableMetaData<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            columnNames<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>hiveTableMeta<span class="token punctuation">.</span><span class="token function">getColumn_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            columnTypes<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token function">hiveTypeConvernParquetTypeInfo</span><span class="token punctuation">(</span>hiveTableMeta<span class="token punctuation">.</span><span class="token function">getColumn_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token class-name">MessageType</span> messageType <span class="token operator">=</span> <span class="token class-name">ParquetDataSchema</span><span class="token punctuation">.</span><span class="token function">convert</span><span class="token punctuation">(</span>columnNames<span class="token punctuation">,</span> columnTypes<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> messageType<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 转换hive 列类型到TypeInfo类型，目前仅支持基础类型，不支持复杂类型(array,map,struct等)
+     *
+     * @param value
+     * @return
+     * @throws Exception
+     */</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">TypeInfo</span> <span class="token function">hiveTypeConvernParquetTypeInfo</span><span class="token punctuation">(</span><span class="token class-name">String</span> value<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">Constants</span><span class="token punctuation">.</span>hivePrimitiveTypeInfoMap<span class="token punctuation">.</span><span class="token function">containsKey</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token class-name">Constants</span><span class="token punctuation">.</span>hivePrimitiveTypeInfoMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>value<span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"decimal"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">String</span> input <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">" "</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">// 使用正则表达式匹配并提取数字</span>
+            <span class="token class-name">Pattern</span> pattern <span class="token operator">=</span> <span class="token class-name">Pattern</span><span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token string">"decimal\\((\\d+),(\\d+)\\)"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">Matcher</span> matcher <span class="token operator">=</span> pattern<span class="token punctuation">.</span><span class="token function">matcher</span><span class="token punctuation">(</span>input<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>matcher<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">int</span> precision <span class="token operator">=</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">parseInt</span><span class="token punctuation">(</span>matcher<span class="token punctuation">.</span><span class="token function">group</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">int</span> scale <span class="token operator">=</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">parseInt</span><span class="token punctuation">(</span>matcher<span class="token punctuation">.</span><span class="token function">group</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">DecimalTypeInfo</span><span class="token punctuation">(</span>precision<span class="token punctuation">,</span> scale<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string">"获取decimal类型异常： 未找到匹配的precision、scale"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> supportType <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token class-name">Constants</span><span class="token punctuation">.</span>hivePrimitiveTypeInfoMap<span class="token punctuation">.</span><span class="token function">keySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            supportType<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">"decimal"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string">"不支持的数据类型："</span> <span class="token operator">+</span> value <span class="token operator">+</span> <span class="token string">",目前仅支持："</span> <span class="token operator">+</span> supportType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     *
+     * @param group
+     * @param hiveData
+     * @param tableMetaData
+     * @return
+     * @throws Exception
+     */</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Group</span> <span class="token function">jsonArrayConvernParquetGroup</span><span class="token punctuation">(</span><span class="token class-name">Group</span> group<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> hiveData<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">HiveTableMeta</span><span class="token punctuation">></span></span> tableMetaData<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> tableMetaData<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">String</span> column_name <span class="token operator">=</span> tableMetaData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getColumn_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">String</span> column_type <span class="token operator">=</span> tableMetaData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getColumn_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+            <span class="token keyword">if</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> tableMetaData<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token keyword">null</span> <span class="token operator">!=</span> hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>booleanTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">booleanDataWriter</span><span class="token punctuation">(</span><span class="token class-name">Boolean</span><span class="token punctuation">.</span><span class="token function">parseBoolean</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>intTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">intWriter</span><span class="token punctuation">(</span><span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">parseInt</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>longTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">longWriter</span><span class="token punctuation">(</span><span class="token class-name">Long</span><span class="token punctuation">.</span><span class="token function">parseLong</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>stringTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>charTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span>
+                        <span class="token operator">||</span> <span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>varcharTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">stringWriter</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>floatTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">floatWriter</span><span class="token punctuation">(</span><span class="token class-name">Float</span><span class="token punctuation">.</span><span class="token function">parseFloat</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>doubleTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">doubleDataWriter</span><span class="token punctuation">(</span><span class="token class-name">Double</span><span class="token punctuation">.</span><span class="token function">parseDouble</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>shortTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">shortDataWriter</span><span class="token punctuation">(</span><span class="token class-name">Short</span><span class="token punctuation">.</span><span class="token function">parseShort</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>dateTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token comment">//这里需要注意下，验证一下是否正常</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">dateWrite</span><span class="token punctuation">(</span>java<span class="token punctuation">.</span>sql<span class="token punctuation">.</span><span class="token class-name">Date</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">TypeInfoFactory</span><span class="token punctuation">.</span>timestampTypeInfo<span class="token punctuation">.</span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>column_type<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">timestampWrite</span><span class="token punctuation">(</span><span class="token class-name">Timestamp</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>column_type<span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"decimal"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token class-name">String</span> input <span class="token operator">=</span> column_type<span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">" "</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">// 使用正则表达式匹配并提取数字</span>
+                    <span class="token class-name">Pattern</span> pattern <span class="token operator">=</span> <span class="token class-name">Pattern</span><span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token string">"decimal\\((\\d+),(\\d+)\\)"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token class-name">Matcher</span> matcher <span class="token operator">=</span> pattern<span class="token punctuation">.</span><span class="token function">matcher</span><span class="token punctuation">(</span>input<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>matcher<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                        <span class="token keyword">int</span> precision <span class="token operator">=</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">parseInt</span><span class="token punctuation">(</span>matcher<span class="token punctuation">.</span><span class="token function">group</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">int</span> scale <span class="token operator">=</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">parseInt</span><span class="token punctuation">(</span>matcher<span class="token punctuation">.</span><span class="token function">group</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        group<span class="token punctuation">.</span><span class="token function">append</span><span class="token punctuation">(</span>column_name<span class="token punctuation">,</span> <span class="token class-name">ParquetDataWrite</span><span class="token punctuation">.</span><span class="token function">decimalWrite</span><span class="token punctuation">(</span>hiveData<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> precision<span class="token punctuation">,</span> scale<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                        <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string">"获取decimal类型异常： 未找到匹配的precision、scale"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                    <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> supportType <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token class-name">Constants</span><span class="token punctuation">.</span>hivePrimitiveTypeInfoMap<span class="token punctuation">.</span><span class="token function">keySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    supportType<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token string">"decimal"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string">"不支持的数据类型："</span> <span class="token operator">+</span> column_type <span class="token operator">+</span> <span class="token string">",目前仅支持："</span> <span class="token operator">+</span> supportType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> group<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">Configuration</span> <span class="token function">getHdfsConfiguration</span><span class="token punctuation">(</span><span class="token class-name">String</span> env<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Configuration</span> conf <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">"fs.defaultFS"</span><span class="token punctuation">,</span> <span class="token class-name">Constants</span><span class="token punctuation">.</span>webHDFSConf<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>env<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//下面是为了解决打包找不到类，但是在IDEA中可以正常执行</span>
+        conf<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">"fs.hdfs.impl"</span><span class="token punctuation">,</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hdfs<span class="token punctuation">.</span><span class="token class-name">DistributedFileSystem</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">"fs.webhdfs.impl"</span><span class="token punctuation">,</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hdfs<span class="token punctuation">.</span>web<span class="token punctuation">.</span><span class="token class-name">WebHdfsFileSystem</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        conf<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span><span class="token string">"fs.file.impl"</span><span class="token punctuation">,</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>fs<span class="token punctuation">.</span><span class="token class-name">LocalFileSystem</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//conf.addResource(HadoopUtil.class.getResourceAsStream("/" + env + "/core-site.xml"));</span>
+        <span class="token comment">//conf.addResource(HadoopUtil.class.getResourceAsStream("/" + env + "/hdfs-site.xml"));</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"HADOOP_USER_NAME"</span><span class="token punctuation">,</span> <span class="token string">"hdfs"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//配置连接</span>
+        <span class="token keyword">return</span> conf<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h3><ol>
+<li>通过httpfs写数据，在高并发压测的时候，并发大于20就直接报<code>java.io.IOException: Error writing request body to server</code><br>这个问题纠结了2周，最后查到，是因为httpfs在3.1.3之前有个bug，它的报错日志是不准确/模糊的。把maven的依赖包升级以后，报错就换了<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hadoop-hdfs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.2.4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+报错换成：<pre class="line-numbers language-text" data-language="text"><code class="language-text">ava.io.IOException: java.util.concurrent.TimeoutException: Idle timeout expired: 1000&#x2F;1000 ms
+    at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+    at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+    at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+    at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+    at org.apache.hadoop.ipc.RemoteException.instantiateException(RemoteException.java:121)
+    at org.apache.hadoop.ipc.RemoteException.unwrapRemoteException(RemoteException.java:110)
+    at org.apache.hadoop.hdfs.web.WebHdfsFileSystem.toIOException(WebHdfsFileSystem.java:546)
+    at org.apache.hadoop.hdfs.web.WebHdfsFileSystem.validateResponse(WebHdfsFileSystem.java:524)
+    at org.apache.hadoop.hdfs.web.WebHdfsFileSystem.access$200(WebHdfsFileSystem.java:134)
+    at org.apache.hadoop.hdfs.web.WebHdfsFileSystem$FsPathOutputStreamRunner$1.write(WebHdfsFileSystem.java:1006)
+    at org.apache.parquet.bytes.BytesInput$ByteArrayBytesInput.writeAllTo(BytesInput.java:438)
+    at org.apache.parquet.hadoop.ParquetFileWriter.writeDictionaryPage(ParquetFileWriter.java:341)
+    at org.apache.parquet.hadoop.ColumnChunkPageWriteStore$ColumnChunkPageWriter.writeToFileWriter(ColumnChunkPageWriteStore.java:200)
+    at org.apache.parquet.hadoop.ColumnChunkPageWriteStore.flushToFileWriter(ColumnChunkPageWriteStore.java:263)
+    at org.apache.parquet.hadoop.InternalParquetRecordWriter.flushRowGroupToStore(InternalParquetRecordWriter.java:168)
+    at org.apache.parquet.hadoop.InternalParquetRecordWriter.checkBlockSizeReached(InternalParquetRecordWriter.java:143)
+    at org.apache.parquet.hadoop.InternalParquetRecordWriter.write(InternalParquetRecordWriter.java:125)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这里就很很明显看出问题了，就是因为<code>Idle timeout</code>，并且它的超时时间设置成1s，但是，通过查看官网上的设置，默认值是60s，所以，cdh版本的hadoop3.0配置和apache不一样，这里修改<code>httpfs-site.xml</code>配置如下：<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>hadoop.http.idle_timeout.ms<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>600000<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>Httpfs Server connection timeout in milliseconds.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+修改完该配置后，压测可以达到500，但是在1000并发还是会出现问题。但是，500已经能够满足我们生产需要，这里就不再继续追下去了</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Hadoop/" rel="tag"># Hadoop</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" rel="prev" title="Window构建高效的Linux开发环境">
+      <i class="fa fa-chevron-left"></i> Window构建高效的Linux开发环境
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#HttpFS%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text">HttpFS配置与启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HttpFS%E4%B8%8EWebHDFS%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.</span> <span class="nav-text">HttpFS与WebHDFS的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WebHDFS%E6%A6%82%E8%BF%B0"><span class="nav-number">2.1.</span> <span class="nav-text">WebHDFS概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpFS%E6%A6%82%E8%BF%B0"><span class="nav-number">2.2.</span> <span class="nav-text">HttpFS概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WebHDFS-%E4%B8%8E-HttpFs-%E4%B9%8B%E9%97%B4%E7%9A%84%E4%B8%BB%E8%A6%81%E5%8C%BA%E5%88%AB"><span class="nav-number">2.3.</span> <span class="nav-text">WebHDFS 与 HttpFs 之间的主要区别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java%E9%80%9A%E8%BF%87HttpFS%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0HDFS"><span class="nav-number">3.</span> <span class="nav-text">Java通过HttpFS写数据到HDFS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99Partquet-Textfile%E6%96%87%E4%BB%B6"><span class="nav-number">3.1.</span> <span class="nav-text">写Partquet&#x2F;Textfile文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">3.2.</span> <span class="nav-text">遇到的问题</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">81</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

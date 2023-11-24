@@ -1,3 +1,4 @@
+https://gujincheng.github.io/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/
 https://gujincheng.github.io/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/
 https://gujincheng.github.io/2023/08/07/Bigtop%E6%9D%82%E8%AE%B0/
 https://gujincheng.github.io/2023/08/01/SQL%E6%9D%82%E8%AE%B0/
@@ -17,4 +18,3 @@ https://gujincheng.github.io/2022/06/16/Oracle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%
 https://gujincheng.github.io/2022/06/08/starrocks%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/
 https://gujincheng.github.io/2022/06/01/clickhouse%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/
 https://gujincheng.github.io/2022/05/07/flink%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86/
-https://gujincheng.github.io/2022/05/05/impala3-4%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/

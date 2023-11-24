@@ -362,70 +362,70 @@ hexo s # 启动服务<span aria-hidden="true" class="line-numbers-rows"><span></
 </blockquote>
 </blockquote>
 <p>我们刚开始默认的菜单只有首页和归档两个，不能够满足我们的要求，所以需要添加菜单，打开 主题配置文件 找到Menu Settings</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml">menu:
-  home: &#x2F; || fa fa-home
-  #about: &#x2F;about&#x2F; || fa fa-user
-  tags: &#x2F;tags&#x2F; || fa fa-tags
-  categories: &#x2F;categories&#x2F; || fa fa-th
-  archives: &#x2F;archives&#x2F; || fa fa-archive<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token key atrule">menu</span><span class="token punctuation">:</span>
+  <span class="token key atrule">home</span><span class="token punctuation">:</span> / <span class="token punctuation">|</span><span class="token punctuation">|</span> fa fa<span class="token punctuation">-</span>home
+  <span class="token comment">#about: /about/ || fa fa-user</span>
+  <span class="token key atrule">tags</span><span class="token punctuation">:</span> /tags/ <span class="token punctuation">|</span><span class="token punctuation">|</span> fa fa<span class="token punctuation">-</span>tags
+  <span class="token key atrule">categories</span><span class="token punctuation">:</span> /categories/ <span class="token punctuation">|</span><span class="token punctuation">|</span> fa fa<span class="token punctuation">-</span>th
+  <span class="token key atrule">archives</span><span class="token punctuation">:</span> /archives/ <span class="token punctuation">|</span><span class="token punctuation">|</span> fa fa<span class="token punctuation">-</span>archive<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="Next主题样式设置"><a href="#Next主题样式设置" class="headerlink" title="Next主题样式设置"></a>Next主题样式设置</h3><p>Next有4种风格供我们选择，打开 主题配置文件 找到Scheme Settings</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"># ---------------------------------------------------------------
-# Scheme Settings
-# ---------------------------------------------------------------
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token comment"># ---------------------------------------------------------------</span>
+<span class="token comment"># Scheme Settings</span>
+<span class="token comment"># ---------------------------------------------------------------</span>
 
-# Schemes
-#scheme: Muse
-scheme: Mist
-#scheme: Pisces
-#scheme: Gemini<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token comment"># Schemes</span>
+<span class="token comment">#scheme: Muse</span>
+<span class="token key atrule">scheme</span><span class="token punctuation">:</span> Mist
+<span class="token comment">#scheme: Pisces</span>
+<span class="token comment">#scheme: Gemini</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="侧栏设置"><a href="#侧栏设置" class="headerlink" title="侧栏设置"></a>侧栏设置</h3><blockquote>
 <blockquote>
 <p>侧栏设置包括：侧栏位置、侧栏显示与否、文章间距、返回顶部按钮等等</p>
 </blockquote>
 </blockquote>
 <p>打开 主题配置文件 找到sidebar字段</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml">sidebar:
-  # Sidebar Position.
-  position: right
-  #position: right
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token key atrule">sidebar</span><span class="token punctuation">:</span>
+  <span class="token comment"># Sidebar Position.</span>
+  <span class="token key atrule">position</span><span class="token punctuation">:</span> right
+  <span class="token comment">#position: right</span>
 
-  # Manual define the sidebar width. If commented, will be default for:
-  # Muse | Mist: 320
-  # Pisces | Gemini: 240
-  #width: 300
+  <span class="token comment"># Manual define the sidebar width. If commented, will be default for:</span>
+  <span class="token comment"># Muse | Mist: 320</span>
+  <span class="token comment"># Pisces | Gemini: 240</span>
+  <span class="token comment">#width: 300</span>
 
-  # Sidebar Display (only for Muse | Mist), available values:
-  #  - post    expand on posts automatically. Default.
-  #  - always  expand for all pages automatically.
-  #  - hide    expand only when click on the sidebar toggle icon.
-  #  - remove  totally remove sidebar including sidebar toggle.
-  display: always
+  <span class="token comment"># Sidebar Display (only for Muse | Mist), available values:</span>
+  <span class="token comment">#  - post    expand on posts automatically. Default.</span>
+  <span class="token comment">#  - always  expand for all pages automatically.</span>
+  <span class="token comment">#  - hide    expand only when click on the sidebar toggle icon.</span>
+  <span class="token comment">#  - remove  totally remove sidebar including sidebar toggle.</span>
+  <span class="token key atrule">display</span><span class="token punctuation">:</span> always
 
-  # Sidebar padding in pixels.
-  padding: 18
-  # Sidebar offset from top menubar in pixels (only for Pisces | Gemini).
-  offset: 12
-  # Enable sidebar on narrow view (only for Muse | Mist).
-  onmobile: false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+  <span class="token comment"># Sidebar padding in pixels.</span>
+  <span class="token key atrule">padding</span><span class="token punctuation">:</span> <span class="token number">18</span>
+  <span class="token comment"># Sidebar offset from top menubar in pixels (only for Pisces | Gemini).</span>
+  <span class="token key atrule">offset</span><span class="token punctuation">:</span> <span class="token number">12</span>
+  <span class="token comment"># Enable sidebar on narrow view (only for Muse | Mist).</span>
+  <span class="token key atrule">onmobile</span><span class="token punctuation">:</span> <span class="token boolean important">false</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="头像设置"><a href="#头像设置" class="headerlink" title="头像设置"></a>头像设置</h3><p>打开 主题配置文件 找到Sidebar Avatar字段</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"># Sidebar Avatar
-avatar:
-  # Replace the default image and set the url here.
-  url: &#x2F;uploads&#x2F;avatar.jpg
-  # If true, the avatar will be dispalyed in circle.
-  rounded: false
-  # If true, the avatar will be rotated with the cursor.
-  rotated: false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token comment"># Sidebar Avatar</span>
+<span class="token key atrule">avatar</span><span class="token punctuation">:</span>
+  <span class="token comment"># Replace the default image and set the url here.</span>
+  <span class="token key atrule">url</span><span class="token punctuation">:</span> /uploads/avatar.jpg
+  <span class="token comment"># If true, the avatar will be dispalyed in circle.</span>
+  <span class="token key atrule">rounded</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+  <span class="token comment"># If true, the avatar will be rotated with the cursor.</span>
+  <span class="token key atrule">rotated</span><span class="token punctuation">:</span> <span class="token boolean important">false</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="添加分类-标签模块"><a href="#添加分类-标签模块" class="headerlink" title="添加分类/标签模块"></a>添加分类/标签模块</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hexo new page categories # 分类
 hexo new page tags # 标签<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <h3 id="设置网站缩略图标"><a href="#设置网站缩略图标" class="headerlink" title="设置网站缩略图标"></a>设置网站缩略图标</h3><p>把图片放在themes/next/source/images里，然后打开 主题配置文件 找到favicon，将small、medium、apple_touch_icon三个字段的值都设置成/images/图片名.jpg就可以了，其他字段都注释掉</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml">favicon:
-  small: &#x2F;images&#x2F;favicon-16x16.png
-  medium: &#x2F;images&#x2F;favicon-32x32.png
-  apple_touch_icon: &#x2F;images&#x2F;apple-touch-icon.png
-  safari_pinned_tab: &#x2F;images&#x2F;logo.svg
-  #android_manifest: &#x2F;images&#x2F;manifest.json
-  #ms_browserconfig: &#x2F;images&#x2F;browserconfig.xml<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token key atrule">favicon</span><span class="token punctuation">:</span>
+  <span class="token key atrule">small</span><span class="token punctuation">:</span> /images/favicon<span class="token punctuation">-</span>16x16.png
+  <span class="token key atrule">medium</span><span class="token punctuation">:</span> /images/favicon<span class="token punctuation">-</span>32x32.png
+  <span class="token key atrule">apple_touch_icon</span><span class="token punctuation">:</span> /images/apple<span class="token punctuation">-</span>touch<span class="token punctuation">-</span>icon.png
+  <span class="token key atrule">safari_pinned_tab</span><span class="token punctuation">:</span> /images/logo.svg
+  <span class="token comment">#android_manifest: /images/manifest.json</span>
+  <span class="token comment">#ms_browserconfig: /images/browserconfig.xml</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="设置页面宽度"><a href="#设置页面宽度" class="headerlink" title="设置页面宽度"></a>设置页面宽度</h3><p>自我感觉next主题的正文页面太窄了，这里把正文宽度调大，看得舒服点</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd hexo-theme-next&#x2F;source&#x2F;css&#x2F;_variables&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>编辑base.styl<br>修改变量值</p>
@@ -435,103 +435,103 @@ hexo new page tags # 标签<span aria-hidden="true" class="line-numbers-rows"><s
 <span class="token variable-declaration"><span class="token variable">$content-desktop-large</span>          <span class="token operator">=</span> <span class="token number">800</span><span class="token unit">px</span><span class="token punctuation">;</span></span>
 <span class="token variable-declaration"><span class="token variable">$content-desktop-largest</span>        <span class="token operator">=</span> <span class="token number">950</span><span class="token unit">px</span><span class="token punctuation">;</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="修改页面字体大小"><a href="#修改页面字体大小" class="headerlink" title="修改页面字体大小"></a>修改页面字体大小</h3><p>下载的最新版本的next主题的字体不知为啥很大，看的很不舒服。这里修改一下<br>修改hexo-theme-next/source/css/_variables/base.styl</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml">&#x2F;&#x2F;以前的
-&#x2F;&#x2F;$font-size-base           &#x3D; (hexo-config(&#39;font.enable&#39;) and hexo-config(&#39;font.global.size&#39;) is a &#39;unit&#39;) ? unit(hexo-config(&#39;font.global.size&#39;), em) : 1em;
-&#x2F;&#x2F;修改成固定值
-$font-size-base           &#x3D; 14px;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="添加站点访问计数"><a href="#添加站点访问计数" class="headerlink" title="添加站点访问计数"></a>添加站点访问计数</h3><pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"># Baidu Analytics
-baidu_analytics: 730b9e375674d8f70a08061cd491e24c
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml">//以前的
+//$font<span class="token punctuation">-</span>size<span class="token punctuation">-</span>base           = (hexo<span class="token punctuation">-</span>config('font.enable') and hexo<span class="token punctuation">-</span>config('font.global.size') is a 'unit') <span class="token punctuation">?</span> unit(hexo<span class="token punctuation">-</span>config('font.global.size')<span class="token punctuation">,</span> <span class="token key atrule">em)</span> <span class="token punctuation">:</span> 1em;
+//修改成固定值
+$font<span class="token punctuation">-</span>size<span class="token punctuation">-</span>base           = 14px;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="添加站点访问计数"><a href="#添加站点访问计数" class="headerlink" title="添加站点访问计数"></a>添加站点访问计数</h3><pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token comment"># Baidu Analytics</span>
+<span class="token key atrule">baidu_analytics</span><span class="token punctuation">:</span> 730b9e375674d8f70a08061cd491e24c
 
 
-# Show number of visitors of each article.
-# You can visit https:&#x2F;&#x2F;leancloud.cn to get AppID and AppKey.
-# AppID and AppKey are recommended to be the same as valine&#39;s for counter compatibility.
-# Do not enable both &#96;valine.visitor&#96; and &#96;leancloud_visitors&#96;.
-leancloud_visitors:
-  enable: true
-  app_id: xxxxxxxxxxxxxx
-  app_key: xxx
-  # Required for apps from CN region
-  server_url: # &lt;your server url&gt;
-  # Dependencies: https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-leancloud-counter-security
-  # If you don&#39;t care about security in leancloud counter and just want to use it directly
-  # (without hexo-leancloud-counter-security plugin), set &#96;security&#96; to &#96;false&#96;.
-  security: false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token comment"># Show number of visitors of each article.</span>
+<span class="token comment"># You can visit https://leancloud.cn to get AppID and AppKey.</span>
+<span class="token comment"># AppID and AppKey are recommended to be the same as valine's for counter compatibility.</span>
+<span class="token comment"># Do not enable both `valine.visitor` and `leancloud_visitors`.</span>
+<span class="token key atrule">leancloud_visitors</span><span class="token punctuation">:</span>
+  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">app_id</span><span class="token punctuation">:</span> xxxxxxxxxxxxxx
+  <span class="token key atrule">app_key</span><span class="token punctuation">:</span> xxx
+  <span class="token comment"># Required for apps from CN region</span>
+  <span class="token key atrule">server_url</span><span class="token punctuation">:</span> <span class="token comment"># &lt;your server url></span>
+  <span class="token comment"># Dependencies: https://github.com/theme-next/hexo-leancloud-counter-security</span>
+  <span class="token comment"># If you don't care about security in leancloud counter and just want to use it directly</span>
+  <span class="token comment"># (without hexo-leancloud-counter-security plugin), set `security` to `false`.</span>
+  <span class="token key atrule">security</span><span class="token punctuation">:</span> <span class="token boolean important">false</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里可以到度娘上查，很多教程</p>
 <h3 id="代码块风格"><a href="#代码块风格" class="headerlink" title="代码块风格"></a>代码块风格</h3><p>next主题下的_config.yml</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml">codeblock:
-  # Code Highlight theme
-  # Available values: normal | night | night eighties | night blue | night bright | solarized | solarized dark | galactic
-  # See: https:&#x2F;&#x2F;github.com&#x2F;chriskempson&#x2F;tomorrow-theme
-  highlight_theme: normal
-  # Add copy button on codeblock
-  copy_button:
-    enable: true
-    # Show text copy result.
-    show_result: true
-    # Available values: default | flat | mac
-    style: default<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token key atrule">codeblock</span><span class="token punctuation">:</span>
+  <span class="token comment"># Code Highlight theme</span>
+  <span class="token comment"># Available values: normal | night | night eighties | night blue | night bright | solarized | solarized dark | galactic</span>
+  <span class="token comment"># See: https://github.com/chriskempson/tomorrow-theme</span>
+  <span class="token key atrule">highlight_theme</span><span class="token punctuation">:</span> normal
+  <span class="token comment"># Add copy button on codeblock</span>
+  <span class="token key atrule">copy_button</span><span class="token punctuation">:</span>
+    <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    <span class="token comment"># Show text copy result.</span>
+    <span class="token key atrule">show_result</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    <span class="token comment"># Available values: default | flat | mac</span>
+    <span class="token key atrule">style</span><span class="token punctuation">:</span> default<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>hexo下的_config.yml</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml">highlight:
-  enable: true
-  line_number: true
-  auto_detect: false
-  tab_replace: &#39;&#39;
-  wrap: true
-  hljs: false
-prismjs:
-  enable: true
-  preprocess: true
-  line_number: true
-  tab_replace: &#39;&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token key atrule">highlight</span><span class="token punctuation">:</span>
+  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">line_number</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">auto_detect</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+  <span class="token key atrule">tab_replace</span><span class="token punctuation">:</span> <span class="token string">''</span>
+  <span class="token key atrule">wrap</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">hljs</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+<span class="token key atrule">prismjs</span><span class="token punctuation">:</span>
+  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">preprocess</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">line_number</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">tab_replace</span><span class="token punctuation">:</span> <span class="token string">''</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="添加评论插件"><a href="#添加评论插件" class="headerlink" title="添加评论插件"></a>添加评论插件</h3><p>next主题本身就支持众多评论插件，这里综合各种插件的优劣，最终选择了valine<br>修改config.yml之前，先在本地环境安装一下valine</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># Install valine
 npm install valine --save<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>因为next本身已经支持，这里只需要在_config.yml里配置下即可</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"># Valine
-# For more information: https:&#x2F;&#x2F;valine.js.org, https:&#x2F;&#x2F;github.com&#x2F;xCss&#x2F;Valine
-valine:
-  enable: true
-  appid: SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz
-  appkey: wHfJCMCqkaxidT5nJyOygkO7
-  notify: false # Mail notifier
-  verify: false # Verification code
-  placeholder: Just go go # Comment box placeholder
-  avatar: wavatar # Gravatar style
-  guest_info: nick,mail,link # Custom comment header
-  pageSize: 10 # Pagination size
-  language: # Language, available values: en, zh-cn
-  visitor: true # Article reading statistic
-  comment_count: true # If false, comment count will only be displayed in post page, not in home page
-  recordIP: false # Whether to record the commenter IP
-  serverURLs: # When the custom domain name is enabled, fill it in here (it will be detected automatically by default, no need to fill in)
-  #post_meta_order: 0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token comment"># Valine</span>
+<span class="token comment"># For more information: https://valine.js.org, https://github.com/xCss/Valine</span>
+<span class="token key atrule">valine</span><span class="token punctuation">:</span>
+  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">appid</span><span class="token punctuation">:</span> SkWNsftcFwwI7sR8WGnbm8G0<span class="token punctuation">-</span>gzGzoHsz
+  <span class="token key atrule">appkey</span><span class="token punctuation">:</span> wHfJCMCqkaxidT5nJyOygkO7
+  <span class="token key atrule">notify</span><span class="token punctuation">:</span> <span class="token boolean important">false</span> <span class="token comment"># Mail notifier</span>
+  <span class="token key atrule">verify</span><span class="token punctuation">:</span> <span class="token boolean important">false</span> <span class="token comment"># Verification code</span>
+  <span class="token key atrule">placeholder</span><span class="token punctuation">:</span> Just go go <span class="token comment"># Comment box placeholder</span>
+  <span class="token key atrule">avatar</span><span class="token punctuation">:</span> wavatar <span class="token comment"># Gravatar style</span>
+  <span class="token key atrule">guest_info</span><span class="token punctuation">:</span> nick<span class="token punctuation">,</span>mail<span class="token punctuation">,</span>link <span class="token comment"># Custom comment header</span>
+  <span class="token key atrule">pageSize</span><span class="token punctuation">:</span> <span class="token number">10</span> <span class="token comment"># Pagination size</span>
+  <span class="token key atrule">language</span><span class="token punctuation">:</span> <span class="token comment"># Language, available values: en, zh-cn</span>
+  <span class="token key atrule">visitor</span><span class="token punctuation">:</span> <span class="token boolean important">true</span> <span class="token comment"># Article reading statistic</span>
+  <span class="token key atrule">comment_count</span><span class="token punctuation">:</span> <span class="token boolean important">true</span> <span class="token comment"># If false, comment count will only be displayed in post page, not in home page</span>
+  <span class="token key atrule">recordIP</span><span class="token punctuation">:</span> <span class="token boolean important">false</span> <span class="token comment"># Whether to record the commenter IP</span>
+  <span class="token key atrule">serverURLs</span><span class="token punctuation">:</span> <span class="token comment"># When the custom domain name is enabled, fill it in here (it will be detected automatically by default, no need to fill in)</span>
+  <span class="token comment">#post_meta_order: 0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="添加本地搜索功能"><a href="#添加本地搜索功能" class="headerlink" title="添加本地搜索功能"></a>添加本地搜索功能</h3><p>安装搜索插件  </p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">npm install hexo-generator-searchdb --save<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>配置next主题_config_yml</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"># Local Search
-# Dependencies: https:&#x2F;&#x2F;github.com&#x2F;theme-next&#x2F;hexo-generator-searchdb
-local_search:
-  enable: true
-  # If auto, trigger search by changing input.
-  # If manual, trigger search by pressing enter key or search button.
-  trigger: auto
-  # Show top n results per article, show all results by setting to -1
-  top_n_per_article: 1
-  # Unescape html strings to the readable one.
-  unescape: false
-  # Preload the search data when the page loads.
-  preload: false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token comment"># Local Search</span>
+<span class="token comment"># Dependencies: https://github.com/theme-next/hexo-generator-searchdb</span>
+<span class="token key atrule">local_search</span><span class="token punctuation">:</span>
+  <span class="token key atrule">enable</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token comment"># If auto, trigger search by changing input.</span>
+  <span class="token comment"># If manual, trigger search by pressing enter key or search button.</span>
+  <span class="token key atrule">trigger</span><span class="token punctuation">:</span> auto
+  <span class="token comment"># Show top n results per article, show all results by setting to -1</span>
+  <span class="token key atrule">top_n_per_article</span><span class="token punctuation">:</span> <span class="token number">1</span>
+  <span class="token comment"># Unescape html strings to the readable one.</span>
+  <span class="token key atrule">unescape</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+  <span class="token comment"># Preload the search data when the page loads.</span>
+  <span class="token key atrule">preload</span><span class="token punctuation">:</span> <span class="token boolean important">false</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>修改hexo项目的_config.yml，添加如下内容：</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"># search
-search:
-  path: search.xml
-  field: post
-  format: html
-  limit: 10000<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token comment"># search</span>
+<span class="token key atrule">search</span><span class="token punctuation">:</span>
+  <span class="token key atrule">path</span><span class="token punctuation">:</span> search.xml
+  <span class="token key atrule">field</span><span class="token punctuation">:</span> post
+  <span class="token key atrule">format</span><span class="token punctuation">:</span> html
+  <span class="token key atrule">limit</span><span class="token punctuation">:</span> <span class="token number">10000</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>如果不添加，那么在<code>hexo s</code>可以搜索，但是deploy后，正式的网页上点击不了搜索</p>
 <h3 id="首页添加阅读全文"><a href="#首页添加阅读全文" class="headerlink" title="首页添加阅读全文"></a>首页添加阅读全文</h3><p>当前首页会把正文都显示出来，所以显得首页很长，不美观。<br>在next主题_config.yml配置</p>
-<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml">excerpt_description: true<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-yml" data-language="yml"><code class="language-yml"><span class="token key atrule">excerpt_description</span><span class="token punctuation">:</span> <span class="token boolean important">true</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>还需要手动在每篇正文添加<code>&lt;!-- more --&gt;</code>，并写一下文档摘要</p>
 <h3 id="配置百度站点收录管理"><a href="#配置百度站点收录管理" class="headerlink" title="配置百度站点收录管理"></a>配置百度站点收录管理</h3><ol>
 <li><p>安装插件：</p>
@@ -651,7 +651,7 @@ search:
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">80</span>
+          <span class="site-state-item-count">81</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
