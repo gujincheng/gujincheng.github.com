@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Debezium简介 使用docker启动Debezium Connect 测试mysql-connector">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Debezium学习笔记">
+<meta property="og:url" content="https://gujincheng.github.io/2023/11/26/Debezium%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Debezium简介 使用docker启动Debezium Connect 测试mysql-connector">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-11-26T08:48:21.000Z">
+<meta property="article:modified_time" content="2023-11-27T00:51:38.060Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Debezium">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://gujincheng.github.io/2023/11/26/Debezium%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Debezium学习笔记 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/11/26/Debezium%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Debezium学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-11-26 16:48:21" itemprop="dateCreated datePublished" datetime="2023-11-26T16:48:21+08:00">2023-11-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-27 08:51:38" itemprop="dateModified" datetime="2023-11-27T08:51:38+08:00">2023-11-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Debezium/" itemprop="url" rel="index"><span itemprop="name">Debezium</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2023/11/26/Debezium%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Debezium学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2023/11/26/Debezium%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/11/26/Debezium%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Debezium简介</li>
+<li>使用docker启动Debezium Connect</li>
+<li>测试mysql-connector</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="Debezium简介"><a href="#Debezium简介" class="headerlink" title="Debezium简介"></a>Debezium简介</h2><h2 id="使用docker启动Debezium-Connect"><a href="#使用docker启动Debezium-Connect" class="headerlink" title="使用docker启动Debezium Connect"></a>使用docker启动Debezium Connect</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 拉取镜像
+docker pull debezium&#x2F;connect:2.4
+# 启动docker
+docker run -it --rm --name connect -p 8083:8083 -e GROUP_ID&#x3D;1 -e CONFIG_STORAGE_TOPIC&#x3D;my_connect_configs -e OFFSET_STORAGE_TOPIC&#x3D;my_connect_offsets -e STATUS_STORAGE_TOPIC&#x3D;my_connect_statuses -e BOOTSTRAP_SERVERS&#x3D;golden-02:9092 debezium&#x2F;connect:2.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="测试mysql-connector"><a href="#测试mysql-connector" class="headerlink" title="测试mysql-connector"></a>测试mysql-connector</h2><p>执行以下命令</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">curl -i -X POST -H &quot;Accept:application&#x2F;json&quot; -H &quot;Content-Type:application&#x2F;json&quot; localhost:8083&#x2F;connectors&#x2F; -d &#39;&#123; &quot;name&quot;: &quot;inventory-connector&quot;, &quot;config&quot;: &#123; &quot;connector.class&quot;: &quot;io.debezium.connector.mysql.MySqlConnector&quot;, &quot;tasks.max&quot;: &quot;1&quot;, &quot;database.hostname&quot;: &quot;golden-02&quot;, &quot;database.port&quot;: &quot;3306&quot;, &quot;database.user&quot;: &quot;root&quot;, &quot;database.password&quot;: &quot;Gjc123!@#&quot;, &quot;database.server.id&quot;: &quot;184054&quot;, &quot;database.server.name&quot;: &quot;dbserver1&quot;,&quot;database.include.list&quot;:&quot;test&quot;,&quot;table.include.list&quot;:&quot;gjc_test_cdc&quot;,&quot;topic.prefix&quot;: &quot;dbz_test&quot;, &quot;database.history.kafka.bootstrap.servers&quot;: &quot;golden-02:9092&quot;&#125; &#125;&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>报如下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2023-11-26 08:43:40,144 ERROR  ||  The &#39;schema.history.internal.kafka.topic&#39; value is invalid: A value is required   [io.debezium.storage.kafka.history.KafkaSchemaHistory]
+2023-11-26 08:43:40,144 ERROR  ||  The &#39;schema.history.internal.kafka.bootstrap.servers&#39; value is invalid: A value is required   [io.debezium.storage.kafka.history.KafkaSchemaHistory]
+2023-11-26 08:43:40,144 ERROR  ||  WorkerSourceTask&#123;id&#x3D;inventory-connector-0&#125; Task threw an uncaught and unrecoverable exception. Task is being killed and will not recover until manually restarted   [org.apache.kafka.connect.runtime.WorkerTask]
+org.apache.kafka.connect.errors.ConnectException: Error configuring an instance of KafkaSchemaHistory; check the logs for details
+        at io.debezium.storage.kafka.history.KafkaSchemaHistory.configure(KafkaSchemaHistory.java:208)
+        at io.debezium.relational.HistorizedRelationalDatabaseConnectorConfig.getSchemaHistory(HistorizedRelationalDatabaseConnectorConfig.java:137)
+        at io.debezium.relational.HistorizedRelationalDatabaseSchema.&lt;init&gt;(HistorizedRelationalDatabaseSchema.java:49)
+        at io.debezium.connector.mysql.MySqlDatabaseSchema.&lt;init&gt;(MySqlDatabaseSchema.java:82)
+        at io.debezium.connector.mysql.MySqlConnectorTask.start(MySqlConnectorTask.java:98)
+        at io.debezium.connector.common.BaseSourceTask.start(BaseSourceTask.java:142)
+        at org.apache.kafka.connect.runtime.AbstractWorkerSourceTask.initializeAndStart(AbstractWorkerSourceTask.java:274)
+        at org.apache.kafka.connect.runtime.WorkerTask.doRun(WorkerTask.java:202)
+        at org.apache.kafka.connect.runtime.WorkerTask.run(WorkerTask.java:259)
+        at org.apache.kafka.connect.runtime.AbstractWorkerSourceTask.run(AbstractWorkerSourceTask.java:75)
+        at org.apache.kafka.connect.runtime.isolation.Plugins.lambda$withClassLoader$1(Plugins.java:181)
+        at java.base&#x2F;java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+        at java.base&#x2F;java.util.concurrent.FutureTask.run(FutureTask.java:264)
+        at java.base&#x2F;java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+        at java.base&#x2F;java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+        at java.base&#x2F;java.lang.Thread.run(Thread.java:829)
+2023-11-26 08:43:40,144 INFO   ||  Stopping down connector   [io.debezium.connector.common.BaseSourceTask]
+2023-11-26 08:43:40,147 INFO   ||  Connection gracefully closed   [io.debezium.jdbc.JdbcConnection]
+2023-11-26 08:43:40,147 INFO   ||  [Producer clientId&#x3D;connector-producer-inventory-connector-0] Closing the Kafka producer with timeoutMillis &#x3D; 30000 ms.   [org.apache.kafka.clients.producer.KafkaProducer]
+2023-11-26 08:43:40,149 INFO   ||  Metrics scheduler closed   [org.apache.kafka.common.metrics.Metrics]
+2023-11-26 08:43:40,149 INFO   ||  Closing reporter org.apache.kafka.common.metrics.JmxReporter   [org.apache.kafka.common.metrics.Metrics]
+2023-11-26 08:43:40,149 INFO   ||  Metrics reporters closed   [org.apache.kafka.common.metrics.Metrics]
+2023-11-26 08:43:40,149 INFO   ||  App info kafka.producer for connector-producer-inventory-connector-0 unregistered   [org.apache.kafka.common.utils.AppInfoParser]<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里报错很明显，是缺少<code>schema.history.internal.kafka.topic</code>和<code>schema.history.internal.kafka.bootstrap.servers</code>，修改代码，再次执行：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>问题是，虽然是报错了，但是，查询connector是有这个connecor的：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 查看集群中connector列表
+ curl -i http:&#x2F;&#x2F;localhost:8083&#x2F;connectors
+ # 删除某个connector：
+ curl -X DELETE http:&#x2F;&#x2F;localhost:8083&#x2F;connectors&#x2F;inventory-connector<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="问题一：table-include-list的格式是databaseName-tableName"><a href="#问题一：table-include-list的格式是databaseName-tableName" class="headerlink" title="问题一：table.include.list的格式是databaseName.tableName"></a>问题一：<code>table.include.list</code>的格式是<code>databaseName.tableName</code></h3><p>我这里一开始没有按照这个格式，直接制定了tableName，即：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+	<span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"inventory-connector"</span><span class="token punctuation">,</span>
+	<span class="token property">"config"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+		<span class="token property">"connector.class"</span><span class="token operator">:</span> <span class="token string">"io.debezium.connector.mysql.MySqlConnector"</span><span class="token punctuation">,</span>
+		<span class="token property">"tasks.max"</span><span class="token operator">:</span> <span class="token string">"1"</span><span class="token punctuation">,</span>
+		<span class="token property">"database.hostname"</span><span class="token operator">:</span> <span class="token string">"golden-02"</span><span class="token punctuation">,</span>
+		<span class="token property">"database.port"</span><span class="token operator">:</span> <span class="token string">"3306"</span><span class="token punctuation">,</span>
+		<span class="token property">"database.user"</span><span class="token operator">:</span> <span class="token string">"root"</span><span class="token punctuation">,</span>
+		<span class="token property">"database.password"</span><span class="token operator">:</span> <span class="token string">"Gjc123!@#"</span><span class="token punctuation">,</span>
+		<span class="token property">"database.server.id"</span><span class="token operator">:</span> <span class="token string">"184054"</span><span class="token punctuation">,</span>
+		<span class="token property">"database.server.name"</span><span class="token operator">:</span> <span class="token string">"dbserver1"</span><span class="token punctuation">,</span>
+		<span class="token property">"database.include.list"</span><span class="token operator">:</span> <span class="token string">"test"</span><span class="token punctuation">,</span>
+		<span class="token property">"table.include.list"</span><span class="token operator">:</span> <span class="token string">"gjc_test_cdc"</span><span class="token punctuation">,</span>
+		<span class="token property">"topic.prefix"</span><span class="token operator">:</span> <span class="token string">"dbz_test"</span><span class="token punctuation">,</span>
+		<span class="token property">"schema.history.internal.kafka.topic"</span><span class="token operator">:</span> <span class="token string">"dbz_schema_history"</span><span class="token punctuation">,</span>
+		<span class="token property">"schema.history.internal.kafka.bootstrap.servers"</span><span class="token operator">:</span> <span class="token string">"golden-02:9092"</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这时候，kafka的topic只有：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --list
+__consumer_offsets
+dbz_schema_history
+dbz_test
+my_connect_configs
+my_connect_offsets
+my_connect_statuses<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看到，并没有我们要采集表的topic，让人不解的是，这里直接删除这个connector，然后修改成正确的格式以后，表的topic还是没有正常创建：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 删除inventory-connector 
+ curl -X DELETE http:&#x2F;&#x2F;localhost:8083&#x2F;connectors&#x2F;inventory-connector
+ # 重新创建
+  curl -i -X POST -H &quot;Accept:application&#x2F;json&quot; -H &quot;Content-Type:application&#x2F;json&quot; localhost:8083&#x2F;connectors&#x2F; -d &#39;&#123; &quot;name&quot;: &quot;inventory-connector&quot;, &quot;config&quot;: &#123; &quot;connector.class&quot;: &quot;io.debezium.connector.mysql.MySqlConnector&quot;, &quot;tasks.max&quot;: &quot;1&quot;, &quot;database.hostname&quot;: &quot;golden-02&quot;, &quot;database.port&quot;: &quot;3306&quot;, &quot;database.user&quot;: &quot;root&quot;, &quot;database.password&quot;: &quot;Gjc123!@#&quot;, &quot;database.server.id&quot;: &quot;184054&quot;, &quot;database.server.name&quot;: &quot;dbserver1&quot;,&quot;database.include.list&quot;:&quot;test&quot;,&quot;table.include.list&quot;:&quot;test.gjc_test_cdc&quot;,&quot;topic.prefix&quot;: &quot;dbz_test&quot;,&quot;schema.history.internal.kafka.topic&quot;:&quot;dbz_schema_history&quot;,&quot;schema.history.internal.kafka.bootstrap.servers&quot;:&quot;golden-02:9092&quot;&#125; &#125;&#39;
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这是因为然连接器的进程删除了，但是它所对应的 Kafka 偏移（Offset）仍然保存在 connect-offsets 主题中。当我们新建一个连接器，却使用了原来的名字，则它会从这个主题中找到原来的偏移并接续读取数据。<br>这其实也是 Kafka Connect 实现高可用的机制——因为 Kafka 主题本身是高可用的，所以即便一个连接器失效，我们可以立即以同样名字、同样配置起一个新的连接器，自动接续。<br>不过，在开发和测试过程中，我们可能需要频繁从头测试全新的连接器，这个机制就很恼人了。解决这个问题的办法有两个。</p>
+<ul>
+<li>创建连接器的时候使用不同的名字。这会让 Kafka Connect 把它当成一个全新的连接器对待，从头开始执行整个逻辑。</li>
+<li>在 connect-offset 主题里面添加一条记录，记录的键是连接器名字，而值则是 null。因为 Kafka 是流，所以这里面的配置也是新的配置覆盖旧的配置，null 覆盖原有配置后，连接器失去了偏移，就会从头开始读取数据了。<br>具体可以参考<a target="_blank" rel="noopener" href="https://aws.amazon.com/cn/blogs/china/debezium-deep-dive/">Debezium 特性深入介绍</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Debezium/" rel="tag"># Debezium</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/" rel="prev" title="HttpFS高并发写HDFS">
+      <i class="fa fa-chevron-left"></i> HttpFS高并发写HDFS
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Debezium%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Debezium简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8docker%E5%90%AF%E5%8A%A8Debezium-Connect"><span class="nav-number">2.</span> <span class="nav-text">使用docker启动Debezium Connect</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95mysql-connector"><span class="nav-number">3.</span> <span class="nav-text">测试mysql-connector</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9Atable-include-list%E7%9A%84%E6%A0%BC%E5%BC%8F%E6%98%AFdatabaseName-tableName"><span class="nav-number">3.1.</span> <span class="nav-text">问题一：table.include.list的格式是databaseName.tableName</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">82</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">60</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">60</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
