@@ -22,20 +22,20 @@
     var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="本文主要包括：  如何下载Azkaban稳定版代码 如何构建Azkaban源码 如何配置Azkaban 启动Azkaban注意点">
+  <meta name="description" content="本文主要包括：  Starrocks性能优化">
 <meta property="og:type" content="article">
-<meta property="og:title" content="azkban从编译开始安装">
-<meta property="og:url" content="https://gujincheng.github.io/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/index.html">
+<meta property="og:title" content="Starrocks性能优化">
+<meta property="og:url" content="https://gujincheng.github.io/2024/01/31/Starrocks%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/index.html">
 <meta property="og:site_name" content="Golden Blog">
-<meta property="og:description" content="本文主要包括：  如何下载Azkaban稳定版代码 如何构建Azkaban源码 如何配置Azkaban 启动Azkaban注意点">
+<meta property="og:description" content="本文主要包括：  Starrocks性能优化">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-01-16T11:52:31.000Z">
-<meta property="article:modified_time" content="2021-04-29T09:48:42.000Z">
+<meta property="article:published_time" content="2024-01-31T03:40:22.000Z">
+<meta property="article:modified_time" content="2024-02-01T10:36:16.286Z">
 <meta property="article:author" content="Golden">
-<meta property="article:tag" content="Azkaban">
+<meta property="article:tag" content="starrocks">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://gujincheng.github.io/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/">
+<link rel="canonical" href="https://gujincheng.github.io/2024/01/31/Starrocks%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
 
 
 <script id="page-configurations">
@@ -48,7 +48,7 @@
   };
 </script>
 
-  <title>azkban从编译开始安装 | Golden Blog</title>
+  <title>Starrocks性能优化 | Golden Blog</title>
   
 
 
@@ -202,7 +202,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2024/01/31/Starrocks%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.jpg">
@@ -215,7 +215,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          azkban从编译开始安装
+          Starrocks性能优化
         </h1>
 
         <div class="post-meta">
@@ -225,14 +225,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2021-01-16 19:52:31" itemprop="dateCreated datePublished" datetime="2021-01-16T19:52:31+08:00">2021-01-16</time>
+              <time title="创建时间：2024-01-31 11:40:22" itemprop="dateCreated datePublished" datetime="2024-01-31T11:40:22+08:00">2024-01-31</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-29 17:48:42" itemprop="dateModified" datetime="2021-04-29T17:48:42+08:00">2021-04-29</time>
+                <time title="修改时间：2024-02-01 18:36:16" itemprop="dateModified" datetime="2024-02-01T18:36:16+08:00">2024-02-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -242,14 +242,10 @@
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
                 </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Azkaban/" itemprop="url" rel="index"><span itemprop="name">Azkaban</span></a>
-                </span>
             </span>
 
           
-            <span id="/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/" class="post-meta-item leancloud_visitors" data-flag-title="azkban从编译开始安装" title="阅读次数">
+            <span id="/2024/01/31/Starrocks%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="post-meta-item leancloud_visitors" data-flag-title="Starrocks性能优化" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -264,8 +260,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/16/azkban%E4%BB%8E%E7%BC%96%E8%AF%91%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85/" itemprop="commentCount"></span>
+    <a title="valine" href="/2024/01/31/Starrocks%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/01/31/Starrocks%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -282,31 +278,40 @@
       
         <p>本文主要包括：</p>
 <ul>
-<li>如何下载Azkaban稳定版代码</li>
-<li>如何构建Azkaban源码</li>
-<li>如何配置Azkaban</li>
-<li>启动Azkaban注意点<a id="more"></a>
-<h2 id="从git上下载最新的azkban稳定版代码"><a href="#从git上下载最新的azkban稳定版代码" class="headerlink" title="从git上下载最新的azkban稳定版代码"></a>从git上下载最新的azkban稳定版代码</h2>git clone <a target="_blank" rel="noopener" href="https://github.com/azkaban/azkaban.git">https://github.com/azkaban/azkaban.git</a> -b 3.74.3<br>这里还有个问题，如何把这个代码放到自己的git上，我放到公司的gitlab上之后，编译的名字就变了，很奇怪。</li>
+<li>Starrocks性能优化</li>
 </ul>
-<h2 id="构建Azkaban"><a href="#构建Azkaban" class="headerlink" title="构建Azkaban"></a>构建Azkaban</h2><p>./gradlew clean<br>./gradlew build -x test<br>-x是指不做单元测试，不加这个会特别慢<br>这里我构建了很多次，用公司配制好的服务器构建，文件名老是不对<br>名字老是azkaban-web-server-0.1.0-SNAPSHOT.tar.gz和azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</p>
-<p>后来还是直接clone官网上的代码来构建</p>
-<h2 id="配置mysql"><a href="#配置mysql" class="headerlink" title="配置mysql"></a>配置mysql</h2><p>需要用mysql的root用户创建一个azkban数据库，我这里创建的数据库名为azkban3<br>然后 从编译文件夹里：<br>在azkaban/azkaban-db/build/sql下找到create-all-sql-3.74.3.sql<br>然后再mysql命令行：<br>create database azkaban3；<br>use azkaban3<br>source /home/data-platform/create-all-sql-3.74.3.sql<br>这样就把azkaban的所有表都创建完了</p>
-<p>创建用户名为azkban的用户，用户名为azkban@123<br>CREATE USER ‘azkaban’@’%’ IDENTIFIED BY ‘azkaban@123’; #创建用户<br>grant all on azkaban3.* to azkaban@’%’ identified by ‘azkaban@123’; #授权azkaban3给azkaban<br>flush privileges  #s刷新</p>
-<p>##启动azkban-exec-server<br>cd /opt/azkaban/azkaban-exec-server-3.74.3 &amp;&amp; ./bin/start-exec.sh</p>
-<p>这里有个问题：<br>直接启动exec-server后启动web-server，webserver会找不到活跃的excutor<br>报错信息为:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019&#x2F;07&#x2F;04 14:32:08.532 +0800 INFO [ExecutorManager] [Azkaban] Initializing executors from database.
-2019&#x2F;07&#x2F;04 14:32:08.535 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot;
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found
-2019&#x2F;07&#x2F;04 14:32:08.536 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:197)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:131)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.executor.ExecutorManager.start(ExecutorManager.java:145)
-2019&#x2F;07&#x2F;04 14:32:08.537 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)
-2019&#x2F;07&#x2F;04 14:32:08.538 +0800 ERROR [StdOutErrRedirect] [Azkaban]       at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>解决办法：<br>手动激活exec-server<br>curl http://${executorHost}:${executorPort}/executor?action=activate<br>executorHost：就是安装服务器的IP<br>executorPort：就是启动azkban-exec-server后，产生的executor.port里的端口号</p>
-<h2 id="启动azkaban-web-server"><a href="#启动azkaban-web-server" class="headerlink" title="启动azkaban-web-server"></a>启动azkaban-web-server</h2><p>cd /opt/azkaban/azkaban-web-server-3.74.3 &amp;&amp; ./bin/start-web.sh</p>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>启动server必须要到azkaban-web-server-3.74.3这个目录，因为默认启动找的配置文件为 conf/azkaban.properties</p>
+<a id="more"></a>
+
+
+
+
+<h2 id="大SQL报内存不够"><a href="#大SQL报内存不够" class="headerlink" title="大SQL报内存不够"></a>大SQL报内存不够</h2><p>执行2亿的数据group by，报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR 1064 (HY000): Memory of Queryac34fc2a-bfea-11ee-afb0-0cda411dfefe exceed limit. Pipeline Backend: 192.168.101.97, fragment: ac34fc2a-bfea-11ee-afb0-0cda411dff01 Used: 21478902080, Limit: 21474836480. Mem usage has exceed the limit of single query, You can change the limit by set session variable query_mem_limit<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里开启Starrocks的中间结果落盘：</p>
+<ol>
+<li>在 BE 配置文件 be.conf 中指定落盘路径 spill_local_storage_dir，并重启集群使修改生效。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spill_local_storage_dir&#x3D;&#x2F;&lt;dir_1&gt;[;&#x2F;&lt;dir_2&gt;]<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在SQL执行之前，首先设置以下参数<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SET</span> enable_spill <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token keyword">SET</span> spill_mode <span class="token operator">=</span> <span class="token string">"auto"</span><span class="token punctuation">;</span>
+<span class="token keyword">set</span> query_timeout <span class="token operator">=</span> <span class="token number">600</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+通过设置以上参数，大sql可以正常执行</li>
+</ol>
+<h2 id="all-partitions-have-no-load-data"><a href="#all-partitions-have-no-load-data" class="headerlink" title="all partitions have no load data"></a>all partitions have no load data</h2><p>fe的日志里，存在大量的<code>all partitions have no load data</code>，这是因为，实时采集的时候，设置了每秒streamload一次。但是很多表其实是没有数据的<br>fe.warn.log日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2024-02-01 16:39:16,437 WARN (thrift-server-pool-285904|291996) [FrontendServiceImpl.loadTxnPrepare():1562] failed to prepare txn_id: 40582: all partitions have no load data
+2024-02-01 16:39:16,450 WARN (thrift-server-pool-285910|292002) [FrontendServiceImpl.loadTxnRollback():1620] failed to rollback txn 40582: transaction not found: 40582
+2024-02-01 16:39:35,889 WARN (thrift-server-pool-285970|292062) [FrontendServiceImpl.loadTxnPrepare():1562] failed to prepare txn_id: 40583: all partitions have no load data
+2024-02-01 16:39:35,899 WARN (thrift-server-pool-285972|292064) [FrontendServiceImpl.loadTxnRollback():1620] failed to rollback txn 40583: transaction not found: 40583<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以在fe.conf里设置<code>empty_load_as_error = false</code>来规避</p>
+<h2 id="提高Starrocks的写入性能"><a href="#提高Starrocks的写入性能" class="headerlink" title="提高Starrocks的写入性能"></a>提高Starrocks的写入性能</h2><p>设置在be.conf里设置：<code>flush_thread_num_per_store=8</code></p>
+<h2 id="Too-many-versions-tablet-id-219542-version-count-1001-limit-1000"><a href="#Too-many-versions-tablet-id-219542-version-count-1001-limit-1000" class="headerlink" title="Too many versions. tablet_id: 219542, version_count: 1001, limit: 1000"></a>Too many versions. tablet_id: 219542, version_count: 1001, limit: 1000</h2><pre class="line-numbers language-text" data-language="text"><code class="language-text">Caused by: com.starrocks.connector.flink.manager.StarRocksStreamLoadFailedException: Failed to flush data to StarRocks, Error response:
+&#123;“Status”:“Fail”,“BeginTxnTimeMs”:0,“Message”:“Too many versions. tablet_id: 219542, version_count: 1001, limit: 1000”,“NumberUnselectedRows”:0,“CommitAndPublishTimeMs”:0,
+“Label”:“0e20db82-c001-4ba6-aa85-2bde651e2e17”,“LoadBytes”:889,“StreamLoadPutTimeMs”:5,“NumberTotalRows”:0,“WriteDataTimeMs”:86,“TxnId”:41058,“LoadTimeMs”:92,“ReadDataTimeMs”:0,“NumberLoadedRows”:0,“NumberFilteredRows”:0&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>在be.conf 里设置以下参数</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cumulative_compaction_num_threads_per_disk &#x3D; 4
+base_compaction_num_threads_per_disk &#x3D; 2
+cumulative_compaction_check_interval_seconds &#x3D; 2
+update_compaction_num_threads_per_disk &#x3D; 2 #（该参数属于主键模型单独的compaction参数）<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="高并发执行越来越慢"><a href="#高并发执行越来越慢" class="headerlink" title="高并发执行越来越慢"></a>高并发执行越来越慢</h2><h2 id="执行sql时快时慢"><a href="#执行sql时快时慢" class="headerlink" title="执行sql时快时慢"></a>执行sql时快时慢</h2><p>具体表现在：<br>数据通过kafka_connetor导入到Starocks，刚开始查询速度很稳定，导入一段时间后，大概4个小时以后，再次查询相同的sql，每隔几秒钟，总有一个耗时比较长的。 并且kafka里的数据后期数据量就很少了。<br>把实时采集的程序停止后，查询就又变稳定了</p>
 
     </div>
 
@@ -316,7 +321,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Azkaban/" rel="tag"># Azkaban</a>
+              <a href="/tags/starrocks/" rel="tag"># starrocks</a>
           </div>
 
         
@@ -325,13 +330,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/" rel="prev" title="emacs手动安装、解决不能使用中文输入法">
-      <i class="fa fa-chevron-left"></i> emacs手动安装、解决不能使用中文输入法
+    <a href="/2024/01/30/%E6%80%A7%E8%83%BD%E5%8E%8B%E6%B5%8B/" rel="prev" title="性能压测">
+      <i class="fa fa-chevron-left"></i> 性能压测
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2021/01/16/org-apache-hadoop-hive-ql-metadata-SessionHiveMetaStoreClient%E6%8A%A5%E9%94%99%EF%BC%8C%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/" rel="next" title="org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查">
-      org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient报错，问题排查 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -391,7 +393,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8Egit%E4%B8%8A%E4%B8%8B%E8%BD%BD%E6%9C%80%E6%96%B0%E7%9A%84azkban%E7%A8%B3%E5%AE%9A%E7%89%88%E4%BB%A3%E7%A0%81"><span class="nav-number">1.</span> <span class="nav-text">从git上下载最新的azkban稳定版代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E5%BB%BAAzkaban"><span class="nav-number">2.</span> <span class="nav-text">构建Azkaban</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEmysql"><span class="nav-number">3.</span> <span class="nav-text">配置mysql</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8azkaban-web-server"><span class="nav-number">4.</span> <span class="nav-text">启动azkaban-web-server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F"><span class="nav-number">5.</span> <span class="nav-text">注意</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%A7SQL%E6%8A%A5%E5%86%85%E5%AD%98%E4%B8%8D%E5%A4%9F"><span class="nav-number">1.</span> <span class="nav-text">大SQL报内存不够</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#all-partitions-have-no-load-data"><span class="nav-number">2.</span> <span class="nav-text">all partitions have no load data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%90%E9%AB%98Starrocks%E7%9A%84%E5%86%99%E5%85%A5%E6%80%A7%E8%83%BD"><span class="nav-number">3.</span> <span class="nav-text">提高Starrocks的写入性能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Too-many-versions-tablet-id-219542-version-count-1001-limit-1000"><span class="nav-number">4.</span> <span class="nav-text">Too many versions. tablet_id: 219542, version_count: 1001, limit: 1000</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AB%98%E5%B9%B6%E5%8F%91%E6%89%A7%E8%A1%8C%E8%B6%8A%E6%9D%A5%E8%B6%8A%E6%85%A2"><span class="nav-number">5.</span> <span class="nav-text">高并发执行越来越慢</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8Csql%E6%97%B6%E5%BF%AB%E6%97%B6%E6%85%A2"><span class="nav-number">6.</span> <span class="nav-text">执行sql时快时慢</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
