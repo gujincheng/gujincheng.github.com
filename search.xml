@@ -568,6 +568,91 @@ BUILD SUCCESSFUL in 39m 14s
       </tags>
   </entry>
   <entry>
+    <title>CM宕机问题调查与修复</title>
+    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>CM宕机问题调查与修复</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
+<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
+com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
+        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
+        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
+        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+        at java.lang.Thread.run(Thread.java:748)
+Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
+        at java.io.RandomAccessFile.open0(Native Method)
+        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
+        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
+        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
+        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
+        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
+        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
+<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
+● cloudera-scm-agent.service - Cloudera Manager Agent Service
+   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
+   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
+  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+ Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
+
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
+Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
+Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
+Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
+Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
+Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
+<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>CM</category>
+      </categories>
+      <tags>
+        <tag>CM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Centos安装Mysql</title>
     <url>/2022/03/11/Centos%E5%AE%89%E8%A3%85Mysql/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -784,91 +869,6 @@ done<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
       </categories>
       <tags>
         <tag>Mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CM宕机问题调查与修复</title>
-    <url>/2022/03/17/CM%E5%AE%95%E6%9C%BA%E9%97%AE%E9%A2%98%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>CM宕机问题调查与修复</li>
-</ul>
-<a id="more"></a>
-
-<h2 id="CM宕机问题调查与修复"><a href="#CM宕机问题调查与修复" class="headerlink" title="CM宕机问题调查与修复"></a>CM宕机问题调查与修复</h2><p>公司的Cloudera Manager宕机了，重启服务启动不起来<br>报错如下：<br><img src="/uploads/202203/CM%E5%AE%95%E6%9C%BA%E8%B0%83%E6%9F%A5%E4%B8%8E%E4%BF%AE%E5%A4%8D1.png" alt="CM宕机调查与修复1"></p>
-<h3 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h3><p>首先还是先重启服务，然后出现如上图的报错，然后点击<code>完整日志文件</code>，提示去<code>/var/log/cloudera-scm-eventserver/mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out</code>查看<br>查看日志，报错如下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-03-17 08:14:35,438 ERROR com.cloudera.cmon.pipeline.PipelineStage: tagger-writer stage encountered error
-com.cloudera.cmon.pipeline.ItemRejectedException: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:71)
-        at com.cloudera.cmf.eventcatcher.server.EventIngester$TaggerWriterReceiver.receiveItem(EventIngester.java:50)
-        at com.cloudera.cmon.pipeline.PipelineStage.driver(PipelineStage.java:273)
-        at com.cloudera.cmon.pipeline.PipelineStage$2.run(PipelineStage.java:149)
-        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-        at java.lang.Thread.run(Thread.java:748)
-Caused by: java.io.FileNotFoundException: &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver&#x2F;v3&#x2F;_b03j.fdt (No space left on device)
-        at java.io.RandomAccessFile.open0(Native Method)
-        at java.io.RandomAccessFile.open(RandomAccessFile.java:316)
-        at java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:243)
-        at org.apache.lucene.store.FSDirectory$FSIndexOutput.&lt;init&gt;(FSDirectory.java:441)
-        at org.apache.lucene.store.FSDirectory.createOutput(FSDirectory.java:306)
-        at org.apache.lucene.index.FieldsWriter.&lt;init&gt;(FieldsWriter.java:83)
-        at org.apache.lucene.index.StoredFieldsWriter.initFieldsWriter(StoredF2022-03-17 08:15:36,333 INFO com.cloudera.cmf.eventcatcher.server.EventCatcherService: Starting EventCatcherService. JVM Args: [-XX:+UseConcMarkSweepGC, -XX:+UseParNewGC, -Dmgmt.log.file&#x3D;mgmt-cmf-mgmt-EVENTSERVER-ddp1.log.out, -Djava.awt.headless&#x3D;true, -Djava.net.preferIPv4Stack&#x3D;true, -Xms1073741824, -Xmx1073741824, -XX:+HeapDumpOnOutOfMemoryError, -XX:HeapDumpPath&#x3D;&#x2F;tmp&#x2F;mgmt_mgmt-EVENTSERVER-3c8d72dc1ca356c08341427a2af41630_pid12858.hprof, -XX:OnOutOfMemoryError&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;service&#x2F;common&#x2F;killparent.sh], Args: [], Version: 6.2.0 (#968826 built by jenkins on 20190314-1704 git: 16bbe6211555460a860cf22d811680b35755ea81)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错是因为磁盘空间不足，然后清理磁盘<br>但是，清理磁盘过后，发现重启还是启动不起来。<br>在网上找了很多解决方法，其中一个是</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mv &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver &#x2F;var&#x2F;lib&#x2F;cloudera-scm-eventserver-old<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>经过测试，这种方法对我的情况不适用，还是启动不起来</p>
-<p>查看服务器进程，发现没有<code>cloudera-scm-agent</code>进程，只有<code>cloudera-scm-server</code>进程<br>查看status：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# systemctl status cloudera-scm-agent
-● cloudera-scm-agent.service - Cloudera Manager Agent Service
-   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;cloudera-scm-agent.service; enabled; vendor preset: disabled)
-   Active: inactive (dead) since Thu 2022-03-17 08:16:02 CST; 2h 40min ago
-  Process: 20187 ExecStart&#x3D;&#x2F;opt&#x2F;cloudera&#x2F;cm-agent&#x2F;bin&#x2F;cm agent (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
- Main PID: 20187 (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)
-
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file main.py, line 109<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>通过<code>journalctl -u cloudera-scm-agent</code>查看执行日志</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file agent.py, line 636
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device
-Mar 17 08:16:01 ddp1 cm[20187]: Logged from file cgroups.py, line 482
-Mar 17 08:16:01 ddp1 cm[20187]: Traceback (most recent call last):
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 875, in emit
-Mar 17 08:16:01 ddp1 cm[20187]: self.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: File &quot;&#x2F;usr&#x2F;lib64&#x2F;python2.7&#x2F;logging&#x2F;__init__.py&quot;, line 835, in flush
-Mar 17 08:16:01 ddp1 cm[20187]: self.stream.flush()
-Mar 17 08:16:01 ddp1 cm[20187]: IOError: [Errno 28] No space left on device<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>注意：我这里不断的重启CM，讲道理，agent服务应该启动很多次了，但是时间还是停留在早晨8点，就说明，后面的重启操作，其实还没有走到重启agent操作<br>应该还是在检查ddp1服务器的磁盘空间，但是ddp1上的agent进程已经没有了，所以server进程收不到ddp1磁盘已经正常的反馈。</p>
-<p>解决办法：<br>手动在ddp1服务器上启动<code>cloudera-scm-agent</code>进程：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start cloudera-scm-agent<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>之后在CM页面上重启<code>Cloudera Manager Service</code>服务。问题到此解决</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>CM</category>
-      </categories>
-      <tags>
-        <tag>CM</tag>
       </tags>
   </entry>
   <entry>
@@ -2491,28 +2491,32 @@ curl localhost:9200&#x2F;alibaba&#x2F;user&#x2F;_search<span aria-hidden="true" 
       </tags>
   </entry>
   <entry>
-    <title>FlinkCDC原理</title>
-    <url>/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>FlinkCDC概述</li>
-</ul>
-<a id="more"></a>
-
-
-<h2 id="FlinkCDC概述"><a href="#FlinkCDC概述" class="headerlink" title="FlinkCDC概述"></a>FlinkCDC概述</h2><p>支持 currentFetchEventTimeLag，currentEmitEventTimeLag，sourceIdleTime 监控指标<br>这些指标遵循 FLIP-33 [1] 的连接器指标规范，可以查看 FLIP-33 获取每个指标的含义。其中，<br>currentEmitEventTimeLag 指标记录的是 Source 发送一条记录到下游节点的时间点和该记录<br>在 DB 里产生时间点差值，用于衡量数据从 DB 产生到离开 Source 节点的延迟。用户可以通<br>过该指标判断 source 是否进入了 binlog 读取阶段：</p>
-<ul>
-<li>即当该指标为 0 时，代表还在全量历史读取阶段；</li>
-<li>当大于 0 时，则代表进入了 binlog 读取阶段。</li>
-</ul>
+    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
+    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
+<li>确认键盘的电源接通。 </li>
+<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
+<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
+</ol>
+<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
+<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
+<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
+<li>此时先在本机键盘上输入任意六位PIN</li>
+<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
+</ol>
+<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
+<ol>
+<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
+<li>键盘背面的清除键，拿笔点住2秒。</li>
+<li>再按数字键1-4的任意一个想清除配置的数字。</li>
+<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
+<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
+</ol>
+<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
 ]]></content>
       <categories>
-        <category>Flink</category>
-        <category>CDC</category>
+        <category>工具箱</category>
       </categories>
-      <tags>
-        <tag>CDC</tag>
-      </tags>
   </entry>
   <entry>
     <title>FlinkCDC与常用CDC对比</title>
@@ -3084,32 +3088,28 @@ canal.mq.partition&#x3D;0
       </tags>
   </entry>
   <entry>
-    <title>Filco圣手二代双模蓝牙机械键盘的连接方法</title>
-    <url>/2021/01/18/Filco%E5%9C%A3%E6%89%8B%E4%BA%8C%E4%BB%A3%E5%8F%8C%E6%A8%A1%E8%93%9D%E7%89%99%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="常规方法"><a href="#常规方法" class="headerlink" title="常规方法"></a>常规方法</h2><ol>
-<li>确认键盘的电源接通。 </li>
-<li>同时按下「Ctrl」+「Alt」+「Fn」执行装置切换模式。配对LED灯（蓝）和低电量显示LED灯（红）约同时亮10秒左右。</li>
-<li>想移除已登录的装置时，请从「蓝牙装置登录／切换键」①～④按下任一键</li>
-</ol>
-<h2 id="新添加的电脑"><a href="#新添加的电脑" class="headerlink" title="新添加的电脑"></a>新添加的电脑</h2><p>如果是新添加的电脑，会在首次配置的时候输入验证码，这时候，需要快速在键盘上按下验证码，输入后就可正常连接了<br>注意，如果失败的次数过多，那么就会提示输入PIN码</p>
-<h2 id="输入PIN码的方式（亲测可用）"><a href="#输入PIN码的方式（亲测可用）" class="headerlink" title="输入PIN码的方式（亲测可用）"></a>输入PIN码的方式（亲测可用）</h2><ol>
-<li>当你要连接蓝牙键盘的时电脑端出现输入PIN</li>
-<li>此时先在本机键盘上输入任意六位PIN</li>
-<li>接下来电脑开始验证时，迅速在你的蓝牙设备上输入刚才的六位PIN，然后回车，成功！</li>
-</ol>
-<h2 id="想要清楚以前绑定的设备（亲测可用）"><a href="#想要清楚以前绑定的设备（亲测可用）" class="headerlink" title="想要清楚以前绑定的设备（亲测可用）"></a>想要清楚以前绑定的设备（亲测可用）</h2><p>如果被绑定的①～④有某个想重新绑定新的电脑，可以按如下步骤：</p>
-<ol>
-<li>同时按下crtl+alt+Fn，红蓝灯闪烁4秒。</li>
-<li>键盘背面的清除键，拿笔点住2秒。</li>
-<li>再按数字键1-4的任意一个想清除配置的数字。</li>
-<li>然后从想连接的设备蓝牙列表中选择键盘，点击连接。</li>
-<li>该设备屏幕出现4或6位的配对码。在键盘上依次按下配对码，回车。OK，该设备与filco蓝牙键盘连接成功。</li>
-</ol>
-<p>这里只是为了记录一下，省的下次还要继续查度娘</p>
+    <title>FlinkCDC原理</title>
+    <url>/2022/03/23/FlinkCDC%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>FlinkCDC概述</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="FlinkCDC概述"><a href="#FlinkCDC概述" class="headerlink" title="FlinkCDC概述"></a>FlinkCDC概述</h2><p>支持 currentFetchEventTimeLag，currentEmitEventTimeLag，sourceIdleTime 监控指标<br>这些指标遵循 FLIP-33 [1] 的连接器指标规范，可以查看 FLIP-33 获取每个指标的含义。其中，<br>currentEmitEventTimeLag 指标记录的是 Source 发送一条记录到下游节点的时间点和该记录<br>在 DB 里产生时间点差值，用于衡量数据从 DB 产生到离开 Source 节点的延迟。用户可以通<br>过该指标判断 source 是否进入了 binlog 读取阶段：</p>
+<ul>
+<li>即当该指标为 0 时，代表还在全量历史读取阶段；</li>
+<li>当大于 0 时，则代表进入了 binlog 读取阶段。</li>
+</ul>
 ]]></content>
       <categories>
-        <category>工具箱</category>
+        <category>Flink</category>
+        <category>CDC</category>
       </categories>
+      <tags>
+        <tag>CDC</tag>
+      </tags>
   </entry>
   <entry>
     <title>FlinkSQL学习笔记</title>
@@ -4402,6 +4402,125 @@ protected abstract void abort(TXN transaction);</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>Flink学习笔记（二）</title>
+    <url>/2021/01/29/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Flink任务案例</li>
+<li>Flink的slot和并行度理解<a id="more"></a>
+<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><h3 id="Flink消费Kafka-自定义KafkaDeserializationSchema"><a href="#Flink消费Kafka-自定义KafkaDeserializationSchema" class="headerlink" title="Flink消费Kafka:自定义KafkaDeserializationSchema"></a>Flink消费Kafka:自定义KafkaDeserializationSchema</h3>Flink已经定义好的反序列化shema:</li>
+<li>SimpleStringSchema：返回的结果只有Kafka的value，没有其它信息：</li>
+<li>TypeInformationKeyValueSerializationSchema：返回的结果只有Kafka的key,value，没有其它信息</li>
+</ul>
+<p>如果需要获得Kafka的topic或者其它信息，就需要通过实现KafkaDeserializationSchema接口来自定义返回数据的结构</p>
+<ul>
+<li>自定义KafkaDeserializationSchema：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeHint</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeInformation</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">KafkaDeserializationSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span>clients<span class="token punctuation">.</span>consumer<span class="token punctuation">.</span></span><span class="token class-name">ConsumerRecord</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">Charset</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MyKafkaDeserializationSchema</span> <span class="token keyword">implements</span> <span class="token class-name">KafkaDeserializationSchema</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Charset</span> UTF_8 <span class="token operator">=</span> <span class="token class-name">Charset</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"UTF-8"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isEndOfStream</span><span class="token punctuation">(</span><span class="token class-name">String</span> nextElement<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">deserialize</span><span class="token punctuation">(</span><span class="token class-name">ConsumerRecord</span><span class="token operator">&lt;</span><span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">></span> consumerRecord<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> value <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">(</span>consumerRecord<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> UTF_8<span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">long</span> offset <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">offset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> partition <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">partition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">TypeInformation</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token function">getProducedType</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token class-name">TypeInformation</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">TypeHint</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//return null; //会报错</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+如果不重写，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Exception in thread &quot;main&quot; org.apache.flink.api.common.functions.InvalidTypesException: The return type of function &#39;Custom Source&#39; could not be determined automatically, due to type erasure. You can give type information hints by using the returns(...) method on the result of the transformation call, or by letting your function implement the &#39;ResultTypeQueryable&#39; interface.
+	at org.apache.flink.api.dag.Transformation.getOutputType(Transformation.java:479)
+	at org.apache.flink.streaming.api.datastream.DataStream.getType(DataStream.java:193)
+	at org.apache.flink.streaming.api.datastream.DataStream.flatMap(DataStream.java:613)
+	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:60)
+Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of TypeVariable &#39;OUT&#39; in &#39;interface org.apache.flink.streaming.api.functions.source.ParallelSourceFunction&#39; could not be determined. This is most likely a type erasure problem. The type extraction currently supports types with generic variables only in cases where all variables in the return type can be deduced from the input type(s). Otherwise the type has to be specified explicitly using type information.
+	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfoWithTypeHierarchy(TypeExtractor.java:923)
+	at org.apache.flink.api.java.typeutils.TypeExtractor.privateCreateTypeInfo(TypeExtractor.java:828)
+	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfo(TypeExtractor.java:787)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.getTypeInfo(StreamExecutionEnvironment.java:2287)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1681)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1668)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1637)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1623)
+	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:58)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>主类调用：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">Types</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">TimeCharacteristic</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer011</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
+
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 创建Flink执行环境</span>
+        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Kafka参数</span>
+        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"auto.offset.reset"</span><span class="token punctuation">,</span><span class="token string">"earliest"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"key.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"value.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
+        <span class="token comment">// Source</span>
+        <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> consumer <span class="token operator">=</span>
+                <span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>inputTopic<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">MyKafkaDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> properties<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        consumer<span class="token punctuation">.</span><span class="token function">setStartFromEarliest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>consumer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> wordCount <span class="token operator">=</span> stream
+                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span> line<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>line<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">returns</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span><span class="token function">TUPLE</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> <span class="token class-name">Types</span><span class="token punctuation">.</span>INT<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>key <span class="token operator">-></span> key<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+                <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>key <span class="token operator">-></span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span>f0 <span class="token operator">+</span> <span class="token string">":"</span> <span class="token operator">+</span> key<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+具体的可以参考<br><a href="https://my.oschina.net/u/2380815/blog/4453531">Flink实战：自定义KafkaDeserializationSchema(Java/Scala)</a></li>
+</ul>
+<h2 id="Flink的slot和并行度理解"><a href="#Flink的slot和并行度理解" class="headerlink" title="Flink的slot和并行度理解"></a>Flink的slot和并行度理解</h2><h3 id="Flink的Slot是什么？和Spark的Excutor有什么区别？"><a href="#Flink的Slot是什么？和Spark的Excutor有什么区别？" class="headerlink" title="Flink的Slot是什么？和Spark的Excutor有什么区别？"></a>Flink的Slot是什么？和Spark的Excutor有什么区别？</h3><h3 id="Slot和并行度之间有什么关系？"><a href="#Slot和并行度之间有什么关系？" class="headerlink" title="Slot和并行度之间有什么关系？"></a>Slot和并行度之间有什么关系？</h3><p>是每个slot都有几个并行度，还是说，并行度是整体任务的并行度，和每个slot没什么关系？</p>
+<h3 id="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"><a href="#假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据" class="headerlink" title="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"></a>假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据</h3>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+        <tag>Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Flink学习笔记（四）</title>
     <url>/2021/08/12/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E5%9B%9B%EF%BC%89/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -4566,125 +4685,6 @@ input
       </categories>
       <tags>
         <tag>Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Flink学习笔记（二）</title>
-    <url>/2021/01/29/Flink%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Flink任务案例</li>
-<li>Flink的slot和并行度理解<a id="more"></a>
-<h2 id="Flink任务案例"><a href="#Flink任务案例" class="headerlink" title="Flink任务案例"></a>Flink任务案例</h2><h3 id="Flink消费Kafka-自定义KafkaDeserializationSchema"><a href="#Flink消费Kafka-自定义KafkaDeserializationSchema" class="headerlink" title="Flink消费Kafka:自定义KafkaDeserializationSchema"></a>Flink消费Kafka:自定义KafkaDeserializationSchema</h3>Flink已经定义好的反序列化shema:</li>
-<li>SimpleStringSchema：返回的结果只有Kafka的value，没有其它信息：</li>
-<li>TypeInformationKeyValueSerializationSchema：返回的结果只有Kafka的key,value，没有其它信息</li>
-</ul>
-<p>如果需要获得Kafka的topic或者其它信息，就需要通过实现KafkaDeserializationSchema接口来自定义返回数据的结构</p>
-<ul>
-<li>自定义KafkaDeserializationSchema：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeHint</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">TypeInformation</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">KafkaDeserializationSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span>clients<span class="token punctuation">.</span>consumer<span class="token punctuation">.</span></span><span class="token class-name">ConsumerRecord</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>charset<span class="token punctuation">.</span></span><span class="token class-name">Charset</span><span class="token punctuation">;</span>
-
-<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MyKafkaDeserializationSchema</span> <span class="token keyword">implements</span> <span class="token class-name">KafkaDeserializationSchema</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Charset</span> UTF_8 <span class="token operator">=</span> <span class="token class-name">Charset</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"UTF-8"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isEndOfStream</span><span class="token punctuation">(</span><span class="token class-name">String</span> nextElement<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">deserialize</span><span class="token punctuation">(</span><span class="token class-name">ConsumerRecord</span><span class="token operator">&lt;</span><span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">></span> consumerRecord<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-        <span class="token class-name">String</span> value <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">(</span>consumerRecord<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> UTF_8<span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">long</span> offset <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">offset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">int</span> partition <span class="token operator">=</span> consumerRecord<span class="token punctuation">.</span><span class="token function">partition</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">return</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"%s,%s,%s"</span><span class="token punctuation">,</span>value<span class="token punctuation">,</span>offset<span class="token punctuation">,</span>partition<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-
-    <span class="token annotation punctuation">@Override</span>
-    <span class="token keyword">public</span> <span class="token class-name">TypeInformation</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token function">getProducedType</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-        <span class="token keyword">return</span> <span class="token class-name">TypeInformation</span><span class="token punctuation">.</span><span class="token function">of</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">TypeHint</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token comment">//return null; //会报错</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-如果不重写，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Exception in thread &quot;main&quot; org.apache.flink.api.common.functions.InvalidTypesException: The return type of function &#39;Custom Source&#39; could not be determined automatically, due to type erasure. You can give type information hints by using the returns(...) method on the result of the transformation call, or by letting your function implement the &#39;ResultTypeQueryable&#39; interface.
-	at org.apache.flink.api.dag.Transformation.getOutputType(Transformation.java:479)
-	at org.apache.flink.streaming.api.datastream.DataStream.getType(DataStream.java:193)
-	at org.apache.flink.streaming.api.datastream.DataStream.flatMap(DataStream.java:613)
-	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:60)
-Caused by: org.apache.flink.api.common.functions.InvalidTypesException: Type of TypeVariable &#39;OUT&#39; in &#39;interface org.apache.flink.streaming.api.functions.source.ParallelSourceFunction&#39; could not be determined. This is most likely a type erasure problem. The type extraction currently supports types with generic variables only in cases where all variables in the return type can be deduced from the input type(s). Otherwise the type has to be specified explicitly using type information.
-	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfoWithTypeHierarchy(TypeExtractor.java:923)
-	at org.apache.flink.api.java.typeutils.TypeExtractor.privateCreateTypeInfo(TypeExtractor.java:828)
-	at org.apache.flink.api.java.typeutils.TypeExtractor.createTypeInfo(TypeExtractor.java:787)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.getTypeInfo(StreamExecutionEnvironment.java:2287)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1681)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1668)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1637)
-	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.addSource(StreamExecutionEnvironment.java:1623)
-	at com.hzw.bigdata.flinkstudy.FlinkConsumerKafka.main(FlinkConsumerKafka.java:58)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>主类调用：<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>hzw<span class="token punctuation">.</span>bigdata<span class="token punctuation">.</span>flinkstudy</span><span class="token punctuation">;</span>
-
-
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>serialization<span class="token punctuation">.</span></span><span class="token class-name">SimpleStringSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>typeinfo<span class="token punctuation">.</span></span><span class="token class-name">Types</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>java<span class="token punctuation">.</span>tuple<span class="token punctuation">.</span></span><span class="token class-name">Tuple2</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">TimeCharacteristic</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStream</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>kafka<span class="token punctuation">.</span></span><span class="token class-name">FlinkKafkaConsumer011</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Collector</span><span class="token punctuation">;</span>
-
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
-
-
-<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FlinkConsumerKafka</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-        <span class="token comment">// 创建Flink执行环境</span>
-        <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">setParallelism</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token comment">// Kafka参数</span>
-        <span class="token class-name">Properties</span> properties <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Properties</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"bootstrap.servers"</span><span class="token punctuation">,</span> <span class="token string">"golden-02:9092"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"group.id"</span><span class="token punctuation">,</span> <span class="token string">"fink-test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"auto.offset.reset"</span><span class="token punctuation">,</span><span class="token string">"earliest"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"key.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        properties<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token string">"value.deserializer"</span><span class="token punctuation">,</span> <span class="token string">"org.apache.kafka.common.serialization.StringDeserializer"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">String</span> inputTopic <span class="token operator">=</span> <span class="token string">"first"</span><span class="token punctuation">;</span>
-        <span class="token comment">// Source</span>
-        <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> consumer <span class="token operator">=</span>
-                <span class="token keyword">new</span> <span class="token class-name">FlinkKafkaConsumer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>inputTopic<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">MyKafkaDeserializationSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> properties<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        consumer<span class="token punctuation">.</span><span class="token function">setStartFromEarliest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> stream <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">addSource</span><span class="token punctuation">(</span>consumer<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token class-name">DataStream</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Object</span><span class="token punctuation">></span></span> wordCount <span class="token operator">=</span> stream
-                <span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span> line<span class="token punctuation">,</span> <span class="token class-name">Collector</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple2</span><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span><span class="token punctuation">></span></span> collector<span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
-                    collector<span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Tuple2</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>line<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">returns</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span><span class="token function">TUPLE</span><span class="token punctuation">(</span><span class="token class-name">Types</span><span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> <span class="token class-name">Types</span><span class="token punctuation">.</span>INT<span class="token punctuation">)</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">keyBy</span><span class="token punctuation">(</span>key <span class="token operator">-></span> key<span class="token punctuation">.</span>f0<span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">sum</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
-                <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>key <span class="token operator">-></span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span>f0 <span class="token operator">+</span> <span class="token string">":"</span> <span class="token operator">+</span> key<span class="token punctuation">.</span>f1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        wordCount<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        env<span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token string">"kafka streaming word count"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-具体的可以参考<br><a href="https://my.oschina.net/u/2380815/blog/4453531">Flink实战：自定义KafkaDeserializationSchema(Java/Scala)</a></li>
-</ul>
-<h2 id="Flink的slot和并行度理解"><a href="#Flink的slot和并行度理解" class="headerlink" title="Flink的slot和并行度理解"></a>Flink的slot和并行度理解</h2><h3 id="Flink的Slot是什么？和Spark的Excutor有什么区别？"><a href="#Flink的Slot是什么？和Spark的Excutor有什么区别？" class="headerlink" title="Flink的Slot是什么？和Spark的Excutor有什么区别？"></a>Flink的Slot是什么？和Spark的Excutor有什么区别？</h3><h3 id="Slot和并行度之间有什么关系？"><a href="#Slot和并行度之间有什么关系？" class="headerlink" title="Slot和并行度之间有什么关系？"></a>Slot和并行度之间有什么关系？</h3><p>是每个slot都有几个并行度，还是说，并行度是整体任务的并行度，和每个slot没什么关系？</p>
-<h3 id="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"><a href="#假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据" class="headerlink" title="假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据"></a>假设kafka有10个分区，flink设置的并行度只有1，会启动几个线程来读这10个分区的数据</h3>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-        <tag>Kafka</tag>
       </tags>
   </entry>
   <entry>
@@ -5164,6 +5164,198 @@ chown -R hdfs:hadoop dfs<span aria-hidden="true" class="line-numbers-rows"><span
       </categories>
       <tags>
         <tag>Hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hbase数据压缩</title>
+    <url>/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Hbase数据压缩</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="Hbase数据压缩"><a href="#Hbase数据压缩" class="headerlink" title="Hbase数据压缩"></a>Hbase数据压缩</h1><h2 id="压缩格式的选择"><a href="#压缩格式的选择" class="headerlink" title="压缩格式的选择"></a>压缩格式的选择</h2><p>常用的几种压缩格式：lzo，gzip，snappy，bzip2，我们简单做一下对比，方便我们在实际场景中选择不同的压缩格式。</p>
+<ol>
+<li>支持特性对比：<br><img src="/uploads/202303/%E5%8E%8B%E7%BC%A9%E6%A0%BC%E5%BC%8F%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94.png" alt="压缩格式特性对比"></li>
+</ol>
+<ul>
+<li>压缩相关codec实现在org.apache.hadoop.io.compress包下面</li>
+<li>gzip算法hadoop内置支持，使用时直接处理文本数据一样，使用方便，压缩比高，缺点就是不支持split。如果压缩后文件与块大小相当，可以考虑使用gzip压缩，比如：小时原始日志压缩成gzip文件，使用方便。</li>
+<li>bzip2 支持split，压缩比高，支持多文件，缺点就是慢。</li>
+<li>lzo 压缩/解压速度也比较快，合理的压缩率；支持split(需要建索引，文件修改后需要重新建索引)，支持hadoop native库，需要自己安装；</li>
+<li>snappy 压缩/解压速度也比较快，合理的压缩率,不支持split，支持hadoop native库，需要自己安装。可以用于map中间结果的压缩。</li>
+</ul>
+<ol start="2">
+<li>性能对比<br><img src="/uploads/202303/%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9%E5%8E%8B%E7%BC%A9%E6%AF%94.png" alt="数据压缩压缩比"><br>是否压缩数据以及使用何种压缩格式对性能具有重要的影响,一般原则：</li>
+</ol>
+<ul>
+<li>需要平衡压缩和解压缩数据所需的能力、读写数据所需的磁盘 IO，以及在网络中发送数据所需的网络带宽。正确平衡这些因素有赖于集群和数据的特征，以及您的使用模式。</li>
+<li>如果数据已压缩（例如 JPEG 格式的图像），则不建议进行压缩。事实上，结果文件实际上可能大于原文件。</li>
+<li>GZIP 压缩使用的 CPU 资源比 Snappy 或 LZO 更多，但可提供更高的压缩比。GZIP 通常是不常访问的冷数据的不错选择。而 Snappy 或 LZO 则更加适合经常访问的热数据。</li>
+<li>BZip2 还可以为某些文件类型生成比 GZip 更多的压缩，但是压缩和解压缩时会在一定程度上影响速度。HBase 不支持 BZip2 压缩。</li>
+<li>Snappy 的表现通常比 LZO 好。应该运行测试以查看您是否检测到明显区别。</li>
+<li>对于 MapReduce，如果您需要已压缩数据可拆分，BZip2、LZO 和 Snappy 格式都可拆分，但是 GZip 不可以。可拆分性与 HBase 数据无关。</li>
+<li>对于 MapReduce，可以压缩中间数据、输出或二者。相应地调整您为 MapReduce 作业提供的参数。</li>
+</ul>
+<h2 id="压缩方式"><a href="#压缩方式" class="headerlink" title="压缩方式"></a>压缩方式</h2><h3 id="创建表的时候指定"><a href="#创建表的时候指定" class="headerlink" title="创建表的时候指定"></a>创建表的时候指定</h3><ol>
+<li>直接在hbase建表<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create &#39;gjc_test&#39;,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在phoenix建表<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> ORACLEARCHIVESPACECOLLECTED_LATEST_BAK<span class="token punctuation">(</span>
+EID                  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DEVICEID             <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+FLUMETIMESTAMP       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+COLLECTEDTIME        <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+COLLECTCONFIGID      <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+UPLOADDATAMODELCODE  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+SOURCE_DB_ID         <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_FILE_SYSTEM       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_BLOCKS            <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_USED              <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_AVAILABLE         <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_PERCENT_USE       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_MOUNTED_ON        <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+CMDNOTEXIST          <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+EXECERROR            <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+DF_PERCENT_USE_VALUE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+<span class="token keyword">CONSTRAINT</span> my_pk <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>EID<span class="token punctuation">,</span>DEVICEID<span class="token punctuation">,</span>FLUMETIMESTAMP<span class="token punctuation">,</span>SOURCE_DB_ID<span class="token punctuation">)</span>
+<span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="对已有的表的数据进行压缩"><a href="#对已有的表的数据进行压缩" class="headerlink" title="对已有的表的数据进行压缩"></a>对已有的表的数据进行压缩</h3></li>
+<li>在hbase中压缩<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 禁用表
+disable &#39;device_logs&#39;
+# 修改info列族的压缩格式
+alter &#39;device_logs&#39; ,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;
+# 启用表
+enable &#39;device_logs&#39;
+# 查看表信息
+describe &#39;device_logs&#39;
+# 手动触发major_compaction
+major_compact &#39;device_logs&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>通过phoenix方式压缩<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> SNMP_BIZ_CPU_LATEST <span class="token keyword">SET</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
+<span class="token comment">-- 在phoenix执行完后，如果想要数据文件立刻复制，需要手动触发major_compaction，在hbase执行</span>
+major_compact <span class="token string">'SNMP_BIZ_CPU_LATEST'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+注意：<br>这里踩了一个坑，如果hbase的表是使用phoenix建表的，那么数据压缩也需要使用phoneix去压缩，这里使用hbase压缩了100多个表，导致所有压缩的表在phoenix无法查询<br>原因： phoneix的数据编码和hbase的底层编码不一样。使用hbase数据压缩，相当于让hbase按照自己的编码格式去解析phoneix的底层数据，数据就乱了<br>这里使用了各种办法，最后都没有把数据恢复回来，最后没办法，把数据重写了。把roekey从表里其他字段获取出来<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> WINDOWSSECURITYCEV20201472COLLECTED<span class="token punctuation">(</span>
+    ROWKEY <span class="token keyword">VARCHAR</span> <span class="token operator">not</span> <span class="token boolean">null</span> <span class="token keyword">primary</span> <span class="token keyword">key</span><span class="token punctuation">,</span>
+    DEVICEID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    EID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COLLECTEDTIME <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COLLECTCONFIGID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    UPLOADDATAMODELCODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    DEVICECOLLECTDETAILID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    CODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    MESSAGE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    PS_CODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>            
+    <span class="token keyword">DATA</span>     <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>            
+    ERROR_MESSAGE   <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>     
+    OPERATING_SYSTEM  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>   
+    DOMAIN_CONTROLLER    <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    UPDATE_STATE_MESSAGE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
+    COMPLIANCE          <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span> 
+    ENFORCEMENT       <span class="token keyword">VARCHAR</span>   
+<span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
+hbase org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hbase<span class="token punctuation">.</span>mapreduce<span class="token punctuation">.</span>CopyTable <span class="token comment">--new.name=WINDOWSSECURITYCEV20201472COLLECTED_BAK WINDOWSSECURITYCEV20201472COLLECTED</span>
+
+upsert <span class="token keyword">into</span> WINDOWSSECURITYCEV20201472COLLECTED
+<span class="token keyword">select</span> DEVICEID  <span class="token operator">||</span> to_char<span class="token punctuation">(</span>to_number<span class="token punctuation">(</span>to_date<span class="token punctuation">(</span>COLLECTEDTIME<span class="token punctuation">,</span><span class="token string">'yyyy-MM-dd hh:mm:ss'</span><span class="token punctuation">,</span><span class="token string">'GMT+8'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token string">'#'</span><span class="token punctuation">)</span>      <span class="token punctuation">,</span>
+       DEVICEID             <span class="token punctuation">,</span>
+       EID                  <span class="token punctuation">,</span>
+       COLLECTEDTIME        <span class="token punctuation">,</span>
+       COLLECTCONFIGID      <span class="token punctuation">,</span>
+       UPLOADDATAMODELCODE  <span class="token punctuation">,</span>
+       DEVICECOLLECTDETAILID<span class="token punctuation">,</span>
+       CODE                 <span class="token punctuation">,</span>
+       MESSAGE              <span class="token punctuation">,</span>
+       PS_CODE              <span class="token punctuation">,</span>
+       <span class="token keyword">DATA</span>                 <span class="token punctuation">,</span>
+       ERROR_MESSAGE        <span class="token punctuation">,</span>
+       OPERATING_SYSTEM     <span class="token punctuation">,</span>
+       DOMAIN_CONTROLLER    <span class="token punctuation">,</span>
+       UPDATE_STATE_MESSAGE <span class="token punctuation">,</span>
+       COMPLIANCE           <span class="token punctuation">,</span>
+       ENFORCEMENT          
+<span class="token keyword">from</span> WINDOWSSECURITYCEV20201472COLLECTED_BAK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="使用YCSB测试Hbase读写性能"><a href="#使用YCSB测试Hbase读写性能" class="headerlink" title="使用YCSB测试Hbase读写性能"></a>使用YCSB测试Hbase读写性能</h2>YCSB工具安装：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 到githup上下载ycsb-hbase20-binding-0.17.0.tar.gz
+https:&#x2F;&#x2F;github.com&#x2F;brianfrankcooper&#x2F;YCSB&#x2F;releases&#x2F;tag&#x2F;0.17.0
+cd &#x2F;root&#x2F;gujc&#x2F;ycsb-hbase20-binding-0.17.0&#x2F;workloads
+cat workloada
+recordcount&#x3D;150000
+operationcount&#x3D;150000
+workload&#x3D;site.ycsb.workloads.CoreWorkload
+
+readallfields&#x3D;true
+
+readproportion&#x3D;0.5
+updateproportion&#x3D;0.5
+scanproportion&#x3D;0
+insertproportion&#x3D;0
+
+requestdistribution&#x3D;zipfian
+# 生成数据
+bin&#x2F;ycsb load hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info
+# 测试数据
+bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="HBase中的Compaction详解"><a href="#HBase中的Compaction详解" class="headerlink" title="HBase中的Compaction详解"></a>HBase中的Compaction详解</h2>HBase是基于一种LSM-Tree（Log-Structured Merge Tree）存储模型设计的，写入路径上是先写入WAL（Write-Ahead-Log）即预写日志，再写入memstore缓存，满足一定条件后执行flush操作将缓存数据刷写到磁盘，生成一个HFile数据文件。随着数据不断写入，磁盘HFile文件就会越来越多，文件太多会影响HBase查询性能，主要体现在查询数据的io次数增加。为了优化查询性能，HBase会合并小的HFile以减少文件数量，这种合并HFile的操作称为Compaction，这也是为什么要进行Compaction的主要原因。<h3 id="Compaction的作用"><a href="#Compaction的作用" class="headerlink" title="Compaction的作用"></a>Compaction的作用</h3>其实Compaction操作属于资源密集型操作特别是IO密集型，这点后面也会提及到，Compaction其实就是以短时间内的IO消耗，以换取相对稳定的读取性能。<h3 id="Compaction-分类"><a href="#Compaction-分类" class="headerlink" title="Compaction 分类"></a>Compaction 分类</h3>HBase Compaction分为两种：Minor Compaction 与 Major Compaction，通常我们简称为小合并、大合并。<br><img src="/uploads/202303/Compaction%E5%88%86%E7%B1%BB.png" alt="hbase集群告警-压缩队列"><br>Minor Compaction：指选取一些小的、相邻的HFile将他们合并成一个更大的HFile。默认情况下，minor compaction会删除选取HFile中的TTL过期数据。<br>Major Compaction：指将一个Store中所有的HFile合并成一个HFile，这个过程会清理三类没有意义的数据：被删除的数据（打了Delete标记的数据）、TTL过期数据、版本号超过设定版本号的数据。另外，一般情况下，Major Compaction时间会持续比较长，整个过程会消耗大量系统资源，对上层业务有比较大的影响。因此，生产环境下通常关闭自动触发Major Compaction功能，改为手动在业务低峰期触发。<blockquote>
+<p>这里值得关注，默认情况下Minor Compaction也会删除数据，但只是删除合并HFile中的TTL过期数据。Major Compaction是完全删除无效数据，包括被删除的数据、TTL过期数据以及版本号过大的数据。</p>
+</blockquote>
+<h3 id="Compaction-触发条件"><a href="#Compaction-触发条件" class="headerlink" title="Compaction 触发条件"></a>Compaction 触发条件</h3>HBase触发Compaction的条件有三种：</li>
+<li>memstore Flush<br>可以说compaction的根源就在于flush，memstore 达到一定阈值或其他条件时就会触发flush刷写到磁盘生成HFile文件，正是因为HFile文件越来越多才需要compact。HBase每次flush之后，都会判断是否要进行compaction，一旦满足minor compaction或major compaction的条件便会触发执行。</li>
+<li>后台线程周期性检查<br>后台线程 CompactionChecker 会定期检查是否需要执行compaction，检查周期为hbase.server.thread.wakefrequency * hbase.server.compactchecker.interval.multiplier，这里主要考虑的是一段时间内没有写入请求仍然需要做compact检查。其中参数 hbase.server.thread.wakefrequency 默认值 10000 即 10s，是HBase服务端线程唤醒时间间隔，用于log roller、memstore flusher等操作周期性检查；参数 hbase.server.compactchecker.interval.multiplier 默认值1000，是compaction操作周期性检查乘数因子。10 * 1000 s 时间上约等于2hrs, 46mins, 40sec。</li>
+<li>手动触发<br>是指通过HBase Shell、Master UI界面或者HBase API等任一种方式 执行 compact、major_compact等命令。（这里主要指的是Major Compact）</li>
+</ol>
+<p>注意：HBase RS内部设计了两个线程池：large compactions与small compactions，用来分开处理Compaction操作，如果待合并文件的总大小大于（2 * hbase.hstore.compaction.max * hbase.hregion.memstore.flush.size）则交给large compactions线程池处理，否则交给small compactions线程池处理。</p>
+<h3 id="Compaction-参数解析"><a href="#Compaction-参数解析" class="headerlink" title="Compaction 参数解析"></a>Compaction 参数解析</h3><h4 id="Major-Compaction-参数"><a href="#Major-Compaction-参数" class="headerlink" title="Major Compaction 参数"></a>Major Compaction 参数</h4><p>Major Compaction涉及的参数比较少，主要有大合并时间间隔与一个抖动参数因子，如下：</p>
+<ol>
+<li><code>hbase.hregion.majorcompaction</code>:Major compaction周期性时间间隔，默认值604800000，单位ms。</li>
+</ol>
+<blockquote>
+<p>表示major compaction默认7天调度一次，HBase 0.96.x及之前默认为1天调度一次。设置为 0 时表示禁用自动触发major compaction。需要强调的是一般major compaction持续时间较长、系统资源消耗较大，对上层业务也有比较大的影响，一般生产环境下为了避免影响读写请求，会禁用自动触发major compaction。</p>
+</blockquote>
+<ol start="2">
+<li><code>hbase.hregion.majorcompaction.jitter</code>:Major compaction抖动参数，默认值0.5</li>
+</ol>
+<blockquote>
+<p>这个参数是为了避免major compaction同时在各个regionserver上同时发生，避免此操作给集群带来很大压力。 这样节点major compaction就会在 + 或 - 两者乘积的时间范围内随机发生。</p>
+</blockquote>
+<h3 id="Minor-Compaction-参数"><a href="#Minor-Compaction-参数" class="headerlink" title="Minor Compaction 参数"></a>Minor Compaction 参数</h3><p>Minor compaction涉及的参数比major compaction要多，各个参数的目标是为了选择合适的HFile：</p>
+<ol>
+<li><code>hbase.hstore.compaction.min</code> : 一次minor compaction最少合并的HFile数量，默认值 3。<blockquote>
+<p>表示至少有3个符合条件的HFile，minor compaction才会启动。一般情况下不建议调整该参数。如果要调整，不建议调小该参数，这样会带来更频繁的压缩，调大该参数的同时其他相关参数也应该做调整。早期参数名称为 hbase.hstore.compactionthreshold。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.max</code>: 一次minor compaction最多合并的HFile数量，默认值 10。<blockquote>
+<p>这个参数也是控制着一次压缩的时间。一般情况下不建议调整该参数。调大该值意味着一次compaction将会合并更多的HFile，压缩时间将会延长。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.min.size</code>:文件大小 &lt; 该参数值的HFile一定是适合进行minor compaction文件，默认值 128M（memstore flush size）<blockquote>
+<p>意味着小于该大小的HFile将会自动加入（automatic include）压缩队列。一般情况下不建议调整该参数。但是，在write-heavy就是写压力非常大的场景，可能需要微调该参数、减小参数值，假如每次memstore大小达到1~2M时就会flush生成HFile，此时生成的每个HFile都会加入压缩队列，而且压缩生成的HFile仍然可能小于该配置值会再次加入压缩队列，这样将会导致压缩队列持续很长。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.max.size</code>:文件大小 &gt; 该参数值的HFile将会被排除，不会加入minor compaction，默认值Long.MAX_VALUE<blockquote>
+<p>没有什么限制。一般情况下也不建议调整该参数。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.ratio</code>:这个ratio参数的作用是判断文件大小 &gt; hbase.hstore.compaction.min.size的HFile是否也是适合进行minor compaction的，默认值1.2<blockquote>
+<p>更大的值将压缩产生更大的HFile，建议取值范围在1.0~1.4之间。大多数场景下也不建议调整该参数。</p>
+</blockquote>
+</li>
+<li><code>hbase.hstore.compaction.ratio.offpeak</code>: 此参数与compaction ratio参数含义相同，是在原有文件选择策略基础上增加了一个非高峰期的ratio控制，默认值5.0。<blockquote>
+<p>这个参数受另外两个参数 hbase.offpeak.start.hour 与 hbase.offpeak.end.hour 控制，这两个参数值为[0, 23]的整数，用于定义非高峰期时间段，默认值均为-1表示禁用非高峰期ratio设置。</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="Compaction-总结"><a href="#Compaction-总结" class="headerlink" title="Compaction 总结"></a>Compaction 总结</h3><p>HBase Compaction操作是为了数据读取做的优化，总的来说是以牺牲磁盘io来换取读性能的基本稳定。Compaction操作分为minor compaction与major compaction，其中major compaction消耗资源较大、对读写请求有一定影响，因此一般是禁用自动周期性执行而选择业务低峰期时手动执行。</p>
+<p>具体可以参考<a href="http://hbasefly.com/2016/07/13/hbase-compaction-1/">HBase Compaction的前生今世－身世之旅</a><br><a href="https://blog.csdn.net/Lzx116/article/details/125215951">Hbase的MinorCompact过程解析及参数调优</a></p>
+<h2 id="hbase性能优化"><a href="#hbase性能优化" class="headerlink" title="hbase性能优化"></a>hbase性能优化</h2><p>在阿里云正式区做数据压缩的时候，因为这个集群内有一张表单表数据量就有6T，表太大了，不敢随便压缩，并且，hbase集群一直在告警<br><img src="/uploads/202303/hbase%E9%9B%86%E7%BE%A4%E5%91%8A%E8%AD%A6-%E5%8E%8B%E7%BC%A9%E9%98%9F%E5%88%97.png" alt="hbase集群告警-压缩队列"></p>
+<h3 id="分析原因"><a href="#分析原因" class="headerlink" title="分析原因"></a>分析原因</h3><p>这里分析了一下告警原因：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">5.6 T    6.3 T    &#x2F;hbase&#x2F;data&#x2F;default&#x2F;TraceV2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>TraceV2这张表每个小时能增长40G的数据，并且，该表设置了TTL，也就是说，每小时它要写40G数据，然后还要清理掉40G的数据。这么频繁的写操作，就会造成频繁的compaction</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>因此需要对hbase做性能优化</p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hbase</category>
+      </categories>
+      <tags>
+        <tag>Hbase</tag>
       </tags>
   </entry>
   <entry>
@@ -5850,198 +6042,6 @@ rs <span class="token operator">=</span> stmt<span class="token punctuation">.</
       </tags>
   </entry>
   <entry>
-    <title>Hbase数据压缩</title>
-    <url>/2023/04/26/Hbase%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Hbase数据压缩</li>
-</ul>
-<a id="more"></a>
-
-<h1 id="Hbase数据压缩"><a href="#Hbase数据压缩" class="headerlink" title="Hbase数据压缩"></a>Hbase数据压缩</h1><h2 id="压缩格式的选择"><a href="#压缩格式的选择" class="headerlink" title="压缩格式的选择"></a>压缩格式的选择</h2><p>常用的几种压缩格式：lzo，gzip，snappy，bzip2，我们简单做一下对比，方便我们在实际场景中选择不同的压缩格式。</p>
-<ol>
-<li>支持特性对比：<br><img src="/uploads/202303/%E5%8E%8B%E7%BC%A9%E6%A0%BC%E5%BC%8F%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94.png" alt="压缩格式特性对比"></li>
-</ol>
-<ul>
-<li>压缩相关codec实现在org.apache.hadoop.io.compress包下面</li>
-<li>gzip算法hadoop内置支持，使用时直接处理文本数据一样，使用方便，压缩比高，缺点就是不支持split。如果压缩后文件与块大小相当，可以考虑使用gzip压缩，比如：小时原始日志压缩成gzip文件，使用方便。</li>
-<li>bzip2 支持split，压缩比高，支持多文件，缺点就是慢。</li>
-<li>lzo 压缩/解压速度也比较快，合理的压缩率；支持split(需要建索引，文件修改后需要重新建索引)，支持hadoop native库，需要自己安装；</li>
-<li>snappy 压缩/解压速度也比较快，合理的压缩率,不支持split，支持hadoop native库，需要自己安装。可以用于map中间结果的压缩。</li>
-</ul>
-<ol start="2">
-<li>性能对比<br><img src="/uploads/202303/%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9%E5%8E%8B%E7%BC%A9%E6%AF%94.png" alt="数据压缩压缩比"><br>是否压缩数据以及使用何种压缩格式对性能具有重要的影响,一般原则：</li>
-</ol>
-<ul>
-<li>需要平衡压缩和解压缩数据所需的能力、读写数据所需的磁盘 IO，以及在网络中发送数据所需的网络带宽。正确平衡这些因素有赖于集群和数据的特征，以及您的使用模式。</li>
-<li>如果数据已压缩（例如 JPEG 格式的图像），则不建议进行压缩。事实上，结果文件实际上可能大于原文件。</li>
-<li>GZIP 压缩使用的 CPU 资源比 Snappy 或 LZO 更多，但可提供更高的压缩比。GZIP 通常是不常访问的冷数据的不错选择。而 Snappy 或 LZO 则更加适合经常访问的热数据。</li>
-<li>BZip2 还可以为某些文件类型生成比 GZip 更多的压缩，但是压缩和解压缩时会在一定程度上影响速度。HBase 不支持 BZip2 压缩。</li>
-<li>Snappy 的表现通常比 LZO 好。应该运行测试以查看您是否检测到明显区别。</li>
-<li>对于 MapReduce，如果您需要已压缩数据可拆分，BZip2、LZO 和 Snappy 格式都可拆分，但是 GZip 不可以。可拆分性与 HBase 数据无关。</li>
-<li>对于 MapReduce，可以压缩中间数据、输出或二者。相应地调整您为 MapReduce 作业提供的参数。</li>
-</ul>
-<h2 id="压缩方式"><a href="#压缩方式" class="headerlink" title="压缩方式"></a>压缩方式</h2><h3 id="创建表的时候指定"><a href="#创建表的时候指定" class="headerlink" title="创建表的时候指定"></a>创建表的时候指定</h3><ol>
-<li>直接在hbase建表<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create &#39;gjc_test&#39;,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>在phoenix建表<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> ORACLEARCHIVESPACECOLLECTED_LATEST_BAK<span class="token punctuation">(</span>
-EID                  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-DEVICEID             <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-FLUMETIMESTAMP       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-COLLECTEDTIME        <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-COLLECTCONFIGID      <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-UPLOADDATAMODELCODE  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-SOURCE_DB_ID         <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-DF_FILE_SYSTEM       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-DF_BLOCKS            <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-DF_USED              <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-DF_AVAILABLE         <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-DF_PERCENT_USE       <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-DF_MOUNTED_ON        <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-CMDNOTEXIST          <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-EXECERROR            <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-DF_PERCENT_USE_VALUE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-<span class="token keyword">CONSTRAINT</span> my_pk <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>EID<span class="token punctuation">,</span>DEVICEID<span class="token punctuation">,</span>FLUMETIMESTAMP<span class="token punctuation">,</span>SOURCE_DB_ID<span class="token punctuation">)</span>
-<span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="对已有的表的数据进行压缩"><a href="#对已有的表的数据进行压缩" class="headerlink" title="对已有的表的数据进行压缩"></a>对已有的表的数据进行压缩</h3></li>
-<li>在hbase中压缩<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 禁用表
-disable &#39;device_logs&#39;
-# 修改info列族的压缩格式
-alter &#39;device_logs&#39; ,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;
-# 启用表
-enable &#39;device_logs&#39;
-# 查看表信息
-describe &#39;device_logs&#39;
-# 手动触发major_compaction
-major_compact &#39;device_logs&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>通过phoenix方式压缩<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> SNMP_BIZ_CPU_LATEST <span class="token keyword">SET</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
-<span class="token comment">-- 在phoenix执行完后，如果想要数据文件立刻复制，需要手动触发major_compaction，在hbase执行</span>
-major_compact <span class="token string">'SNMP_BIZ_CPU_LATEST'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-注意：<br>这里踩了一个坑，如果hbase的表是使用phoenix建表的，那么数据压缩也需要使用phoneix去压缩，这里使用hbase压缩了100多个表，导致所有压缩的表在phoenix无法查询<br>原因： phoneix的数据编码和hbase的底层编码不一样。使用hbase数据压缩，相当于让hbase按照自己的编码格式去解析phoneix的底层数据，数据就乱了<br>这里使用了各种办法，最后都没有把数据恢复回来，最后没办法，把数据重写了。把roekey从表里其他字段获取出来<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> WINDOWSSECURITYCEV20201472COLLECTED<span class="token punctuation">(</span>
-    ROWKEY <span class="token keyword">VARCHAR</span> <span class="token operator">not</span> <span class="token boolean">null</span> <span class="token keyword">primary</span> <span class="token keyword">key</span><span class="token punctuation">,</span>
-    DEVICEID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    EID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    COLLECTEDTIME <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    COLLECTCONFIGID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    UPLOADDATAMODELCODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    DEVICECOLLECTDETAILID <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    CODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    MESSAGE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    PS_CODE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>            
-    <span class="token keyword">DATA</span>     <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>            
-    ERROR_MESSAGE   <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>     
-    OPERATING_SYSTEM  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>   
-    DOMAIN_CONTROLLER    <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    UPDATE_STATE_MESSAGE <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
-    COMPLIANCE          <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span> 
-    ENFORCEMENT       <span class="token keyword">VARCHAR</span>   
-<span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
-hbase org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hbase<span class="token punctuation">.</span>mapreduce<span class="token punctuation">.</span>CopyTable <span class="token comment">--new.name=WINDOWSSECURITYCEV20201472COLLECTED_BAK WINDOWSSECURITYCEV20201472COLLECTED</span>
-
-upsert <span class="token keyword">into</span> WINDOWSSECURITYCEV20201472COLLECTED
-<span class="token keyword">select</span> DEVICEID  <span class="token operator">||</span> to_char<span class="token punctuation">(</span>to_number<span class="token punctuation">(</span>to_date<span class="token punctuation">(</span>COLLECTEDTIME<span class="token punctuation">,</span><span class="token string">'yyyy-MM-dd hh:mm:ss'</span><span class="token punctuation">,</span><span class="token string">'GMT+8'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token string">'#'</span><span class="token punctuation">)</span>      <span class="token punctuation">,</span>
-       DEVICEID             <span class="token punctuation">,</span>
-       EID                  <span class="token punctuation">,</span>
-       COLLECTEDTIME        <span class="token punctuation">,</span>
-       COLLECTCONFIGID      <span class="token punctuation">,</span>
-       UPLOADDATAMODELCODE  <span class="token punctuation">,</span>
-       DEVICECOLLECTDETAILID<span class="token punctuation">,</span>
-       CODE                 <span class="token punctuation">,</span>
-       MESSAGE              <span class="token punctuation">,</span>
-       PS_CODE              <span class="token punctuation">,</span>
-       <span class="token keyword">DATA</span>                 <span class="token punctuation">,</span>
-       ERROR_MESSAGE        <span class="token punctuation">,</span>
-       OPERATING_SYSTEM     <span class="token punctuation">,</span>
-       DOMAIN_CONTROLLER    <span class="token punctuation">,</span>
-       UPDATE_STATE_MESSAGE <span class="token punctuation">,</span>
-       COMPLIANCE           <span class="token punctuation">,</span>
-       ENFORCEMENT          
-<span class="token keyword">from</span> WINDOWSSECURITYCEV20201472COLLECTED_BAK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="使用YCSB测试Hbase读写性能"><a href="#使用YCSB测试Hbase读写性能" class="headerlink" title="使用YCSB测试Hbase读写性能"></a>使用YCSB测试Hbase读写性能</h2>YCSB工具安装：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 到githup上下载ycsb-hbase20-binding-0.17.0.tar.gz
-https:&#x2F;&#x2F;github.com&#x2F;brianfrankcooper&#x2F;YCSB&#x2F;releases&#x2F;tag&#x2F;0.17.0
-cd &#x2F;root&#x2F;gujc&#x2F;ycsb-hbase20-binding-0.17.0&#x2F;workloads
-cat workloada
-recordcount&#x3D;150000
-operationcount&#x3D;150000
-workload&#x3D;site.ycsb.workloads.CoreWorkload
-
-readallfields&#x3D;true
-
-readproportion&#x3D;0.5
-updateproportion&#x3D;0.5
-scanproportion&#x3D;0
-insertproportion&#x3D;0
-
-requestdistribution&#x3D;zipfian
-# 生成数据
-bin&#x2F;ycsb load hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info
-# 测试数据
-bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="HBase中的Compaction详解"><a href="#HBase中的Compaction详解" class="headerlink" title="HBase中的Compaction详解"></a>HBase中的Compaction详解</h2>HBase是基于一种LSM-Tree（Log-Structured Merge Tree）存储模型设计的，写入路径上是先写入WAL（Write-Ahead-Log）即预写日志，再写入memstore缓存，满足一定条件后执行flush操作将缓存数据刷写到磁盘，生成一个HFile数据文件。随着数据不断写入，磁盘HFile文件就会越来越多，文件太多会影响HBase查询性能，主要体现在查询数据的io次数增加。为了优化查询性能，HBase会合并小的HFile以减少文件数量，这种合并HFile的操作称为Compaction，这也是为什么要进行Compaction的主要原因。<h3 id="Compaction的作用"><a href="#Compaction的作用" class="headerlink" title="Compaction的作用"></a>Compaction的作用</h3>其实Compaction操作属于资源密集型操作特别是IO密集型，这点后面也会提及到，Compaction其实就是以短时间内的IO消耗，以换取相对稳定的读取性能。<h3 id="Compaction-分类"><a href="#Compaction-分类" class="headerlink" title="Compaction 分类"></a>Compaction 分类</h3>HBase Compaction分为两种：Minor Compaction 与 Major Compaction，通常我们简称为小合并、大合并。<br><img src="/uploads/202303/Compaction%E5%88%86%E7%B1%BB.png" alt="hbase集群告警-压缩队列"><br>Minor Compaction：指选取一些小的、相邻的HFile将他们合并成一个更大的HFile。默认情况下，minor compaction会删除选取HFile中的TTL过期数据。<br>Major Compaction：指将一个Store中所有的HFile合并成一个HFile，这个过程会清理三类没有意义的数据：被删除的数据（打了Delete标记的数据）、TTL过期数据、版本号超过设定版本号的数据。另外，一般情况下，Major Compaction时间会持续比较长，整个过程会消耗大量系统资源，对上层业务有比较大的影响。因此，生产环境下通常关闭自动触发Major Compaction功能，改为手动在业务低峰期触发。<blockquote>
-<p>这里值得关注，默认情况下Minor Compaction也会删除数据，但只是删除合并HFile中的TTL过期数据。Major Compaction是完全删除无效数据，包括被删除的数据、TTL过期数据以及版本号过大的数据。</p>
-</blockquote>
-<h3 id="Compaction-触发条件"><a href="#Compaction-触发条件" class="headerlink" title="Compaction 触发条件"></a>Compaction 触发条件</h3>HBase触发Compaction的条件有三种：</li>
-<li>memstore Flush<br>可以说compaction的根源就在于flush，memstore 达到一定阈值或其他条件时就会触发flush刷写到磁盘生成HFile文件，正是因为HFile文件越来越多才需要compact。HBase每次flush之后，都会判断是否要进行compaction，一旦满足minor compaction或major compaction的条件便会触发执行。</li>
-<li>后台线程周期性检查<br>后台线程 CompactionChecker 会定期检查是否需要执行compaction，检查周期为hbase.server.thread.wakefrequency * hbase.server.compactchecker.interval.multiplier，这里主要考虑的是一段时间内没有写入请求仍然需要做compact检查。其中参数 hbase.server.thread.wakefrequency 默认值 10000 即 10s，是HBase服务端线程唤醒时间间隔，用于log roller、memstore flusher等操作周期性检查；参数 hbase.server.compactchecker.interval.multiplier 默认值1000，是compaction操作周期性检查乘数因子。10 * 1000 s 时间上约等于2hrs, 46mins, 40sec。</li>
-<li>手动触发<br>是指通过HBase Shell、Master UI界面或者HBase API等任一种方式 执行 compact、major_compact等命令。（这里主要指的是Major Compact）</li>
-</ol>
-<p>注意：HBase RS内部设计了两个线程池：large compactions与small compactions，用来分开处理Compaction操作，如果待合并文件的总大小大于（2 * hbase.hstore.compaction.max * hbase.hregion.memstore.flush.size）则交给large compactions线程池处理，否则交给small compactions线程池处理。</p>
-<h3 id="Compaction-参数解析"><a href="#Compaction-参数解析" class="headerlink" title="Compaction 参数解析"></a>Compaction 参数解析</h3><h4 id="Major-Compaction-参数"><a href="#Major-Compaction-参数" class="headerlink" title="Major Compaction 参数"></a>Major Compaction 参数</h4><p>Major Compaction涉及的参数比较少，主要有大合并时间间隔与一个抖动参数因子，如下：</p>
-<ol>
-<li><code>hbase.hregion.majorcompaction</code>:Major compaction周期性时间间隔，默认值604800000，单位ms。</li>
-</ol>
-<blockquote>
-<p>表示major compaction默认7天调度一次，HBase 0.96.x及之前默认为1天调度一次。设置为 0 时表示禁用自动触发major compaction。需要强调的是一般major compaction持续时间较长、系统资源消耗较大，对上层业务也有比较大的影响，一般生产环境下为了避免影响读写请求，会禁用自动触发major compaction。</p>
-</blockquote>
-<ol start="2">
-<li><code>hbase.hregion.majorcompaction.jitter</code>:Major compaction抖动参数，默认值0.5</li>
-</ol>
-<blockquote>
-<p>这个参数是为了避免major compaction同时在各个regionserver上同时发生，避免此操作给集群带来很大压力。 这样节点major compaction就会在 + 或 - 两者乘积的时间范围内随机发生。</p>
-</blockquote>
-<h3 id="Minor-Compaction-参数"><a href="#Minor-Compaction-参数" class="headerlink" title="Minor Compaction 参数"></a>Minor Compaction 参数</h3><p>Minor compaction涉及的参数比major compaction要多，各个参数的目标是为了选择合适的HFile：</p>
-<ol>
-<li><code>hbase.hstore.compaction.min</code> : 一次minor compaction最少合并的HFile数量，默认值 3。<blockquote>
-<p>表示至少有3个符合条件的HFile，minor compaction才会启动。一般情况下不建议调整该参数。如果要调整，不建议调小该参数，这样会带来更频繁的压缩，调大该参数的同时其他相关参数也应该做调整。早期参数名称为 hbase.hstore.compactionthreshold。</p>
-</blockquote>
-</li>
-<li><code>hbase.hstore.compaction.max</code>: 一次minor compaction最多合并的HFile数量，默认值 10。<blockquote>
-<p>这个参数也是控制着一次压缩的时间。一般情况下不建议调整该参数。调大该值意味着一次compaction将会合并更多的HFile，压缩时间将会延长。</p>
-</blockquote>
-</li>
-<li><code>hbase.hstore.compaction.min.size</code>:文件大小 &lt; 该参数值的HFile一定是适合进行minor compaction文件，默认值 128M（memstore flush size）<blockquote>
-<p>意味着小于该大小的HFile将会自动加入（automatic include）压缩队列。一般情况下不建议调整该参数。但是，在write-heavy就是写压力非常大的场景，可能需要微调该参数、减小参数值，假如每次memstore大小达到1~2M时就会flush生成HFile，此时生成的每个HFile都会加入压缩队列，而且压缩生成的HFile仍然可能小于该配置值会再次加入压缩队列，这样将会导致压缩队列持续很长。</p>
-</blockquote>
-</li>
-<li><code>hbase.hstore.compaction.max.size</code>:文件大小 &gt; 该参数值的HFile将会被排除，不会加入minor compaction，默认值Long.MAX_VALUE<blockquote>
-<p>没有什么限制。一般情况下也不建议调整该参数。</p>
-</blockquote>
-</li>
-<li><code>hbase.hstore.compaction.ratio</code>:这个ratio参数的作用是判断文件大小 &gt; hbase.hstore.compaction.min.size的HFile是否也是适合进行minor compaction的，默认值1.2<blockquote>
-<p>更大的值将压缩产生更大的HFile，建议取值范围在1.0~1.4之间。大多数场景下也不建议调整该参数。</p>
-</blockquote>
-</li>
-<li><code>hbase.hstore.compaction.ratio.offpeak</code>: 此参数与compaction ratio参数含义相同，是在原有文件选择策略基础上增加了一个非高峰期的ratio控制，默认值5.0。<blockquote>
-<p>这个参数受另外两个参数 hbase.offpeak.start.hour 与 hbase.offpeak.end.hour 控制，这两个参数值为[0, 23]的整数，用于定义非高峰期时间段，默认值均为-1表示禁用非高峰期ratio设置。</p>
-</blockquote>
-</li>
-</ol>
-<h3 id="Compaction-总结"><a href="#Compaction-总结" class="headerlink" title="Compaction 总结"></a>Compaction 总结</h3><p>HBase Compaction操作是为了数据读取做的优化，总的来说是以牺牲磁盘io来换取读性能的基本稳定。Compaction操作分为minor compaction与major compaction，其中major compaction消耗资源较大、对读写请求有一定影响，因此一般是禁用自动周期性执行而选择业务低峰期时手动执行。</p>
-<p>具体可以参考<a href="http://hbasefly.com/2016/07/13/hbase-compaction-1/">HBase Compaction的前生今世－身世之旅</a><br><a href="https://blog.csdn.net/Lzx116/article/details/125215951">Hbase的MinorCompact过程解析及参数调优</a></p>
-<h2 id="hbase性能优化"><a href="#hbase性能优化" class="headerlink" title="hbase性能优化"></a>hbase性能优化</h2><p>在阿里云正式区做数据压缩的时候，因为这个集群内有一张表单表数据量就有6T，表太大了，不敢随便压缩，并且，hbase集群一直在告警<br><img src="/uploads/202303/hbase%E9%9B%86%E7%BE%A4%E5%91%8A%E8%AD%A6-%E5%8E%8B%E7%BC%A9%E9%98%9F%E5%88%97.png" alt="hbase集群告警-压缩队列"></p>
-<h3 id="分析原因"><a href="#分析原因" class="headerlink" title="分析原因"></a>分析原因</h3><p>这里分析了一下告警原因：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">5.6 T    6.3 T    &#x2F;hbase&#x2F;data&#x2F;default&#x2F;TraceV2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>TraceV2这张表每个小时能增长40G的数据，并且，该表设置了TTL，也就是说，每小时它要写40G数据，然后还要清理掉40G的数据。这么频繁的写操作，就会造成频繁的compaction</p>
-<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>因此需要对hbase做性能优化</p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Hbase</category>
-      </categories>
-      <tags>
-        <tag>Hbase</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>HttpFS高并发写HDFS</title>
     <url>/2023/11/16/HttpFS%E9%AB%98%E5%B9%B6%E5%8F%91%E5%86%99HDFS/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -6486,6 +6486,89 @@ bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#
       </tags>
   </entry>
   <entry>
+    <title>Iceberg学习笔记</title>
+    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>Iceberg简介</li>
+<li>Iceberg架构</li>
+<li>Iceberg简单使用案例</li>
+<li>Iceberg压力测试<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
+<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
+<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
+<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
+<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
+<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
+<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
+</ul>
+<p>与其他数据湖产品对比：<br><img src="/uploads/202106/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
+<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
+<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/202106/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
+<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
+<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
+<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
+<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
+<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
+<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2><h3 id="flinkcdc-读取mysql并写入Iceberg"><a href="#flinkcdc-读取mysql并写入Iceberg" class="headerlink" title="flinkcdc 读取mysql并写入Iceberg"></a>flinkcdc 读取mysql并写入Iceberg</h3>需要注意的是，flink实时写Iceberg必须要开启checkpoint<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
+
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
+  uuid string <span class="token punctuation">,</span>
+  name STRING<span class="token punctuation">,</span>
+  age <span class="token keyword">int</span><span class="token punctuation">,</span>
+  ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  part string 
+<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
+<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
+<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
+<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
+<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
+<span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
+<span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
+<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
+<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'users_source_mysql'</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> iceberg_users_source_mysql <span class="token punctuation">(</span>
+    uuid <span class="token keyword">INT</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
+    name <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    age <span class="token keyword">INT</span><span class="token punctuation">,</span>
+    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    part <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span> 
+<span class="token keyword">WITH</span> <span class="token punctuation">(</span>
+     <span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'iceberg'</span>                           <span class="token comment">-- 主键和分区均可多个，分割</span>
+   <span class="token punctuation">,</span> <span class="token string">'format-version'</span> <span class="token operator">=</span> <span class="token string">'2'</span>                          <span class="token comment">-- iceberg表版本，可选1，2</span>
+   <span class="token punctuation">,</span> <span class="token string">'write.upsert.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span>                 <span class="token comment">-- 开启upsert</span>
+   <span class="token punctuation">,</span> <span class="token string">'engine.hive.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span>                  <span class="token comment">-- 启用hive同步</span>
+   <span class="token punctuation">,</span> <span class="token string">'catalog-name'</span><span class="token operator">=</span><span class="token string">'hive_catalog'</span>                   <span class="token comment">-- 指定catalog</span>
+   <span class="token punctuation">,</span> <span class="token string">'catalog-database'</span><span class="token operator">=</span><span class="token string">'iceberg'</span>                    <span class="token comment">-- 指定hive database</span>
+   <span class="token punctuation">,</span> <span class="token string">'uri'</span><span class="token operator">=</span><span class="token string">'thrift://172.16.2.204:9083'</span>                      <span class="token comment">-- hive hms地址，分割 </span>
+   <span class="token punctuation">,</span> <span class="token string">'warehouse'</span><span class="token operator">=</span><span class="token string">'hdfs:///user/hive/warehouse/iceberg.db/iceberg_users_source_mysql'</span>  <span class="token comment">-- 仓库地址</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">insert</span> <span class="token keyword">into</span> iceberg_users_source_mysql <span class="token keyword">select</span> uuid<span class="token punctuation">,</span>name<span class="token punctuation">,</span>age<span class="token punctuation">,</span>ts<span class="token punctuation">,</span>part <span class="token keyword">from</span> users_source_mysql<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+</li>
+</ul>
+<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Iceberg</category>
+      </categories>
+      <tags>
+        <tag>Iceberg</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Impala踩坑记录</title>
     <url>/2023/02/28/Impala%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -6599,89 +6682,6 @@ pip3 install impyla<span aria-hidden="true" class="line-numbers-rows"><span></sp
       </categories>
       <tags>
         <tag>Impala</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Iceberg学习笔记</title>
-    <url>/2021/08/27/Iceberg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>Iceberg简介</li>
-<li>Iceberg架构</li>
-<li>Iceberg简单使用案例</li>
-<li>Iceberg压力测试<a id="more"></a>
-
-</li>
-</ul>
-<h2 id="Iceberg简介："><a href="#Iceberg简介：" class="headerlink" title="Iceberg简介："></a>Iceberg简介：</h2><p>pache Iceberg 是一种用于大型分析数据集的开放表格式。 Iceberg 使用类似于 SQL 表的高性能表格式向包括 Spark、Trino、PrestoDB、Flink 和 Hive 在内的计算引擎添加表。<br>从这个定义上来看，Iceberg是一个用于海量数据分析场景下的开源的表格式（其实笔者更愿意用Table Format），也就是说Iceberg本质上是一个表格式。</p>
-<h3 id="那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？"><a href="#那什么是表格式？表格式和我们熟悉的文件格式（File-Format）是一回事吗？" class="headerlink" title="那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？"></a>那什么是表格式？表格式和我们熟悉的文件格式（File Format）是一回事吗？</h3><p>表和表格式是两个概念。表是一个具象的概念，应用层面的概念，我们天天说的表是简单的行和列的组合。而表格式是数据库系统实现层面一个抽象的概念，它定义了一个表中包含哪些字段，表下面文件的组织形式、表索引信息、统计信息以及上层查询引擎读取、写入表中文件的接口<br>可以参考<a href="https://blog.csdn.net/qq_31866793/article/details/115505649">Apache Iceberg 数据湖从入门到放弃(1) —— 初步入门三部曲</a></p>
-<p>我们可以简单理解为他是基于计算层（flink、spark）和存储层（orc、parqurt）的一个中间层，我们可以把它定义成一种“数据组织格式”，Iceberg将其称之为“表格式”也是表达类似的含义。<br>他与底层的存储格式（比如ORC、Parquet之类的列式存储格式）最大的区别是，它并不定义数据存储方式，而是定义了数据、元数据的组织方式，向上提供统一的“表”的语义。<br>它构建在数据存储格式之上，其底层的数据存储仍然使用Parquet、ORC等进行存储。在hive建立一个iceberg格式的表。用flink或者spark写入iceberg，然后再通过其他方式来读取这个表，<br>比如spark、flink、presto等。</p>
-<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
-<li>增量读取处理能力：Iceberg支持通过流式方式读取增量数据，支持Structed Streaming以及Flink table Source；</li>
-<li>支持事务（ACID），上游数据写入即可见，不影响当前数据处理任务，简化ETL；提供upsert和merge into能力，可以极大地缩小数据入库延迟；</li>
-<li>可扩展的元数据，快照隔离以及对于文件列表的所有修改都是原子操作；</li>
-<li>同时支持流批处理、支持多种存储格式和灵活的文件组织：提供了基于流式的增量计算模型和基于批处理的全量表计算模型。批处理和流任务可以使用相同的存储模型，数据不再孤立；Iceberg支持隐藏分区和分区进化，方便业务进行数据分区策略更新。支持Parquet、Avro以及ORC等存储格式。</li>
-<li>支持多种计算引擎，优秀的内核抽象使之不绑定特定的计算引擎，目前Iceberg支持的计算引擎有Spark、Flink、Presto以及Hive。</li>
-</ul>
-<p>与其他数据湖产品对比：<br><img src="/uploads/202106/Iceberg%E4%B8%8E%E5%85%B6%E4%BB%96%E6%95%B0%E6%8D%AE%E7%B3%8A%E7%BB%84%E4%BB%B6%E5%AF%B9%E6%AF%94.png" alt="Iceberg与其他数据糊组件对比"></p>
-<h2 id="Iceberg架构"><a href="#Iceberg架构" class="headerlink" title="Iceberg架构"></a>Iceberg架构</h2><p>Iceberg只是一个table format，不存在架构方面</p>
-<h3 id="Iceberg写数据流程"><a href="#Iceberg写数据流程" class="headerlink" title="Iceberg写数据流程"></a>Iceberg写数据流程</h3><p>Iceberg写入流程及文件结构：Iceberg在数据写入的时候，<br>① 先把数据写入到data file文件中；<br>② 当一组data file文件写完之后，会根据这个data file文件中column的一些统计信息（如:每个column的min/max值），生成一个对应的manifest文件；<br>③ 然后Iceberg把一次写入后涉及到的manifest文件组成一个 manifest list， manifest list文件中也会存入一些相关manifest的统计信息（如：分区信息，manifest有效性）等；<br>④ 然后按照整个manifest list 生成一个对应的snapshot文件；<br>⑤ 生成完snapshot文件之后，Iceberg会把当前snapshot的ID及存储路径等信息写入到metadata文件中；<br>⑥ 当一切准备完毕之后，会以原子操作的方式commit这个metadata文件，这样一次iceberg的数据写入就完成了。随着每次的写入iceberg就生成了如下图这样的一个文件组织模式。<br><img src="/uploads/202106/iceberg-metadata.png" alt="Icreberg文件组织模式"></p>
-<h3 id="Iceberg读数据流程"><a href="#Iceberg读数据流程" class="headerlink" title="Iceberg读数据流程"></a>Iceberg读数据流程</h3><p>Iceberg的分区查找优化：<br>Iceberg数据表每一次的修改后的状态都会生成一个snapshot（s0,s1）文件，snapshot文件中包含了一个manifest文件的list，<br>list中存储了当前的snapshot状态是由哪些manifest文件组成的。每一个manifest的文件中会指向到真实数据的存储文件 data file（一般是parquet格式）。<br>在这种结构中，每一个快照读取所需要的数据文件都已经清晰的定义在了manifest list 和 manifest的文件中，<br>并且manifest文件中还存储了相关的partition信息，那么在读取数据的时候如果需要删选partition，<br>通过manifest的中存储的信息以K&amp;V映射方式在O(1)复杂度的计算中就能定位到需要读取的partition目录。<br>当前常用的数据读取引擎，例如hive需要遍历整个数据目录下的文件索引来寻找必要的partition，是一个O(n)的复杂度查找过程。<br>在大数据常见的海量分区下，采用partition映射的模式来选取目录的优化效果是非常明显的，<br>可以在Ryan Blue的讲座中看到在NetFlix的应用场景中2600个分区只需要10S就列出了，<br>而使用hive大概10分钟还没有完成 。</p>
-<p>Iceberg谓词下推的三层过滤：<br>① 分区过滤：Iceberg支持查询中的谓词下推，前面已经说了Iceberg是支持隐式分区的，就是说在读取数据的时候不需要在SQL中指定分区。<br> Iceberg会接收上层计算引擎下推过来的谓词表达式，根据谓词表达式中column分区列的信息进行分区转换的计算。<br> 例如 一个Iceberg表有一列 time ，用户设定了在 time 列上按照小时分区，当查询条件为   time &gt;= 2020-01-01 10：00 AND &lt; 2020-01-01 13:00 的时候Iceberg会根据下推过来的谓词表达式和Schema中定义的分区转换表达式进行计算。<br> 直接算出数据分区是在 10点11点12点三个分区中，然后依据manifest中的分区字段直接定位到分区目录。<br>② 文件过滤：Iceberg会把谓词继续下推到更细的筛选粒度，根据谓词的表达式和manifest中column的min/max值Iceberg可以有效的过滤查询数据所覆盖的具体data file，<br>对扫描集做进一步的筛选，如果筛选column是有序的那么下推效果将更加明显。<br>③ RowGroup过滤：经过分区过滤和文件过滤之后Iceberg还会继续把谓词表达式下推到data file文件内部的RowGroup级别，<br>根据parquet文件的metadata信息对RowGroup做进一步的筛选。经过以上三层的筛选，Iceberg最终把数据的扫描集缩小到必须读取的RowGroup级别，<br>然后把需要读取的RowGroup数据读入到内存之中。<br>（同样在Ryan Blue的讲座中我们可以看到，通过层层筛选(命中 min/max)之后，iceberg使得数据计算任务从61小时降低到了22分钟）。</p>
-<p>Iceberg的向量化读取和数据的zero copy：在低版本的spark中，由于spark DataSourceV2的API不支持批量读取，<br>因此Iceberg通过for循环把筛选后的数据一行一行的返回给spark去处理这个过程中既需要数据不断的在内存中互相拷贝，<br>也无法发挥列式数据在现代CPU架构中的向量化处理能力。为了进一步提升读取速度，Iceberg在spark2.4.4版本之后，<br>利用spark BatchColumn的读取特性引入了向量化读取的能力。<br> ① 经过谓词下推后，Iceberg把需要的RowGroup数据读入到了内存中。RowGroup是列式组织的，具有可向量化处理的优势；<br> ② Iceberg会根据SQL语句的project来删减需要读取的 column trunk；<br> ③ 然后Iceberg借助Arrow插件作为共享内存，以page + Batch size 为单位一次性的把一个批次大小的数据存入到共享内存中；<br> ④ 当数据存储完之后把共享内存地址返回给spark，spark拿到共享内存地址之后，可以不再进行数据拷贝直接通过偏移量来访问Arrow获取数据。</p>
-<p>可以参考<a href="https://www.codercto.com/a/106417.html">Apache Iceberg 对推荐应用架构的优化及读写流程解析</a></p>
-<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
-<li>Iceberg数据更新的时候貌似不是实时更新的，而是准实时更新的，而且，每次更新，都会生成文件，这就导致，如果频繁更新，那么HDFS上的小文件可能会比较多，这里可以测试一下</li>
-<li><h2 id="Iceberg简单使用案例"><a href="#Iceberg简单使用案例" class="headerlink" title="Iceberg简单使用案例"></a>Iceberg简单使用案例</h2><h3 id="flinkcdc-读取mysql并写入Iceberg"><a href="#flinkcdc-读取mysql并写入Iceberg" class="headerlink" title="flinkcdc 读取mysql并写入Iceberg"></a>flinkcdc 读取mysql并写入Iceberg</h3>需要注意的是，flink实时写Iceberg必须要开启checkpoint<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
-
-<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> users_source_mysql <span class="token punctuation">(</span>
-  uuid string <span class="token punctuation">,</span>
-  name STRING<span class="token punctuation">,</span>
-  age <span class="token keyword">int</span><span class="token punctuation">,</span>
-  ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-  part string 
-<span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
-<span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
-<span class="token string">'hostname'</span> <span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
-<span class="token string">'port'</span> <span class="token operator">=</span> <span class="token string">'3306'</span><span class="token punctuation">,</span>
-<span class="token string">'username'</span> <span class="token operator">=</span> <span class="token string">'root'</span><span class="token punctuation">,</span>
-<span class="token string">'password'</span> <span class="token operator">=</span> <span class="token string">'Gjc123!@#'</span><span class="token punctuation">,</span>
-<span class="token string">'server-time-zone'</span> <span class="token operator">=</span> <span class="token string">'Asia/Shanghai'</span><span class="token punctuation">,</span>
-<span class="token string">'debezium.snapshot.mode'</span> <span class="token operator">=</span> <span class="token string">'initial'</span><span class="token punctuation">,</span>
-<span class="token string">'database-name'</span> <span class="token operator">=</span> <span class="token string">'test'</span><span class="token punctuation">,</span>
-<span class="token string">'table-name'</span> <span class="token operator">=</span> <span class="token string">'users_source_mysql'</span>
-<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  
-<span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> iceberg_users_source_mysql <span class="token punctuation">(</span>
-    uuid <span class="token keyword">INT</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token operator">NOT</span> ENFORCED<span class="token punctuation">,</span>
-    name <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    age <span class="token keyword">INT</span><span class="token punctuation">,</span>
-    ts <span class="token keyword">timestamp</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    part <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
-<span class="token punctuation">)</span> 
-<span class="token keyword">WITH</span> <span class="token punctuation">(</span>
-     <span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'iceberg'</span>                           <span class="token comment">-- 主键和分区均可多个，分割</span>
-   <span class="token punctuation">,</span> <span class="token string">'format-version'</span> <span class="token operator">=</span> <span class="token string">'2'</span>                          <span class="token comment">-- iceberg表版本，可选1，2</span>
-   <span class="token punctuation">,</span> <span class="token string">'write.upsert.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span>                 <span class="token comment">-- 开启upsert</span>
-   <span class="token punctuation">,</span> <span class="token string">'engine.hive.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span>                  <span class="token comment">-- 启用hive同步</span>
-   <span class="token punctuation">,</span> <span class="token string">'catalog-name'</span><span class="token operator">=</span><span class="token string">'hive_catalog'</span>                   <span class="token comment">-- 指定catalog</span>
-   <span class="token punctuation">,</span> <span class="token string">'catalog-database'</span><span class="token operator">=</span><span class="token string">'iceberg'</span>                    <span class="token comment">-- 指定hive database</span>
-   <span class="token punctuation">,</span> <span class="token string">'uri'</span><span class="token operator">=</span><span class="token string">'thrift://172.16.2.204:9083'</span>                      <span class="token comment">-- hive hms地址，分割 </span>
-   <span class="token punctuation">,</span> <span class="token string">'warehouse'</span><span class="token operator">=</span><span class="token string">'hdfs:///user/hive/warehouse/iceberg.db/iceberg_users_source_mysql'</span>  <span class="token comment">-- 仓库地址</span>
-<span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-<span class="token keyword">insert</span> <span class="token keyword">into</span> iceberg_users_source_mysql <span class="token keyword">select</span> uuid<span class="token punctuation">,</span>name<span class="token punctuation">,</span>age<span class="token punctuation">,</span>ts<span class="token punctuation">,</span>part <span class="token keyword">from</span> users_source_mysql<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-</li>
-</ul>
-<h2 id="Iceberg压力测试"><a href="#Iceberg压力测试" class="headerlink" title="Iceberg压力测试"></a>Iceberg压力测试</h2>]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Iceberg</category>
-      </categories>
-      <tags>
-        <tag>Iceberg</tag>
       </tags>
   </entry>
   <entry>
@@ -8903,6 +8903,98 @@ YES    <span class="token keyword">NO</span>    <span class="token keyword">NO</
 </ol>
 <p>安装比较简单，就是把安装包解压，然后配置环境变量</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export LD_LIBRARY_PATH&#x3D;&#x2F;opt&#x2F;modules&#x2F;oracle-cli&#x2F;instantclient_19_3<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="配置Oracle-CDC（XStream）"><a href="#配置Oracle-CDC（XStream）" class="headerlink" title="配置Oracle CDC（XStream）"></a>配置Oracle CDC（XStream）</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">---- Oracle为CDB数据库时的配置</span>
+<span class="token keyword">alter</span> system <span class="token keyword">set</span> enable_goldengate_replication<span class="token operator">=</span><span class="token boolean">true</span><span class="token punctuation">;</span>
+
+<span class="token comment">--执行以下命令创建XStream管理员用户并配置权限。</span>
+sqlplus sys<span class="token operator">/</span>digiwin@<span class="token comment">//localhost:1521/ORADB as sysdba</span>
+  <span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> xstream_adm_tbs DATAFILE <span class="token string">'/opt/soft/oracle12c/oradata/oradb/xstream_adm_tbs.dbf'</span>
+    SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+<span class="token comment">-- 需要在 PDB 里也执行</span>
+  <span class="token keyword">alter</span> <span class="token keyword">session</span> <span class="token keyword">set</span> container <span class="token operator">=</span> DGWORCL<span class="token punctuation">;</span>
+  <span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> xstream_adm_tbs DATAFILE <span class="token string">'/opt/soft/oracle12c/oradata/oradb/dgworcl/xstream_adm_tbs.dbf'</span>
+    SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+<span class="token keyword">alter</span> <span class="token keyword">session</span> <span class="token keyword">set</span> container <span class="token operator">=</span> CDB$ROOT<span class="token punctuation">;</span>
+<span class="token comment">-- 创建用户</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> c<span class="token comment">##dbzadmin IDENTIFIED BY dbz</span>
+<span class="token keyword">DEFAULT</span> <span class="token keyword">TABLESPACE</span> xstream_adm_tbs
+QUOTA UNLIMITED <span class="token keyword">ON</span> xstream_adm_tbs
+CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">SESSION</span><span class="token punctuation">,</span> <span class="token keyword">SET</span> CONTAINER <span class="token keyword">TO</span> c<span class="token comment">##dbzadmin CONTAINER=ALL;</span>
+
+<span class="token keyword">BEGIN</span>
+     DBMS_XSTREAM_AUTH<span class="token punctuation">.</span>GRANT_ADMIN_PRIVILEGE<span class="token punctuation">(</span>
+        grantee                 <span class="token operator">=</span><span class="token operator">></span> <span class="token string">'c##dbzadmin'</span><span class="token punctuation">,</span>
+        privilege_type          <span class="token operator">=</span><span class="token operator">></span> <span class="token string">'CAPTURE'</span><span class="token punctuation">,</span>
+        grant_select_privileges <span class="token operator">=</span><span class="token operator">></span> <span class="token boolean">TRUE</span><span class="token punctuation">,</span>
+        container               <span class="token operator">=</span><span class="token operator">></span> <span class="token string">'ALL'</span>
+     <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">END</span><span class="token punctuation">;</span>
+<span class="token operator">/</span>
+<span class="token keyword">exit</span><span class="token punctuation">;</span>
+
+
+<span class="token comment">-- 创建 xstream 用户</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> xstream_tbs DATAFILE <span class="token string">'/opt/soft/oracle12c/oradata/oradb/xstream_tbs.dbf'</span>
+    SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+  <span class="token keyword">exit</span><span class="token punctuation">;</span>
+    <span class="token keyword">alter</span> <span class="token keyword">session</span> <span class="token keyword">set</span> container <span class="token operator">=</span> DGWORCL<span class="token punctuation">;</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">TABLESPACE</span> xstream_tbs DATAFILE <span class="token string">'/opt/soft/oracle12c/oradata/oradb/dgworcl/xstream_tbs.dbf'</span>
+    SIZE <span class="token number">25</span>M REUSE AUTOEXTEND <span class="token keyword">ON</span> MAXSIZE UNLIMITED<span class="token punctuation">;</span>
+
+<span class="token keyword">alter</span> <span class="token keyword">session</span> <span class="token keyword">set</span> container <span class="token operator">=</span> CDB$ROOT<span class="token punctuation">;</span>
+<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> c<span class="token comment">##dbzuser IDENTIFIED BY dbz</span>
+<span class="token keyword">DEFAULT</span> <span class="token keyword">TABLESPACE</span> xstream_tbs
+QUOTA UNLIMITED <span class="token keyword">ON</span> xstream_tbs
+CONTAINER<span class="token operator">=</span><span class="token keyword">ALL</span><span class="token punctuation">;</span>
+
+<span class="token keyword">GRANT</span> <span class="token keyword">CREATE</span> <span class="token keyword">SESSION</span> <span class="token keyword">TO</span> c<span class="token comment">##dbzuser CONTAINER=ALL;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SET</span> CONTAINER <span class="token keyword">TO</span> c<span class="token comment">##dbzuser CONTAINER=ALL;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> V_$<span class="token keyword">DATABASE</span> <span class="token keyword">to</span> c<span class="token comment">##dbzuser CONTAINER=ALL;</span>
+<span class="token keyword">GRANT</span> FLASHBACK <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> c<span class="token comment">##dbzuser CONTAINER=ALL;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">to</span> c<span class="token comment">##dbzuser CONTAINER=ALL;</span>
+<span class="token keyword">GRANT</span> <span class="token keyword">LOCK</span> <span class="token keyword">ANY</span> <span class="token keyword">TABLE</span> <span class="token keyword">TO</span> c<span class="token comment">##dbzuser CONTAINER=ALL;</span>
+<span class="token keyword">grant</span> select_catalog_role <span class="token keyword">to</span> c<span class="token comment">##dbzuser CONTAINER=ALL;</span>
+
+
+
+
+<span class="token comment">-- 创建出站服务器</span>
+<span class="token comment">--注意： 这里必须使用c##dbzadmin登录</span>
+sqlplus c<span class="token comment">##dbzadmin/dbz@localhost:1521/oradb</span>
+<span class="token keyword">DECLARE</span>
+<span class="token keyword">tables</span>  DBMS_UTILITY<span class="token punctuation">.</span>UNCL_ARRAY<span class="token punctuation">;</span>
+  schemas DBMS_UTILITY<span class="token punctuation">.</span>UNCL_ARRAY<span class="token punctuation">;</span>
+<span class="token keyword">BEGIN</span>
+    <span class="token keyword">tables</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>  :<span class="token operator">=</span> <span class="token boolean">NULL</span><span class="token punctuation">;</span>
+    schemas<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> :<span class="token operator">=</span> <span class="token string">'C##FLINKUSER'</span><span class="token punctuation">;</span>
+  DBMS_XSTREAM_ADM<span class="token punctuation">.</span>CREATE_OUTBOUND<span class="token punctuation">(</span>
+    server_name     <span class="token operator">=</span><span class="token operator">></span>  <span class="token string">'dbzxout'</span><span class="token punctuation">,</span>
+    table_names     <span class="token operator">=</span><span class="token operator">></span>  <span class="token keyword">tables</span><span class="token punctuation">,</span>
+    schema_names    <span class="token operator">=</span><span class="token operator">></span>  schemas<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">END</span><span class="token punctuation">;</span>
+<span class="token operator">/</span>
+<span class="token comment">-- 删除出站服务器</span>
+<span class="token keyword">BEGIN</span>
+  DBMS_XSTREAM_ADM<span class="token punctuation">.</span>DROP_OUTBOUND<span class="token punctuation">(</span>
+    server_name <span class="token operator">=</span><span class="token operator">></span> <span class="token string">'dbzxout'</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">END</span><span class="token punctuation">;</span>
+<span class="token operator">/</span>
+<span class="token comment">--允许c##dbzuser用户连接XStream出站服务器</span>
+<span class="token keyword">BEGIN</span>
+  DBMS_XSTREAM_ADM<span class="token punctuation">.</span>ALTER_OUTBOUND<span class="token punctuation">(</span>
+    server_name  <span class="token operator">=</span><span class="token operator">></span> <span class="token string">'dbzxout'</span><span class="token punctuation">,</span>
+    connect_user <span class="token operator">=</span><span class="token operator">></span> <span class="token string">'system'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">END</span><span class="token punctuation">;</span>
+<span class="token operator">/</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="Xstream配置好后，在-flinkcdc-中无法捕捉到数据变化"><a href="#Xstream配置好后，在-flinkcdc-中无法捕捉到数据变化" class="headerlink" title="Xstream配置好后，在 flinkcdc 中无法捕捉到数据变化"></a>Xstream配置好后，在 flinkcdc 中无法捕捉到数据变化</h4><p>通过查询 xstream 的日志：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 查看是否启用成功</span>
+<span class="token keyword">SELECT</span> capture_name<span class="token punctuation">,</span>  <span class="token keyword">status</span><span class="token punctuation">,</span>status_change_time<span class="token punctuation">,</span> error_number<span class="token punctuation">,</span> error_message <span class="token keyword">FROM</span> DBA_CAPTURE<span class="token punctuation">;</span>
+<span class="token comment">-- 具体可以参考：https://blog.csdn.net/iteye_4537/article/details/81596847</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>看到这里的status 为ABORTED，error_message为：ORA-01031: 权限不足</p>
+<p>并且观察到，每次启动 flinkcdc 程序的时候，这里的status_change_time都会刷新，可以定位到，这里捕捉不到数据就是因为flinkcdc 设置的用户的权限有问题</p>
 <h3 id="IDEA执行flink-cdc-实时采集的代码（xstream）"><a href="#IDEA执行flink-cdc-实时采集的代码（xstream）" class="headerlink" title="IDEA执行flink-cdc 实时采集的代码（xstream）"></a>IDEA执行flink-cdc 实时采集的代码（xstream）</h3><p>配置了环境变量以后，在 IDEA 启动采集程序，还是会报错：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">java.lang.UnsatisfiedLinkError: no ocijdbc19 in java.library.path
 	at java.lang.ClassLoader.loadLibrary(ClassLoader.java:1860)
@@ -10187,64 +10279,6 @@ git push origin develop<span aria-hidden="true" class="line-numbers-rows"><span>
       </tags>
   </entry>
   <entry>
-    <title>hdfs块文件丢失</title>
-    <url>/2022/03/08/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>hdfs块文件丢失</li>
-</ul>
-<a id="more"></a>
-
-<h2 id="hdfs块文件丢失"><a href="#hdfs块文件丢失" class="headerlink" title="hdfs块文件丢失"></a>hdfs块文件丢失</h2><p>最近公司集群扩容，运维那边不知道怎么操作的，导致hdfs的block块文件丢失了。</p>
-<p>个人猜测，公司的五台节点，都新挂载了一个新盘，datanode上配置了新盘，重启之后，hadoop集群肯定是要负载均衡一下的，迁移一些文件到新盘<br>这时候namenode会可能会进入安全模式，CM上很多组件都会报红，这时候我们的运维强制退出了安全模式，重启了hadoop集群，但是只是猜测，具体原因找不到了</p>
-<p>先说问题描述：<br>启动hive的时候，报如下报错日志：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory &#x2F;tmp&#x2F;hive&#x2F;root&#x2F;eceb6690-1510-4703-8a4b-60ea03c3fcec. Name node is in safe mode.
-The reported blocks 10427 needs additional 4373 blocks to reach the threshold 0.9990 of total blocks 14815.
-The number of live datanodes 3 has reached the minimum number 1. Safe mode will be turned off automatically once the thresholds have been reached. NamenodeHostName:ddp2
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.newSafemodeException(FSNamesystem.java:1448)
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkNameNodeSafeMode(FSNamesystem.java:1435)
-        ... 12 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>很明显，报错就是丢失了4373个block，导致namenode进入安全模式</p>
-<h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3><p>出现前面提到的问题主要原因是客户端写入的数据没有及时保存到磁盘中，从而导致数据丢失；又因为数据块丢失达到一定的比率，导致hdfs启动进入安全模式。</p>
-<p>为了弄清楚导致安全模式的原因，下面主要对hdfs安全模式和如何退出安全模式进行分析。</p>
-<h3 id="安全模式"><a href="#安全模式" class="headerlink" title="安全模式"></a>安全模式</h3><p>当 hdfs的NameNode节点启动时，会进入安全模式阶段。安全模式主要是为了系统启动的时候检查各个DataNode上数据块的有效性，同时根据策略必要的复制或者删除部分数据块。</p>
-<p>在此阶段，NameNode加载fsimage（Filesystem image：文件meta信息的持久化的检查点）文件到内存中，然后在editlog中执行相应的操作。加载fsimage文件包含文件metadata信息，但是不包含文件块位置的信息。</p>
-<p>DataNode启动的时候扫描本地磁盘，保存的block信息，然后将这些信息汇报给NameNode,让 NameNode得到块的位置信息，并对每个文件对应的数据块副本进行统计。</p>
-<p>如果hdfs数据量很大时，进入至退出安全模式时间较长。</p>
-<h3 id="安全模式退出条件"><a href="#安全模式退出条件" class="headerlink" title="安全模式退出条件"></a>安全模式退出条件</h3><p>当最小副本条件满足时，即一定比例（dfs.safemode.threshold.pct缺省值0.999f）的数据块都达到最小副本数，系统就会退出安全模式。当最小副本条件未达到要求时，就会对副本数不足的数据块安排DataNode进行复制，直至达到最小副本数。如果datanode丢失的block达到一定的比例（1-dfs.safemode.threshold.pct），则系统会一直处于安全模式状态即只读状态。而在安全模式下，系统会处于只读状态，NameNode不会处理任何块的复制和删除命令。</p>
-<p>dfs.safemode.threshold.pct（缺省值0.999f）表示HDFS启动的时候，如果DataNode上报的block个数达到了元 数据 记录的block个数的0.999倍才可以离开安全模式，否则一直是这种只读模式。如果设为1则HDFS永远是处于SafeMode。</p>
-<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>比较粗暴的方式，删除损坏掉的block</p>
-<ol>
-<li>执行命令退出安全模式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop dfsadmin -safemode leave<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>执行健康检查，删除损坏掉的block。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs fsck  &#x2F;  -delete<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-这里的路径虽然写的是<code>/</code>，但是不是删除所有文件，是删除根目录以下的所有的损坏的块文件</li>
-</ol>
-<p>生产环境一般考虑先恢复： 找到数据块的位置和丢失的数据信息</p>
-<ol>
-<li>查看/所有分区信息：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs hdfs fsck &#x2F; -files -blocks -locations<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>恢复数据文件，前提是，datanode里的block文件还存在，如果不存在了，虽然信息提示SUCCESS，但是其实还是没有恢复成功<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs debug recoverLease -path $&#123;path&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-我这里使用恢复命令没有效果，直接到datanode的文件存储目录查看了以下，报找不到的block都找不到<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;data&#x2F;dfs&#x2F;dn&#x2F;current ## 通过查看hdfs-site.xml查看datanode的文件实际存储位置
-find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下，文件名包含blk_1073743358_2534的文件。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
-
-</li>
-</ol>
-<p>通过查看hdfs-site.xmhjl找到datanode的日志文件路径：/var/log/hadoop-hdfs<br>查看datanode日志文件：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D1.png" alt="hdfs块文件丢失恢复1"><br>通过日志可以看出，之前的恢复命令有的成功，有的失败，这里分别找了成功和失败的block查看了一下，发现成功日志的block块是恢复成功了，但是失败的确实没有成功</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 以下文件是成功的block块的文件，查看block块所属哪个文件路径，可以通过hdfs hdfs fsck &#x2F; -files -blocks -locations命令查看
-[root@ddp3 tmp]# hadoop fs -ls &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041
--rw-r-----   3 digiwin hadoop      70423 2022-03-01 11:13 &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>查看datanode3的log，找其中一块block查看具体的生成时间，已经从哪台节点复制过来的<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D2.png" alt="hdfs块文件丢失恢复2"><br>可以看出，blk_1073741854是2022-03-07 13:27:37从192.168.5.25复制过来的。<br>查看datanode3的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D3.png" alt="hdfs块文件丢失恢复3"><br>查看datanode5的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D4.png" alt="hdfs块文件丢失恢复4"><br>可以很明显的看出，blk_1073741854在dn5上是2022-03-04的时候生成的，但是dn3是2022-03-07新复制的<br>所以，数据恢复操作，要有一个前提，丢失的块不能没有副本，需要从其他副本节点复制过来</p>
-<p>这里也可以参考一下<a href="https://www.cnblogs.com/prayer21/p/4819789.html">HDFS中datanode节点block损坏后的自动恢复过程</a></p>
-]]></content>
-      <categories>
-        <category>大数据</category>
-        <category>Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Hadoop</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>flink-cdc实时采集数据库入Kafka</title>
     <url>/2022/03/11/flink-cdc%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%95%B0%E6%8D%AE%E5%BA%93%E5%85%A5Kafka/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -11057,6 +11091,64 @@ Caused by: java.sql.SQLException: Access denied for user &#39;root&#39;@&#39;loc
       </categories>
       <tags>
         <tag>Flink-CDC</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hdfs块文件丢失</title>
+    <url>/2022/03/08/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>hdfs块文件丢失</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="hdfs块文件丢失"><a href="#hdfs块文件丢失" class="headerlink" title="hdfs块文件丢失"></a>hdfs块文件丢失</h2><p>最近公司集群扩容，运维那边不知道怎么操作的，导致hdfs的block块文件丢失了。</p>
+<p>个人猜测，公司的五台节点，都新挂载了一个新盘，datanode上配置了新盘，重启之后，hadoop集群肯定是要负载均衡一下的，迁移一些文件到新盘<br>这时候namenode会可能会进入安全模式，CM上很多组件都会报红，这时候我们的运维强制退出了安全模式，重启了hadoop集群，但是只是猜测，具体原因找不到了</p>
+<p>先说问题描述：<br>启动hive的时候，报如下报错日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory &#x2F;tmp&#x2F;hive&#x2F;root&#x2F;eceb6690-1510-4703-8a4b-60ea03c3fcec. Name node is in safe mode.
+The reported blocks 10427 needs additional 4373 blocks to reach the threshold 0.9990 of total blocks 14815.
+The number of live datanodes 3 has reached the minimum number 1. Safe mode will be turned off automatically once the thresholds have been reached. NamenodeHostName:ddp2
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.newSafemodeException(FSNamesystem.java:1448)
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkNameNodeSafeMode(FSNamesystem.java:1435)
+        ... 12 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很明显，报错就是丢失了4373个block，导致namenode进入安全模式</p>
+<h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3><p>出现前面提到的问题主要原因是客户端写入的数据没有及时保存到磁盘中，从而导致数据丢失；又因为数据块丢失达到一定的比率，导致hdfs启动进入安全模式。</p>
+<p>为了弄清楚导致安全模式的原因，下面主要对hdfs安全模式和如何退出安全模式进行分析。</p>
+<h3 id="安全模式"><a href="#安全模式" class="headerlink" title="安全模式"></a>安全模式</h3><p>当 hdfs的NameNode节点启动时，会进入安全模式阶段。安全模式主要是为了系统启动的时候检查各个DataNode上数据块的有效性，同时根据策略必要的复制或者删除部分数据块。</p>
+<p>在此阶段，NameNode加载fsimage（Filesystem image：文件meta信息的持久化的检查点）文件到内存中，然后在editlog中执行相应的操作。加载fsimage文件包含文件metadata信息，但是不包含文件块位置的信息。</p>
+<p>DataNode启动的时候扫描本地磁盘，保存的block信息，然后将这些信息汇报给NameNode,让 NameNode得到块的位置信息，并对每个文件对应的数据块副本进行统计。</p>
+<p>如果hdfs数据量很大时，进入至退出安全模式时间较长。</p>
+<h3 id="安全模式退出条件"><a href="#安全模式退出条件" class="headerlink" title="安全模式退出条件"></a>安全模式退出条件</h3><p>当最小副本条件满足时，即一定比例（dfs.safemode.threshold.pct缺省值0.999f）的数据块都达到最小副本数，系统就会退出安全模式。当最小副本条件未达到要求时，就会对副本数不足的数据块安排DataNode进行复制，直至达到最小副本数。如果datanode丢失的block达到一定的比例（1-dfs.safemode.threshold.pct），则系统会一直处于安全模式状态即只读状态。而在安全模式下，系统会处于只读状态，NameNode不会处理任何块的复制和删除命令。</p>
+<p>dfs.safemode.threshold.pct（缺省值0.999f）表示HDFS启动的时候，如果DataNode上报的block个数达到了元 数据 记录的block个数的0.999倍才可以离开安全模式，否则一直是这种只读模式。如果设为1则HDFS永远是处于SafeMode。</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>比较粗暴的方式，删除损坏掉的block</p>
+<ol>
+<li>执行命令退出安全模式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop dfsadmin -safemode leave<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>执行健康检查，删除损坏掉的block。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs fsck  &#x2F;  -delete<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+这里的路径虽然写的是<code>/</code>，但是不是删除所有文件，是删除根目录以下的所有的损坏的块文件</li>
+</ol>
+<p>生产环境一般考虑先恢复： 找到数据块的位置和丢失的数据信息</p>
+<ol>
+<li>查看/所有分区信息：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs hdfs fsck &#x2F; -files -blocks -locations<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>恢复数据文件，前提是，datanode里的block文件还存在，如果不存在了，虽然信息提示SUCCESS，但是其实还是没有恢复成功<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs debug recoverLease -path $&#123;path&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+我这里使用恢复命令没有效果，直接到datanode的文件存储目录查看了以下，报找不到的block都找不到<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;data&#x2F;dfs&#x2F;dn&#x2F;current ## 通过查看hdfs-site.xml查看datanode的文件实际存储位置
+find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下，文件名包含blk_1073743358_2534的文件。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+</li>
+</ol>
+<p>通过查看hdfs-site.xmhjl找到datanode的日志文件路径：/var/log/hadoop-hdfs<br>查看datanode日志文件：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D1.png" alt="hdfs块文件丢失恢复1"><br>通过日志可以看出，之前的恢复命令有的成功，有的失败，这里分别找了成功和失败的block查看了一下，发现成功日志的block块是恢复成功了，但是失败的确实没有成功</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 以下文件是成功的block块的文件，查看block块所属哪个文件路径，可以通过hdfs hdfs fsck &#x2F; -files -blocks -locations命令查看
+[root@ddp3 tmp]# hadoop fs -ls &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041
+-rw-r-----   3 digiwin hadoop      70423 2022-03-01 11:13 &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>查看datanode3的log，找其中一块block查看具体的生成时间，已经从哪台节点复制过来的<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D2.png" alt="hdfs块文件丢失恢复2"><br>可以看出，blk_1073741854是2022-03-07 13:27:37从192.168.5.25复制过来的。<br>查看datanode3的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D3.png" alt="hdfs块文件丢失恢复3"><br>查看datanode5的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D4.png" alt="hdfs块文件丢失恢复4"><br>可以很明显的看出，blk_1073741854在dn5上是2022-03-04的时候生成的，但是dn3是2022-03-07新复制的<br>所以，数据恢复操作，要有一个前提，丢失的块不能没有副本，需要从其他副本节点复制过来</p>
+<p>这里也可以参考一下<a href="https://www.cnblogs.com/prayer21/p/4819789.html">HDFS中datanode节点block损坏后的自动恢复过程</a></p>
+]]></content>
+      <categories>
+        <category>大数据</category>
+        <category>Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Hadoop</tag>
       </tags>
   </entry>
   <entry>
@@ -14272,6 +14364,104 @@ Check : https:&#x2F;&#x2F;jmeter.apache.org&#x2F;usermanual&#x2F;best-practices.
       </tags>
   </entry>
   <entry>
+    <title>数据湖与数据仓库</title>
+    <url>/2022/04/01/%E6%95%B0%E6%8D%AE%E6%B9%96%E4%B8%8E%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/</url>
+    <content><![CDATA[<p>本文主要包括：</p>
+<ul>
+<li>数据库、数据仓库、数据湖、湖仓一体概念与区别<a id="more"></a>
+
+
+</li>
+</ul>
+<h2 id="数据库、数据仓库、数据湖、湖仓一体概念与区别"><a href="#数据库、数据仓库、数据湖、湖仓一体概念与区别" class="headerlink" title="数据库、数据仓库、数据湖、湖仓一体概念与区别"></a>数据库、数据仓库、数据湖、湖仓一体概念与区别</h2><h3 id="什么是数据库？"><a href="#什么是数据库？" class="headerlink" title="什么是数据库？"></a>什么是数据库？</h3><p>数据库是“按照数据结构来组织、存储和管理数据的仓库”。<br>现在通常所说的数据库指的是关系型数据库。关系数据库是指采用了关系模型来组织数据的数据库，其以行和列的形式存储数据，具有结构化程度高，独立性强，冗余度低等优点。<br>关系型数据库的主要用于联机事务处理OLTP（On-Line Transaction Processing）主要进行基本的、日常的事务处理，例如银行交易等场景。</p>
+<h3 id="什么是数据仓库？"><a href="#什么是数据仓库？" class="headerlink" title="什么是数据仓库？"></a>什么是数据仓库？</h3><p>随着数据库的大规模应用，使信息行业的数据爆炸式的增长。为了研究数据之间的关系，挖掘数据隐藏的价值，人们越来越多的需要使用联机分析处理OLAP（On-Line Analytical Processing）进行数据分析，探究一些深层次的关系和信息。但是不同的数据库之间很难做到数据共享，数据之间的集成与分析也存在非常大的挑战。<br>数据仓库主要功能是将OLTP经年累月所累积的大量数据，通过数据仓库特有的数据储存架构进行OLAP，最终帮助决策者能快速有效地从大量数据中，分析出有价值的信息，提供决策支持<br>数据仓库相比数据库，主要有以下两个特点：</p>
+<ul>
+<li>数据仓库是面向主题集成的。数据仓库是为了支撑各种业务而建立的，数据来自于分散的操作型数据。因此需要将所需数据从多个异构的数据源中抽取出来，进行加工与集成，按照主题进行重组，最终进入数据仓库。</li>
+<li>数据仓库主要用于支撑企业决策分析，所涉及的数据操作主要是数据查询。因此数据仓库通过表结构优化、存储方式优化等方式提高查询速度、降低开销。</li>
+</ul>
+<p>数据仓库与数据库的对比： </p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据仓库</th>
+<th>数据库</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用场景</td>
+<td>OLAP</td>
+<td>OLTP</td>
+</tr>
+<tr>
+<td>数据来源</td>
+<td>多数据源</td>
+<td>单数据源</td>
+</tr>
+<tr>
+<td>数据标准化</td>
+<td>非标准化Schema</td>
+<td>高度标准化的静态Schema</td>
+</tr>
+<tr>
+<td>数据读取优势</td>
+<td>针对读操作进行优化</td>
+<td>针对写操作进行优化</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>所以，数据仓库里的数据是一次写入多次读取</p>
+</blockquote>
+<h3 id="什么是数据湖？"><a href="#什么是数据湖？" class="headerlink" title="什么是数据湖？"></a>什么是数据湖？</h3><p>数据湖是一个集中存储各类结构化和非结构化数据的大型数据仓库，它可以存储来自多个数据源、多种数据类型的原始数据，数据无需经过结构化处理，就可以进行存取、处理、分析和传输。数据湖能帮助企业快速完成异构数据源的联邦分析、挖掘和探索数据价值。</p>
+<p>数据湖的出现主要是为了解决存储全域原始数据的问题。在捕获来自业务应用程序、移动应用程序、IoT设备和互联网的结构化和非结构化数据时，实际上并没有预先定义好数据结构，这意味着可以先存储数据而无须进行精心设计，也无须明确要进行什么分析，由数据科学家和数据工程师在后续工作中探索和尝试<br>从根本上来讲，数据湖的最主要目标是尽可能保持业务的可还原度</p>
+<p>对于数据仓库与数据湖的不同之处，可以类比为仓库和湖泊的区别：仓库存储着来自特定来源的货物；而湖泊的水来自河流、溪流和其他来源，并且是<strong>原始数据</strong>。<br>数据湖与数据仓库的对比：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据湖</th>
+<th>数据仓库</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用场景</td>
+<td>可以探索性分析所有类型的数据，包括机器学习、数据发现、特征分析、预测等</td>
+<td>通过历史的结构化数据进行数据分析</td>
+</tr>
+<tr>
+<td>使用成本</td>
+<td>起步成本低，后期成本较高</td>
+<td>起步成本高，后期成本较低</td>
+</tr>
+<tr>
+<td>数据质量</td>
+<td>包含大量原始数据，使用前需要清洗和标准化处理</td>
+<td>质量高，可作为事实依据</td>
+</tr>
+<tr>
+<td>适用对象</td>
+<td>数据科学家、数据开发人员为主</td>
+<td>业务分析师为主</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>个人理解，数据湖就是不管什么样的数据，都扔到这里，不强调数据标准，数据变化快，所以前期好发展，后期容易烟囱式发展，容易乱<br>但是它也有好处，就是什么数据都可以扔里面，而且它允许数据可以变化</p>
+</blockquote>
+<p>数据湖写入的时候不关心数据格式，可以这么理解，以流量为例，流量大部分都是日志，入湖的时候，我们不用去关心流量里面有啥字段，可能就是一条完整的日志存进去，等数仓需要分析的时候，按照流量的分析需求，设计好流量的表结构，然后从湖里面拿流量日志，再去解析里面的字段</p>
+<h3 id="数据湖存储组件"><a href="#数据湖存储组件" class="headerlink" title="数据湖存储组件"></a>数据湖存储组件</h3><p>数据湖的建设方式有很多种，有的企业使用以Hadoop为核心的数据湖实现，有的企业以MPP为核心加上一些对象存储来实现。虽然建设方式不同，但是它们建设数据湖的目标是一致的<br>使用MPP例如Doris，需要单独搭建集群，与现有的Hadoop生态是分开的，所以从长远角度来看，使用以Hadoop为核心来实现数据湖更加靠谱<br>因为大部分公司大数据平台都是以Hadoop生态为基础的</p>
+<p>目前流行的数据湖组件有hudi、iceberg、Delta </p>
+<p>关于数据湖与数据仓库，可以参考<a href="https://xw.qq.com/cmsid/20210909A0ARO400">终于有人将数据湖讲明白了</a></p>
+<h3 id="什么是湖仓一体？"><a href="#什么是湖仓一体？" class="headerlink" title="什么是湖仓一体？"></a>什么是湖仓一体？</h3><p>湖仓一体，又被称为Lake House，其出发点是通过数据仓库和数据湖的打通和融合，让数据流动起来，减少重复建设。Lake House架构最重要的一点，是实现数据仓库和数据湖的数据/元数据无缝打通和自由流动。湖里的“显性价值”数据可以流到仓里，甚至可以直接被数仓使用；而仓里的“隐性价值”数据，也可以流到湖里，低成本长久保存，供未来的数据挖掘使用<br><img src="/uploads/202203/%E4%BB%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E5%88%B0%E6%8F%90%E4%BE%9B%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="从数据采集到提供数据服务的流程图"></p>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+        <category>数据湖</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>数据研发开发规范</title>
     <url>/2022/04/26/%E6%95%B0%E6%8D%AE%E7%A0%94%E5%8F%91%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/</url>
     <content><![CDATA[<p>本文主要包括：</p>
@@ -14415,104 +14605,6 @@ runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -
       <categories>
         <category>数据仓库</category>
         <category>开发规范</category>
-      </categories>
-      <tags>
-        <tag>数据仓库</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>数据湖与数据仓库</title>
-    <url>/2022/04/01/%E6%95%B0%E6%8D%AE%E6%B9%96%E4%B8%8E%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/</url>
-    <content><![CDATA[<p>本文主要包括：</p>
-<ul>
-<li>数据库、数据仓库、数据湖、湖仓一体概念与区别<a id="more"></a>
-
-
-</li>
-</ul>
-<h2 id="数据库、数据仓库、数据湖、湖仓一体概念与区别"><a href="#数据库、数据仓库、数据湖、湖仓一体概念与区别" class="headerlink" title="数据库、数据仓库、数据湖、湖仓一体概念与区别"></a>数据库、数据仓库、数据湖、湖仓一体概念与区别</h2><h3 id="什么是数据库？"><a href="#什么是数据库？" class="headerlink" title="什么是数据库？"></a>什么是数据库？</h3><p>数据库是“按照数据结构来组织、存储和管理数据的仓库”。<br>现在通常所说的数据库指的是关系型数据库。关系数据库是指采用了关系模型来组织数据的数据库，其以行和列的形式存储数据，具有结构化程度高，独立性强，冗余度低等优点。<br>关系型数据库的主要用于联机事务处理OLTP（On-Line Transaction Processing）主要进行基本的、日常的事务处理，例如银行交易等场景。</p>
-<h3 id="什么是数据仓库？"><a href="#什么是数据仓库？" class="headerlink" title="什么是数据仓库？"></a>什么是数据仓库？</h3><p>随着数据库的大规模应用，使信息行业的数据爆炸式的增长。为了研究数据之间的关系，挖掘数据隐藏的价值，人们越来越多的需要使用联机分析处理OLAP（On-Line Analytical Processing）进行数据分析，探究一些深层次的关系和信息。但是不同的数据库之间很难做到数据共享，数据之间的集成与分析也存在非常大的挑战。<br>数据仓库主要功能是将OLTP经年累月所累积的大量数据，通过数据仓库特有的数据储存架构进行OLAP，最终帮助决策者能快速有效地从大量数据中，分析出有价值的信息，提供决策支持<br>数据仓库相比数据库，主要有以下两个特点：</p>
-<ul>
-<li>数据仓库是面向主题集成的。数据仓库是为了支撑各种业务而建立的，数据来自于分散的操作型数据。因此需要将所需数据从多个异构的数据源中抽取出来，进行加工与集成，按照主题进行重组，最终进入数据仓库。</li>
-<li>数据仓库主要用于支撑企业决策分析，所涉及的数据操作主要是数据查询。因此数据仓库通过表结构优化、存储方式优化等方式提高查询速度、降低开销。</li>
-</ul>
-<p>数据仓库与数据库的对比： </p>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>数据仓库</th>
-<th>数据库</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>应用场景</td>
-<td>OLAP</td>
-<td>OLTP</td>
-</tr>
-<tr>
-<td>数据来源</td>
-<td>多数据源</td>
-<td>单数据源</td>
-</tr>
-<tr>
-<td>数据标准化</td>
-<td>非标准化Schema</td>
-<td>高度标准化的静态Schema</td>
-</tr>
-<tr>
-<td>数据读取优势</td>
-<td>针对读操作进行优化</td>
-<td>针对写操作进行优化</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>所以，数据仓库里的数据是一次写入多次读取</p>
-</blockquote>
-<h3 id="什么是数据湖？"><a href="#什么是数据湖？" class="headerlink" title="什么是数据湖？"></a>什么是数据湖？</h3><p>数据湖是一个集中存储各类结构化和非结构化数据的大型数据仓库，它可以存储来自多个数据源、多种数据类型的原始数据，数据无需经过结构化处理，就可以进行存取、处理、分析和传输。数据湖能帮助企业快速完成异构数据源的联邦分析、挖掘和探索数据价值。</p>
-<p>数据湖的出现主要是为了解决存储全域原始数据的问题。在捕获来自业务应用程序、移动应用程序、IoT设备和互联网的结构化和非结构化数据时，实际上并没有预先定义好数据结构，这意味着可以先存储数据而无须进行精心设计，也无须明确要进行什么分析，由数据科学家和数据工程师在后续工作中探索和尝试<br>从根本上来讲，数据湖的最主要目标是尽可能保持业务的可还原度</p>
-<p>对于数据仓库与数据湖的不同之处，可以类比为仓库和湖泊的区别：仓库存储着来自特定来源的货物；而湖泊的水来自河流、溪流和其他来源，并且是<strong>原始数据</strong>。<br>数据湖与数据仓库的对比：</p>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>数据湖</th>
-<th>数据仓库</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>应用场景</td>
-<td>可以探索性分析所有类型的数据，包括机器学习、数据发现、特征分析、预测等</td>
-<td>通过历史的结构化数据进行数据分析</td>
-</tr>
-<tr>
-<td>使用成本</td>
-<td>起步成本低，后期成本较高</td>
-<td>起步成本高，后期成本较低</td>
-</tr>
-<tr>
-<td>数据质量</td>
-<td>包含大量原始数据，使用前需要清洗和标准化处理</td>
-<td>质量高，可作为事实依据</td>
-</tr>
-<tr>
-<td>适用对象</td>
-<td>数据科学家、数据开发人员为主</td>
-<td>业务分析师为主</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>个人理解，数据湖就是不管什么样的数据，都扔到这里，不强调数据标准，数据变化快，所以前期好发展，后期容易烟囱式发展，容易乱<br>但是它也有好处，就是什么数据都可以扔里面，而且它允许数据可以变化</p>
-</blockquote>
-<p>数据湖写入的时候不关心数据格式，可以这么理解，以流量为例，流量大部分都是日志，入湖的时候，我们不用去关心流量里面有啥字段，可能就是一条完整的日志存进去，等数仓需要分析的时候，按照流量的分析需求，设计好流量的表结构，然后从湖里面拿流量日志，再去解析里面的字段</p>
-<h3 id="数据湖存储组件"><a href="#数据湖存储组件" class="headerlink" title="数据湖存储组件"></a>数据湖存储组件</h3><p>数据湖的建设方式有很多种，有的企业使用以Hadoop为核心的数据湖实现，有的企业以MPP为核心加上一些对象存储来实现。虽然建设方式不同，但是它们建设数据湖的目标是一致的<br>使用MPP例如Doris，需要单独搭建集群，与现有的Hadoop生态是分开的，所以从长远角度来看，使用以Hadoop为核心来实现数据湖更加靠谱<br>因为大部分公司大数据平台都是以Hadoop生态为基础的</p>
-<p>目前流行的数据湖组件有hudi、iceberg、Delta </p>
-<p>关于数据湖与数据仓库，可以参考<a href="https://xw.qq.com/cmsid/20210909A0ARO400">终于有人将数据湖讲明白了</a></p>
-<h3 id="什么是湖仓一体？"><a href="#什么是湖仓一体？" class="headerlink" title="什么是湖仓一体？"></a>什么是湖仓一体？</h3><p>湖仓一体，又被称为Lake House，其出发点是通过数据仓库和数据湖的打通和融合，让数据流动起来，减少重复建设。Lake House架构最重要的一点，是实现数据仓库和数据湖的数据/元数据无缝打通和自由流动。湖里的“显性价值”数据可以流到仓里，甚至可以直接被数仓使用；而仓里的“隐性价值”数据，也可以流到湖里，低成本长久保存，供未来的数据挖掘使用<br><img src="/uploads/202203/%E4%BB%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E5%88%B0%E6%8F%90%E4%BE%9B%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="从数据采集到提供数据服务的流程图"></p>
-]]></content>
-      <categories>
-        <category>数据仓库</category>
-        <category>数据湖</category>
       </categories>
       <tags>
         <tag>数据仓库</tag>
