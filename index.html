@@ -198,6 +198,178 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2024/05/11/flink%E4%BA%8C%E6%AC%A1%E5%BC%80%E5%8F%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/05/11/flink%E4%BA%8C%E6%AC%A1%E5%BC%80%E5%8F%91/" class="post-title-link" itemprop="url">flink二次开发</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-05-11 15:54:06 / 修改时间：16:11:35" itemprop="dateCreated datePublished" datetime="2024-05-11T15:54:06+08:00">2024-05-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Flink/" itemprop="url" rel="index"><span itemprop="name">Flink</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2024/05/11/flink%E4%BA%8C%E6%AC%A1%E5%BC%80%E5%8F%91/" class="post-meta-item leancloud_visitors" data-flag-title="flink二次开发" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2024/05/11/flink%E4%BA%8C%E6%AC%A1%E5%BC%80%E5%8F%91/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/05/11/flink%E4%BA%8C%E6%AC%A1%E5%BC%80%E5%8F%91/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本文主要包括：</p>
+<ul>
+<li>flink提交任务自动停止</li>
+</ul>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><h3 id="flink提交任务自动停止"><a href="#flink提交任务自动停止" class="headerlink" title="flink提交任务自动停止"></a>flink提交任务自动停止</h3><p>在flink从1.13.6升级到1.17.2之后发现，在dolphinscheduler提交任务到yarn上，每次只能运行4分钟左右就会自动cancel<br>经过多次对比，发现dolphinscheduler提交flink任务的时候，会添加<code>-sae</code>参数，在后台手动添加<code>-sae</code>参数提交flink任务，也是存在同样的问题</p>
+<h4 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h4><p>flank在新版本中，添加了实验性功能选项。<br><code>client.heartbeat.interval</code>和<code>client.heartbeat.timeout</code><br>如果调度程序在超时后未收到客户端的检测信号，则当<code>execution.attached</code>和<code>execution.shutdown-on-attached-exit</code>均为 true 时，请取消作业。<br>通过查看flink源码，execution.shutdown-on-attached-exit对应的就是-sae参数</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">Option</span> SHUTDOWN_IF_ATTACHED_OPTION <span class="token operator">=</span>
+            <span class="token keyword">new</span> <span class="token class-name">Option</span><span class="token punctuation">(</span>
+                    <span class="token string">"sae"</span><span class="token punctuation">,</span>
+                    <span class="token string">"shutdownOnAttachedExit"</span><span class="token punctuation">,</span>
+                    <span class="token boolean">false</span><span class="token punctuation">,</span>
+                    <span class="token string">"If the job is submitted in attached mode, perform a best-effort cluster shutdown "</span>
+                            <span class="token operator">+</span> <span class="token string">"when the CLI is terminated abruptly, e.g., in response to a user interrupt, such as typing Ctrl + C."</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>也就是说，每隔30s客户端都会往jobmanager发送心跳，如果客户端长时间接受不到心跳，就会自动cancel任务</p>
+<p>客户端发送心跳的代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">ScheduledExecutorService</span> <span class="token function">reportHeartbeatPeriodically</span><span class="token punctuation">(</span>
+            <span class="token class-name">JobClient</span> jobClient<span class="token punctuation">,</span> <span class="token keyword">long</span> interval<span class="token punctuation">,</span> <span class="token keyword">long</span> timeout<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">checkArgument</span><span class="token punctuation">(</span>
+                interval <span class="token operator">&lt;</span> timeout<span class="token punctuation">,</span>
+                <span class="token string">"The client's heartbeat interval "</span>
+                        <span class="token operator">+</span> <span class="token string">"should be less than the heartbeat timeout. Please adjust the param '"</span>
+                        <span class="token operator">+</span> <span class="token class-name">ClientOptions</span><span class="token punctuation">.</span>CLIENT_HEARTBEAT_INTERVAL
+                        <span class="token operator">+</span> <span class="token string">"' or '"</span>
+                        <span class="token operator">+</span> <span class="token class-name">ClientOptions</span><span class="token punctuation">.</span>CLIENT_HEARTBEAT_TIMEOUT
+                        <span class="token operator">+</span> <span class="token string">"'"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">JobID</span> jobID <span class="token operator">=</span> jobClient<span class="token punctuation">.</span><span class="token function">getJobID</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        LOG<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"Begin to report client's heartbeat for the job &#123;&#125;."</span><span class="token punctuation">,</span> jobID<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">ScheduledExecutorService</span> scheduledExecutor <span class="token operator">=</span> <span class="token class-name">Executors</span><span class="token punctuation">.</span><span class="token function">newSingleThreadScheduledExecutor</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        scheduledExecutor<span class="token punctuation">.</span><span class="token function">scheduleAtFixedRate</span><span class="token punctuation">(</span>
+                <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+                    LOG<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"Report client's heartbeat for the job &#123;&#125;."</span><span class="token punctuation">,</span> jobID<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    jobClient<span class="token punctuation">.</span><span class="token function">reportHeartbeat</span><span class="token punctuation">(</span><span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> timeout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+                interval<span class="token punctuation">,</span>
+                interval<span class="token punctuation">,</span>
+                <span class="token class-name">TimeUnit</span><span class="token punctuation">.</span>MILLISECONDS<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> scheduledExecutor<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这个在standalone模型下，可以在<code>log/flink-root-client-V-SH-101-227.log</code>下看到心跳日志<br>也就是说，客户端侧没什么问题。现在是jobmanager侧没有接收到心跳或者，接收到心跳还把任务杀掉了</p>
+<p>jobmanager杀掉任务源码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">checkJobClientAliveness</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">setClientHeartbeatTimeoutForInitializedJob</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">long</span> currentTimestamp <span class="token operator">=</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Map</span><span class="token punctuation">.</span><span class="token class-name">Entry</span><span class="token punctuation">&lt;</span><span class="token class-name">JobID</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span> iterator <span class="token operator">=</span> jobClientExpiredTimestamp<span class="token punctuation">.</span><span class="token function">entrySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>iterator<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">Map</span><span class="token punctuation">.</span><span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JobID</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> entry <span class="token operator">=</span> iterator<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">JobID</span> jobID <span class="token operator">=</span> entry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">long</span> expiredTimestamp <span class="token operator">=</span> entry<span class="token punctuation">.</span><span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">getJobManagerRunner</span><span class="token punctuation">(</span>jobID<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isPresent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                iterator<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>expiredTimestamp <span class="token operator">&lt;=</span> currentTimestamp<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                log<span class="token punctuation">.</span><span class="token function">warn</span><span class="token punctuation">(</span>
+                        <span class="token string">"The heartbeat from the job client is timeout and cancel the job &#123;&#125;. "</span>
+                                <span class="token operator">+</span> <span class="token string">"You can adjust the heartbeat interval "</span>
+                                <span class="token operator">+</span> <span class="token string">"by 'client.heartbeat.interval' and the timeout "</span>
+                                <span class="token operator">+</span> <span class="token string">"by 'client.heartbeat.timeout'"</span><span class="token punctuation">,</span>
+                        jobID<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">cancelJob</span><span class="token punctuation">(</span>jobID<span class="token punctuation">,</span> webTimeout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">setClientHeartbeatTimeoutForInitializedJob</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Map</span><span class="token punctuation">.</span><span class="token class-name">Entry</span><span class="token punctuation">&lt;</span><span class="token class-name">JobID</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span> iterator <span class="token operator">=</span>
+            uninitializedJobClientHeartbeatTimeout<span class="token punctuation">.</span><span class="token function">entrySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>iterator<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Map</span><span class="token punctuation">.</span><span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JobID</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> entry <span class="token operator">=</span> iterator<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">JobID</span> jobID <span class="token operator">=</span> entry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Optional</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JobManagerRunner</span><span class="token punctuation">></span></span> jobManagerRunnerOptional <span class="token operator">=</span> <span class="token function">getJobManagerRunner</span><span class="token punctuation">(</span>jobID<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>jobManagerRunnerOptional<span class="token punctuation">.</span><span class="token function">isPresent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            iterator<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>jobManagerRunnerOptional<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isInitialized</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            jobClientExpiredTimestamp<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>jobID<span class="token punctuation">,</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> entry<span class="token punctuation">.</span><span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            iterator<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过debug日志，发现每次<code>expiredTimestamp</code>都是一样的，也就是<code>jobClientExpiredTimestamp.put(jobID, System.currentTimeMillis() + entry.getValue());</code>就执行了一次，后面就没再执行</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>修改<code>org.apache.flink.runtime.dispatcher.Dispatcher</code>的<code>setClientHeartbeatTimeoutForInitializedJob</code>方法，去掉<code>iterator.remove();</code></p>
+<p>经过验证，方案可行。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2024/04/07/TODOList/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -297,7 +469,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2024/03/24/JVM%E8%B0%83%E4%BC%98/">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2024/03/25/JVM%E8%B0%83%E4%BC%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.jpg">
@@ -311,7 +483,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2024/03/24/JVM%E8%B0%83%E4%BC%98/" class="post-title-link" itemprop="url">JVM调优</a>
+            <a href="/2024/03/25/JVM%E8%B0%83%E4%BC%98/" class="post-title-link" itemprop="url">JVM调优</a>
         </h2>
 
         <div class="post-meta">
@@ -321,15 +493,8 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2024-03-24 09:54:07" itemprop="dateCreated datePublished" datetime="2024-03-24T09:54:07+08:00">2024-03-24</time>
+              <time title="创建时间：2024-03-25 09:25:07" itemprop="dateCreated datePublished" datetime="2024-03-25T09:25:07+08:00">2024-03-25</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-03-25 09:25:07" itemprop="dateModified" datetime="2024-03-25T09:25:07+08:00">2024-03-25</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -345,7 +510,7 @@
             </span>
 
           
-            <span id="/2024/03/24/JVM%E8%B0%83%E4%BC%98/" class="post-meta-item leancloud_visitors" data-flag-title="JVM调优" title="阅读次数">
+            <span id="/2024/03/25/JVM%E8%B0%83%E4%BC%98/" class="post-meta-item leancloud_visitors" data-flag-title="JVM调优" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -360,8 +525,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2024/03/24/JVM%E8%B0%83%E4%BC%98/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2024/03/24/JVM%E8%B0%83%E4%BC%98/" itemprop="commentCount"></span>
+    <a title="valine" href="/2024/03/25/JVM%E8%B0%83%E4%BC%98/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/03/25/JVM%E8%B0%83%E4%BC%98/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -383,7 +548,7 @@
 </ul>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2024/03/24/JVM%E8%B0%83%E4%BC%98/#more" rel="contents">
+              <a class="btn" href="/2024/03/25/JVM%E8%B0%83%E4%BC%98/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -438,7 +603,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-02-01 18:36:16" itemprop="dateModified" datetime="2024-02-01T18:36:16+08:00">2024-02-01</time>
+                <time title="修改时间：2024-05-15 16:59:56" itemprop="dateModified" datetime="2024-05-15T16:59:56+08:00">2024-05-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1141,104 +1306,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/08/01/SQL%E6%9D%82%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/avatar.jpg">
-      <meta itemprop="name" content="Golden">
-      <meta itemprop="description" content="计划推动变化">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Golden Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2023/08/01/SQL%E6%9D%82%E8%AE%B0/" class="post-title-link" itemprop="url">SQL杂记</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2023-08-01 16:55:09 / 修改时间：17:08:44" itemprop="dateCreated datePublished" datetime="2023-08-01T16:55:09+08:00">2023-08-01</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
-                </span>
-            </span>
-
-          
-            <span id="/2023/08/01/SQL%E6%9D%82%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="SQL杂记" title="阅读次数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span class="leancloud-visitors-count"></span>
-            </span>
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="far fa-comment"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2023/08/01/SQL%E6%9D%82%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2023/08/01/SQL%E6%9D%82%E8%AE%B0/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本文主要包括：</p>
-<ul>
-<li>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/08/01/SQL%E6%9D%82%E8%AE%B0/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1310,7 +1377,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">87</span>
+          <span class="site-state-item-count">88</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

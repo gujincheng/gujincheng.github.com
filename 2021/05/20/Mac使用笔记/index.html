@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202106/jdk%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF.png">
 <meta property="article:published_time" content="2021-05-20T07:04:35.000Z">
-<meta property="article:modified_time" content="2023-02-22T02:24:09.509Z">
+<meta property="article:modified_time" content="2024-05-19T04:52:18.443Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Mac">
 <meta property="article:tag" content="Sublime">
@@ -235,7 +235,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-02-22 10:24:09" itemprop="dateModified" datetime="2023-02-22T10:24:09+08:00">2023-02-22</time>
+                <time title="修改时间：2024-05-19 12:52:18" itemprop="dateModified" datetime="2024-05-19T12:52:18+08:00">2024-05-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -495,11 +495,69 @@ JAVA_HOME&#x3D;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;jdk1.8.0_29
 	<span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li><p>Sumblime JSON格式化<br>安装Pretty JSON插件，command + shift + p，搜索 package install，进入后选择pretty json并安装<br>在sumblime里添加快捷键配置</p>
-<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span> <span class="token property">"keys"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"ctrl+command+j"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token property">"command"</span><span class="token operator">:</span> <span class="token string">"pretty_json"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="mac-安装homebrew"><a href="#mac-安装homebrew" class="headerlink" title="mac 安装homebrew"></a>mac 安装homebrew</h2><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">&#x2F;bin&#x2F;zsh -c &quot;$(curl -fsSL https:&#x2F;&#x2F;gitee.com&#x2F;cunkai&#x2F;HomebrewCN&#x2F;raw&#x2F;master&#x2F;Homebrew.sh)&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="Mac安装mysql"><a href="#Mac安装mysql" class="headerlink" title="Mac安装mysql"></a>Mac安装mysql</h2><p>具体参考<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/257006114">mac 安装mysql详细教程</a></p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span> <span class="token property">"keys"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"ctrl+command+j"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token property">"command"</span><span class="token operator">:</span> <span class="token string">"pretty_json"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li><p>Sublime Text3 成对括号高亮显示<br>具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/endlesscar/article/details/108641563">Sublime Text3 成对括号高亮显示</a><br>BracketHighlighter的配置：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+    <span class="token property">"bracket_styles"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+        <span class="token property">"default"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+        <span class="token property">"icon"</span><span class="token operator">:</span> <span class="token string">"dot"</span><span class="token punctuation">,</span>
+        <span class="token comment">// BH1's original default color for reference</span>
+        <span class="token property">"color"</span><span class="token operator">:</span> <span class="token string">"entity.name.class"</span><span class="token punctuation">,</span>
+        <span class="token comment">//"color": "brackethighlighter.default",</span>
+        <span class="token property">"style"</span><span class="token operator">:</span> <span class="token string">"block"</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li><p><code>Sublime Text3</code> 关闭vim模式<br>在使用Sublime Text过程中，如果不小心按下Esc键就会进入command mode（Vim模式），之后就出现不能输入任何东西，关闭当前编辑文件重新打开可以解决。但是很影响连贯性，所以可以通过以下方法解决：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token comment">// 关闭Vim模式，防止Sublime Text使用过程中进入Vim模式</span>
+<span class="token property">"ignored_packages"</span><span class="token operator">:</span>
+<span class="token punctuation">[</span>
+    <span class="token string">"Vintage"</span>
+<span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里需要删除ChineseLocalization插件，有个bug，可以改成zam1024t/LocalizedMenu</p>
+</li>
+<li><p>Sublime Text3 高亮选中的所有文本<br>安装一个word highlight的插件.  安装插件见其他经验</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"color_scope_name"</span><span class="token operator">:</span> <span class="token string">"wordhighlight"</span><span class="token punctuation">,</span>
+  <span class="token comment">//"case_sensitive": false,</span>
+  <span class="token property">"draw_outlined"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+
+  <span class="token property">"mark_occurrences_on_gutter"</span> <span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token comment">// valid types: dot, circle, bookmark and cross</span>
+  <span class="token property">"icon_type_on_gutter"</span> <span class="token operator">:</span> <span class="token string">"circle"</span><span class="token punctuation">,</span>
+
+  <span class="token property">"highlight_delay"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+  <span class="token property">"highlight_when_selection_is_empty"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token property">"highlight_word_under_cursor_when_selection_is_empty"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token property">"highlight_non_word_characters"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+
+  <span class="token property">"file_size_limit"</span><span class="token operator">:</span> <span class="token number">4194304</span><span class="token punctuation">,</span>
+  <span class="token property">"when_file_size_limit_search_this_num_of_characters"</span><span class="token operator">:</span> <span class="token number">20000</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>默认的颜色不好看，是灰色的，不是很突出，这里可以定制化配色<br>Prefrence -&gt; 定制配色方案 -&gt; </p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token comment">// Documentation at https://www.sublimetext.com/docs/color_schemes.html</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token property">"variables"</span><span class="token operator">:</span>
+    <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token property">"globals"</span><span class="token operator">:</span>
+    <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token property">"rules"</span><span class="token operator">:</span>
+    <span class="token punctuation">[</span>
+        <span class="token punctuation">&#123;</span>
+            <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"WordHighlight"</span><span class="token punctuation">,</span>
+            <span class="token property">"scope"</span><span class="token operator">:</span> <span class="token string">"wordhighlight"</span><span class="token punctuation">,</span>
+            <span class="token property">"foreground"</span><span class="token operator">:</span> <span class="token string">"var(orange3)"</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 </li>
 </ul>
+<h2 id="mac-安装homebrew"><a href="#mac-安装homebrew" class="headerlink" title="mac 安装homebrew"></a>mac 安装homebrew</h2><pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">&#x2F;bin&#x2F;zsh -c &quot;$(curl -fsSL https:&#x2F;&#x2F;gitee.com&#x2F;cunkai&#x2F;HomebrewCN&#x2F;raw&#x2F;master&#x2F;Homebrew.sh)&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="Mac安装mysql"><a href="#Mac安装mysql" class="headerlink" title="Mac安装mysql"></a>Mac安装mysql</h2><p>具体参考<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/257006114">mac 安装mysql详细教程</a></p>
 <h2 id="Mac常用快捷键"><a href="#Mac常用快捷键" class="headerlink" title="Mac常用快捷键"></a>Mac常用快捷键</h2><p>Mac系统快捷键设置：<br>系统偏好设置 -&gt; 键盘 -&gt; 快捷键<br><code>command + 左右方向键</code>： 到句首/尾（下一个/上一个标点符号）<br><code>option + 左右方向键</code>：跳到行首/行尾<br><code>ctrl + 左右方向键</code>：切换后台进程（窗口），是直接上一个/下一个窗口<br><code>ctrl + 上下方向键</code>:  呼出所有后台进程（窗口）<br><code>shift + 中/英</code>：切换大小写<br><code>command + tab</code>:切换后台进程，按住command会有所有后台，然后按tab可以切换（只是图标）<br><code>command + 上下方向键</code>：进入上层文件夹（在访达里使用）<br><code>ctrl + command + Q</code>: 锁屏<br><code>command + 空格</code>：聚焦搜索<br><code>option + command + 空格</code>：在访达里搜索<br><code>option + command + D</code>:显示/隐藏程序坞<br><code>shift + command + 2</code>:截图到剪切板<br><code>option + command + T</code>:自动生成try catch<br><code>command + 7</code>: 打开/关闭structure<br><code>ctrl + option + o</code>: 自动删除java不用了的package<br><code>Tab</code>: 所选区域整体后移<br><code>Shift + Tab</code>： 所选区域整体前移<br><code>command + k，command + U</code>：所选区域全部大写<br><code>command + k，command + L</code>：所选区域全部小写</p>
 <h2 id="开启-HIDPI，让-2K-显示器更舒适"><a href="#开启-HIDPI，让-2K-显示器更舒适" class="headerlink" title="开启 HIDPI，让 2K 显示器更舒适"></a>开启 HIDPI，让 2K 显示器更舒适</h2><p>mac自带的屏幕太小了，自己买的外接显示器是2k的，mac不会自动启动hidpi，所以字特别小，不好看。这里强行让mac知道可以启用hidpi<br>具体可以参考:<br><a target="_blank" rel="noopener" href="https://sspai.com/post/57549">为 macOS 10.15 开启 HiDPI，让 2K 显示器更舒适</a></p>
 <h2 id="Mac安装Hadoop、hive遇到的问题"><a href="#Mac安装Hadoop、hive遇到的问题" class="headerlink" title="Mac安装Hadoop、hive遇到的问题"></a>Mac安装Hadoop、hive遇到的问题</h2><p>具体的配置，会放到github上，之后再换电脑，直接从git上clone即可</p>
@@ -708,7 +766,7 @@ eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96;
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">87</span>
+          <span class="site-state-item-count">88</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
