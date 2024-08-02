@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  flink提交任务自动停止">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-05-11T07:54:06.000Z">
-<meta property="article:modified_time" content="2024-05-29T10:12:52.544Z">
+<meta property="article:modified_time" content="2024-08-02T07:00:03.017Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-05-29 18:12:52" itemprop="dateModified" datetime="2024-05-29T18:12:52+08:00">2024-05-29</time>
+                <time title="修改时间：2024-08-02 15:00:03" itemprop="dateModified" datetime="2024-08-02T15:00:03+08:00">2024-08-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -361,8 +361,81 @@
     <span class="token punctuation">&#125;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>通过debug日志，发现每次<code>expiredTimestamp</code>都是一样的，也就是<code>jobClientExpiredTimestamp.put(jobID, System.currentTimeMillis() + entry.getValue());</code>就执行了一次，后面就没再执行</p>
+<p>查看initialClientHeartbeatTimeout是-9223372036854775808</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">initJobClientExpiredTime</span><span class="token punctuation">(</span><span class="token class-name">JobGraph</span> jobGraph<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">JobID</span> jobID <span class="token operator">=</span> jobGraph<span class="token punctuation">.</span><span class="token function">getJobID</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//todo 这里需要看下initialClientHeartbeatTimeout是否大于0怀疑这里没执行啊</span>
+        <span class="token keyword">long</span> initialClientHeartbeatTimeout <span class="token operator">=</span> jobGraph<span class="token punctuation">.</span><span class="token function">getInitialClientHeartbeatTimeout</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>initialClientHeartbeatTimeout <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            log<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span>
+                    <span class="token string">"Begin to detect the client's aliveness for job &#123;&#125;. The heartbeat timeout is &#123;&#125;"</span><span class="token punctuation">,</span>
+                    jobID<span class="token punctuation">,</span>
+                    initialClientHeartbeatTimeout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            uninitializedJobClientHeartbeatTimeout<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>jobID<span class="token punctuation">,</span> initialClientHeartbeatTimeout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>jobClientAlivenessCheck <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token comment">// Use the client heartbeat timeout as the check interval.</span>
+                jobClientAlivenessCheck <span class="token operator">=</span>
+                        <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getRpcService</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                                <span class="token punctuation">.</span><span class="token function">getScheduledExecutor</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                                <span class="token punctuation">.</span><span class="token function">scheduleWithFixedDelay</span><span class="token punctuation">(</span>
+                                        <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span>
+                                                <span class="token function">getMainThreadExecutor</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                                                        <span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token operator">::</span><span class="token function">checkJobClientAliveness</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                                        <span class="token number">0L</span><span class="token punctuation">,</span>
+                                        jobClientAlivenessCheckInterval<span class="token punctuation">,</span>
+                                        <span class="token class-name">TimeUnit</span><span class="token punctuation">.</span>MILLISECONDS<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>继续深入源码：JobGraph.getInitialClientHeartbeatTimeout,PipelineExecutorUtils.getJobGraph</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">if</span> <span class="token punctuation">(</span>configuration<span class="token punctuation">.</span><span class="token function">getBoolean</span><span class="token punctuation">(</span><span class="token class-name">DeploymentOptions</span><span class="token punctuation">.</span>ATTACHED<span class="token punctuation">)</span>
+                <span class="token operator">&amp;&amp;</span> configuration<span class="token punctuation">.</span><span class="token function">getBoolean</span><span class="token punctuation">(</span><span class="token class-name">DeploymentOptions</span><span class="token punctuation">.</span>SHUTDOWN_IF_ATTACHED<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        jobGraph<span class="token punctuation">.</span><span class="token function">setInitialClientHeartbeatTimeout</span><span class="token punctuation">(</span>
+        configuration<span class="token punctuation">.</span><span class="token function">getLong</span><span class="token punctuation">(</span><span class="token class-name">ClientOptions</span><span class="token punctuation">.</span>CLIENT_HEARTBEAT_TIMEOUT<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看到，这里只有设置了-sae和ATTACHED才会设置CLIENT_HEARTBEAT_TIMEOUT</p>
 <h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>修改<code>org.apache.flink.runtime.dispatcher.Dispatcher</code>的<code>setClientHeartbeatTimeoutForInitializedJob</code>方法，去掉<code>iterator.remove();</code></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">setClientHeartbeatTimeoutForInitializedJob</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Map</span><span class="token punctuation">.</span><span class="token class-name">Entry</span><span class="token punctuation">&lt;</span><span class="token class-name">JobID</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span><span class="token punctuation">></span></span> iterator <span class="token operator">=</span>
+                uninitializedJobClientHeartbeatTimeout<span class="token punctuation">.</span><span class="token function">entrySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>iterator<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">Map</span><span class="token punctuation">.</span><span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JobID</span><span class="token punctuation">,</span> <span class="token class-name">Long</span><span class="token punctuation">></span></span> entry <span class="token operator">=</span> iterator<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">JobID</span> jobID <span class="token operator">=</span> entry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">Optional</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">JobManagerRunner</span><span class="token punctuation">></span></span> jobManagerRunnerOptional <span class="token operator">=</span> <span class="token function">getJobManagerRunner</span><span class="token punctuation">(</span>jobID<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>jobManagerRunnerOptional<span class="token punctuation">.</span><span class="token function">isPresent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                iterator<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>jobManagerRunnerOptional<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isInitialized</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                jobClientExpiredTimestamp<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>jobID<span class="token punctuation">,</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> entry<span class="token punctuation">.</span><span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">//iterator.remove();</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>改方案不会使得while变成死循环。</p>
 <p>经过验证，方案可行。</p>
+<h2 id="编译Flink"><a href="#编译Flink" class="headerlink" title="编译Flink"></a>编译Flink</h2><p>在国内编译真的是各种问题，直接在微软云做编译，顺畅的不行。10分钟搞定，无任何报错</p>
+<ol>
+<li>下载代码：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone git@github.com:gujincheng&#x2F;flink.git -b digiwin-1.17.2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>编译代码：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mvn clean install -DskipTests -Dfast -Drat.skip&#x3D;true -Dhaoop.version&#x3D;3.0.0-cdh6.2.0 -Dinclude-hadoop -Dscala-2.12 -T20C<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="checkpoint一直失败"><a href="#checkpoint一直失败" class="headerlink" title="checkpoint一直失败"></a>checkpoint一直失败</h3>编译完flink之后，在对Oracle实时采集的时候，发现Checkpoint一直失败，报错日志如下：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2024-08-02 14:53:41,454 INFO  org.apache.flink.runtime.executiongraph.ExecutionGraph       [] - Source: Custom Source -&gt; Filter -&gt; Flat Map (1&#x2F;1) (ed1ebdb51de67d14b5a760cf0977632a_cbc357ccb763df2852fee8c4fc7d55f2_0_0) switched from RUNNING to FAILED on container_1714272405081_0303_01_000002 @ V-NJ-2-204 (dataPort&#x3D;13071).
+java.lang.NoSuchMethodError: java.nio.ByteBuffer.flip()Ljava&#x2F;nio&#x2F;ByteBuffer;
+	at org.apache.flink.runtime.io.network.api.serialization.EventSerializer.serializeCheckpointBarrier(EventSerializer.java:260) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.io.network.api.serialization.EventSerializer.toSerializedEvent(EventSerializer.java:100) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.io.network.api.serialization.EventSerializer.toBufferConsumer(EventSerializer.java:373) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.io.network.partition.BufferWritingResultPartition.broadcastEvent(BufferWritingResultPartition.java:199) ~[flink-dist-1.17.2.jar:1.17.2]
+...
+2024-08-02 14:53:41,491 INFO  org.apache.flink.runtime.jobmaster.JobMaster                 [] - 2 tasks will be restarted to recover the failed task ed1ebdb51de67d14b5a760cf0977632a_cbc357ccb763df2852fee8c4fc7d55f2_0_0.
+2024-08-02 14:53:41,491 INFO  org.apache.flink.runtime.executiongraph.ExecutionGraph       [] - Job realtime-collect-oracle-kafka Snapshot And Stream (e3b12d95ef0e9746813b713106908662) switched from state RUNNING to RESTARTING.
+2024-08-02 14:53:41,494 WARN  org.apache.flink.runtime.checkpoint.CheckpointFailureManager [] - Failed to trigger or complete checkpoint 1 for job e3b12d95ef0e9746813b713106908662. (0 consecutive failed attempts so far)
+org.apache.flink.runtime.checkpoint.CheckpointException: Checkpoint Coordinator is suspending.
+	at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.stopCheckpointScheduler(CheckpointCoordinator.java:1977) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.checkpoint.CheckpointCoordinatorDeActivator.jobStatusChanges(CheckpointCoordinatorDeActivator.java:46) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.executiongraph.DefaultExecutionGraph.notifyJobStatusChange(DefaultExecutionGraph.java:1608) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.executiongraph.DefaultExecutionGraph.transitionState(DefaultExecutionGraph.java:1174) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.executiongraph.DefaultExecutionGraph.transitionState(DefaultExecutionGraph.java:1146) ~[flink-dist-1.17.2.jar:1.17.2]
+...<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+最终定位到，是因为编译flink的时候使用了jdk11，但是，我们cdh里，使用的java是1.8导致checkpoint一直失败</li>
+</ol>
 
     </div>
 
@@ -447,7 +520,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E8%87%AA%E5%8A%A8%E5%81%9C%E6%AD%A2"><span class="nav-number">1.1.</span> <span class="nav-text">flink提交任务自动停止</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.1.1.</span> <span class="nav-text">原因</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">1.2.</span> <span class="nav-text">解决方案</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E8%87%AA%E5%8A%A8%E5%81%9C%E6%AD%A2"><span class="nav-number">1.1.</span> <span class="nav-text">flink提交任务自动停止</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.1.1.</span> <span class="nav-text">原因</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">1.2.</span> <span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91Flink"><span class="nav-number">2.</span> <span class="nav-text">编译Flink</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#checkpoint%E4%B8%80%E7%9B%B4%E5%A4%B1%E8%B4%A5"><span class="nav-number">2.1.</span> <span class="nav-text">checkpoint一直失败</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

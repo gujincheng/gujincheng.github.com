@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Flink常见问题">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-12-13T09:42:06.000Z">
-<meta property="article:modified_time" content="2022-12-13T09:46:26.676Z">
+<meta property="article:modified_time" content="2024-08-02T06:56:52.586Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -224,10 +224,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-12-13 17:42:06 / 修改时间：17:46:26" itemprop="dateCreated datePublished" datetime="2022-12-13T17:42:06+08:00">2022-12-13</time>
+              <time title="创建时间：2022-12-13 17:42:06" itemprop="dateCreated datePublished" datetime="2022-12-13T17:42:06+08:00">2022-12-13</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-08-02 14:56:52" itemprop="dateModified" datetime="2024-08-02T14:56:52+08:00">2024-08-02</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -285,6 +291,47 @@
 <li>原因：这是由于Flink提交给YARN之后，YARN后续并没有继续监控Flink任务的状态</li>
 <li>解决办法：在提交任务时，命令行加一个参数 -d 即可，例如：run -m yarn-cluster  -d -p 2  -yn 2  -yjm 1024m -ytm 2048m  -ynm  xxxx -c xxxx</li>
 </ul>
+<p>这个问题在浔兴变成100%复现了。但是在dolpinscheduler里无法使用-d参数，这里记录一下如何规避：<br>查看到jobmanager的日志里被以下日志刷屏了：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2024-07-27 17:10:25,702 ERROR org.apache.flink.runtime.rest.handler.job.JobClientHeartbeatHandler [] - Exception occurred in REST handler: Request did not match expected format JobClientHeartbeatRequestBody.
+2024-07-27 17:10:55,701 ERROR org.apache.flink.runtime.rest.handler.job.JobClientHeartbeatHandler [] - Exception occurred in REST handler: Request did not match expected format JobClientHeartbeatRequestBody.
+2024-07-27 17:11:25,681 ERROR org.apache.flink.runtime.rest.handler.job.JobClientHeartbeatHandler [] - Exception occurred in REST handler: Request did not match expected format JobClientHeartbeatRequestBody.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>猜测和这个有关系：应该是发送客户端心跳出现异常，导致任务虽然失败了，但是客户端接受不到已经异常了<br>通过debug，最终定位到是因为JobClientHeartbeatRequestBody类序列化出现了问题：<br>JobClientHeartbeatRequestBody类的构造函数里的参数，需要指定<code>@JsonProperty</code></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">JobClientHeartbeatRequestBody</span> <span class="token keyword">implements</span> <span class="token class-name">RequestBody</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> EXPIRED_TIMESTAMP <span class="token operator">=</span> <span class="token string">"expiredTimestamp"</span><span class="token punctuation">;</span>
+
+    <span class="token annotation punctuation">@JsonProperty</span><span class="token punctuation">(</span>EXPIRED_TIMESTAMP<span class="token punctuation">)</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> <span class="token keyword">long</span> expiredTimestamp<span class="token punctuation">;</span>
+
+    <span class="token annotation punctuation">@JsonCreator</span>
+    <span class="token keyword">public</span> <span class="token class-name">JobClientHeartbeatRequestBody</span><span class="token punctuation">(</span><span class="token annotation punctuation">@JsonProperty</span><span class="token punctuation">(</span>EXPIRED_TIMESTAMP<span class="token punctuation">)</span> <span class="token keyword">long</span> expiredTimestamp<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>expiredTimestamp <span class="token operator">=</span> expiredTimestamp<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token annotation punctuation">@JsonIgnore</span>
+    <span class="token keyword">public</span> <span class="token keyword">long</span> <span class="token function">getExpiredTimestamp</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> expiredTimestamp<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>编译完flink之后，在对Oracle实时采集的时候，发现Checkpoint一直失败，报错日志如下：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2024-08-02 14:53:41,454 INFO  org.apache.flink.runtime.executiongraph.ExecutionGraph       [] - Source: Custom Source -&gt; Filter -&gt; Flat Map (1&#x2F;1) (ed1ebdb51de67d14b5a760cf0977632a_cbc357ccb763df2852fee8c4fc7d55f2_0_0) switched from RUNNING to FAILED on container_1714272405081_0303_01_000002 @ V-NJ-2-204 (dataPort&#x3D;13071).
+java.lang.NoSuchMethodError: java.nio.ByteBuffer.flip()Ljava&#x2F;nio&#x2F;ByteBuffer;
+	at org.apache.flink.runtime.io.network.api.serialization.EventSerializer.serializeCheckpointBarrier(EventSerializer.java:260) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.io.network.api.serialization.EventSerializer.toSerializedEvent(EventSerializer.java:100) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.io.network.api.serialization.EventSerializer.toBufferConsumer(EventSerializer.java:373) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.io.network.partition.BufferWritingResultPartition.broadcastEvent(BufferWritingResultPartition.java:199) ~[flink-dist-1.17.2.jar:1.17.2]
+...
+2024-08-02 14:53:41,491 INFO  org.apache.flink.runtime.jobmaster.JobMaster                 [] - 2 tasks will be restarted to recover the failed task ed1ebdb51de67d14b5a760cf0977632a_cbc357ccb763df2852fee8c4fc7d55f2_0_0.
+2024-08-02 14:53:41,491 INFO  org.apache.flink.runtime.executiongraph.ExecutionGraph       [] - Job realtime-collect-oracle-kafka Snapshot And Stream (e3b12d95ef0e9746813b713106908662) switched from state RUNNING to RESTARTING.
+2024-08-02 14:53:41,494 WARN  org.apache.flink.runtime.checkpoint.CheckpointFailureManager [] - Failed to trigger or complete checkpoint 1 for job e3b12d95ef0e9746813b713106908662. (0 consecutive failed attempts so far)
+org.apache.flink.runtime.checkpoint.CheckpointException: Checkpoint Coordinator is suspending.
+	at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.stopCheckpointScheduler(CheckpointCoordinator.java:1977) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.checkpoint.CheckpointCoordinatorDeActivator.jobStatusChanges(CheckpointCoordinatorDeActivator.java:46) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.executiongraph.DefaultExecutionGraph.notifyJobStatusChange(DefaultExecutionGraph.java:1608) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.executiongraph.DefaultExecutionGraph.transitionState(DefaultExecutionGraph.java:1174) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.executiongraph.DefaultExecutionGraph.transitionState(DefaultExecutionGraph.java:1146) ~[flink-dist-1.17.2.jar:1.17.2]
+...<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>最终定位到，是因为编译flink的时候使用了jdk11，但是，我们cdh里，使用的java是1.8导致checkpoint一直失败</p>
+<h3 id="flink打印中文日志出现乱码"><a href="#flink打印中文日志出现乱码" class="headerlink" title="flink打印中文日志出现乱码"></a>flink打印中文日志出现乱码</h3><p>flink on yarn运行，web页面task managers  logs和stdout中文显示均乱码(全都问号)，解决办法如下：<br>解决办法：在<code>flink-conf.yaml</code>里添加<code>env.java.opts: &quot;-Dfile.encoding=UTF-8&quot;</code></p>
 <h3 id="java-lang-Exception-Container-released-on-a-lost-node"><a href="#java-lang-Exception-Container-released-on-a-lost-node" class="headerlink" title="java.lang.Exception: Container released on a lost node"></a>java.lang.Exception: Container released on a <em>lost</em> node</h3><ul>
 <li>原因：YARN队列压力过大或者磁盘满了之后，可能会导致Flink申请的节点标记为失败，导致taskmanager挂掉</li>
 <li>解决办法：如果有配置重启策略的话，taskmanager会进行重启，如果没有配置重启策略但是配置了checkpoint，默认的重启策略是无限次重启，但是需要注意一点的是，taskmananger成功重启的前提是jobmanager没有挂掉，如果jobmanager也挂掉了，那么taskmanager重启成功之后也是无效的。</li>
@@ -394,7 +441,7 @@ high-availability.storageDir: hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;recovery  <span 
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">Flink常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-YARN%E4%B8%AD%E4%BB%BB%E5%8A%A1%E6%8C%82%E6%8E%89%E5%90%8E%EF%BC%8CYARN%E7%9A%84Web-UI%E6%98%BE%E7%A4%BA%E8%BF%98%E5%9C%A8%E8%BF%90%E8%A1%8C%EF%BC%8C%E4%BD%86%E5%AE%9E%E9%99%85%E4%B8%8A%E5%B7%B2%E7%BB%8F%E6%8C%82%E6%8E%89%E4%BA%86"><span class="nav-number">1.1.</span> <span class="nav-text">Flink On YARN中任务挂掉后，YARN的Web UI显示还在运行，但实际上已经挂掉了</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java-lang-Exception-Container-released-on-a-lost-node"><span class="nav-number">1.2.</span> <span class="nav-text">java.lang.Exception: Container released on a lost node</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%9A%84%E4%BB%BB%E5%8A%A1%E9%A2%91%E7%B9%81%E6%8C%82%E6%8E%89"><span class="nav-number">1.3.</span> <span class="nav-text">生产上的任务频繁挂掉</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">Flink常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-YARN%E4%B8%AD%E4%BB%BB%E5%8A%A1%E6%8C%82%E6%8E%89%E5%90%8E%EF%BC%8CYARN%E7%9A%84Web-UI%E6%98%BE%E7%A4%BA%E8%BF%98%E5%9C%A8%E8%BF%90%E8%A1%8C%EF%BC%8C%E4%BD%86%E5%AE%9E%E9%99%85%E4%B8%8A%E5%B7%B2%E7%BB%8F%E6%8C%82%E6%8E%89%E4%BA%86"><span class="nav-number">1.1.</span> <span class="nav-text">Flink On YARN中任务挂掉后，YARN的Web UI显示还在运行，但实际上已经挂掉了</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%89%93%E5%8D%B0%E4%B8%AD%E6%96%87%E6%97%A5%E5%BF%97%E5%87%BA%E7%8E%B0%E4%B9%B1%E7%A0%81"><span class="nav-number">1.2.</span> <span class="nav-text">flink打印中文日志出现乱码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java-lang-Exception-Container-released-on-a-lost-node"><span class="nav-number">1.3.</span> <span class="nav-text">java.lang.Exception: Container released on a lost node</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%9A%84%E4%BB%BB%E5%8A%A1%E9%A2%91%E7%B9%81%E6%8C%82%E6%8E%89"><span class="nav-number">1.4.</span> <span class="nav-text">生产上的任务频繁挂掉</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
