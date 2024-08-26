@@ -29,11 +29,13 @@
 <meta property="og:site_name" content="Golden Blog">
 <meta property="og:description" content="本文主要包括：  git常用命令 git版本发布流程 IDEA使用git方式">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202404/IDEA%E8%A7%A3%E5%86%B3%E5%90%88%E5%B9%B6%E5%86%B2%E7%AA%81.png">
 <meta property="article:published_time" content="2022-08-26T02:49:30.000Z">
-<meta property="article:modified_time" content="2024-05-28T01:54:07.636Z">
+<meta property="article:modified_time" content="2024-08-26T09:50:03.024Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="git">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202404/IDEA%E8%A7%A3%E5%86%B3%E5%90%88%E5%B9%B6%E5%86%B2%E7%AA%81.png">
 
 <link rel="canonical" href="https://gujincheng.github.io/2022/08/26/git%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/">
 
@@ -232,7 +234,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-05-28 09:54:07" itemprop="dateModified" datetime="2024-05-28T09:54:07+08:00">2024-05-28</time>
+                <time title="修改时间：2024-08-26 17:50:03" itemprop="dateModified" datetime="2024-08-26T17:50:03+08:00">2024-08-26</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -390,6 +392,23 @@ ef7ae-02e62
 b5f36-a16b8
 ec482-f1426<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
+<h2 id="使用IDEA合并分支"><a href="#使用IDEA合并分支" class="headerlink" title="使用IDEA合并分支"></a>使用IDEA合并分支</h2><p>通常情况下，我们会提交代码到远程分支，之后在gitlab的页面上提交merge请求，然后合并分支。但是，如果在页面上出现分支冲突的时候，再用页面往往就不如人意。此时借助命令行，或者idea效果会更好<br>假如现在有2个分支，<code>snapshot-streaming-separate</code>和<code>develop</code>，现在想要将<code>snapshot-streaming-separate</code>分支合并到<code>develop</code>分支，但是目前出现冲突，在web上操作提示失败<br>在IDEA上执行步骤如下：</p>
+<ol>
+<li>切换到<code>snapshot-streaming-separate</code>分支</li>
+<li>右键项目，选择Git -&gt; Merge -&gt; 选择origin/develop -&gt; 选择merge</li>
+<li>此时会出现冲突，然后在界面上选择使用我们的还是他们的，如果选择我们的，就是用当前分支去替代develop分支的内容。否则就是用develop替代当前分支的内容，这里我们选择我们的，然后提交</li>
+<li>再切换到develop上，在选择分支的地方选择<code>snapshot-streaming-separate</code>，并右键，选择<code>merge snapshot-streaming-separate into develop</code></li>
+<li>然后选择push分支到远程分支即可<br><img src="/uploads/202404/IDEA%E8%A7%A3%E5%86%B3%E5%90%88%E5%B9%B6%E5%86%B2%E7%AA%81.png" alt="IDEA解决合并冲突"></li>
+</ol>
+<p>我感觉还可以这样：</p>
+<ol>
+<li>切换到<code>develop</code></li>
+<li>在选择分支的地方选择<code>snapshot-streaming-separate</code>，并右键，选择<code>merge snapshot-streaming-separate into develop</code></li>
+<li>此时应该会提示冲突，然后我们按照上面的方式选择我们的，解决冲突</li>
+<li>最后提交应该就行了</li>
+<li>然后选择push分支到远程分支即可</li>
+</ol>
+
     </div>
 
     
@@ -473,7 +492,7 @@ ec482-f1426<span aria-hidden="true" class="line-numbers-rows"><span></span><span
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">git常用命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#git%E7%89%88%E6%9C%AC%E5%8F%91%E5%B8%83%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">git版本发布流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AArelease%E5%88%86%E6%94%AF"><span class="nav-number">2.1.</span> <span class="nav-text">创建一个release分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%88%90%E4%B8%80%E4%B8%AArelease%E5%88%86%E6%94%AF"><span class="nav-number">2.2.</span> <span class="nav-text">完成一个release分支</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E7%9A%84%E5%BC%80%E5%8F%91%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">完整的开发开源项目的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#github-recovery-codes"><span class="nav-number">4.</span> <span class="nav-text">github-recovery-codes</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">git常用命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#git%E7%89%88%E6%9C%AC%E5%8F%91%E5%B8%83%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">git版本发布流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AArelease%E5%88%86%E6%94%AF"><span class="nav-number">2.1.</span> <span class="nav-text">创建一个release分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%88%90%E4%B8%80%E4%B8%AArelease%E5%88%86%E6%94%AF"><span class="nav-number">2.2.</span> <span class="nav-text">完成一个release分支</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E7%9A%84%E5%BC%80%E5%8F%91%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">完整的开发开源项目的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#github-recovery-codes"><span class="nav-number">4.</span> <span class="nav-text">github-recovery-codes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8IDEA%E5%90%88%E5%B9%B6%E5%88%86%E6%94%AF"><span class="nav-number">5.</span> <span class="nav-text">使用IDEA合并分支</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  flink提交任务自动停止">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-05-11T07:54:06.000Z">
-<meta property="article:modified_time" content="2024-08-02T07:00:03.017Z">
+<meta property="article:modified_time" content="2024-08-12T08:07:12.240Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-08-02 15:00:03" itemprop="dateModified" datetime="2024-08-02T15:00:03+08:00">2024-08-02</time>
+                <time title="修改时间：2024-08-12 16:07:12" itemprop="dateModified" datetime="2024-08-12T16:07:12+08:00">2024-08-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -436,6 +436,7 @@ org.apache.flink.runtime.checkpoint.CheckpointException: Checkpoint Coordinator 
 ...<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 最终定位到，是因为编译flink的时候使用了jdk11，但是，我们cdh里，使用的java是1.8导致checkpoint一直失败</li>
 </ol>
+<h2 id="为什么不使用-gt-1-18-的flink"><a href="#为什么不使用-gt-1-18-的flink" class="headerlink" title="为什么不使用 &gt; 1.18 的flink"></a>为什么不使用 &gt; 1.18 的flink</h2><p>最根本的，是因为flink 1.18不再支持jdk1.8，但是目前我们CDH使用的都是1.8，这会导致flink与我们环境无法兼容</p>
 
     </div>
 
@@ -520,7 +521,7 @@ org.apache.flink.runtime.checkpoint.CheckpointException: Checkpoint Coordinator 
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E8%87%AA%E5%8A%A8%E5%81%9C%E6%AD%A2"><span class="nav-number">1.1.</span> <span class="nav-text">flink提交任务自动停止</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.1.1.</span> <span class="nav-text">原因</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">1.2.</span> <span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91Flink"><span class="nav-number">2.</span> <span class="nav-text">编译Flink</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#checkpoint%E4%B8%80%E7%9B%B4%E5%A4%B1%E8%B4%A5"><span class="nav-number">2.1.</span> <span class="nav-text">checkpoint一直失败</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E8%87%AA%E5%8A%A8%E5%81%9C%E6%AD%A2"><span class="nav-number">1.1.</span> <span class="nav-text">flink提交任务自动停止</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.1.1.</span> <span class="nav-text">原因</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">1.2.</span> <span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91Flink"><span class="nav-number">2.</span> <span class="nav-text">编译Flink</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#checkpoint%E4%B8%80%E7%9B%B4%E5%A4%B1%E8%B4%A5"><span class="nav-number">2.1.</span> <span class="nav-text">checkpoint一直失败</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E4%BD%BF%E7%94%A8-gt-1-18-%E7%9A%84flink"><span class="nav-number">3.</span> <span class="nav-text">为什么不使用 &gt; 1.18 的flink</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
