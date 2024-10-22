@@ -198,6 +198,112 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2024/10/22/Flink-State-Processor-API%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/10/22/Flink-State-Processor-API%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">Flink-State-Processor-API使用记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-10-22 13:30:23 / 修改时间：14:33:17" itemprop="dateCreated datePublished" datetime="2024-10-22T13:30:23+08:00">2024-10-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Flink/" itemprop="url" rel="index"><span itemprop="name">Flink</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2024/10/22/Flink-State-Processor-API%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/" class="post-meta-item leancloud_visitors" data-flag-title="Flink-State-Processor-API使用记录" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2024/10/22/Flink-State-Processor-API%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/10/22/Flink-State-Processor-API%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本文主要包括：</p>
+<ul>
+<li>Flink State Processor API 简介</li>
+<li>Flink State Processor API 读取Kafka Source Checkpoint</li>
+<li>Flink State Processor API 读取FlinkCDC Source Checkpoint（OracleCDC）</li>
+<li>Flink State Processor API 读取FlinkCDC Source Checkpoint（MysqlCDC）</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/10/22/Flink-State-Processor-API%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2024/07/16/PostgreSQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -221,10 +327,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2024-07-16 16:16:30 / 修改时间：16:22:43" itemprop="dateCreated datePublished" datetime="2024-07-16T16:16:30+08:00">2024-07-16</time>
+              <time title="创建时间：2024-07-16 16:16:30" itemprop="dateCreated datePublished" datetime="2024-07-16T16:16:30+08:00">2024-07-16</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-10-22 14:34:12" itemprop="dateModified" datetime="2024-10-22T14:34:12+08:00">2024-10-22</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -271,71 +383,19 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="PostgreSQL开启CDC"><a href="#PostgreSQL开启CDC" class="headerlink" title="PostgreSQL开启CDC"></a>PostgreSQL开启CDC</h2><h3 id="更改配置文件postgresql-conf"><a href="#更改配置文件postgresql-conf" class="headerlink" title="更改配置文件postgresql.conf"></a>更改配置文件postgresql.conf</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 更改wal日志方式为logical
-wal_level &#x3D; logical            # minimal, replica, or logical
-# 更改solts最大数量（默认值为10），flink-cdc默认一张表占用一个slots
-max_replication_slots &#x3D; 20           # max number of replication slots
-# 更改wal发送最大进程数（默认值为10），这个值和上面的solts设置一样
-max_wal_senders &#x3D; 20    # max number of walsender processes# 中断那些停止活动超过指定毫秒数的复制连接，可以适当设置大一点（默认60s）
-wal_sender_timeout &#x3D; 180s	# in milliseconds; 0 disable<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>wal_level是必须更改的，其它参数选着性更改，如果同步表数量超过10张建议修改为合适的值<br>更改配置文件postgresql.conf完成，需要重启pg服务生效，所以一般是在业务低峰期更改</p>
-<h3 id="新建用户并且给用户复制流权限"><a href="#新建用户并且给用户复制流权限" class="headerlink" title="新建用户并且给用户复制流权限"></a>新建用户并且给用户复制流权限</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- pg新建用户</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> <span class="token keyword">user</span> <span class="token keyword">WITH</span> PASSWORD <span class="token string">'pwd'</span><span class="token punctuation">;</span>
-<span class="token comment">-- 给用户复制流权限</span>
-<span class="token keyword">ALTER</span> ROLE <span class="token keyword">user</span> <span class="token keyword">replication</span><span class="token punctuation">;</span>
-<span class="token comment">-- 给用户登录数据库权限</span>
-<span class="token keyword">grant</span> <span class="token keyword">CONNECT</span> <span class="token keyword">ON</span> <span class="token keyword">DATABASE</span> test <span class="token keyword">to</span> <span class="token keyword">user</span><span class="token punctuation">;</span>
-<span class="token comment">-- 把当前库public下所有表查询权限赋给用户</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> <span class="token keyword">ALL</span> <span class="token keyword">TABLES</span> <span class="token operator">IN</span> <span class="token keyword">SCHEMA</span> <span class="token keyword">public</span> <span class="token keyword">TO</span> <span class="token keyword">user</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="发布表"><a href="#发布表" class="headerlink" title="发布表"></a>发布表</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 设置发布为true</span>
-<span class="token keyword">update</span> pg_publication <span class="token keyword">set</span> puballtables<span class="token operator">=</span><span class="token boolean">true</span> <span class="token keyword">where</span> pubname <span class="token operator">is</span> <span class="token operator">not</span> <span class="token boolean">null</span><span class="token punctuation">;</span>
-<span class="token comment">-- 把所有表进行发布</span>
-<span class="token keyword">CREATE</span> PUBLICATION dbz_publication <span class="token keyword">FOR</span> <span class="token keyword">ALL</span> <span class="token keyword">TABLES</span><span class="token punctuation">;</span>
-<span class="token comment">-- 查询哪些表已经发布</span>
-<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> pg_publication_tables<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="更改表的复制标识包含更新和删除的值"><a href="#更改表的复制标识包含更新和删除的值" class="headerlink" title="更改表的复制标识包含更新和删除的值"></a>更改表的复制标识包含更新和删除的值</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 更改复制标识包含更新和删除之前值</span>
-<span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> test0425 REPLICA <span class="token keyword">IDENTITY</span> <span class="token keyword">FULL</span><span class="token punctuation">;</span>
-<span class="token comment">-- 查看复制标识（为f标识说明设置成功）</span>
-<span class="token keyword">select</span> relreplident <span class="token keyword">from</span> pg_class <span class="token keyword">where</span> relname<span class="token operator">=</span><span class="token string">'test0425'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p>OK，到这一步，设置已经完全可以啦，上面步骤都是必须的</p>
-<blockquote>
-<p>这里我测试了一下，好像只有第一步骤是必须的。发布表和更改表的复制标识包含更新和删除的值是没有必要的，可以先不设置，后期有问题再说</p>
-</blockquote>
-<h2 id="常用的pgsql命令（备忘）"><a href="#常用的pgsql命令（备忘）" class="headerlink" title="常用的pgsql命令（备忘）"></a>常用的pgsql命令（备忘）</h2><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- pg新建用户</span>
-<span class="token keyword">CREATE</span> <span class="token keyword">USER</span> ODPS_ETL <span class="token keyword">WITH</span> PASSWORD <span class="token string">'odpsETL@2021'</span><span class="token punctuation">;</span>
-<span class="token comment">-- 给用户复制流权限</span>
-<span class="token keyword">ALTER</span> ROLE ODPS_ETL <span class="token keyword">replication</span><span class="token punctuation">;</span>
-<span class="token comment">-- 给用户数据库权限</span>
-<span class="token keyword">grant</span> <span class="token keyword">CONNECT</span> <span class="token keyword">ON</span> <span class="token keyword">DATABASE</span> test <span class="token keyword">to</span> ODPS_ETL<span class="token punctuation">;</span>
-<span class="token comment">-- 设置发布开关</span>
-<span class="token keyword">update</span> pg_publication <span class="token keyword">set</span> puballtables<span class="token operator">=</span><span class="token boolean">true</span> <span class="token keyword">where</span> pubname <span class="token operator">is</span> <span class="token operator">not</span> <span class="token boolean">null</span><span class="token punctuation">;</span>
-<span class="token comment">-- 把所有表进行发布</span>
-<span class="token keyword">CREATE</span> PUBLICATION dbz_publication <span class="token keyword">FOR</span> <span class="token keyword">ALL</span> <span class="token keyword">TABLES</span><span class="token punctuation">;</span>
-<span class="token comment">-- 查询哪些表已经发布</span>
-<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> pg_publication_tables<span class="token punctuation">;</span>
-<span class="token comment">-- 给表查询权限</span>
-<span class="token keyword">grant</span> <span class="token keyword">select</span> <span class="token keyword">on</span> <span class="token keyword">TABLE</span> aa <span class="token keyword">to</span> ODPS_ETL<span class="token punctuation">;</span>
-<span class="token comment">-- 给用户读写权限</span>
-<span class="token keyword">grant</span> <span class="token keyword">select</span><span class="token punctuation">,</span><span class="token keyword">insert</span><span class="token punctuation">,</span><span class="token keyword">update</span><span class="token punctuation">,</span><span class="token keyword">delete</span> <span class="token keyword">ON</span>  <span class="token keyword">ALL</span> <span class="token keyword">TABLES</span> <span class="token operator">IN</span> <span class="token keyword">SCHEMA</span> <span class="token keyword">public</span> <span class="token keyword">to</span> bd_test<span class="token punctuation">;</span>
-<span class="token comment">-- 把当前库所有表查询权限赋给用户</span>
-<span class="token keyword">GRANT</span> <span class="token keyword">SELECT</span> <span class="token keyword">ON</span> <span class="token keyword">ALL</span> <span class="token keyword">TABLES</span> <span class="token operator">IN</span> <span class="token keyword">SCHEMA</span> <span class="token keyword">public</span> <span class="token keyword">TO</span> ODPS_ETL<span class="token punctuation">;</span>
-<span class="token comment">-- 把当前库以后新建的表查询权限赋给用户</span>
-<span class="token keyword">alter</span> <span class="token keyword">default</span> <span class="token keyword">privileges</span> <span class="token operator">in</span> <span class="token keyword">schema</span> <span class="token keyword">public</span> <span class="token keyword">grant</span> <span class="token keyword">select</span> <span class="token keyword">on</span> <span class="token keyword">tables</span> <span class="token keyword">to</span> ODPS_ETL<span class="token punctuation">;</span>
-<span class="token comment">-- 更改复制标识包含更新和删除之前值</span>
-<span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> test0425 REPLICA <span class="token keyword">IDENTITY</span> <span class="token keyword">FULL</span><span class="token punctuation">;</span>
-<span class="token comment">-- 查看复制标识</span>
-<span class="token keyword">select</span> relreplident <span class="token keyword">from</span> pg_class <span class="token keyword">where</span> relname<span class="token operator">=</span><span class="token string">'test0425'</span><span class="token punctuation">;</span>
-<span class="token comment">-- 查看solt使用情况</span>
-<span class="token keyword">SELECT</span> <span class="token operator">*</span> <span class="token keyword">FROM</span> pg_replication_slots<span class="token punctuation">;</span>
-<span class="token comment">-- 删除solt</span>
-<span class="token keyword">SELECT</span> pg_drop_replication_slot<span class="token punctuation">(</span><span class="token string">'zd_org_goods_solt'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token comment">-- 查询用户当前连接数</span>
-<span class="token keyword">select</span> usename<span class="token punctuation">,</span> <span class="token function">count</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">)</span> <span class="token keyword">from</span> pg_stat_activity <span class="token keyword">group</span> <span class="token keyword">by</span> usename <span class="token keyword">order</span> <span class="token keyword">by</span> <span class="token function">count</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">)</span> <span class="token keyword">desc</span><span class="token punctuation">;</span>
-<span class="token comment">-- 设置用户最大连接数</span>
-<span class="token keyword">alter</span> role odps_etl connection <span class="token keyword">limit</span> <span class="token number">200</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>具体可参考[Flink-cdc实时读postgresql][1]<br>[1]: <a target="_blank" rel="noopener" href="https://www.cnblogs.com/xiongmozhou/p/14817641.html">https://www.cnblogs.com/xiongmozhou/p/14817641.html</a></p>
-
+          <p>本文主要包括：</p>
+<ul>
+<li>PostgreSQL开启CDC</li>
+<li>常用的pgsql命令（备忘）</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/07/16/PostgreSQL%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -1183,113 +1243,6 @@ wal_sender_timeout &#x3D; 180s	# in milliseconds; 0 disable<span aria-hidden="tr
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/avatar.jpg">
-      <meta itemprop="name" content="Golden">
-      <meta itemprop="description" content="计划推动变化">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Golden Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" class="post-title-link" itemprop="url">Window构建高效的Linux开发环境</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2023-09-10 12:14:37" itemprop="dateCreated datePublished" datetime="2023-09-10T12:14:37+08:00">2023-09-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-11-27 08:51:38" itemprop="dateModified" datetime="2023-11-27T08:51:38+08:00">2023-11-27</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/WSL/" itemprop="url" rel="index"><span itemprop="name">WSL</span></a>
-                </span>
-            </span>
-
-          
-            <span id="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" class="post-meta-item leancloud_visitors" data-flag-title="Window构建高效的Linux开发环境" title="阅读次数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span class="leancloud-visitors-count"></span>
-            </span>
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="far fa-comment"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本文主要包括：</p>
-<ul>
-<li>什么是WSL？</li>
-<li>安装WSL</li>
-<li>WSl常用命令</li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/09/10/Window%E6%9E%84%E5%BB%BA%E9%AB%98%E6%95%88%E7%9A%84Linux%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1361,7 +1314,7 @@ wal_sender_timeout &#x3D; 180s	# in milliseconds; 0 disable<span aria-hidden="tr
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">89</span>
+          <span class="site-state-item-count">90</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
