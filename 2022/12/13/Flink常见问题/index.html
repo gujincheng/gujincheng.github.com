@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Flink常见问题">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-12-13T09:42:06.000Z">
-<meta property="article:modified_time" content="2024-11-19T10:24:19.945Z">
+<meta property="article:modified_time" content="2025-02-19T06:14:47.387Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-11-19 18:24:19" itemprop="dateModified" datetime="2024-11-19T18:24:19+08:00">2024-11-19</time>
+                <time title="修改时间：2025-02-19 14:14:47" itemprop="dateModified" datetime="2025-02-19T14:14:47+08:00">2025-02-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -429,6 +429,83 @@ high-availability.storageDir: hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;recovery  <span 
 可以参考<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1512698">记一次log4j不打印日志的踩坑记</a></li>
 </ol>
 <p>经过实际测试，flink lib下的log4j的jar不需要动。这种方式，通过standalone方式，可以在client.log里看到日志。但是提交到yarn上之后，所有日志都没有了，连tm和jm的日志都没有<br>怀疑是log4j2的问题。因为原本的项目使用的是log4j.properties</p>
+<p><strong>注意：</strong></p>
+<ol>
+<li>在 Flink 的 Application 模式下，入口类的所有日志（无论是 log 输出还是 println 打印）都会在 JobManager 容器内呈现。log 输出会打印到 jobmanager.log，println 输出会打印到 jobmanager.out。 </li>
+<li>Flink 的 JobGraph 在客户端生成，而入口类的一些逻辑在客户端执行，并且是在生成 JobGraph 之前执行。在 yarn-per-job 模式下，客户端在本地运行，而在 Application 模式下，客户端由 YARN 上的 JobManager 执行。因此，日志打印原本由客户端处理，现在都由 JobManager 处理。</li>
+</ol>
+<h2 id="org-apache-kafka-common-KafkaException-Failed-to-construct-kafka-producer"><a href="#org-apache-kafka-common-KafkaException-Failed-to-construct-kafka-producer" class="headerlink" title="org.apache.kafka.common.KafkaException: Failed to construct kafka producer"></a><code>org.apache.kafka.common.KafkaException: Failed to construct kafka producer</code></h2><p>执行flink程序，以yarn-per-job的方式可以正常执行，但是，以yarn-applicaiton模式执行，就报以下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2025-01-15 13:41:51,841 WARN  org.apache.flink.runtime.taskmanager.Task                    [] - Source: mysql-source -&gt; Filter -&gt; mysql-source -&gt; kafka-sink: Writer -&gt; kafka-sink: Committer (1&#x2F;1)#0 (f67c466ac29575361b3119aa19e43f6b_d7957fe5bd3c3e0b4a50d2d3a7e3e1ac_0_0) switched from INITIALIZING to FAILED with failure cause:
+org.apache.kafka.common.KafkaException: Failed to construct kafka producer
+	at org.apache.kafka.clients.producer.KafkaProducer.&lt;init&gt;(KafkaProducer.java:439) ~[ocean-1.0.jar:?]
+	at org.apache.kafka.clients.producer.KafkaProducer.&lt;init&gt;(KafkaProducer.java:289) ~[ocean-1.0.jar:?]
+	at org.apache.kafka.clients.producer.KafkaProducer.&lt;init&gt;(KafkaProducer.java:316) ~[ocean-1.0.jar:?]
+	at org.apache.kafka.clients.producer.KafkaProducer.&lt;init&gt;(KafkaProducer.java:301) ~[ocean-1.0.jar:?]
+	at org.apache.flink.connector.kafka.sink.FlinkKafkaInternalProducer.&lt;init&gt;(FlinkKafkaInternalProducer.java:55) ~[ocean-1.0.jar:?]
+	at org.apache.flink.connector.kafka.sink.KafkaWriter.&lt;init&gt;(KafkaWriter.java:182) ~[ocean-1.0.jar:?]
+	at org.apache.flink.connector.kafka.sink.KafkaSink.createWriter(KafkaSink.java:111) ~[ocean-1.0.jar:?]
+	at org.apache.flink.connector.kafka.sink.KafkaSink.createWriter(KafkaSink.java:57) ~[ocean-1.0.jar:?]
+	at org.apache.flink.streaming.runtime.operators.sink.StatefulSinkWriterStateHandler.createWriter(StatefulSinkWriterStateHandler.java:117) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.streaming.runtime.operators.sink.SinkWriterOperator.initializeState(SinkWriterOperator.java:146) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.streaming.api.operators.StreamOperatorStateHandler.initializeOperatorState(StreamOperatorStateHandler.java:122) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.streaming.api.operators.AbstractStreamOperator.initializeState(AbstractStreamOperator.java:274) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.streaming.runtime.tasks.RegularOperatorChain.initializeStateAndOpenOperators(RegularOperatorChain.java:106) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.restoreGates(StreamTask.java:734) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.streaming.runtime.tasks.StreamTaskActionExecutor$1.call(StreamTaskActionExecutor.java:55) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.restoreInternal(StreamTask.java:709) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.streaming.runtime.tasks.StreamTask.restore(StreamTask.java:675) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.taskmanager.Task.runWithSystemExitMonitoring(Task.java:952) ~[flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.taskmanager.Task.restoreAndInvoke(Task.java:921) [flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.taskmanager.Task.doRun(Task.java:745) [flink-dist-1.17.2.jar:1.17.2]
+	at org.apache.flink.runtime.taskmanager.Task.run(Task.java:562) [flink-dist-1.17.2.jar:1.17.2]
+	at java.lang.Thread.run(Thread.java:750) [?:1.8.0_411]
+Caused by: org.apache.kafka.common.KafkaException: class org.apache.kafka.common.serialization.ByteArraySerializer is not an instance of org.apache.kafka.common.serialization.Serializer
+	at org.apache.kafka.common.config.AbstractConfig.getConfiguredInstance(AbstractConfig.java:403) ~[ocean-1.0.jar:?]
+	at org.apache.kafka.common.config.AbstractConfig.getConfiguredInstance(AbstractConfig.java:434) ~[ocean-1.0.jar:?]
+	at org.apache.kafka.common.config.AbstractConfig.getConfiguredInstance(AbstractConfig.java:419) ~[ocean-1.0.jar:?]
+	at org.apache.kafka.clients.producer.KafkaProducer.&lt;init&gt;(KafkaProducer.java:365) ~[ocean-1.0.jar:?]
+	... 21 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>网上的说法是jar包冲突，通过检查，确实发现flink-cdc引用的kafka与flink-connector-kafka引用的kafka版本不一样<br>这里我修改了pom文件的kafka冲突，但是没有效果，感觉上，像是集群里有其他kafka相关的jar包。<br>设置<code>classloader.resolve-order: parent-first</code> 可以解决这个问题<br>但是，设置这个参数之后可能会有一些隐患，一般是不建议设置的。具体可以参考<a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/771412">双亲委派模型与 Flink 的类加载策略</a><br>通过查看flink官方文档，发现也可以设置<code>classloader.parent-first-patterns.additional: &quot;org.apache.kafka.&quot;;</code><br>但是这个也是治标不治本，还是需要看下集群里到底有什么kakfa的包影响了程序</p>
+<h2 id="Exception-in-thread-“main”-java-util-ServiceConfigurationError-java-net-spi-URLStreamHandlerProvider-Provider-org-infinispan-commons-jdkspecific-ClasspathURLStreamHandlerProvider-not-found"><a href="#Exception-in-thread-“main”-java-util-ServiceConfigurationError-java-net-spi-URLStreamHandlerProvider-Provider-org-infinispan-commons-jdkspecific-ClasspathURLStreamHandlerProvider-not-found" class="headerlink" title="Exception in thread “main” java.util.ServiceConfigurationError: java.net.spi.URLStreamHandlerProvider: Provider org.infinispan.commons.jdkspecific.ClasspathURLStreamHandlerProvider not found"></a>Exception in thread “main” java.util.ServiceConfigurationError: java.net.spi.URLStreamHandlerProvider: Provider org.infinispan.commons.jdkspecific.ClasspathURLStreamHandlerProvider not found</h2><p>在使用flink local模式（java -cp）的方式提交flink程序的时候，在idea里能够正常运行，但是打成包使用java -cp就报这个错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.util.ServiceConfigurationError: java.net.spi.URLStreamHandlerProvider: Provider org.infinispan.commons.jdkspecific.ClasspathURLStreamHandlerProvider not found
+	at java.base&#x2F;java.util.ServiceLoader.fail(ServiceLoader.java:589)
+	at java.base&#x2F;java.util.ServiceLoader$LazyClassPathLookupIterator.nextProviderClass(ServiceLoader.java:1212)
+...
+	at org.apache.flink.runtime.rest.RestServerEndpoint.start(RestServerEndpoint.java:305)
+	at org.apache.flink.runtime.entrypoint.component.DefaultDispatcherResourceManagerComponentFactory.create(DefaultDispatcherResourceManagerComponentFactory.java:177)
+	at org.apache.flink.runtime.minicluster.MiniCluster.createDispatcherResourceManagerComponents(MiniCluster.java:552)
+	at org.apache.flink.runtime.minicluster.MiniCluster.setupDispatcherResourceManagerComponents(MiniCluster.java:519)
+	at org.apache.flink.runtime.minicluster.MiniCluster.start(MiniCluster.java:463)
+	at org.apache.flink.client.program.PerJobMiniClusterFactory.submitJob(PerJobMiniClusterFactory.java:77)
+	at org.apache.flink.client.deployment.executors.LocalExecutor.execute(LocalExecutor.java:85)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.executeAsync(StreamExecutionEnvironment.java:2206)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.executeAsync(StreamExecutionEnvironment.java:2187)
+	at org.apache.flink.streaming.api.datastream.DataStream.executeAndCollectWithClient(DataStream.java:1471)
+	at org.apache.flink.streaming.api.datastream.DataStream.executeAndCollect(DataStream.java:1336)
+	at org.apache.flink.streaming.api.datastream.DataStream.executeAndCollect(DataStream.java:1322)
+	at com.digiwin.ocean.CheckpointUtil.parseMysqlState(CheckpointUtil.java:94)
+	at com.digiwin.ocean.CheckpointUtil.checkCheckpointStatus(CheckpointUtil.java:383)
+	at com.digiwin.ocean.CheckpointUtil.main(CheckpointUtil.java:428)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>原因：</strong> Java的版本问题，在pom文件里，指定了java为1.8，idea默认也是用的1.8来执行，但是，配置的java_home使用的却是jdk11<br><strong>解决方案：</strong> 切换java版本</p>
+<h2 id="使用createLocalEnvironment读取hdfs文件，报错Caused-by-java-lang-IllegalArgumentException-java-net-UnknownHostException-nameservice1"><a href="#使用createLocalEnvironment读取hdfs文件，报错Caused-by-java-lang-IllegalArgumentException-java-net-UnknownHostException-nameservice1" class="headerlink" title="使用createLocalEnvironment读取hdfs文件，报错Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: nameservice1"></a>使用<code>createLocalEnvironment</code>读取hdfs文件，报错<code>Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: nameservice1</code></h2><p><strong>背景</strong><br>使用<code>java -jar</code>的方式启动flink程序，用以读取flink checkpoint的数据，在datanode节点部署服务，可以正常读取hdfs内容，但是，放到非datanode节点，仅是hadoop客户端的服务器上，就报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.io.IOException: Cannot instantiate file system for URI: hdfs:&#x2F;&#x2F;nameservice1&#x2F;flink&#x2F;checkpoint&#x2F;ocean&#x2F;realtime-collect-mysql&#x2F;da5c280856b3a9e15573c43f6f0ffb5a&#x2F;chk-5
+        at org.apache.flink.runtime.fs.hdfs.HadoopFsFactory.create(HadoopFsFactory.java:196)
+        at org.apache.flink.core.fs.FileSystem.getUnguardedFileSystem(FileSystem.java:526)
+        at org.apache.flink.core.fs.FileSystem.get(FileSystem.java:409)
+        at org.apache.flink.core.fs.Path.getFileSystem(Path.java:274)
+        at org.apache.flink.runtime.state.filesystem.AbstractFsCheckpointStorageAccess.resolveCheckpointPointer(AbstractFsCheckpointStorageAccess.java:257)
+        ... 58 common frames omitted
+Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: nameservice1
+        at org.apache.hadoop.security.SecurityUtil.buildTokenService(SecurityUtil.java:444)
+        at org.apache.hadoop.hdfs.NameNodeProxiesClient.createProxyWithClientProtocol(NameNodeProxiesClient.java:132)
+        at org.apache.hadoop.hdfs.DFSClient.&lt;init&gt;(DFSClient.java:355)
+        at org.apache.hadoop.hdfs.DFSClient.&lt;init&gt;(DFSClient.java:289)
+        at org.apache.hadoop.hdfs.DistributedFileSystem.initialize(DistributedFileSystem.java:163)
+        at org.apache.flink.runtime.fs.hdfs.HadoopFsFactory.create(HadoopFsFactory.java:168)
+        ... 62 common frames omitted
+Caused by: java.net.UnknownHostException: nameservice1
+        ... 68 common frames omitted<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>一开始以为是没有加载hadoop相关配置。但是经过一系列尝试，发现使用<code>StreamExecutionEnvironment.createLocalEnvironment()</code>没办法传入hadoop相关配置，最后发现，datanode节点和hadoop客户端的差异在于，datanode上配置了hadoop_home以及hadoop_classpath<br>通过在hadoop客户端配置这两个环境变量，问题解决<br>解决方案：配置hadoop_home以及hadoop_classpath<br>深思： 之后再使用flink只要与hadoop相关的，这两个配置就必不可少</p>
 
     </div>
 
@@ -513,7 +590,7 @@ high-availability.storageDir: hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;recovery  <span 
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">Flink常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-YARN%E4%B8%AD%E4%BB%BB%E5%8A%A1%E6%8C%82%E6%8E%89%E5%90%8E%EF%BC%8CYARN%E7%9A%84Web-UI%E6%98%BE%E7%A4%BA%E8%BF%98%E5%9C%A8%E8%BF%90%E8%A1%8C%EF%BC%8C%E4%BD%86%E5%AE%9E%E9%99%85%E4%B8%8A%E5%B7%B2%E7%BB%8F%E6%8C%82%E6%8E%89%E4%BA%86"><span class="nav-number">1.1.</span> <span class="nav-text">Flink On YARN中任务挂掉后，YARN的Web UI显示还在运行，但实际上已经挂掉了</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%89%93%E5%8D%B0%E4%B8%AD%E6%96%87%E6%97%A5%E5%BF%97%E5%87%BA%E7%8E%B0%E4%B9%B1%E7%A0%81"><span class="nav-number">1.2.</span> <span class="nav-text">flink打印中文日志出现乱码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java-lang-Exception-Container-released-on-a-lost-node"><span class="nav-number">1.3.</span> <span class="nav-text">java.lang.Exception: Container released on a lost node</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%9A%84%E4%BB%BB%E5%8A%A1%E9%A2%91%E7%B9%81%E6%8C%82%E6%8E%89"><span class="nav-number">1.4.</span> <span class="nav-text">生产上的任务频繁挂掉</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0yarn%E4%B8%8A%EF%BC%8C%E4%B8%80%E7%9B%B4%E6%8A%A5Retrying-connect-to-server-0-0-0-0-0-0-0-0-8032"><span class="nav-number">1.5.</span> <span class="nav-text">提交任务到yarn上，一直报Retrying connect to server: 0.0.0.0&#x2F;0.0.0.0:8032</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-Yarn%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%90%8E%EF%BC%8C%E7%8A%B6%E6%80%81%E4%B8%80%E7%9B%B4%E6%98%AFCREATE"><span class="nav-number">1.6.</span> <span class="nav-text">Flink On Yarn提交任务后，状态一直是CREATE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-on-yarn%E5%9C%A8main%E5%87%BD%E6%95%B0%E9%87%8C%E5%AE%9A%E4%B9%89%E7%9A%84info%E6%97%A5%E5%BF%97%EF%BC%8C%E6%89%93%E5%8D%B0%E4%B8%8D%E5%87%BA%E6%9D%A5"><span class="nav-number">1.7.</span> <span class="nav-text">Flink on yarn在main函数里定义的info日志，打印不出来</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">Flink常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-YARN%E4%B8%AD%E4%BB%BB%E5%8A%A1%E6%8C%82%E6%8E%89%E5%90%8E%EF%BC%8CYARN%E7%9A%84Web-UI%E6%98%BE%E7%A4%BA%E8%BF%98%E5%9C%A8%E8%BF%90%E8%A1%8C%EF%BC%8C%E4%BD%86%E5%AE%9E%E9%99%85%E4%B8%8A%E5%B7%B2%E7%BB%8F%E6%8C%82%E6%8E%89%E4%BA%86"><span class="nav-number">1.1.</span> <span class="nav-text">Flink On YARN中任务挂掉后，YARN的Web UI显示还在运行，但实际上已经挂掉了</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%89%93%E5%8D%B0%E4%B8%AD%E6%96%87%E6%97%A5%E5%BF%97%E5%87%BA%E7%8E%B0%E4%B9%B1%E7%A0%81"><span class="nav-number">1.2.</span> <span class="nav-text">flink打印中文日志出现乱码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java-lang-Exception-Container-released-on-a-lost-node"><span class="nav-number">1.3.</span> <span class="nav-text">java.lang.Exception: Container released on a lost node</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%9A%84%E4%BB%BB%E5%8A%A1%E9%A2%91%E7%B9%81%E6%8C%82%E6%8E%89"><span class="nav-number">1.4.</span> <span class="nav-text">生产上的任务频繁挂掉</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0yarn%E4%B8%8A%EF%BC%8C%E4%B8%80%E7%9B%B4%E6%8A%A5Retrying-connect-to-server-0-0-0-0-0-0-0-0-8032"><span class="nav-number">1.5.</span> <span class="nav-text">提交任务到yarn上，一直报Retrying connect to server: 0.0.0.0&#x2F;0.0.0.0:8032</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-Yarn%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%90%8E%EF%BC%8C%E7%8A%B6%E6%80%81%E4%B8%80%E7%9B%B4%E6%98%AFCREATE"><span class="nav-number">1.6.</span> <span class="nav-text">Flink On Yarn提交任务后，状态一直是CREATE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-on-yarn%E5%9C%A8main%E5%87%BD%E6%95%B0%E9%87%8C%E5%AE%9A%E4%B9%89%E7%9A%84info%E6%97%A5%E5%BF%97%EF%BC%8C%E6%89%93%E5%8D%B0%E4%B8%8D%E5%87%BA%E6%9D%A5"><span class="nav-number">1.7.</span> <span class="nav-text">Flink on yarn在main函数里定义的info日志，打印不出来</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#org-apache-kafka-common-KafkaException-Failed-to-construct-kafka-producer"><span class="nav-number">2.</span> <span class="nav-text">org.apache.kafka.common.KafkaException: Failed to construct kafka producer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception-in-thread-%E2%80%9Cmain%E2%80%9D-java-util-ServiceConfigurationError-java-net-spi-URLStreamHandlerProvider-Provider-org-infinispan-commons-jdkspecific-ClasspathURLStreamHandlerProvider-not-found"><span class="nav-number">3.</span> <span class="nav-text">Exception in thread “main” java.util.ServiceConfigurationError: java.net.spi.URLStreamHandlerProvider: Provider org.infinispan.commons.jdkspecific.ClasspathURLStreamHandlerProvider not found</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8createLocalEnvironment%E8%AF%BB%E5%8F%96hdfs%E6%96%87%E4%BB%B6%EF%BC%8C%E6%8A%A5%E9%94%99Caused-by-java-lang-IllegalArgumentException-java-net-UnknownHostException-nameservice1"><span class="nav-number">4.</span> <span class="nav-text">使用createLocalEnvironment读取hdfs文件，报错Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: nameservice1</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -569,7 +646,7 @@ high-availability.storageDir: hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;recovery  <span 
 <div class="copyright">
   
   &copy; 2021 – 
-  <span itemprop="copyrightYear">2024</span>
+  <span itemprop="copyrightYear">2025</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
