@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Flink自定义MetricReporter">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-11-13T11:49:25.000Z">
-<meta property="article:modified_time" content="2024-11-14T02:38:41.722Z">
+<meta property="article:modified_time" content="2025-02-21T11:59:49.371Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2024-11-14 10:38:41" itemprop="dateModified" datetime="2024-11-14T10:38:41+08:00">2024-11-14</time>
+                <time title="修改时间：2025-02-21 19:59:49" itemprop="dateModified" datetime="2025-02-21T19:59:49+08:00">2025-02-21</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -665,8 +665,27 @@ conf<span class="token punctuation">.</span><span class="token function">setStri
 conf<span class="token punctuation">.</span><span class="token function">setString</span><span class="token punctuation">(</span><span class="token string">"metrics.reporter.webservice.url"</span><span class="token punctuation">,</span><span class="token string">"http://172.16.2.205:5000/process_json"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 conf<span class="token punctuation">.</span><span class="token function">setString</span><span class="token punctuation">(</span><span class="token string">"metrics.reporter.webservice.jobName"</span><span class="token punctuation">,</span><span class="token string">"realtime-collect-oracle"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p><strong>使用metric reporter只能上报yarn的，standalone貌似不行，这里需要再测试一下</strong></p>
-
+<p><strong>使用metric reporter只能上报yarn的，standalone貌似不行，这里需要再测试一下</strong><br>在代码中使用<code>StreamExecutionEnvironment.getExecutionEnvironment(conf)</code>的方式传递metric相关的参数，只能在使用<code>-sae</code>启动flink任务的时候才有效，如果使用yarn-application 模式下这些参数无法生效<br>原因貌似是因为yarn-application模式的client其实是执行在jobManager上，但是metics相关的参数需要执行在taskmanager上。这就导致在jobMnager上设置的参数，无法传递到taskmanager上<br>解决方法需要在启动yarn任务的时候传递，如：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run-application -t yarn-application \
+ -Dmetrics.reporter.webservice.factory.class&#x3D;org.apache.flink.metrics.webservice.WebServiceReporterFactory \
+ -Dmetrics.reporter.webservice.interval&#x3D;&#39;10 SECONDS&#39; \
+ -Dmetrics.reporter.webservice.url&#x3D;http:&#x2F;&#x2F;172.16.2.205:5000&#x2F;process_json \
+ -Dmetrics.reporter.webservice.jobName&#x3D;job-name \
+ -Dmetrics.reporter.webservice.taskInstanceId&#x3D;111 \
+ -Dmetrics.reporter.webservice.dmpTaskInstanceId&#x3D;111 \
+ -Dmetrics.reporter.webservice.filterMetrics&#x3D;totalSourceReadRows,totalSinkWriteRows,totalDirtyRecordRows \
+ -ys 1 -ynm gjc_test_cdc -yjm 1G -ytm 2G -yqu default -p 1 -c com.digiwin.ocean.OceanStarter target&#x2F;ocean-1.0.jar -f &#x2F;opt&#x2F;soft&#x2F;ocean&#x2F;workspace&#x2F;gjc_test_cdc&#x2F;flink-source-sink.json -startupMode initial -taskInstanceId 11 -dmpTaskInstanceId 11<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>或者在flink-conf.yaml里设置：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">metrics.reporter.webservice.factory.class: org.apache.flink.metrics.webservice.WebServiceReporterFactory
+metrics.reporter.webservice.interval: 10 SECONDS
+metrics.reporter.webservice.url: http:&#x2F;&#x2F;172.16.2.205:5000&#x2F;process_json
+metrics.reporter.webservice.jobName: job-name
+metrics.reporter.webservice.taskInstanceId: 111
+metrics.reporter.webservice.dmpTaskInstanceId: 111
+metrics.reporter.webservice.filterMetrics: totalSourceReadRows,totalSinkWriteRows,totalDirtyRecordRows<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过测试，设置全局变量<strong>无效</strong>：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">StreamExecutionEnvironment</span> env <span class="token operator">=</span> <span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">.</span><span class="token function">getExecutionEnvironment</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>
+env<span class="token punctuation">.</span><span class="token function">getConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setGlobalJobParameters</span><span class="token punctuation">(</span>conf<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 设置全局参数</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
     </div>
 
     
@@ -687,7 +706,10 @@ conf<span class="token punctuation">.</span><span class="token function">setStri
     <a href="/2024/10/22/Flink-State-Processor-API%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/" rel="prev" title="Flink-State-Processor-API使用记录">
       <i class="fa fa-chevron-left"></i> Flink-State-Processor-API使用记录
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2025/02/26/YARN%E5%BA%94%E7%94%A8%E6%97%A5%E5%BF%97%E6%9F%A5%E7%9C%8B/" rel="next" title="YARN应用日志查看">
+      YARN应用日志查看 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -763,7 +785,7 @@ conf<span class="token punctuation">.</span><span class="token function">setStri
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">91</span>
+          <span class="site-state-item-count">92</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -776,7 +798,7 @@ conf<span class="token punctuation">.</span><span class="token function">setStri
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">64</span>
+        <span class="site-state-item-count">65</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
