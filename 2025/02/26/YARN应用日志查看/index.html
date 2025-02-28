@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202502/yarn%E8%8E%B7%E5%8F%96container%E6%97%A5%E5%BF%97.png">
 <meta property="article:published_time" content="2025-02-26T01:07:49.000Z">
-<meta property="article:modified_time" content="2025-02-26T01:19:40.700Z">
+<meta property="article:modified_time" content="2025-02-28T08:56:50.806Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="YARN">
 <meta name="twitter:card" content="summary">
@@ -226,10 +226,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2025-02-26 09:07:49 / 修改时间：09:19:40" itemprop="dateCreated datePublished" datetime="2025-02-26T09:07:49+08:00">2025-02-26</time>
+              <time title="创建时间：2025-02-26 09:07:49" itemprop="dateCreated datePublished" datetime="2025-02-26T09:07:49+08:00">2025-02-26</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-02-28 16:56:50" itemprop="dateModified" datetime="2025-02-28T16:56:50+08:00">2025-02-28</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -311,6 +317,37 @@ yarn.nodemanager.remote-app-log-dir-suffix：日志聚合的地址后缀，默�
 <li>jobmanager.log 为 flink任务管理日志</li>
 <li>taskmanager.log 为 flink任务工作日志。<br>当然，也有朋友会问，我在 yarn resourceManager UI 上面也可以看到应用日志啊。是的，能看到，但我还是感觉命令行简单，并且你也不能保证每个项目的 yarn 环境，都能访问外网是吧。<br>所以我上面分享的查到对应的 Container 日志命令，是很有必要掌握的。</li>
 </ul>
+<h2 id="日志聚合-1"><a href="#日志聚合-1" class="headerlink" title="日志聚合"></a>日志聚合</h2><p>在yarn上执行的application，日志会先写在本地，如果开启了日志聚合，会在程序停止后的一段时间后上传到hdfs，具体由以下参数设置：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.log-aggregation-enable<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>是否启用日志聚合<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.nodemanager.remote-app-log-dir<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>/tmp/logs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>聚合日志存储的 HDFS 目录<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.log-aggregation.retain-seconds<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>604800<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 7 天 --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>聚合日志的保留时间（秒）<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.nodemanager.log-dirs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>/data/yarn/container-logs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>NodeManager 存储 Container 日志的本地目录<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>yarn.nodemanager.log.retain-seconds<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>10800<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span> <span class="token comment">&lt;!-- 3小时 --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>未聚合日志的保留时间（秒）<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>完整的流程为：程序运行过程中，日志被记录在/data/yarn/container-logs，程序停止后，在3小时内，还可以在该目录查看。等到3小时之后，日志会被上传到hdfs的/tmp/logs下，并在hdfs上被保留7天。7天后，日志被删除</p>
 
     </div>
 
@@ -392,7 +429,7 @@ yarn.nodemanager.remote-app-log-dir-suffix：日志聚合的地址后缀，默�
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%9C%E4%B8%9A%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97"><span class="nav-number">2.</span> <span class="nav-text">作业本地日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88"><span class="nav-number">3.</span> <span class="nav-text">日志聚合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E6%B8%85%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">日志清理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97"><span class="nav-number">4.1.</span> <span class="nav-text">本地日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9C%E7%A8%8B%E8%81%9A%E5%90%88%E6%97%A5%E5%BF%97"><span class="nav-number">4.2.</span> <span class="nav-text">远程聚合日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B-Flink-on-Yarn-%E6%97%A5%E5%BF%97"><span class="nav-number">4.3.</span> <span class="nav-text">查看 Flink on Yarn 日志</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%9C%E4%B8%9A%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97"><span class="nav-number">2.</span> <span class="nav-text">作业本地日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88"><span class="nav-number">3.</span> <span class="nav-text">日志聚合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E6%B8%85%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">日志清理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97"><span class="nav-number">4.1.</span> <span class="nav-text">本地日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9C%E7%A8%8B%E8%81%9A%E5%90%88%E6%97%A5%E5%BF%97"><span class="nav-number">4.2.</span> <span class="nav-text">远程聚合日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B-Flink-on-Yarn-%E6%97%A5%E5%BF%97"><span class="nav-number">4.3.</span> <span class="nav-text">查看 Flink on Yarn 日志</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88-1"><span class="nav-number">5.</span> <span class="nav-text">日志聚合</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
