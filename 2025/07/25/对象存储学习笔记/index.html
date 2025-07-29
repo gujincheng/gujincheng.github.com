@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  对象存储学习笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对象存储学习笔记">
+<meta property="og:url" content="https://gujincheng.github.io/2025/07/25/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  对象存储学习笔记">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-25T02:31:46.000Z">
+<meta property="article:modified_time" content="2025-07-29T02:49:19.100Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="对象存储">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://gujincheng.github.io/2025/07/25/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>对象存储学习笔记 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2025/07/25/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          对象存储学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-07-25 10:31:46" itemprop="dateCreated datePublished" datetime="2025-07-25T10:31:46+08:00">2025-07-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-07-29 10:49:19" itemprop="dateModified" datetime="2025-07-29T10:49:19+08:00">2025-07-29</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">对象存储</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8/Flink/" itemprop="url" rel="index"><span itemprop="name">Flink</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2025/07/25/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="对象存储学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2025/07/25/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2025/07/25/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>对象存储学习笔记</li>
+</ul>
+<a id="more"></a>
+
+
+
+<h2 id="一、对象存储基础概念"><a href="#一、对象存储基础概念" class="headerlink" title="一、对象存储基础概念"></a>一、对象存储基础概念</h2><ol>
+<li><strong>定义与定位</strong><br>对象存储是专为海量非结构化数据设计的存储范式，以对象为基本存储单元，通过扁平命名空间和RESTful API实现高效管理。<ul>
+<li>核心区别：与块存储（低延迟随机访问）、文件存储（树状目录结构）的差异。</li>
+</ul>
+</li>
+<li><strong>核心组件</strong><ul>
+<li><strong>对象（Object）</strong>：包含数据本体、全局唯一ID（如UUID）和元数据（如创建时间、用户标签）。</li>
+<li><strong>存储桶（Bucket）</strong>：逻辑容器，用于组织对象，支持跨地域分布式存储。</li>
+<li><strong>元数据服务器（MDS）</strong>：管理对象属性和存储位置，优化检索效率。</li>
+</ul>
+</li>
+</ol>
+<h2 id="二、核心架构与技术"><a href="#二、核心架构与技术" class="headerlink" title="二、核心架构与技术"></a>二、核心架构与技术</h2><ol>
+<li><strong>分布式存储架构</strong><ul>
+<li><strong>数据分布策略</strong>：通过一致性哈希或CRUSH算法将对象均匀分布到集群节点，支持动态扩缩容。</li>
+<li><strong>冗余与容错</strong>：多副本（如3副本）或纠删码（如6+3）技术保障数据可靠性，支持跨区域复制。</li>
+</ul>
+</li>
+<li><strong>访问协议与接口</strong><ul>
+<li><strong>RESTful API</strong>：基于HTTP协议，常用操作包括PUT（上传）、GET（下载）、DELETE（删除），支持JSON/XML格式元数据。</li>
+<li><strong>典型协议</strong>：Amazon S3、OpenStack Swift、Ceph RGW等。</li>
+</ul>
+</li>
+</ol>
+<h2 id="三、关键技术特性"><a href="#三、关键技术特性" class="headerlink" title="三、关键技术特性"></a>三、关键技术特性</h2><ol>
+<li><strong>数据可靠性与可用性</strong><ul>
+<li><strong>持久性机制</strong>：通过多副本同步写入和版本控制（如S3版本管理）实现99.999999999%（11个9）的数据可靠性。</li>
+<li><strong>一致性模型</strong>：最终一致性（跨区域场景）与强一致性（同区域操作）的选择策略。</li>
+</ul>
+</li>
+<li><strong>扩展性与性能优化</strong><ul>
+<li><strong>水平扩展</strong>：无中心节点设计，支持存储容量从TB到EB级无缝扩展。</li>
+<li><strong>高并发处理</strong>：分布式架构支持数万级QPS并发访问，适合视频流、大数据分析等场景。</li>
+</ul>
+</li>
+</ol>
+<h2 id="四、与HDFS的核心区别"><a href="#四、与HDFS的核心区别" class="headerlink" title="四、与HDFS的核心区别"></a>四、与HDFS的核心区别</h2><table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th><strong>对象存储</strong></th>
+<th><strong>HDFS</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>数据模型</strong></td>
+<td>以“对象”为基本单元，包含数据、元数据和唯一ID，无目录层级。</td>
+<td>以“文件+目录”为结构，支持树状层级命名空间。</td>
+</tr>
+<tr>
+<td><strong>访问接口</strong></td>
+<td>基于RESTful API（如S3协议），支持HTTP/HTTPS协议直接访问。</td>
+<td>基于HDFS API和命令行（如<code>hdfs dfs</code>），需通过Hadoop生态访问。</td>
+</tr>
+<tr>
+<td><strong>元数据管理</strong></td>
+<td>元数据分布式存储，支持海量小文件，无单点瓶颈。</td>
+<td>依赖NameNode集中管理元数据，小文件场景下元数据膨胀易导致性能下降。</td>
+</tr>
+<tr>
+<td><strong>存储效率</strong></td>
+<td>支持纠删码（EC）技术，存储开销可低至1.2倍（如10+2模式），适合冷数据归档。</td>
+<td>默认3副本存储，存储开销3倍，小文件场景下冗余效率更低。</td>
+</tr>
+<tr>
+<td><strong>扩展性</strong></td>
+<td>支持水平扩展，可通过增加节点无缝扩容，适合超大规模数据（如EB级）。</td>
+<td>扩展性受限于NameNode内存，大规模集群需复杂高可用方案。</td>
+</tr>
+<tr>
+<td><strong>典型场景</strong></td>
+<td>海量小文件存储、实时数据访问、云原生数据湖。</td>
+<td>大文件批量处理、离线数据分析（如MapReduce/Spark作业）。</td>
+</tr>
+</tbody></table>
+<p><strong>补充说明</strong>：</p>
+<ul>
+<li>对象存储更适合“一次写入、多次读取”的场景，而HDFS在需要频繁修改数据的场景中表现更优。</li>
+<li>云厂商对象存储（如AWS S3、阿里云OSS）已深度集成计算框架（如Spark），可直接作为数据湖底座，而HDFS更多用于自建集群的离线计算。</li>
+</ul>
+<h1 id="对象存储学习笔记（优化版）"><a href="#对象存储学习笔记（优化版）" class="headerlink" title="对象存储学习笔记（优化版）"></a>对象存储学习笔记（优化版）</h1><h2 id="一、对象存储基础认知"><a href="#一、对象存储基础认知" class="headerlink" title="一、对象存储基础认知"></a>一、对象存储基础认知</h2><ol>
+<li><p><strong>核心特点</strong></p>
+<ul>
+<li><strong>扁平化结构</strong>：无目录层级，通过唯一ID（如<code>bucket-name/object-key</code>）直接定位数据，适合海量文件管理。</li>
+<li><strong>元数据丰富</strong>：支持自定义元数据（如用户标签、业务属性），便于分类检索。</li>
+<li><strong>RESTful API</strong>：标准化接口（如HTTP PUT/GET/DELETE），与编程语言无缝集成。</li>
+</ul>
+</li>
+<li><p><strong>与文件存储、块存储对比</strong>  </p>
+<table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong>对象存储</strong></th>
+<th><strong>文件存储</strong></th>
+<th><strong>块存储</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>访问方式</strong></td>
+<td>HTTP/HTTPS协议</td>
+<td>POSIX协议（如NFS）</td>
+<td>直接读写磁盘扇区</td>
+</tr>
+<tr>
+<td><strong>典型场景</strong></td>
+<td>图片/视频存储、备份</td>
+<td>代码仓库、配置文件</td>
+<td>数据库、虚拟机磁盘</td>
+</tr>
+<tr>
+<td><strong>扩展性</strong></td>
+<td>极易扩展（EB级）</td>
+<td>中等（依赖服务器性能）</td>
+<td>受限于存储设备</td>
+</tr>
+</tbody></table>
+</li>
+</ol>
+<h2 id="二、技术架构深入解析"><a href="#二、技术架构深入解析" class="headerlink" title="二、技术架构深入解析"></a>二、技术架构深入解析</h2><ol>
+<li><p><strong>数据分布与冗余</strong></p>
+<ul>
+<li><strong>一致性哈希算法</strong>：将对象均匀映射到集群节点，扩容时仅迁移少量数据（如Ceph CRUSH算法）。</li>
+<li><strong>纠删码（EC）</strong>：将数据分片并生成校验块（如6+3模式），存储开销仅为1.5倍，显著低于副本机制。</li>
+</ul>
+</li>
+<li><p><strong>元数据管理优化</strong></p>
+<ul>
+<li><strong>分布式元数据库</strong>：将元数据分散存储到多个节点（如AWS S3的DynamoDB设计），避免NameNode单点瓶颈。</li>
+<li><strong>小文件合并</strong>：通过内部封装（如Hadoop Ozone的“文件到对象”转换）减少元数据压力。</li>
+</ul>
+</li>
+</ol>
+<h2 id="三、与HDFS的深度对比"><a href="#三、与HDFS的深度对比" class="headerlink" title="三、与HDFS的深度对比"></a>三、与HDFS的深度对比</h2><ol>
+<li><p><strong>设计目标差异</strong></p>
+<ul>
+<li><strong>对象存储</strong>：为“存储即服务”设计，强调高可用、易扩展和跨平台访问。</li>
+<li><strong>HDFS</strong>：为“计算贴近存储”设计，优化大规模批处理任务的本地化读取。</li>
+</ul>
+</li>
+<li><p><strong>性能关键指标对比</strong>  </p>
+<table>
+<thead>
+<tr>
+<th><strong>场景</strong></th>
+<th><strong>对象存储</strong></th>
+<th><strong>HDFS</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>小文件写入</strong></td>
+<td>高吞吐（支持批量上传）</td>
+<td>元数据压力大，性能下降明显</td>
+</tr>
+<tr>
+<td><strong>大文件读取</strong></td>
+<td>延迟较高（需网络传输）</td>
+<td>低延迟（数据本地化）</td>
+</tr>
+<tr>
+<td><strong>随机修改</strong></td>
+<td>不支持（仅追加写）</td>
+<td>支持（但需全量重写）</td>
+</tr>
+</tbody></table>
+</li>
+</ol>
+<h2 id="华为OBS使用案例"><a href="#华为OBS使用案例" class="headerlink" title="华为OBS使用案例"></a>华为OBS使用案例</h2><h3 id="OBS集成HDFS"><a href="#OBS集成HDFS" class="headerlink" title="OBS集成HDFS"></a>OBS集成HDFS</h3><ol>
+<li>将hadoop-huaweicloud-x.x.x-hw-y.jar拷贝到/opt/hadoop-3.1.1/share/hadoop/tools/lib和/opt/hadoop-3.1.1/share/hadoop/common/lib目录下</li>
+<li>修改core-site.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>fs.obs.impl<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>org.apache.hadoop.fs.obs.OBSFileSystem<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>fs.AbstractFileSystem.obs.impl<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>org.apache.hadoop.fs.obs.OBS<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>fs.obs.access.key<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>xxx<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>HuaweiCloud Access Key Id<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>fs.obs.secret.key<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>xxx<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>HuaweiCloud Secret Access Key<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>fs.obs.endpoint<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>xxx<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>HuaweiCloud Endpoint<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>命令行验证<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs -ls obs:&#x2F;&#x2F;ddp-data-test&#x2F;
+hdfs dfs -put hdfs_results.json obs:&#x2F;&#x2F;ddp-data-test&#x2F;
+hadoop fs -rm -r -skipTrash obs:&#x2F;&#x2F;ddp-data-test&#x2F;hdfs_results.json<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+其他操作就跟操作hdfs几乎一样</li>
+</ol>
+<h3 id="java操作OBS"><a href="#java操作OBS" class="headerlink" title="java操作OBS"></a>java操作OBS</h3><ol>
+<li>引Maven依赖<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.huaweicloud<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>esdk-obs-java-bundle<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.23.9<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>编写java代码<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">OBSTest</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> endPoint <span class="token operator">=</span> <span class="token string">"https://obs.cn-east-3.myhuaweicloud.com"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> sk <span class="token operator">=</span> <span class="token string">"4wWNf8m6LcBd7jIogzdqflnJuhSDYkJCMpqZiT4N"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token class-name">String</span> ak <span class="token operator">=</span> <span class="token string">"HPUAM0ZGYOUITOSPWCLY"</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">ObsClient</span> obsClient<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> bucketName <span class="token operator">=</span> <span class="token string">"digiwinbigdadta"</span><span class="token punctuation">;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">ObsConfiguration</span> config <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObsConfiguration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        config<span class="token punctuation">.</span><span class="token function">setSocketTimeout</span><span class="token punctuation">(</span><span class="token number">30000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        config<span class="token punctuation">.</span><span class="token function">setConnectionTimeout</span><span class="token punctuation">(</span><span class="token number">10000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        config<span class="token punctuation">.</span><span class="token function">setEndPoint</span><span class="token punctuation">(</span>endPoint<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+        obsClient <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObsClient</span><span class="token punctuation">(</span>ak<span class="token punctuation">,</span> sk<span class="token punctuation">,</span> config<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        obsClient <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObsClient</span><span class="token punctuation">(</span>ak<span class="token punctuation">,</span> sk<span class="token punctuation">,</span> config<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">ListBucketsRequest</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ListBucketsRequest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        request<span class="token punctuation">.</span><span class="token function">setQueryLocation</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 可选：是否查询桶的区域位置</span>
+
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">ObsBucket</span><span class="token punctuation">></span></span> obsBuckets <span class="token operator">=</span> obsClient<span class="token punctuation">.</span><span class="token function">listBuckets</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment">// 打印桶信息</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">ObsBucket</span> bucket <span class="token operator">:</span> obsBuckets<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"Bucket名称: "</span> <span class="token operator">+</span> bucket<span class="token punctuation">.</span><span class="token function">getBucketName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"桶类型: "</span> <span class="token operator">+</span> bucket<span class="token punctuation">.</span><span class="token function">getBucketType</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"存储类别: "</span> <span class="token operator">+</span> bucket<span class="token punctuation">.</span><span class="token function">getStorageClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"创建时间: "</span> <span class="token operator">+</span> bucket<span class="token punctuation">.</span><span class="token function">getCreationDate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"----------------------"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token comment">// 关闭客户端</span>
+        obsClient<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+注意： 这里查看有哪些桶需要有对应的权限，公司对桶相关的操作权限没有对研发开放。包括创建、list、删除等操作，所以这里报错：<pre class="line-numbers language-text" data-language="text"><code class="language-text">Error message:Request Error.OBS service Error Message. -- ResponseCode: 403, ResponseStatus: Forbidden,<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+查看桶内所有文件<pre class="line-numbers language-java" data-language="java"><code class="language-java">obsClient <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObsClient</span><span class="token punctuation">(</span>ak<span class="token punctuation">,</span> sk<span class="token punctuation">,</span> config<span class="token punctuation">)</span><span class="token punctuation">;</span>
+obsClient <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObsClient</span><span class="token punctuation">(</span>ak<span class="token punctuation">,</span> sk<span class="token punctuation">,</span> config<span class="token punctuation">)</span><span class="token punctuation">;</span>
+obsClient<span class="token punctuation">.</span><span class="token function">listObjects</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ListObjectsRequest</span><span class="token punctuation">(</span>bucketName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">ObjectListing</span> objectListing<span class="token punctuation">;</span>
+
+<span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"List objects using default parameters:\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+objectListing <span class="token operator">=</span> obsClient<span class="token punctuation">.</span><span class="token function">listObjects</span><span class="token punctuation">(</span>bucketName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">ObsObject</span> object <span class="token operator">:</span> objectListing<span class="token punctuation">.</span><span class="token function">getObjects</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"\t"</span> <span class="token operator">+</span> object<span class="token punctuation">.</span><span class="token function">getObjectKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">" etag["</span> <span class="token operator">+</span> object<span class="token punctuation">.</span><span class="token function">getMetadata</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getEtag</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"]"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+查看指定路径下文件/文件夹，类似<code>hdfs dfs -ls obs://ddp-data-test/</code><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> path <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span> <span class="token comment">// 留空表示当前路径，或设置为具体路径（如"subdir/"）</span>
+<span class="token comment">// 构造ListObjects请求</span>
+<span class="token class-name">ListObjectsRequest</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ListObjectsRequest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+request<span class="token punctuation">.</span><span class="token function">setBucketName</span><span class="token punctuation">(</span>bucketName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+request<span class="token punctuation">.</span><span class="token function">setDelimiter</span><span class="token punctuation">(</span><span class="token string">"/"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 关键：仅列举当前层级的文件夹</span>
+request<span class="token punctuation">.</span><span class="token function">setPrefix</span><span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 可选：限制路径（如"subdir/"）</span>
+<span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 执行请求</span>
+    <span class="token class-name">ObjectListing</span> objectListing <span class="token operator">=</span> obsClient<span class="token punctuation">.</span><span class="token function">listObjects</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 打印当前层级的文件夹路径</span>
+    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"Folders:"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">String</span> prefix <span class="token operator">:</span> objectListing<span class="token punctuation">.</span><span class="token function">getCommonPrefixes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>prefix<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 输出类似 "subdir1/"、"subdir2/"</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 打印当前层级的文件</span>
+    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"\nFiles:"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">ObsObject</span> obj <span class="token operator">:</span> objectListing<span class="token punctuation">.</span><span class="token function">getObjects</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>obj<span class="token punctuation">.</span><span class="token function">getObjectKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 输出文件名（不含路径）</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span> <span class="token keyword">finally</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 关闭客户端</span>
+    obsClient<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8/" rel="tag"># 对象存储</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/06/27/flinkcdc%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/" rel="prev" title="flinkcdc使用笔记">
+      <i class="fa fa-chevron-left"></i> flinkcdc使用笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">一、对象存储基础概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%8A%80%E6%9C%AF"><span class="nav-number">2.</span> <span class="nav-text">二、核心架构与技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E7%89%B9%E6%80%A7"><span class="nav-number">3.</span> <span class="nav-text">三、关键技术特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E4%B8%8EHDFS%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB"><span class="nav-number">4.</span> <span class="nav-text">四、与HDFS的核心区别</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BC%98%E5%8C%96%E7%89%88%EF%BC%89"><span class="nav-number"></span> <span class="nav-text">对象存储学习笔记（优化版）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%9F%BA%E7%A1%80%E8%AE%A4%E7%9F%A5"><span class="nav-number">1.</span> <span class="nav-text">一、对象存储基础认知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E6%B7%B1%E5%85%A5%E8%A7%A3%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">二、技术架构深入解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E4%B8%8EHDFS%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%AF%B9%E6%AF%94"><span class="nav-number">3.</span> <span class="nav-text">三、与HDFS的深度对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8E%E4%B8%BAOBS%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="nav-number">4.</span> <span class="nav-text">华为OBS使用案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#OBS%E9%9B%86%E6%88%90HDFS"><span class="nav-number">4.1.</span> <span class="nav-text">OBS集成HDFS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java%E6%93%8D%E4%BD%9COBS"><span class="nav-number">4.2.</span> <span class="nav-text">java操作OBS</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">67</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">67</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

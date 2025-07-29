@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Flink常见问题">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-12-13T09:42:06.000Z">
-<meta property="article:modified_time" content="2025-02-19T06:14:47.387Z">
+<meta property="article:modified_time" content="2025-07-03T10:06:30.078Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Flink">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-02-19 14:14:47" itemprop="dateModified" datetime="2025-02-19T14:14:47+08:00">2025-02-19</time>
+                <time title="修改时间：2025-07-03 18:06:30" itemprop="dateModified" datetime="2025-07-03T18:06:30+08:00">2025-07-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -506,6 +506,46 @@ Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: na
 Caused by: java.net.UnknownHostException: nameservice1
         ... 68 common frames omitted<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>一开始以为是没有加载hadoop相关配置。但是经过一系列尝试，发现使用<code>StreamExecutionEnvironment.createLocalEnvironment()</code>没办法传入hadoop相关配置，最后发现，datanode节点和hadoop客户端的差异在于，datanode上配置了hadoop_home以及hadoop_classpath<br>通过在hadoop客户端配置这两个环境变量，问题解决<br>解决方案：配置hadoop_home以及hadoop_classpath<br>深思： 之后再使用flink只要与hadoop相关的，这两个配置就必不可少</p>
+<h2 id="Flink任务-checkPoint失败-问题排查记录"><a href="#Flink任务-checkPoint失败-问题排查记录" class="headerlink" title="Flink任务 checkPoint失败 问题排查记录"></a>Flink任务 checkPoint失败 问题排查记录</h2><p>具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_40309183/article/details/117994967">Flink任务 checkPoint失败 问题排查记录</a><br>这篇文章写的当遇到flink任务失败，如何按照步骤去查原因，感觉写的很好<br>Flink任务 checkPoint失败 问题排查记录<br>然后的排查思路就是： 先将任务下线，然后在代码中打印部分日志，修改算子链设置，将每个算子隔离开，并且去掉自动重启任务的配置，仔细查看checkpoint失败的算子的日志<br>然后将flink 代码修改 设置 禁止自动合并算子<br><code>env.disableOperatorChaining();</code><br>重新打包上传启动任务。</p>
+<h2 id="Flink-sql-client客户端报错日志只打印头信息，如何查看完整的报错信息？"><a href="#Flink-sql-client客户端报错日志只打印头信息，如何查看完整的报错信息？" class="headerlink" title="Flink sql-client客户端报错日志只打印头信息，如何查看完整的报错信息？"></a>Flink sql-client客户端报错日志只打印头信息，如何查看完整的报错信息？</h2><p>使用sql-client调试代码，如果报错的话，只会打印错误的头信息，在客户端没办法看到完整的报错堆栈信息，可以在log下<code>flink-root-sql-client-V-NJ-2-205.log</code>的日志文件里查看完整的报错信息</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">java.lang.RuntimeException: Failed to correctly match the Flink catalog factory.
+        at org.apache.gravitino.flink.connector.store.GravitinoCatalogStore.discoverFactories(GravitinoCatalogStore.java:166) ~[gravitino-flink-connector-runtime-1.18_2.12-0.9.0-incubating.jar:?]
+        at org.apache.gravitino.flink.connector.store.GravitinoCatalogStore.getCatalogFactory(GravitinoCatalogStore.java:125) ~[gravitino-flink-connector-runtime-1.18_2.12-0.9.0-incubating.jar:?]
+        at org.apache.gravitino.flink.connector.store.GravitinoCatalogStore.storeCatalog(GravitinoCatalogStore.java:59) ~[gravitino-flink-connector-runtime-1.18_2.12-0.9.0-incubating.jar:?]
+        at org.apache.flink.table.catalog.CatalogManager.createCatalog(CatalogManager.java:312) ~[flink-table-api-java-uber-1.18.1.jar:1.18.1]
+        at org.apache.flink.table.operations.ddl.CreateCatalogOperation.execute(CreateCatalogOperation.java:68) ~[flink-table-api-java-uber-1.18.1.jar:1.18.1]
+        at org.apache.flink.table.api.internal.TableEnvironmentImpl.executeInternal(TableEnvironmentImpl.java:1092) ~[flink-table-api-java-uber-1.18.1.jar:1.18.1]
+        at org.apache.flink.table.gateway.service.operation.OperationExecutor.callOperation(OperationExecutor.java:556) ~[flink-sql-gateway-1.18.1.jar:1.18.1]
+        at org.apache.flink.table.gateway.service.operation.OperationExecutor.executeOperation(OperationExecutor.java:444) ~[flink-sql-gateway-1.18.1.jar:1.18.1]
+        at org.apache.flink.table.gateway.service.operation.OperationExecutor.executeStatement(OperationExecutor.java:207) ~[flink-sql-gateway-1.18.1.jar:1.18.1]
+        at org.apache.flink.table.gateway.service.SqlGatewayServiceImpl.lambda$executeStatement$1(SqlGatewayServiceImpl.java:212) ~[flink-sql-gateway-1.18.1.jar:1.18.1]
+        at org.apache.flink.table.gateway.service.operation.OperationManager.lambda$submitOperation$1(OperationManager.java:119) ~[flink-sql-gateway-1.18.1.jar:1.18.1]
+        at org.apache.flink.table.gateway.service.operation.OperationManager$Operation.lambda$run$0(OperationManager.java:258) ~[flink-sql-gateway-1.18.1.jar:1.18.1]
+        at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) [?:1.8.0_311]
+        at java.util.concurrent.FutureTask.run(FutureTask.java:266) [?:1.8.0_311]
+        at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) [?:1.8.0_311]
+        at java.util.concurrent.FutureTask.run(FutureTask.java:266) [?:1.8.0_311]
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_311]
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_311]
+        at java.lang.Thread.run(Thread.java:748) [?:1.8.0_311]<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Flink的catalog的生命周期"><a href="#Flink的catalog的生命周期" class="headerlink" title="Flink的catalog的生命周期"></a>Flink的catalog的生命周期</h2><p>Flink的catalog的生命周期是随着flink session的生命周期来的，一般而言，如果想要catalog持久化，catalog要么放到配置文件里，要么要放到服务里，但是flink本身是一个无状态的服务<br>所以要么是把catalog放到某个配置文件里，然后每次启动的时候先加载它，要么是注册到第三方服务，然后通过插件的方式去访问第三方服务</p>
+<p>flink 是一个分布式计算引擎，flink sql只是映射 sql 为分布式计算任务的工具<br>flink sql 不保存数据，数据需要通过连接器器去外部读取<br>保存映射关系需要有地方保存映射关系的元元数据，flink 没有类似hive metastore的东西，所以flink 不会保存创建的表结构，如果要保持包结构，可以把创建表的sql 写到 初始化脚本里面，以此到达类似元数据持久化的效果。</p>
+<ol>
+<li>配置文件的方式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim conf&#x2F;sql-client-init.sql
+SET sql-client.execution.result-mode&#x3D;tableau;
+CREATE CATALOG iceberg_catalog WITH (
+  &#39;type&#39;&#x3D;&#39;iceberg&#39;,
+  &#39;catalog-type&#39;&#x3D;&#39;hive&#39;,
+  &#39;uri&#39;&#x3D;&#39;thrift:&#x2F;&#x2F;172.16.2.204:9083&#39;,
+  &#39;hive-conf-dir&#39;&#x3D;&#39;&#x2F;root&#x2F;gujc&#x2F;flink-1.17.2&#x2F;conf&#39;
+);
+.&#x2F;bin&#x2F;sql-client.sh embedded -i conf&#x2F;sql-client-init.sql<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>使用第三方服务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim conf&#x2F;flink-conf.yaml
+table.catalog-store.kind: gravitino
+table.catalog-store.gravitino.gravitino.metalake: test
+table.catalog-store.gravitino.gravitino.uri: http:&#x2F;&#x2F;172.16.6.131:8090<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
+</ol>
 
     </div>
 
@@ -590,7 +630,7 @@ Caused by: java.net.UnknownHostException: nameservice1
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">Flink常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-YARN%E4%B8%AD%E4%BB%BB%E5%8A%A1%E6%8C%82%E6%8E%89%E5%90%8E%EF%BC%8CYARN%E7%9A%84Web-UI%E6%98%BE%E7%A4%BA%E8%BF%98%E5%9C%A8%E8%BF%90%E8%A1%8C%EF%BC%8C%E4%BD%86%E5%AE%9E%E9%99%85%E4%B8%8A%E5%B7%B2%E7%BB%8F%E6%8C%82%E6%8E%89%E4%BA%86"><span class="nav-number">1.1.</span> <span class="nav-text">Flink On YARN中任务挂掉后，YARN的Web UI显示还在运行，但实际上已经挂掉了</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%89%93%E5%8D%B0%E4%B8%AD%E6%96%87%E6%97%A5%E5%BF%97%E5%87%BA%E7%8E%B0%E4%B9%B1%E7%A0%81"><span class="nav-number">1.2.</span> <span class="nav-text">flink打印中文日志出现乱码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java-lang-Exception-Container-released-on-a-lost-node"><span class="nav-number">1.3.</span> <span class="nav-text">java.lang.Exception: Container released on a lost node</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%9A%84%E4%BB%BB%E5%8A%A1%E9%A2%91%E7%B9%81%E6%8C%82%E6%8E%89"><span class="nav-number">1.4.</span> <span class="nav-text">生产上的任务频繁挂掉</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0yarn%E4%B8%8A%EF%BC%8C%E4%B8%80%E7%9B%B4%E6%8A%A5Retrying-connect-to-server-0-0-0-0-0-0-0-0-8032"><span class="nav-number">1.5.</span> <span class="nav-text">提交任务到yarn上，一直报Retrying connect to server: 0.0.0.0&#x2F;0.0.0.0:8032</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-Yarn%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%90%8E%EF%BC%8C%E7%8A%B6%E6%80%81%E4%B8%80%E7%9B%B4%E6%98%AFCREATE"><span class="nav-number">1.6.</span> <span class="nav-text">Flink On Yarn提交任务后，状态一直是CREATE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-on-yarn%E5%9C%A8main%E5%87%BD%E6%95%B0%E9%87%8C%E5%AE%9A%E4%B9%89%E7%9A%84info%E6%97%A5%E5%BF%97%EF%BC%8C%E6%89%93%E5%8D%B0%E4%B8%8D%E5%87%BA%E6%9D%A5"><span class="nav-number">1.7.</span> <span class="nav-text">Flink on yarn在main函数里定义的info日志，打印不出来</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#org-apache-kafka-common-KafkaException-Failed-to-construct-kafka-producer"><span class="nav-number">2.</span> <span class="nav-text">org.apache.kafka.common.KafkaException: Failed to construct kafka producer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception-in-thread-%E2%80%9Cmain%E2%80%9D-java-util-ServiceConfigurationError-java-net-spi-URLStreamHandlerProvider-Provider-org-infinispan-commons-jdkspecific-ClasspathURLStreamHandlerProvider-not-found"><span class="nav-number">3.</span> <span class="nav-text">Exception in thread “main” java.util.ServiceConfigurationError: java.net.spi.URLStreamHandlerProvider: Provider org.infinispan.commons.jdkspecific.ClasspathURLStreamHandlerProvider not found</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8createLocalEnvironment%E8%AF%BB%E5%8F%96hdfs%E6%96%87%E4%BB%B6%EF%BC%8C%E6%8A%A5%E9%94%99Caused-by-java-lang-IllegalArgumentException-java-net-UnknownHostException-nameservice1"><span class="nav-number">4.</span> <span class="nav-text">使用createLocalEnvironment读取hdfs文件，报错Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: nameservice1</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">Flink常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-YARN%E4%B8%AD%E4%BB%BB%E5%8A%A1%E6%8C%82%E6%8E%89%E5%90%8E%EF%BC%8CYARN%E7%9A%84Web-UI%E6%98%BE%E7%A4%BA%E8%BF%98%E5%9C%A8%E8%BF%90%E8%A1%8C%EF%BC%8C%E4%BD%86%E5%AE%9E%E9%99%85%E4%B8%8A%E5%B7%B2%E7%BB%8F%E6%8C%82%E6%8E%89%E4%BA%86"><span class="nav-number">1.1.</span> <span class="nav-text">Flink On YARN中任务挂掉后，YARN的Web UI显示还在运行，但实际上已经挂掉了</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flink%E6%89%93%E5%8D%B0%E4%B8%AD%E6%96%87%E6%97%A5%E5%BF%97%E5%87%BA%E7%8E%B0%E4%B9%B1%E7%A0%81"><span class="nav-number">1.2.</span> <span class="nav-text">flink打印中文日志出现乱码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java-lang-Exception-Container-released-on-a-lost-node"><span class="nav-number">1.3.</span> <span class="nav-text">java.lang.Exception: Container released on a lost node</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%9A%84%E4%BB%BB%E5%8A%A1%E9%A2%91%E7%B9%81%E6%8C%82%E6%8E%89"><span class="nav-number">1.4.</span> <span class="nav-text">生产上的任务频繁挂掉</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%88%B0yarn%E4%B8%8A%EF%BC%8C%E4%B8%80%E7%9B%B4%E6%8A%A5Retrying-connect-to-server-0-0-0-0-0-0-0-0-8032"><span class="nav-number">1.5.</span> <span class="nav-text">提交任务到yarn上，一直报Retrying connect to server: 0.0.0.0&#x2F;0.0.0.0:8032</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-On-Yarn%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1%E5%90%8E%EF%BC%8C%E7%8A%B6%E6%80%81%E4%B8%80%E7%9B%B4%E6%98%AFCREATE"><span class="nav-number">1.6.</span> <span class="nav-text">Flink On Yarn提交任务后，状态一直是CREATE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flink-on-yarn%E5%9C%A8main%E5%87%BD%E6%95%B0%E9%87%8C%E5%AE%9A%E4%B9%89%E7%9A%84info%E6%97%A5%E5%BF%97%EF%BC%8C%E6%89%93%E5%8D%B0%E4%B8%8D%E5%87%BA%E6%9D%A5"><span class="nav-number">1.7.</span> <span class="nav-text">Flink on yarn在main函数里定义的info日志，打印不出来</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#org-apache-kafka-common-KafkaException-Failed-to-construct-kafka-producer"><span class="nav-number">2.</span> <span class="nav-text">org.apache.kafka.common.KafkaException: Failed to construct kafka producer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception-in-thread-%E2%80%9Cmain%E2%80%9D-java-util-ServiceConfigurationError-java-net-spi-URLStreamHandlerProvider-Provider-org-infinispan-commons-jdkspecific-ClasspathURLStreamHandlerProvider-not-found"><span class="nav-number">3.</span> <span class="nav-text">Exception in thread “main” java.util.ServiceConfigurationError: java.net.spi.URLStreamHandlerProvider: Provider org.infinispan.commons.jdkspecific.ClasspathURLStreamHandlerProvider not found</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8createLocalEnvironment%E8%AF%BB%E5%8F%96hdfs%E6%96%87%E4%BB%B6%EF%BC%8C%E6%8A%A5%E9%94%99Caused-by-java-lang-IllegalArgumentException-java-net-UnknownHostException-nameservice1"><span class="nav-number">4.</span> <span class="nav-text">使用createLocalEnvironment读取hdfs文件，报错Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: nameservice1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E4%BB%BB%E5%8A%A1-checkPoint%E5%A4%B1%E8%B4%A5-%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%AE%B0%E5%BD%95"><span class="nav-number">5.</span> <span class="nav-text">Flink任务 checkPoint失败 问题排查记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink-sql-client%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%8A%A5%E9%94%99%E6%97%A5%E5%BF%97%E5%8F%AA%E6%89%93%E5%8D%B0%E5%A4%B4%E4%BF%A1%E6%81%AF%EF%BC%8C%E5%A6%82%E4%BD%95%E6%9F%A5%E7%9C%8B%E5%AE%8C%E6%95%B4%E7%9A%84%E6%8A%A5%E9%94%99%E4%BF%A1%E6%81%AF%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">Flink sql-client客户端报错日志只打印头信息，如何查看完整的报错信息？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%9A%84catalog%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">7.</span> <span class="nav-text">Flink的catalog的生命周期</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -606,20 +646,20 @@ Caused by: java.net.UnknownHostException: nameservice1
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">92</span>
+          <span class="site-state-item-count">94</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">65</span>
+        <span class="site-state-item-count">67</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">65</span>
+        <span class="site-state-item-count">67</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
