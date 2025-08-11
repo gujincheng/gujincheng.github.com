@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  starrocks学习笔记">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-08T06:50:31.000Z">
-<meta property="article:modified_time" content="2025-08-01T08:29:27.393Z">
+<meta property="article:modified_time" content="2025-08-11T01:58:28.226Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="starrocks">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-08-01 16:29:27" itemprop="dateModified" datetime="2025-08-01T16:29:27+08:00">2025-08-01</time>
+                <time title="修改时间：2025-08-11 09:58:28" itemprop="dateModified" datetime="2025-08-11T09:58:28+08:00">2025-08-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -301,7 +301,7 @@ curl --location-trusted -u root:DiGiWin@123 -H &quot;label:ECU_FILE&quot; \
 -H &quot;Expect:100-continue&quot; -H &quot;timeout: 259200&quot; -H &quot;max_filter_ratio: 0.2&quot; \
 -H &quot;column_separator: ,&quot; -H &quot;skip_header: 1&quot; -H &quot;enclose: \&quot;&quot; \
 -H &quot;columns: ECU01,ECU02,ECU03,ECU04,ECU05,ECU06,ECU07,ECU08,ECU09,ECUACTI,ECUUSER,ECUGRUP,ECUMODU,ECUDATE,ECU10,ECU11,ECUUD01,ECUUD02,ECUUD03,ECUUD04,ECUUD05,ECUUD06,ECUUD07,ECUUD08,ECUUD09,ECUUD10,ECUUD11,ECUUD12,ECUUD13,ECUUD14,ECUUD15,ECUORIU,ECUORIG,ECU012,ECU014,ECU015&quot; \
--T ecu_file1.csv -XPUT http:&#x2F;&#x2F;172.16.101.227:18030&#x2F;api&#x2F;SMESPROD_GJC&#x2F;ECU_FILE&#x2F;_stream_load<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+-T ecu_file1.csv -XPUT http:&#x2F;&#x2F;xxxx:18030&#x2F;api&#x2F;SMESPROD_GJC&#x2F;ECU_FILE&#x2F;_stream_load<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>实际测试，1.4G的数据，在单机情况下，导入时间为：<code>&quot;ReadDataTimeMs&quot;: 14933ms,&quot;WriteDataTimeMs&quot;: 16662ms,</code></p>
 <h3 id="从HDFS导数据到StarRocks"><a href="#从HDFS导数据到StarRocks" class="headerlink" title="从HDFS导数据到StarRocks"></a>从HDFS导数据到StarRocks</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- export data to hdfs</span>
 <span class="token keyword">INSERT</span> <span class="token keyword">INTO</span> 
@@ -362,8 +362,8 @@ FILES<span class="token punctuation">(</span>
   part string 
 <span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
    <span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'starrocks'</span><span class="token punctuation">,</span>
-   <span class="token string">'jdbc-url'</span><span class="token operator">=</span><span class="token string">'jdbc:mysql://172.16.2.205:19030'</span><span class="token punctuation">,</span>
-   <span class="token string">'load-url'</span><span class="token operator">=</span><span class="token string">'172.16.2.205:18030'</span><span class="token punctuation">,</span>
+   <span class="token string">'jdbc-url'</span><span class="token operator">=</span><span class="token string">'jdbc:mysql://cxxx:19030'</span><span class="token punctuation">,</span>
+   <span class="token string">'load-url'</span><span class="token operator">=</span><span class="token string">'xxxx:18030'</span><span class="token punctuation">,</span>
    <span class="token string">'username'</span><span class="token operator">=</span><span class="token string">'root'</span><span class="token punctuation">,</span>
    <span class="token string">'password'</span><span class="token operator">=</span><span class="token string">''</span><span class="token punctuation">,</span>
    <span class="token string">'database-name'</span><span class="token operator">=</span><span class="token string">'test'</span><span class="token punctuation">,</span>
@@ -649,7 +649,7 @@ serializer<span class="token punctuation">.</span><span class="token function">w
 +----------+--------+
 mysql&gt; show proc &quot;&#x2F;transactions&#x2F;50006&#x2F;running&quot;;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="Starrocks常用运维命令"><a href="#Starrocks常用运维命令" class="headerlink" title="Starrocks常用运维命令"></a>Starrocks常用运维命令</h2></li>
-<li>获取metric数据<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">curl -XGET -s http:&#x2F;&#x2F;172.16.101.227:18040&#x2F;metrics | grep &quot;^starrocks_be_.*_mem_bytes\|^starrocks_be_tcmalloc_bytes_in_use&quot;
+<li>获取metric数据<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">curl -XGET -s http:&#x2F;&#x2F;xxxx:18040&#x2F;metrics | grep &quot;^starrocks_be_.*_mem_bytes\|^starrocks_be_tcmalloc_bytes_in_use&quot;
 starrocks_be_bitmap_index_mem_bytes 0
 starrocks_be_bloom_filter_index_mem_bytes 0
 starrocks_be_chunk_allocator_mem_bytes 8086528
