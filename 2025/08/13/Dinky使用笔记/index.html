@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Dinky使用笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dinky使用笔记">
+<meta property="og:url" content="https://gujincheng.github.io/2025/08/13/Dinky%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Dinky使用笔记">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202502/dinky%E6%B3%A8%E5%86%8Cyarn%E9%9B%86%E7%BE%A4.png">
+<meta property="article:published_time" content="2025-08-13T05:48:49.000Z">
+<meta property="article:modified_time" content="2025-08-13T06:10:02.749Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Dinky">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202502/dinky%E6%B3%A8%E5%86%8Cyarn%E9%9B%86%E7%BE%A4.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2025/08/13/Dinky%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Dinky使用笔记 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2025/08/13/Dinky%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Dinky使用笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-08-13 13:48:49 / 修改时间：14:10:02" itemprop="dateCreated datePublished" datetime="2025-08-13T13:48:49+08:00">2025-08-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Dinky/" itemprop="url" rel="index"><span itemprop="name">Dinky</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2025/08/13/Dinky%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Dinky使用笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2025/08/13/Dinky%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2025/08/13/Dinky%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Dinky使用笔记<a id="more"></a>
+
+
+</li>
+</ul>
+<h2 id="Dinky使用笔记"><a href="#Dinky使用笔记" class="headerlink" title="Dinky使用笔记"></a>Dinky使用笔记</h2><h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>因为公司集群是以CDH6.2.0为基础的，防止后期有问题，这里就不直接使用dinky官方的安装包，编译的时候指定hadoop版本</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;DataLinkDC&#x2F;dinky.git
+git checkout v1.2.4
+mvn clean package -DskipTests&#x3D;true -Dspotless.check.skip&#x3D;true -Dhadoop.version&#x3D;3.0.0-cdh6.2.0 -P prod,flink-single-version,flink-1.17   <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>编译的时候要用jdk1.8来，报错Failed to execute goal com.diffplug.spotless:spotless-maven-plugin:2.27.1:<br><strong>解决方案：</strong> 编译的时候添加-Dspotless.check.skip=true<br><strong>注意：</strong> dinky的guava版本和cdh集群内的guava版本不一致，需要把dinky的源码的guava版本改成<code>&lt;guava.version&gt;11.0.2&lt;/guava.version&gt;</code></p>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>编译后的安装包再build下，我们把build/dinky-release-1.17-1.2.4.tar.gz 上传到服务器</p>
+<ol>
+<li>创建数据库<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">mysql <span class="token operator">-</span>uroot <span class="token operator">-</span>p
+<span class="token comment">#创建数据库</span>
+mysql<span class="token operator">></span>
+<span class="token keyword">create</span> <span class="token keyword">database</span> dinky<span class="token punctuation">;</span>
+<span class="token comment">#授权</span>
+mysql<span class="token operator">></span>
+<span class="token keyword">grant</span> <span class="token keyword">all</span> <span class="token keyword">privileges</span> <span class="token keyword">on</span> dinky<span class="token punctuation">.</span><span class="token operator">*</span> <span class="token keyword">to</span> <span class="token string">'dinky'</span><span class="token variable">@'%'</span> identified <span class="token keyword">by</span> <span class="token string">'dinky'</span> <span class="token keyword">with</span> <span class="token keyword">grant</span> <span class="token keyword">option</span><span class="token punctuation">;</span>
+mysql<span class="token operator">></span>
+flush <span class="token keyword">privileges</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>解压并做相关配置<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 解压
+tar zxvf dinky-release-1.17-1.2.4.tar.gz -C .
+## 在数据库创建dinky数据库以及创建dinky用户名密码
+## 修改application.yml和application-mysql.yml
+## 准备flink lib下相关包
+cp &#x2F;opt&#x2F;soft&#x2F;flink-1.17.2&#x2F;lib&#x2F;* dinky&#x2F;extends&#x2F;flink1.17
+## 并把flink lib下的包都上传到hdfs &#x2F;flink&#x2F;lib 下
+hadoop fs -put &#x2F;opt&#x2F;soft&#x2F;flink-1.17.2&#x2F;lib&#x2F;* &#x2F;flink&#x2F;lib
+cp dinky&#x2F;dinky-client&#x2F;dinky-client-hadoop&#x2F;target&#x2F;dinky-client-hadoop-1.2.4.jar dinky&#x2F;lib
+## 启动dinky
+bin&#x2F;auto.sh start 1.17
+## 停止dinky
+bin&#x2F;auto.sh stop<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>在dinky中注册集群<br><img src="/uploads/202502/dinky%E6%B3%A8%E5%86%8Cyarn%E9%9B%86%E7%BE%A4.png" alt="dinky注册yarn集群.png"></li>
+</ol>
+<p>后面就是具体的使用了</p>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><ol>
+<li><code>Caused by: java.lang.NoClassDefFoundError: org/apache/hadoop/yarn/conf/YarnConfiguration</code><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.NoClassDefFoundError: org&#x2F;apache&#x2F;hadoop&#x2F;yarn&#x2F;conf&#x2F;YarnConfiguration                                                                               
+   at org.dinky.gateway.yarn.YarnGateway.initYarnClient(YarnGateway.java:175) ~[dinky-gateway-1.2.4.jar:?]                                                        
+   at org.dinky.gateway.yarn.YarnGateway.test(YarnGateway.java:280) ~[dinky-gateway-1.2.4.jar:?] <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+</ol>
+<p><strong>解决方案：</strong> 把dinky-client-hadoop.jar放到lib下即可<br>2. 编译的时候要用jdk1.8来，报错<code>Failed to execute goal com.diffplug.spotless:spotless-maven-plugin:2.27.1:</code><br><strong>解决方案：</strong> 编译的时候添加-Dspotless.check.skip=true<br>3. <code>Caused by: java.lang.VerifyError: (class: com/google/common/collect/Interners, method: newWeakInterner signature: ()Lcom/google/common/collect/Interner;) Incompatible argument to function1</code></p>
+<pre class="line-numbers language-none"><code class="language-none">Caused by: java.lang.VerifyError: (class: com&#x2F;google&#x2F;common&#x2F;collect&#x2F;Interners, method: newWeakInterner signature: ()Lcom&#x2F;google&#x2F;common&#x2F;collect&#x2F;Interner;) Incompatible argument to function
+   at org.apache.hadoop.util.StringInterner.&lt;clinit&gt;(StringInterner.java:40) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]
+   at org.apache.hadoop.conf.Configuration$Parser.handleEndElement(Configuration.java:3113) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]
+   at org.apache.hadoop.conf.Configuration$Parser.parseNext(Configuration.java:3184) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]
+   at org.apache.hadoop.conf.Configuration$Parser.parse(Configuration.java:2982) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]
+   at org.apache.hadoop.conf.Configuration.loadResource(Configuration.java:2876) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]
+   at org.apache.hadoop.conf.Configuration.loadResources(Configuration.java:2838) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]
+   at org.apache.hadoop.conf.Configuration.getProps(Configuration.java:2715) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]
+   at org.apache.hadoop.conf.Configuration.get(Configuration.java:1186) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]
+   at org.apache.hadoop.conf.Configuration.getTrimmed(Configuration.java:1240) ~[hadoop-common-3.0.0-cdh6.2.0.jar:?]<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>提交任务到yarn的时候，报错，原因是dinky使用的guava包和cdh的guava包版本不一致，把dinky的源码的guava版本改成<code>&lt;guava.version&gt;11.0.2&lt;/guava.version&gt;</code>重新编译后，<br>替换<code>dinky-app-1.17-1.2.4-jar-with-dependencies.jar</code>即可</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Dinky/" rel="tag"># Dinky</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/07/29/Kubernetes%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="Kubernetes学习笔记">
+      <i class="fa fa-chevron-left"></i> Kubernetes学习笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Dinky%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0"><span class="nav-number">1.</span> <span class="nav-text">Dinky使用笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91"><span class="nav-number">1.1.</span> <span class="nav-text">编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">1.3.</span> <span class="nav-text">问题</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">96</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
