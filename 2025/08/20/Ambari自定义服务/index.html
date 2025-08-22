@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Ambari自定义服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ambari自定义服务">
+<meta property="og:url" content="https://gujincheng.github.io/2025/08/20/Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Ambari自定义服务">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A11.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A12.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A13.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A14.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A15.png">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A16.png">
+<meta property="article:published_time" content="2025-08-20T02:41:26.000Z">
+<meta property="article:modified_time" content="2025-08-21T07:11:24.776Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Ambari">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A11.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2025/08/20/Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Ambari自定义服务 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2025/08/20/Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Ambari自定义服务
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-08-20 10:41:26" itemprop="dateCreated datePublished" datetime="2025-08-20T10:41:26+08:00">2025-08-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-08-21 15:11:24" itemprop="dateModified" datetime="2025-08-21T15:11:24+08:00">2025-08-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Ambari/" itemprop="url" rel="index"><span itemprop="name">Ambari</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2025/08/20/Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1/" class="post-meta-item leancloud_visitors" data-flag-title="Ambari自定义服务" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2025/08/20/Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2025/08/20/Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Ambari自定义服务<a id="more"></a>
+
+
+
+</li>
+</ul>
+<h2 id="Ambari自定义服务"><a href="#Ambari自定义服务" class="headerlink" title="Ambari自定义服务"></a>Ambari自定义服务</h2><p>以集成ES为例</p>
+<h3 id="Ambari集成Elasticsearch"><a href="#Ambari集成Elasticsearch" class="headerlink" title="Ambari集成Elasticsearch"></a>Ambari集成Elasticsearch</h3><p><strong>依赖条件：</strong> Ambari集群已正常安装<br><strong>整体流程：</strong></p>
+<ol>
+<li>编写服务管理代码</li>
+<li>上传至ambari-server安装节点的 /var/lib/ambari-server/resources/stacks/HDP/3.3/services/ 目录下</li>
+<li>重启ambari-server服务</li>
+<li>在Ambari页面安装集成的服务，并验证服务是否正常安装</li>
+<li>在Ambari页面验证启动、停止、修改配置、状态监测功能</li>
+</ol>
+<p><strong>集成服务代码</strong><br>栈stack在安装后服务器上的目录：<code>/var/lib/ambari-server/resources/stacks/HDP</code><br>栈stack在源码上的目录：<code>ambari-server/src/main/resources/stacks/HDP</code><br>所有新增服务的定义文件，都在栈目录下编写，使用HiDataPlus的Ambari时，栈为3.3版本，服务定义在 <code>/var/lib/ambari-server/resources/stacks/HDP/3.3/services/</code> 目录下<br>服务定义部分，此处以Elasticsearch为例：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">root@ddp1 ELASTICSEARCH]# pwd
+&#x2F;var&#x2F;lib&#x2F;ambari-server&#x2F;resources&#x2F;stacks&#x2F;HDP&#x2F;3.3&#x2F;services&#x2F;ELASTICSEARCH
+[root@ddp1 ELASTICSEARCH]# tree
+.
+├── configuration
+│   ├── elasticsearch-env.xml
+│   └── elasticsearch.yml.xml
+├── metainfo.xml
+├── package
+│   ├── archive.zip
+│   ├── scripts
+│   │   ├── elasticsearch_client.py
+│   │   ├── elasticsearch.py
+│   │   ├── elasticsearch_server.py
+│   │   └── params.py
+│   └── templates
+└── quicklinks
+    └── quicklinks.json<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>configuration：</strong> 配置文件目录，此目录下的文件要求为xml格式<br><strong>metainfo.xml：</strong> 服务定义文件，包含了服务名称、服务说明、服务的组件定义、配置文件定义等内容。如此处定义了<code>elasticsearch-server</code>和<code>elasticsearch-client</code>两个组件<br><strong>package/scripts/:</strong>  组件定义脚本，为Python脚本<br><strong>params.py：</strong> 变量定义文件<br><strong>elasticsearch.py：</strong> 通用的服务安装方法、配置文件生成方法<br><strong>elasticsearch_server.py：</strong> <code>elasticsearch-server</code>组件的安装、配置、启动、停止、状态监测方法，可引用<code>elasticsearch.py</code>中定义的通用方法<br><strong>elasticsearch_client.py：</strong> 与<code>elasticsearch_server.py</code>作用相同，区别是client为客户端操作，无状态监测方法<br><strong>package/templates：</strong> 特殊格式的配置文件定义模板，为<code>jinja2</code>格式<br><strong>quicklinks/quicklinks.json:</strong> 快捷链接定义文件，需要在<code>metainfo.xml</code>文件中配置<br><strong>archive.zip:</strong> 自动生成，无需关心  </p>
+<p>下面是脚本和配置的具体内容：</p>
+<ol>
+<li>configuration/elasticsearch-env.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0"?></span>
+<span class="token prolog">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span> <span class="token attr-name">require-input</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>elasticsearch.package.name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>elasticsearch/elasticsearch-7.16.1-linux-x86_64.tar.gz<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span> <span class="token attr-name">require-input</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>Xms<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>4g<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>Xmx<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>4g<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>jvm.options<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span><span class="token cdata">&lt;![CDATA[################################################################
+##
+## JVM configuration
+##
+################################################################
+##
+## WARNING: DO NOT EDIT THIS FILE. If you want to override the
+## JVM options in this file, or set any additional options, you
+## should create one or more files in the jvm.options.d
+## directory containing your adjustments.
+##
+## See https://www.elastic.co/guide/en/elasticsearch/reference/7.15/jvm-options.html
+## for more information.
+##
+################################################################
+
+################################################################
+## IMPORTANT: JVM heap size
+################################################################
+##
+## The heap size is automatically configured by Elasticsearch
+## based on the available memory in your system and the roles
+## each node is configured to fulfill. If specifying heap is
+## required, it should be done through a file in jvm.options.d,
+## and the min and max should be set to the same value. For
+## example, to set the heap to 4 GB, create a new file in the
+## jvm.options.d directory containing these lines:
+##
+## -Xms4g
+## -Xmx4g
+##
+## See https://www.elastic.co/guide/en/elasticsearch/reference/7.15/heap-size.html
+## for more information
+##
+################################################################
+-Xms&#123;&#123;Xms&#125;&#125;
+-Xmx&#123;&#123;Xmx&#125;&#125;
+
+################################################################
+## Expert settings
+################################################################
+##
+## All settings below here are considered expert settings. Do
+## not adjust them unless you understand what you are doing. Do
+## not edit them in this file; instead, create a new file in the
+## jvm.options.d directory containing your adjustments.
+##
+################################################################
+
+## GC configuration
+8-13:-XX:+UseConcMarkSweepGC
+8-13:-XX:CMSInitiatingOccupancyFraction=75
+8-13:-XX:+UseCMSInitiatingOccupancyOnly
+
+## G1GC Configuration
+# NOTE: G1 GC is only supported on JDK version 10 or later
+# to use G1GC, uncomment the next two lines and update the version on the
+# following three lines to your version of the JDK
+# 10-13:-XX:-UseConcMarkSweepGC
+# 10-13:-XX:-UseCMSInitiatingOccupancyOnly
+14-:-XX:+UseG1GC
+
+## JVM temporary directory
+-Djava.io.tmpdir=$&#123;ES_TMPDIR&#125;
+
+## heap dumps
+
+# generate a heap dump when an allocation from the Java heap fails; heap dumps
+# are created in the working directory of the JVM unless an alternative path is
+# specified
+-XX:+HeapDumpOnOutOfMemoryError
+
+# specify an alternative path for heap dumps; ensure the directory exists and
+# has sufficient space
+-XX:HeapDumpPath=data
+
+# specify an alternative path for JVM fatal error logs
+-XX:ErrorFile=logs/hs_err_pid%p.log
+
+## JDK 8 GC logging
+8:-XX:+PrintGCDetails
+8:-XX:+PrintGCDateStamps
+8:-XX:+PrintTenuringDistribution
+8:-XX:+PrintGCApplicationStoppedTime
+8:-Xloggc:logs/gc.log
+8:-XX:+UseGCLogFileRotation
+8:-XX:NumberOfGCLogFiles=32
+8:-XX:GCLogFileSize=64m
+
+# JDK 9+ GC logging
+9-:-Xlog:gc*,gc+age=trace,safepoint:file=logs/gc.log:utctime,pid,tags:filecount=32,filesize=64m]]></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ol>
+<p><strong>注意：</strong><br>    a. <code>&lt;![CDATA[######]]&gt;</code>是一种标准语法，用于在ambari-web上展示具体的xml详情<br>    b. <code>elasticsearch/elasticsearch-7.16.1-linux-x86_64.tar.gz</code> 默认是在<code>/var/www/html/ambari/3.3.2.0-013/elasticsearch</code>下，有一个http服务,这里需要把安装包放到这个目录下<br>这里的<br>2. configuration/elasticsearch.yml.xml</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0"?></span>
+<span class="token prolog">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>cluster.name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>digiwin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>es集群名称<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>path.data<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>/data/elasticsearch/data<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>数据存储目录<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>path.logs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>/data/elasticsearch/logs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>日志存储目录<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>http.port<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>9200<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>http页面访问端口号<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>network.host<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>0.0.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>限制IP访问<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>discovery.zen.fd.ping_interval<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>1s<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>集群故障探查间隔时间，每隔多长时间会ping一次node<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>discovery.zen.ping_timeout<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>3s<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>自动发现其它节点时ping连接超时时间<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>discovery.zen.fd.ping_retries<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>3<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>集群故障探查次数，ping多次都失败时，该node被认为故障，默认是3次<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>discovery.zen.ping.unicast.hosts<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>&#123;&#123;elasticsearch_addresses&#125;&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>集群中master节点的初始列表<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>discovery.zen.join_timeout<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>5s<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>加入进的node时发送join request到master node的超时时间<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>discovery.zen.no_master_block<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>write<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>master宕机时集群拒绝的操作，write表示宕机可读，all表示宕机拒绝所有操作<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>transport.tcp.port<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>9300<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>tcp传输的端口号<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>node.name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>&#123;&#123;nodename&#125;&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>本机node名称<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>property</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>cluster.initial_master_nodes<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>&#123;&#123;elasticsearch_master_addresses&#125;&#125;<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>主节点<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration</span><span class="token punctuation">></span></span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol start="3">
+<li>metainfo.xml<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0"?></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>metainfo</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>schemaVersion</span><span class="token punctuation">></span></span>2.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>schemaVersion</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>services</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>service</span><span class="token punctuation">></span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>ELASTICSEARCH<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>displayName</span><span class="token punctuation">></span></span>Elasticsearch<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>displayName</span><span class="token punctuation">></span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>comment</span><span class="token punctuation">></span></span>Elasticsearch是一个实时的分布式搜索分析引擎，被用作全文检索、结构化搜索、分析以及这三个功能的组合.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>comment</span><span class="token punctuation">></span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>7.16.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>components</span><span class="token punctuation">></span></span>
+				<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>component</span><span class="token punctuation">></span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">></span></span>ELASTICSEARCH_SERVER<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">></span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>displayName</span><span class="token punctuation">></span></span>Elasticsearch Server<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>displayName</span><span class="token punctuation">></span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>category</span><span class="token punctuation">></span></span>MASTER<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>category</span><span class="token punctuation">></span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>cardinality</span><span class="token punctuation">></span></span>1+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>cardinality</span><span class="token punctuation">></span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>versionAdvertised</span><span class="token punctuation">></span></span>false<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>versionAdvertised</span><span class="token punctuation">></span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>commandScript</span><span class="token punctuation">></span></span>
+						<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span>scripts/elasticsearch_server.py<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+						<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>scriptType</span><span class="token punctuation">></span></span>PYTHON<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>scriptType</span><span class="token punctuation">></span></span>
+						<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>timeout</span><span class="token punctuation">></span></span>1200<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>timeout</span><span class="token punctuation">></span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>commandScript</span><span class="token punctuation">></span></span>
+				<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>component</span><span class="token punctuation">></span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>components</span><span class="token punctuation">></span></span>
+			
+
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>quickLinksConfigurations</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>quickLinksConfiguration</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>fileName</span><span class="token punctuation">></span></span>quicklinks.json<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>fileName</span><span class="token punctuation">></span></span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>default</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>default</span><span class="token punctuation">></span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>quickLinksConfiguration</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>quickLinksConfigurations</span><span class="token punctuation">></span></span>
+
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>configuration-dependencies</span><span class="token punctuation">></span></span>
+				<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>config-type</span><span class="token punctuation">></span></span>elasticsearch.yml<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>config-type</span><span class="token punctuation">></span></span>
+				<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>config-type</span><span class="token punctuation">></span></span>elasticsearch-env<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>config-type</span><span class="token punctuation">></span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>configuration-dependencies</span><span class="token punctuation">></span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>restartRequiredAfterChange</span><span class="token punctuation">></span></span>true<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>restartRequiredAfterChange</span><span class="token punctuation">></span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>service</span><span class="token punctuation">></span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>services</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>metainfo</span><span class="token punctuation">></span></span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>package/scripts/elasticsearch_client.py<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> elasticsearch_server <span class="token keyword">import</span> <span class="token operator">*</span>
+
+<span class="token keyword">class</span> <span class="token class-name">ESClient</span><span class="token punctuation">(</span>Script<span class="token punctuation">)</span><span class="token punctuation">:</span>
+
+  <span class="token keyword">def</span> <span class="token function">install</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    self<span class="token punctuation">.</span>install_packages<span class="token punctuation">(</span>env<span class="token punctuation">)</span>
+    install_elasticsearch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    self<span class="token punctuation">.</span>configure<span class="token punctuation">(</span>env<span class="token punctuation">)</span>
+
+  <span class="token keyword">def</span> <span class="token function">configure</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">import</span> params
+    env<span class="token punctuation">.</span>set_params<span class="token punctuation">(</span>params<span class="token punctuation">)</span>
+    elasticsearch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+  <span class="token keyword">def</span> <span class="token function">status</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">raise</span> ClientComponentHasNoStatus<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+  <span class="token keyword">def</span> <span class="token function">upgrade_es</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">import</span> params
+    <span class="token keyword">print</span> <span class="token string">"Stopping Elasticsearch"</span>
+    Elasticsearch<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>stop<span class="token punctuation">(</span>env<span class="token punctuation">)</span>
+    <span class="token keyword">print</span> <span class="token string">"upgrading elasticsearch"</span>
+    Execute<span class="token punctuation">(</span><span class="token builtin">format</span><span class="token punctuation">(</span><span class="token string">'rm -rf &#123;params.es_home&#125;'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    self<span class="token punctuation">.</span>install<span class="token punctuation">(</span>env<span class="token punctuation">)</span>
+    <span class="token keyword">print</span> <span class="token string">'starting elasticsearch'</span>
+    Elasticsearch<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>start<span class="token punctuation">(</span>env<span class="token punctuation">)</span>
+    <span class="token keyword">print</span> <span class="token string">'upgrade elasticsearch finished'</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+   ESClient<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>package/scripts/elasticsearch_server.py<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> sys<span class="token punctuation">,</span> os<span class="token punctuation">,</span> time
+<span class="token keyword">from</span> resource_management <span class="token keyword">import</span> <span class="token operator">*</span>
+<span class="token keyword">from</span> elasticsearch <span class="token keyword">import</span> <span class="token operator">*</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Elasticsearch</span><span class="token punctuation">(</span>Script<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">install</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>install_packages<span class="token punctuation">(</span>env<span class="token punctuation">)</span>
+        install_elasticsearch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>configure<span class="token punctuation">(</span>env<span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">stop</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">import</span> params
+        Execute<span class="token punctuation">(</span><span class="token builtin">format</span><span class="token punctuation">(</span><span class="token string">'kill `cat '</span> <span class="token operator">+</span> params<span class="token punctuation">.</span>pidfile <span class="token operator">+</span> <span class="token string">'`'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">import</span> params
+        self<span class="token punctuation">.</span>configure<span class="token punctuation">(</span>env<span class="token punctuation">)</span>
+        Execute<span class="token punctuation">(</span><span class="token builtin">format</span><span class="token punctuation">(</span><span class="token string">"&#123;params.es_home&#125;/bin/elasticsearch -d -p "</span> <span class="token operator">+</span> params<span class="token punctuation">.</span>pidfile <span class="token punctuation">)</span><span class="token punctuation">,</span> user<span class="token operator">=</span>params<span class="token punctuation">.</span>es_user<span class="token punctuation">)</span>
+        time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">status</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">import</span> params
+        check_process_status<span class="token punctuation">(</span><span class="token builtin">format</span><span class="token punctuation">(</span>params<span class="token punctuation">.</span>pidfile<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">configure</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> env<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">import</span> params
+        env<span class="token punctuation">.</span>set_params<span class="token punctuation">(</span>params<span class="token punctuation">)</span>
+        elasticsearch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    Elasticsearch<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>execute<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>package/scripts/elasticsearch.py<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> os
+<span class="token keyword">import</span> resource_management
+<span class="token keyword">from</span> resource_management <span class="token keyword">import</span> <span class="token operator">*</span>
+<span class="token keyword">from</span> ambari_commons<span class="token punctuation">.</span>yaml_utils <span class="token keyword">import</span> escape_yaml_property
+<span class="token keyword">import</span> ambari_simplejson <span class="token keyword">as</span> json
+
+
+<span class="token keyword">def</span> <span class="token function">elasticsearch</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">import</span> params
+    config <span class="token operator">=</span> Script<span class="token punctuation">.</span>get_config<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    pid_dir <span class="token operator">=</span> params<span class="token punctuation">.</span>piddir
+    PropertiesFile<span class="token punctuation">(</span><span class="token string">"elasticsearch.yml"</span><span class="token punctuation">,</span>
+                   <span class="token builtin">dir</span><span class="token operator">=</span>params<span class="token punctuation">.</span>es_config_dir<span class="token punctuation">,</span>
+                   properties<span class="token operator">=</span>config<span class="token punctuation">[</span><span class="token string">'configurations'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch.yml'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                   owner<span class="token operator">=</span>params<span class="token punctuation">.</span>es_user<span class="token punctuation">,</span>
+                   group<span class="token operator">=</span>params<span class="token punctuation">.</span>es_group<span class="token punctuation">,</span>
+                   key_value_delimiter<span class="token operator">=</span><span class="token string">": "</span>
+                   <span class="token punctuation">)</span>
+
+    Directory<span class="token punctuation">(</span>pid_dir<span class="token punctuation">,</span> owner<span class="token operator">=</span>params<span class="token punctuation">.</span>es_user<span class="token punctuation">,</span> create_parents<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> group<span class="token operator">=</span>params<span class="token punctuation">.</span>es_group<span class="token punctuation">)</span>
+    <span class="token keyword">for</span> <span class="token builtin">dir</span> <span class="token keyword">in</span> params<span class="token punctuation">.</span>local_dirs<span class="token punctuation">:</span>
+        Directory<span class="token punctuation">(</span><span class="token builtin">dir</span><span class="token punctuation">,</span> owner<span class="token operator">=</span>params<span class="token punctuation">.</span>es_user<span class="token punctuation">,</span> create_parents<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> group<span class="token operator">=</span>params<span class="token punctuation">.</span>es_group<span class="token punctuation">)</span>
+
+    <span class="token comment"># jvm.options</span>
+    jvm_options <span class="token operator">=</span> <span class="token string">""</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">'elasticsearch-env'</span> <span class="token keyword">in</span> config<span class="token punctuation">[</span><span class="token string">'configurations'</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token keyword">and</span> <span class="token punctuation">(</span><span class="token string">'jvm.options'</span> <span class="token keyword">in</span> config<span class="token punctuation">[</span><span class="token string">'configurations'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch-env'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        jvm_options <span class="token operator">=</span> config<span class="token punctuation">[</span><span class="token string">'configurations'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch-env'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'jvm.options'</span><span class="token punctuation">]</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        jvm_options <span class="token operator">=</span> <span class="token boolean">None</span>
+
+    File<span class="token punctuation">(</span>os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>join<span class="token punctuation">(</span>params<span class="token punctuation">.</span>es_config_dir<span class="token punctuation">,</span> <span class="token string">'jvm.options'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> owner<span class="token operator">=</span>params<span class="token punctuation">.</span>es_user<span class="token punctuation">,</span>
+         group<span class="token operator">=</span>params<span class="token punctuation">.</span>es_group<span class="token punctuation">,</span>
+         content<span class="token operator">=</span>InlineTemplate<span class="token punctuation">(</span>jvm_options<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token keyword">def</span> <span class="token function">install_elasticsearch</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">import</span> params
+
+    os<span class="token punctuation">.</span>system<span class="token punctuation">(</span><span class="token string">'id '</span> <span class="token operator">+</span> params<span class="token punctuation">.</span>es_user <span class="token operator">+</span> <span class="token string">";[[ $? -eq  1 ]] &amp;&amp; "</span> <span class="token operator">+</span> <span class="token string">'useradd -m '</span> <span class="token operator">+</span> params<span class="token punctuation">.</span>es_user<span class="token punctuation">)</span>
+
+    Directory<span class="token punctuation">(</span>params<span class="token punctuation">.</span>install_dir<span class="token punctuation">,</span> owner<span class="token operator">=</span>params<span class="token punctuation">.</span>es_user<span class="token punctuation">,</span> create_parents<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> group<span class="token operator">=</span>params<span class="token punctuation">.</span>es_group<span class="token punctuation">)</span>
+
+    fileName <span class="token operator">=</span> params<span class="token punctuation">.</span>dir_name <span class="token operator">+</span> <span class="token string">'.tar.gz'</span>
+
+    <span class="token keyword">if</span> <span class="token keyword">not</span> os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>exists<span class="token punctuation">(</span>params<span class="token punctuation">.</span>es_home<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        Execute<span class="token punctuation">(</span><span class="token string">'wget '</span> <span class="token operator">+</span> params<span class="token punctuation">.</span>download_url <span class="token operator">+</span> <span class="token string">' -O /tmp/'</span> <span class="token operator">+</span> fileName<span class="token punctuation">,</span> user<span class="token operator">=</span>params<span class="token punctuation">.</span>es_user<span class="token punctuation">)</span>
+        Execute<span class="token punctuation">(</span><span class="token string">'tar -zxf /tmp/'</span> <span class="token operator">+</span> fileName <span class="token operator">+</span> <span class="token string">' -C '</span> <span class="token operator">+</span> params<span class="token punctuation">.</span>install_dir<span class="token punctuation">,</span> user<span class="token operator">=</span>params<span class="token punctuation">.</span>es_user<span class="token punctuation">)</span>
+        Execute<span class="token punctuation">(</span><span class="token string">'mv  '</span> <span class="token operator">+</span> params<span class="token punctuation">.</span>install_dir <span class="token operator">+</span> <span class="token string">'/elasticsearch-* '</span> <span class="token operator">+</span> params<span class="token punctuation">.</span>es_home<span class="token punctuation">)</span>
+        Execute<span class="token punctuation">(</span><span class="token builtin">format</span><span class="token punctuation">(</span><span class="token string">'chown -R &#123;params.es_user&#125;:&#123;params.es_group&#125; &#123;params.es_home&#125;'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        Execute<span class="token punctuation">(</span><span class="token string">'/bin/rm -f /tmp/'</span> <span class="token operator">+</span> fileName<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>package/scripts/params.py<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#!/usr/bin/env python</span>
+<span class="token keyword">from</span> resource_management <span class="token keyword">import</span> <span class="token operator">*</span>
+<span class="token keyword">import</span> ambari_simplejson <span class="token keyword">as</span> json
+<span class="token keyword">import</span> socket<span class="token punctuation">,</span> os
+
+<span class="token comment"># server configurations</span>
+config <span class="token operator">=</span> Script<span class="token punctuation">.</span>get_config<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+install_dir <span class="token operator">=</span> <span class="token string">"/opt/apps"</span>
+dir_name <span class="token operator">=</span> <span class="token string">'elasticsearch'</span>
+es_home <span class="token operator">=</span> install_dir <span class="token operator">+</span> <span class="token string">'/'</span> <span class="token operator">+</span> dir_name
+es_config_dir <span class="token operator">=</span> es_home <span class="token operator">+</span> <span class="token string">"/config"</span>
+piddir <span class="token operator">=</span> es_home <span class="token operator">+</span> <span class="token string">"/pid"</span>
+pidfile <span class="token operator">=</span> piddir <span class="token operator">+</span> <span class="token string">"/elasticsearch.pid"</span>
+
+datadir <span class="token operator">=</span> default<span class="token punctuation">(</span><span class="token string">'/configurations/elasticsearch.yml/path.data'</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+logdir <span class="token operator">=</span> config<span class="token punctuation">[</span><span class="token string">'configurations'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch.yml'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'path.logs'</span><span class="token punctuation">]</span>
+hostname <span class="token operator">=</span> config<span class="token punctuation">[</span><span class="token string">'agentLevelParams'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'hostname'</span><span class="token punctuation">]</span>
+
+package_name<span class="token operator">=</span>default<span class="token punctuation">(</span><span class="token string">'/configurations/elasticsearch-env/elasticsearch.package.name'</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+searchguard_package_name<span class="token operator">=</span>default<span class="token punctuation">(</span><span class="token string">'/configurations/elasticsearch-env/searchguard.package.name'</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+Xmx<span class="token operator">=</span>default<span class="token punctuation">(</span><span class="token string">'/configurations/elasticsearch-env/Xmx'</span><span class="token punctuation">,</span> <span class="token string">"30g"</span><span class="token punctuation">)</span>
+Xms<span class="token operator">=</span>default<span class="token punctuation">(</span><span class="token string">'/configurations/elasticsearch-env/Xms'</span><span class="token punctuation">,</span> <span class="token string">"30g"</span><span class="token punctuation">)</span>
+
+baseUrl <span class="token operator">=</span> <span class="token string">''</span>
+<span class="token keyword">if</span> <span class="token string">'repositoryFile'</span> <span class="token keyword">in</span> config <span class="token keyword">and</span> <span class="token string">'repositories'</span> <span class="token keyword">in</span> config<span class="token punctuation">[</span><span class="token string">'repositoryFile'</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+    <span class="token keyword">for</span> repo <span class="token keyword">in</span> config<span class="token punctuation">[</span><span class="token string">'repositoryFile'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'repositories'</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token keyword">if</span> repo<span class="token punctuation">[</span><span class="token string">'repoName'</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'HDP'</span><span class="token punctuation">:</span>
+            baseUrl <span class="token operator">=</span> repo<span class="token punctuation">[</span><span class="token string">'baseUrl'</span><span class="token punctuation">]</span>
+
+download_url <span class="token operator">=</span> baseUrl <span class="token operator">+</span> <span class="token string">'/'</span> <span class="token operator">+</span>  package_name
+yum_dir <span class="token operator">=</span> baseUrl<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">'/'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span>
+
+es_user <span class="token operator">=</span> <span class="token string">"elasticsearch"</span>
+es_group <span class="token operator">=</span> es_user
+
+local_dirs <span class="token operator">=</span> <span class="token punctuation">[</span>config<span class="token punctuation">[</span><span class="token string">'configurations'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch.yml'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'path.logs'</span><span class="token punctuation">]</span><span class="token punctuation">]</span>
+
+dirs<span class="token operator">=</span>datadir<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">","</span><span class="token punctuation">)</span>
+<span class="token keyword">for</span> <span class="token builtin">dir</span> <span class="token keyword">in</span> dirs<span class="token punctuation">:</span>
+    local_dirs<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token builtin">dir</span><span class="token punctuation">)</span>
+
+elasticsearch_address<span class="token operator">=</span><span class="token string">""</span>
+<span class="token keyword">if</span> <span class="token string">"clusterHostInfo"</span> <span class="token keyword">in</span> config<span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token string">"elasticsearch_server_hosts"</span> <span class="token keyword">in</span>  config<span class="token punctuation">[</span><span class="token string">'clusterHostInfo'</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        elasticsearch_server_hosts<span class="token operator">=</span>config<span class="token punctuation">[</span><span class="token string">'clusterHostInfo'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch_server_hosts'</span><span class="token punctuation">]</span>
+        elasticsearch_httpport<span class="token operator">=</span>config<span class="token punctuation">[</span><span class="token string">'configurations'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch.yml'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'transport.tcp.port'</span><span class="token punctuation">]</span>
+        elasticsearch_server_hosts_len <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>elasticsearch_server_hosts<span class="token punctuation">)</span>
+        <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>elasticsearch_server_hosts_len<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            elasticsearch_address <span class="token operator">+=</span> <span class="token string">"\""</span> <span class="token operator">+</span> <span class="token punctuation">(</span>elasticsearch_server_hosts<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">+</span><span class="token string">":"</span><span class="token operator">+</span> <span class="token builtin">bytes</span><span class="token punctuation">(</span>elasticsearch_httpport<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"\""</span>
+            <span class="token keyword">if</span> i <span class="token operator">&lt;</span> elasticsearch_server_hosts_len <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">:</span>
+                elasticsearch_address <span class="token operator">+=</span> <span class="token string">","</span>
+
+elasticsearch_master_address<span class="token operator">=</span><span class="token string">""</span>
+<span class="token keyword">if</span> <span class="token string">"clusterHostInfo"</span> <span class="token keyword">in</span> config<span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token string">"elasticsearch_server_hosts"</span> <span class="token keyword">in</span>  config<span class="token punctuation">[</span><span class="token string">'clusterHostInfo'</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        elasticsearch_master_hosts<span class="token operator">=</span>config<span class="token punctuation">[</span><span class="token string">'clusterHostInfo'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch_server_hosts'</span><span class="token punctuation">]</span>
+        elasticsearch_master_hosts_len <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>elasticsearch_master_hosts<span class="token punctuation">)</span>
+        <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>elasticsearch_master_hosts_len<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            elasticsearch_master_address <span class="token operator">+=</span> <span class="token string">"\""</span> <span class="token operator">+</span> elasticsearch_master_hosts<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token string">"\""</span>
+            <span class="token keyword">if</span> i <span class="token operator">&lt;</span> elasticsearch_master_hosts_len <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">:</span>
+                elasticsearch_master_address <span class="token operator">+=</span> <span class="token string">","</span>
+
+elasticsearch_addresses<span class="token operator">=</span><span class="token string">"["</span> <span class="token operator">+</span> elasticsearch_address <span class="token operator">+</span> <span class="token string">"]"</span>
+elasticsearch_master_addresses<span class="token operator">=</span><span class="token string">"["</span> <span class="token operator">+</span> elasticsearch_master_address <span class="token operator">+</span> <span class="token string">"]"</span>
+nodename <span class="token operator">=</span> hostname
+hostname_ip <span class="token operator">=</span> socket<span class="token punctuation">.</span>gethostbyname<span class="token punctuation">(</span>hostname<span class="token punctuation">)</span>
+
+elasticsearch_hosts <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+<span class="token keyword">if</span> <span class="token string">"clusterHostInfo"</span> <span class="token keyword">in</span> config<span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token string">"elasticsearch_server_hosts"</span> <span class="token keyword">in</span>  config<span class="token punctuation">[</span><span class="token string">'clusterHostInfo'</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        elasticsearch_hosts<span class="token operator">=</span>config<span class="token punctuation">[</span><span class="token string">'clusterHostInfo'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'elasticsearch_server_hosts'</span><span class="token punctuation">]</span>
+        elasticsearch_hosts<span class="token punctuation">.</span>sort<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>quicklinks/quicklinks.json<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"default"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"default quick links configuration"</span><span class="token punctuation">,</span>
+  <span class="token property">"configuration"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"protocol"</span><span class="token operator">:</span>
+    <span class="token punctuation">&#123;</span>
+      <span class="token property">"type"</span><span class="token operator">:</span><span class="token string">"https"</span><span class="token punctuation">,</span>
+      <span class="token property">"checks"</span><span class="token operator">:</span><span class="token punctuation">[</span>
+        <span class="token punctuation">&#123;</span>
+          <span class="token property">"property"</span><span class="token operator">:</span><span class="token string">"dfs.http.policy"</span><span class="token punctuation">,</span>
+          <span class="token property">"desired"</span><span class="token operator">:</span><span class="token string">"HTTPS_ONLY"</span><span class="token punctuation">,</span>
+          <span class="token property">"site"</span><span class="token operator">:</span><span class="token string">"elasticsearch.yml"</span>
+        <span class="token punctuation">&#125;</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+
+    <span class="token property">"links"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token punctuation">&#123;</span>
+        <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"elasticseaarch_ui"</span><span class="token punctuation">,</span>
+        <span class="token property">"label"</span><span class="token operator">:</span> <span class="token string">"ELASTICSEARCH UI"</span><span class="token punctuation">,</span>
+        <span class="token property">"component_name"</span><span class="token operator">:</span> <span class="token string">"ELASTICSEARCH_SERVER"</span><span class="token punctuation">,</span>
+        <span class="token property">"url"</span><span class="token operator">:</span><span class="token string">"%@://%@:%@/_cat/indices?v"</span><span class="token punctuation">,</span>
+        <span class="token property">"requires_user_name"</span><span class="token operator">:</span> <span class="token string">"false"</span><span class="token punctuation">,</span>
+        <span class="token property">"port"</span><span class="token operator">:</span><span class="token punctuation">&#123;</span>
+          <span class="token property">"http_property"</span><span class="token operator">:</span> <span class="token string">"http.port"</span><span class="token punctuation">,</span>
+          <span class="token property">"http_default_port"</span><span class="token operator">:</span> <span class="token string">"9200"</span><span class="token punctuation">,</span>
+          <span class="token property">"https_property"</span><span class="token operator">:</span> <span class="token string">"http.port"</span><span class="token punctuation">,</span>
+          <span class="token property">"https_default_port"</span><span class="token operator">:</span> <span class="token string">"9200"</span><span class="token punctuation">,</span>
+          <span class="token property">"regex"</span><span class="token operator">:</span> <span class="token string">"\\w*:(\\d+)"</span><span class="token punctuation">,</span>
+          <span class="token property">"site"</span><span class="token operator">:</span> <span class="token string">"elasticsearch.yml"</span>
+        <span class="token punctuation">&#125;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">]</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+以上脚本都没问题后，重启ambari-server服务</li>
+</ol>
+<h3 id="在页面安装ELASTICSEARCH"><a href="#在页面安装ELASTICSEARCH" class="headerlink" title="在页面安装ELASTICSEARCH"></a>在页面安装ELASTICSEARCH</h3><p><img src="/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A11.png" alt="ambari安装服务1.png"><br><img src="/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A12.png" alt="ambari安装服务2.png"><br><img src="/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A13.png" alt="ambari安装服务3.png"><br><img src="/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A14.png" alt="ambari安装服务4.png"><br><img src="/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A15.png" alt="ambari安装服务5.png"><br><img src="/uploads/202508/ambari%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A16.png" alt="ambari安装服务6.png"></p>
+<h2 id="Ambari-汉化与修改图标"><a href="#Ambari-汉化与修改图标" class="headerlink" title="Ambari 汉化与修改图标"></a>Ambari 汉化与修改图标</h2><h3 id="前端页面修改"><a href="#前端页面修改" class="headerlink" title="前端页面修改"></a>前端页面修改</h3><p>各模块源码文件及安装后的文件</p>
+<table>
+<thead>
+<tr>
+<th>功能模块</th>
+<th>源码文件</th>
+<th>安装后目录</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>仪表盘主</td>
+<td>ambari-web/app/messages.js</td>
+<td>/usr/lib/ambari-server/web/javascripts/app.js</td>
+</tr>
+<tr>
+<td>界面</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>管理员界面</td>
+<td>ambari-admin/src/main/resources/ui/admin-web/app/scripts/i18n.config.js/main.js</td>
+<td>/var/lib/ambari-server/resources/views/work/ADMIN_VIEW{2.6.1.5}/scripts</td>
+</tr>
+<tr>
+<td>主页底部版权信息</td>
+<td>ambari-web/app/assets/index.html</td>
+<td>/usr/lib/ambari-server/web/index.html</td>
+</tr>
+<tr>
+<td>登录框</td>
+<td>ambari-web/app/templates/login.hbs</td>
+<td>/usr/lib/ambari-server/web/javascripts/app.js</td>
+</tr>
+<tr>
+<td>DashBoard 页头</td>
+<td>/ambari-web/app/templates/application.hbs</td>
+<td>/usr/lib/ambari-server/web/javascripts/app.js</td>
+</tr>
+<tr>
+<td>仪表盘的关于信息</td>
+<td>ambari-web/app/templates/common/about.hbs</td>
+<td>/usr/lib/ambari-server/web/javascripts/app.js</td>
+</tr>
+<tr>
+<td>管理页面的关于信息</td>
+<td>/ambari-admin/src/main/resources/ui/admin-web/app/views/modals/AboutModal.html</td>
+<td>/var/lib/ambari-server/resources/views/work/ADMIN_VIEW{2.6.1.5}/views/modals/AboutModal.html</td>
+</tr>
+</tbody></table>
+<p>汉化文件：ambari-web/app/messages.js(覆盖原始文件), 安装后目录在<code>/usr/lib/ambari-server/web/javascripts/app.js</code><br>修改logo图片:<code>/usr/lib/ambari-server/web/img/ambari-log.png</code>，把这个图片换成公司的图片<br>修改底部的公司名称: 在<code>/usr/lib/ambari-server/web/index.html</code>里:</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>footer</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>container footer-links<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">data-qa</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>xxx公司<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://xxxx.com<span class="token punctuation">"</span></span> <span class="token attr-name">target</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>_blank<span class="token punctuation">"</span></span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>noopener noreferrer<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>xxx公司<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span>
+     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>footer</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="Ambari集成K8S服务"><a href="#Ambari集成K8S服务" class="headerlink" title="Ambari集成K8S服务"></a>Ambari集成K8S服务</h2><p>状态检测：</p>
+<ol>
+<li>当前es的状态检测是通过检测 服务器上的PID文件来获取服务状态  ：check_process_status(format(params.pidfile))</li>
+<li>之后用k8s的状态检测：这个可能之后需要通过API的方式轮询获取每个POD的状态</li>
+<li>K8S之后看看是通过循环检测服务状态，如果服务正常就生成pid文件，还是通过修改check_process_status修改任务状态的获取方式</li>
+</ol>
+<p>ambari的服务是和主机强绑定的<br>k8s的服务和主机天生非强绑定，是可弹性移动的</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Ambari/" rel="tag"># Ambari</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/08/13/Dinky%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/" rel="prev" title="Dinky使用笔记">
+      <i class="fa fa-chevron-left"></i> Dinky使用笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/08/22/Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4/" rel="next" title="Centos安装k8s集群">
+      Centos安装k8s集群 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1"><span class="nav-number">1.</span> <span class="nav-text">Ambari自定义服务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ambari%E9%9B%86%E6%88%90Elasticsearch"><span class="nav-number">1.1.</span> <span class="nav-text">Ambari集成Elasticsearch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8%E9%A1%B5%E9%9D%A2%E5%AE%89%E8%A3%85ELASTICSEARCH"><span class="nav-number">1.2.</span> <span class="nav-text">在页面安装ELASTICSEARCH</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari-%E6%B1%89%E5%8C%96%E4%B8%8E%E4%BF%AE%E6%94%B9%E5%9B%BE%E6%A0%87"><span class="nav-number">2.</span> <span class="nav-text">Ambari 汉化与修改图标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E7%AB%AF%E9%A1%B5%E9%9D%A2%E4%BF%AE%E6%94%B9"><span class="nav-number">2.1.</span> <span class="nav-text">前端页面修改</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ambari%E9%9B%86%E6%88%90K8S%E6%9C%8D%E5%8A%A1"><span class="nav-number">3.</span> <span class="nav-text">Ambari集成K8S服务</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">69</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

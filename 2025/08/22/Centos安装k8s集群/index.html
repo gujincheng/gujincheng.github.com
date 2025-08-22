@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Centos安装k8s集群">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Centos安装k8s集群">
+<meta property="og:url" content="https://gujincheng.github.io/2025/08/22/Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Centos安装k8s集群">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-08-22T02:13:02.000Z">
+<meta property="article:modified_time" content="2025-08-22T09:50:29.863Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://gujincheng.github.io/2025/08/22/Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Centos安装k8s集群 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2025/08/22/Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Centos安装k8s集群
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-08-22 10:13:02 / 修改时间：17:50:29" itemprop="dateCreated datePublished" datetime="2025-08-22T10:13:02+08:00">2025-08-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kubernetes/" itemprop="url" rel="index"><span itemprop="name">Kubernetes</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2025/08/22/Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4/" class="post-meta-item leancloud_visitors" data-flag-title="Centos安装k8s集群" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2025/08/22/Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2025/08/22/Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Centos安装k8s集群</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="Centos安装k8s集群"><a href="#Centos安装k8s集群" class="headerlink" title="Centos安装k8s集群"></a>Centos安装k8s集群</h2><h3 id="安装环境说明"><a href="#安装环境说明" class="headerlink" title="安装环境说明"></a>安装环境说明</h3><p>内存：2GB或更多RAM<br>CPU: 2核CPU或更多CPU<br>硬盘: 30GB或更多<br>本次环境说明：<br>操作系统：CentOS 7.9<br>内核版本：3.10.0-1160.el7.x86_64<br>ddp1： 172.16.7.135<br>ddp2： 172.16.7.136<br>ddp3： 172.16.7.137</p>
+<h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><ol>
+<li>关闭防火墙和selinux<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">##关闭防火墙
+systemctl stop firewalld &amp;&amp; systemctl disable firewalld &amp;&amp; iptables -F
+## 关闭selinux
+sed -i &#39;s&#x2F;enforcing&#x2F;disabled&#x2F;&#39; &#x2F;etc&#x2F;selinux&#x2F;config &amp;&amp; setenforce 0
+## 关闭swap分区
+swapoff -a
+## 永久关闭swap
+sed -ri &#39;s&#x2F;.*swap.*&#x2F;#&amp;&#x2F;&#39; &#x2F;etc&#x2F;fstab<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>修改hosts</li>
+<li>修改内核参数<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cat &gt; &#x2F;etc&#x2F;sysctl.d&#x2F;k8s.conf &lt;&lt; EOF
+net.bridge.bridge-nf-call-ip6tables &#x3D; 1
+net.bridge.bridge-nf-call-iptables &#x3D; 1
+net.ipv4.ip_forward &#x3D; 1
+EOF
+
+sysctl --system<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>加载ip_vs内核模块<br>如果kube-proxy 模式为ip_vs则必须加载，本文采用iptables<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">modprobe ip_vs
+modprobe ip_vs_rr
+modprobe ip_vs_wrr
+modprobe ip_vs_sh
+modprobe nf_conntrack_ipv4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+设置下次开机自动加载<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cat &gt; &#x2F;etc&#x2F;modules-load.d&#x2F;ip_vs.conf &lt;&lt; EOF 
+ip_vs
+ip_vs_rr
+ip_vs_wrr
+ip_vs_sh
+nf_conntrack_ipv4
+EOF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3></li>
+<li>配置yum源并安装docker<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install wget -y 
+wget https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;docker-ce&#x2F;linux&#x2F;centos&#x2F;docker-ce.repo -O &#x2F;etc&#x2F;yum.repos.d&#x2F;docker-ce.repo
+yum install docker-ce docker-ce-cli -y<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+<li>编辑docker配置文件<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir &#x2F;etc&#x2F;docker&#x2F; 
+cat &gt; &#x2F;etc&#x2F;docker&#x2F;daemon.json &lt;&lt; EOF
+&#123;
+&quot;registry-mirrors&quot;: [&quot;https:&#x2F;&#x2F;gqs7xcfd.mirror.aliyuncs.com&quot;,&quot;https:&#x2F;&#x2F;hub-mirror.c.163.com&quot;],
+&quot;exec-opts&quot;: [&quot;native.cgroupdriver&#x3D;systemd&quot;],
+&quot;log-driver&quot;: &quot;json-file&quot;,
+&quot;log-opts&quot;: &#123;
+&quot;max-size&quot;: &quot;100m&quot;
+&#125;,
+&quot;storage-driver&quot;: &quot;overlay2&quot;
+&#125;
+EOF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>启动docker服务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl daemon-reload &amp;&amp; systemctl enable docker &amp;&amp; systemctl start docker<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="安装kubeadm-kubelet和kubectl"><a href="#安装kubeadm-kubelet和kubectl" class="headerlink" title="安装kubeadm,kubelet和kubectl"></a>安装kubeadm,kubelet和kubectl</h3></li>
+<li>配置yum源(这里使用阿里云的源)<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cat &gt; &#x2F;etc&#x2F;yum.repos.d&#x2F;kubernetes.repo &lt;&lt; EOF
+[kubernetes]
+name&#x3D;Kubernetes
+baseurl&#x3D;https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;yum&#x2F;repos&#x2F;kubernetes-el7-x86_64&#x2F;
+enabled&#x3D;1
+gpgcheck&#x3D;1
+repo_gpgcheck&#x3D;1
+gpgkey&#x3D;https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;yum&#x2F;doc&#x2F;yum-key.gpg https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;yum&#x2F;doc&#x2F;rpm-package-key.gpg
+EOF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>安装指定版本的kubeadm,kubelet,kubectl<br>到 <strong>所有节点</strong> 执行<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 列出所有版本
+yum list kubelet --showduplicates
+## 安装指定版本的kubeadm,kubelet,kubectl
+yum install -y kubelet-1.23.6 kubeadm-1.23.6 kubectl-1.23.6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>设置开机自启<br>master上需要kubeadm init之后才能启动，worker需要kubeadm join之后才能启动<br>所以这里应该是要最后配置的<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start kubelet
+systemctl enable kubelet<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+每个节点（不管是 Master 还是 Worker）都必须运行 kubelet，否则该节点无法正常工作，Kubernetes 集群也就无法完整运行！</li>
+</ol>
+<p>这里启动报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Aug 22 11:42:57 ddp1 kubelet[24473]: I0822 11:42:57.353755   24473 dynamic_cafile_content.go:156] &quot;Starting controller&quot; name&#x3D;&quot;client-ca-bundle::&#x2F;etc&#x2F;kubernetes&#x2F;pki&#x2F;ca.crt&quot;
+Aug 22 11:42:57 ddp1 kubelet[24473]: I0822 11:42:57.397684   24473 server.go:693] &quot;--cgroups-per-qos enabled, but --cgroup-root was not specified.  defaulting to &#x2F;&quot;
+Aug 22 11:42:57 ddp1 kubelet[24473]: E0822 11:42:57.397788   24473 server.go:302] &quot;Failed to run kubelet&quot; err&#x3D;&quot;failed to run Kubelet: running with swap on is not supported, please disable swap! or set --fail-swap-on flag to false. &#x2F;proc&#x2F;swaps contained: [Filename\t\t\t\tType\t\tSize\tUsed\tPriority &#x2F;dev&#x2F;dm-1                               partition\t8257532\t0\t-2]&quot;
+Aug 22 11:42:57 ddp1 systemd[1]: kubelet.service: main process exited, code&#x3D;exited, status&#x3D;1&#x2F;FAILURE
+Aug 22 11:42:57 ddp1 systemd[1]: Unit kubelet.service entered failed state.
+Aug 22 11:42:57 ddp1 systemd[1]: kubelet.service failed.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>问题原因：</strong> Kubelet 不支持在开启 Swap 的系统上运行<br>再次报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Aug 22 11:47:03 ddp1 kubelet[26583]: I0822 11:47:03.411512   26583 docker_service.go:264] &quot;Docker Info&quot; dockerInfo&#x3D;&amp;&#123;ID:5ce8744d-378e-496b-8dd0-25daa6df788c Containers:0 ContainersRunning:0 ContainersPaused:0 ContainersStopped:0 Images:7 Driver:overlay2 DriverStatus:[[Backing Filesystem xfs] [Supports d_type true] [Using metacopy false] [Native Overlay Diff true] [userxattr false]] SystemStatus:[] Plugins:&#123;Volume:[local] Network:[bridge host ipvlan macvlan null overlay] Authorization:[] Log:[awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog]&#125; MemoryLimit:true SwapLimit:true KernelMemory:true KernelMemoryTCP:true CPUCfsPeriod:true CPUCfsQuota:true CPUShares:true CPUSet:true PidsLimit:true IPv4Forwarding:true BridgeNfIptables:true BridgeNfIP6tables:true Debug:false NFd:24 OomKillDisable:true NGoroutines:35 SystemTime:2025-08-22T11:47:03.406858121+08:00 LoggingDriver:json-file CgroupDriver:cgroupfs CgroupVersion:1 NEventsListener:0 KernelVersion:3.10.0-1160.el7.x86_64 OperatingSystem:CentOS Linux 7 (Core) OSVersion:7 OSType:linux Architecture:x86_64 IndexServerAddress:https:&#x2F;&#x2F;index.docker.io&#x2F;v1&#x2F; RegistryConfig:0xc00017c770 NCPU:8 MemTotal:16655888384 GenericResources:[] DockerRootDir:&#x2F;var&#x2F;lib&#x2F;docker HTTPProxy: HTTPSProxy: NoProxy: Name:ddp1 Labels:[] ExperimentalBuild:false ServerVersion:24.0.7 ClusterStore: ClusterAdvertise: Runtimes:map[io.containerd.runc.v2:&#123;Path:runc Args:[] Shim:&lt;nil&gt;&#125; runc:&#123;Path:runc Args:[] Shim:&lt;nil&gt;&#125;] DefaultRuntime:runc Swarm:&#123;NodeID: NodeAddr: LocalNodeState:inactive ControlAvailable:false Error: RemoteManagers:[] Nodes:0 Managers:0 Cluster:&lt;nil&gt; Warnings:[]&#125; LiveRestoreEnabled:false Isolation: InitBinary:docker-init ContainerdCommit:&#123;ID:61f9fd88f79f081d64d6fa3bb1a0dc71ec870523 Expected:61f9fd88f79f081d64d6fa3bb1a0dc71ec870523&#125; RuncCommit:&#123;ID:v1.1.9-0-gccaecfc Expected:v1.1.9-0-gccaecfc&#125; InitCommit:&#123;ID:de40ad0 Expected:de40ad0&#125; SecurityOptions:[name&#x3D;seccomp,profile&#x3D;builtin] ProductLicense: DefaultAddressPools:[] Warnings:[]&#125;
+Aug 22 11:47:03 ddp1 kubelet[26583]: E0822 11:47:03.411538   26583 server.go:302] &quot;Failed to run kubelet&quot; err&#x3D;&quot;failed to run Kubelet: misconfiguration: kubelet cgroup driver: \&quot;systemd\&quot; is different from docker cgroup driver: \&quot;cgroupfs\&quot;&quot;
+Aug 22 11:47:03 ddp1 systemd[1]: kubelet.service: main process exited, code&#x3D;exited, status&#x3D;1&#x2F;FAILURE
+Aug 22 11:47:03 ddp1 systemd[1]: Unit kubelet.service entered failed state.
+Aug 22 11:47:03 ddp1 systemd[1]: kubelet.service failed.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>根本原因：Kubelet 的 cgroup 驱动是 “systemd”，但 Docker 容器运行时使用的 cgroup 驱动是 “cgroupfs”，两者不一致，导致 kubelet 拒绝启动！<br>解决方案：配置Docker使用systemd作为默认Cgroup驱动，配置之后需要重启docker</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cat &lt;&lt;EOF &gt; &#x2F;etc&#x2F;docker&#x2F;daemon.json
+&#123;
+	&quot;registry-mirrors&quot;: [
+        &quot;http:&#x2F;&#x2F;hub-mirror.c.163.com&quot;,
+        &quot;https:&#x2F;&#x2F;docker.mirrors.ustc.edu.cn&quot;,
+        &quot;https:&#x2F;&#x2F;registry.docker-cn.com&quot;,
+        &quot;https:&#x2F;&#x2F;docker.m.daocloud.io&quot;,
+        &quot;https:&#x2F;&#x2F;f6qc86pg.mirror.aliyuncs.com&quot;
+    ],
+	&quot;exec-opts&quot;: [&quot;native.cgroupdriver&#x3D;systemd&quot;]
+&#125;
+EOF
+#重启docker
+systemctl restart docker<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="部署Kubernetes-Master节点"><a href="#部署Kubernetes-Master节点" class="headerlink" title="部署Kubernetes Master节点"></a>部署Kubernetes Master节点</h3><p>在Kubernetes中Master节点是集群的控制节点，它是由三个紧密协作的独立组件组合而成，分别是负责API服务的kube-apiserver、负责调度的kube-scheduler以及负责容器编排的kube-controller-manager，其中整个集群的持久化数据由kube-apiserver处理后保存在Etcd中</p>
+<ol>
+<li>master节点初始化<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">kubeadm init \
+  --kubernetes-version 1.23.6 \
+  --apiserver-advertise-address&#x3D;172.16.7.135 \
+  --service-cidr&#x3D;10.1.0.0&#x2F;12 \
+  --pod-network-cidr&#x3D;192.168.0.0&#x2F;16 \
+  --control-plane-endpoint&#x3D;172.16.7.135:6443 \
+  --image-repository registry.aliyuncs.com&#x2F;google_containers \
+  --upload-certs<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+参数说明:</li>
+</ol>
+<p>–kubernetes-version: 指定版本<br>–image-repository：镜像仓库，离线安装需要把相关镜像先拉取下来，且此处无需再配置<br>–apiserver-advertise-address：集群通告地址,为通告给其它组件的IP，一般应为master节点的IP地址<br>–image-repository：由于默认拉取镜像地址k8s.gcr.io国内无法访问，这里指定镜像仓库地址<br>–kubernetes-version：K8s版本，与上面安装的一致<br>–service-cidr：集群内部虚拟网络，Pod统一访问入口<br>–pod-network-cidr：Pod网络，有两个值，打算使用calico网络插件时，最好使用10.96.0.0/16，192.168.0.0/16，打算使用flannel网络插件时最好使用10.244.0.0/16<br>–control-plane-endpoint: 该参数用于定义一个稳定的访问端点（通常是负载均衡器地址或 DNS 名称），所有工作节点和其他控制平面节点都通过这个端点与集群通信。在 HA 集群中，必须配置。<br>–upload-certs：自动分发证书供其他控制平面节点加入</p>
+<p><strong>注意：</strong> </p>
+<ol>
+<li>版本必须和上边安装的kubelet,kubead,kubectl保持一致</li>
+<li>kubeadm init 只需要在master上执行即可，worker上不需要执行</li>
+</ol>
+<p>初始化过程中可能存在超时错误，此时需修改配置后重新初始化</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 修改系统启动文件
+vi &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;kubelet.service
+[Service]
+ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;kubelet --kubeconfig&#x3D;&#x2F;etc&#x2F;kubernetes&#x2F;kubelet.conf --config&#x3D;&#x2F;var&#x2F;lib&#x2F;kubelet&#x2F;config.yaml
+
+# 需要回退初始化过程后再重新初始化
+kubeadm reset<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>初始化成功日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Your Kubernetes control-plane has initialized successfully!
+To start using your cluster, you need to run the following as a regular user:
+  mkdir -p $HOME&#x2F;.kube
+  sudo cp -i &#x2F;etc&#x2F;kubernetes&#x2F;admin.conf $HOME&#x2F;.kube&#x2F;config
+  sudo chown $(id -u):$(id -g) $HOME&#x2F;.kube&#x2F;config
+Alternatively, if you are the root user, you can run:
+  export KUBECONFIG&#x3D;&#x2F;etc&#x2F;kubernetes&#x2F;admin.conf
+You should now deploy a pod network to the cluster.
+Run &quot;kubectl apply -f [podnetwork].yaml&quot; with one of the options listed at:
+  https:&#x2F;&#x2F;kubernetes.io&#x2F;docs&#x2F;concepts&#x2F;cluster-administration&#x2F;addons&#x2F;
+You can now join any number of the control-plane node running the following command on each as root:
+  kubeadm join 172.16.7.135:6443 --token df0fp8.qqn7ph60hnglskol \
+        --discovery-token-ca-cert-hash sha256:6230f41413e2cdaf154d7d95b914984a1eb1ddf79d814f166c57156026fd78e2 \
+        --control-plane --certificate-key d57db043a3b8e97392bd7415a884ad0fb5c2b9697fafe61416340cca56228b17
+Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
+As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
+&quot;kubeadm init phase upload-certs --upload-certs&quot; to reload certs afterward.
+Then you can join any number of worker nodes by running the following on each as root:
+kubeadm join 172.16.7.135:6443 --token df0fp8.qqn7ph60hnglskol \
+        --discovery-token-ca-cert-hash sha256:6230f41413e2cdaf154d7d95b914984a1eb1ddf79d814f166c57156026fd78e2 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在master上执行：<br>如果是普通用户，可以执行：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p $HOME&#x2F;.kube
+sudo cp -i &#x2F;etc&#x2F;kubernetes&#x2F;admin.conf $HOME&#x2F;.kube&#x2F;config
+sudo chown $(id -u):$(id -g) $HOME&#x2F;.kube&#x2F;config<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>如果是root用户，可以执行<code>export KUBECONFIG=/etc/kubernetes/admin.conf</code></p>
+<h3 id="部署worker节点"><a href="#部署worker节点" class="headerlink" title="部署worker节点"></a>部署worker节点</h3><p>前提条件：</p>
+<ol>
+<li>安装了kubelet-1.23.6 kubeadm-1.23.6 kubectl-1.23.6</li>
+<li>安装了docker并已启动</li>
+<li>配置Docker使用systemd作为默认Cgroup驱动，配置之后需要重启docker<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">kubeadm join 172.16.7.135:6443 --token df0fp8.qqn7ph60hnglskol \
+        --discovery-token-ca-cert-hash sha256:6230f41413e2cdaf154d7d95b914984a1eb1ddf79d814f166c57156026fd78e2<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+加入成功：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+Run &#39;kubectl get nodes&#39; on the control-plane to see this node join the cluster.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+在所有worker上执行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p $HOME&#x2F;.kube
+scp ddp1:&#x2F;etc&#x2F;kubernetes&#x2F;admin.conf $HOME&#x2F;.kube&#x2F;config
+sudo chown $(id -u):$(id -g) $HOME&#x2F;.kube&#x2F;config<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+执行完成后查看集群节点，此时均为NotReady状态，待后面网络插件Calico安装完成后，会变成Ready状态<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl get nodes
+NAME   STATUS     ROLES                  AGE   VERSION
+ddp1   NotReady   control-plane,master   45m   v1.23.6
+ddp2   NotReady   &lt;none&gt;                 15m   v1.23.6
+ddp3   NotReady   &lt;none&gt;                 13m   v1.23.6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="后续配置"><a href="#后续配置" class="headerlink" title="后续配置"></a>后续配置</h3>Master 节点（Control Plane 节点）： 默认情况下，Master 节点会被标记为不可调度（unschedulable），即不允许普通 Pod 跑在上面<br>Worker 节点（Node 节点）：负责运行你的 业务 Pod，比如 Deployment、StatefulSet、DaemonSet 创建的容器<br>Master 节点在初始化时（比如运行 kubeadm init），会自动给它打上一个污点（Taint），用来阻止普通 Pod 调度上去。<br>在集群资源有限的情况下，我们需要 配置Master节点也作为Node节点，移除Master节点的反亲和性<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl taint node --all node-role.kubernetes.io&#x2F;master-
+node&#x2F;ddp1 untainted
+taint &quot;node-role.kubernetes.io&#x2F;master&quot; not found
+taint &quot;node-role.kubernetes.io&#x2F;master&quot; not found<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+</li>
+</ol>
+<h3 id="安装Calico插件"><a href="#安装Calico插件" class="headerlink" title="安装Calico插件"></a>安装Calico插件</h3><p>网络插件是必要部件，常用的有Flannel、Calico等。云厂商一般是结合VPC有自己的一套实现。<br>CNI 全称是“Container Networking Interface”，即容器网络接口，它提供了一种标准的插件机制，用于连接容器到底层网络中。CNI 插件是一种可执行程序，它将实现容器网络连接的一些逻辑打包在一起，允许容器使用不同的网络模型，并提供了一组网络抽象接口。在 Kubernetes 等容器编排平台中，CNI 插件被广泛使用来实现容器网络。<br>CNI 插件可以由第三方厂商开发和维护，因此，可以选择最适合自己的插件。CNI 插件通常运行在主机上，并由容器运行时调用，例如 Docker、rkt 等。当容器需要连接到主机网络时，CNI 插件将会为其创建必要的网络接口和路由规则。<br>一些常用的 CNI 插件包括：<br>Flannel：一个简单易用的网络解决方案，支持多种部署模式。<br>Calico：一个高度可扩展的容器网络方案，旨在为大规模生产环境提供网络和安全性。<br>Weave Net：一个分布式的容器网络方案，具有良好的可扩展性和高度自动化的管理。<br>Cilium：一个基于 eBPF 的容器网络和安全解决方案，提供强大的流量控制和安全性。<br>安装其中一种网络插件即可。本文使用了 Calico，建议使用 Flannel；使用Calico可能会存在 centos 系统内核版本问题</p>
+<h4 id="离线安装："><a href="#离线安装：" class="headerlink" title="离线安装："></a>离线安装：</h4><p>提前准备好calico的相关images<br>在所有节点执行</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd calico
+docker load -i cni-3.25.0.tar
+docker load -i node-3.25.0.tar
+docker load -i kube-controllers-3.25.0.tar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改配置文件calico.yaml(安装包中已修改，一般无需再修改)</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 取消如下注释，value修改为kubeadm初始化时--pod-network-cidr参数指定的网段
+- name: CALICO_IPV4POOL_CIDR
+  value: &quot;192.168.0.0&#x2F;16&quot;
+  
+# 找到配置文件的这个位置，在下方添加配置
+    - name: CLUSTER_TYPE
+      value: &quot;k8s,bgp&quot;
+# 在下面添加
+    - name: IP_AUTODETECTION_METHOD
+      value: &quot;interface&#x3D;enp0s3&quot;	# enp0s3为本地网卡名<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在Master节点执行<br>安装Calico<br><code>kubectl apply -f calico.yaml</code><br>安装完成，稍等片刻后查看node，可以看到所有节点均为Ready状态</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 calico]# kubectl get node
+NAME   STATUS   ROLES                  AGE    VERSION
+ddp1   Ready    control-plane,master   179m   v1.23.6
+ddp2   Ready    &lt;none&gt;                 148m   v1.23.6
+ddp3   Ready    &lt;none&gt;                 147m   v1.23.6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="在线安装"><a href="#在线安装" class="headerlink" title="在线安装"></a>在线安装</h4><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wget --no-check-certificate https:&#x2F;&#x2F;docs.projectcalico.org&#x2F;manifests&#x2F;calico.yaml
+grep image: calico.yaml
+
+docker pull calico&#x2F;cni:v3.25.0
+docker pull calico&#x2F;node:v3.25.0
+docker pull calico&#x2F;kube-controllers:v3.25.0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改配置文件calico.yaml</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 取消如下注释，value修改为kubeadm初始化时--pod-network-cidr参数指定的网段
+- name: CALICO_IPV4POOL_CIDR
+  value: &quot;192.168.0.0&#x2F;16&quot;
+
+# 找到配置文件的这个位置，在下方添加配置
+    - name: CLUSTER_TYPE
+      value: &quot;k8s,bgp&quot;
+# 在下面添加
+    - name: IP_AUTODETECTION_METHOD
+      value: &quot;interface&#x3D;enp0s3&quot;	# enp0s3为本地网卡名<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>安装Calico<br><code>kubectl apply -f calico.yaml</code><br>安装完成后，查看node，可以看到所有节点均为Ready状态</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 calico]# kubectl get node
+NAME   STATUS   ROLES                  AGE    VERSION
+ddp1   Ready    control-plane,master   179m   v1.23.6
+ddp2   Ready    &lt;none&gt;                 148m   v1.23.6
+ddp3   Ready    &lt;none&gt;                 147m   v1.23.6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="查看pod安装情况"><a href="#查看pod安装情况" class="headerlink" title="查看pod安装情况"></a>查看pod安装情况</h4><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">root@ddp1 calico]# kubectl get pods -n kube-system
+NAME                                       READY   STATUS              RESTARTS      AGE
+calico-kube-controllers-64cc74d646-bprpr   0&#x2F;1     ContainerCreating   0             9s
+calico-node-cqjw7                          0&#x2F;1     Running             0             9s
+calico-node-n7zzs                          0&#x2F;1     Running             0             9s
+calico-node-t42pq                          0&#x2F;1     Init:0&#x2F;3            0             9s
+coredns-6d8c4cb4d-78dd7                    1&#x2F;1     Running             0             177m
+coredns-6d8c4cb4d-t8msr                    1&#x2F;1     Running             0             177m
+etcd-ddp1                                  1&#x2F;1     Running             5 (62m ago)   178m
+kube-apiserver-ddp1                        1&#x2F;1     Running             5 (62m ago)   178m
+kube-controller-manager-ddp1               1&#x2F;1     Running             5 (62m ago)   178m
+kube-proxy-4vdmf                           1&#x2F;1     Running             0             146m
+kube-proxy-58jvf                           1&#x2F;1     Running             1             147m
+kube-proxy-jgqs6                           1&#x2F;1     Running             1 (62m ago)   177m
+kube-scheduler-ddp1                        1&#x2F;1     Running             5 (62m ago)   178m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="安装ingress插件"><a href="#安装ingress插件" class="headerlink" title="安装ingress插件"></a>安装ingress插件</h3><p>Ingress 是 Kubernetes 中用来管理外部访问集群内服务（比如 HTTP/HTTPS 服务）的 API 对象，它充当 “智能流量入口” 或 “反向代理/路由规则集合”，让你可以通过统一的入口（比如一个域名 + 路径）访问多个不同的 Service，通常搭配 Ingress Controller（如 Nginx、Traefik、HAProxy）一起使用。</p>
+<p>在 Kubernetes 中，Ingress 是一种 API 资源对象，它 定义了如何将外部的 HTTP / HTTPS 请求路由到集群内部的 Service，比如：</p>
+<ul>
+<li>哪个域名访问哪个服务？ </li>
+<li>哪个 URL 路径（如 /api、/app）对应哪个后端？ </li>
+<li>是否启用 HTTPS？ </li>
+<li>是否做负载均衡、重定向、rewrite 等？<br>但它 本身并不提供网络代理功能，它只是 “规则配置”，真正干活的是：</li>
+</ul>
+<p>🤖 Ingress Controller（如 Nginx Ingress、Traefik、HAProxy、Caddy 等）</p>
+<h4 id="Ingress-vs-LoadBalancer-vs-NodePort"><a href="#Ingress-vs-LoadBalancer-vs-NodePort" class="headerlink" title="Ingress vs LoadBalancer vs NodePort"></a>Ingress vs LoadBalancer vs NodePort</h4><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>说明</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NodePort</td>
+<td>每个 Service 会暴露一个端口（如 30001~32767），通过 <NodeIP>:<Port> 访问</td>
+<td>适合测试，不推荐生产</td>
+</tr>
+<tr>
+<td>LoadBalancer</td>
+<td>通过云厂商的负载均衡器（如 AWS ALB、GCP LB）暴露服务，自动分配外部 IP</td>
+<td>适合云环境，但成本较高，通常用于 TCP/UDP 或单个服务</td>
+</tr>
+<tr>
+<td>Ingress</td>
+<td>通过 HTTP/HTTPS 协议，基于 域名和路径 智能路由到多个 Service，通常搭配 Nginx 等反向代理</td>
+<td>✅ 最适合 Web 服务、多服务统一入口、生产环境 HTTP(S) 流量管理</td>
+</tr>
+</tbody></table>
+<h4 id="离线安装"><a href="#离线安装" class="headerlink" title="离线安装"></a>离线安装</h4><p>在所有worker节点加载镜像</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 拉取镜像
+docker pull docker pull k8s.gcr.io&#x2F;ingress-nginx&#x2F;controller:v1.1.2
+docker pull k8s.gcr.io&#x2F;ingress-nginx&#x2F;kube-webhook-certgen:v1.1.1
+
+# 导出镜像（用于离线传输）
+docker save -o controller-1.1.2.tar k8s.gcr.io&#x2F;ingress-nginx&#x2F;controller:v1.1.2
+docker save -o kube-webhook-certgen-1.1.1.tar k8s.gcr.io&#x2F;ingress-nginx&#x2F;kube-webhook-certgen:v1.1.1
+
+# 在目标节点导入
+docker load -i controller-1.1.2.tar
+docker load -i kube-webhook-certgen-1.1.1.tar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在Master节点修改ingress-nginx-4.0.18.tgz文件</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar -zxf ingress-nginx-4.0.18.tgz
+    # externalIPs: []  #修改为如下内容，值为Master节点的IP
+    externalIPs:
+      - 192.168.204.204
+      
+      # 注释掉如下两行，否则哈希值检测不通过，无法启动
+      #digest: sha256:28b11ce69e57843de44e3db6413e98d09de0f6688e33d4bd384002a44f78405c
+      #digest: sha256:64d8c73dca984af206adf9d6d7e46aa550362b1d7a01f3a0a91b20cc67868660
+tar -zcf ingress-nginx-4.0.18.tgz ingress-nginx<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="安装ingress"><a href="#安装ingress" class="headerlink" title="安装ingress"></a>安装ingress</h4><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;usr&#x2F;local&#x2F;bin&#x2F;helm install ingress-nginx ingress-nginx-4.0.18.tgz  --namespace ingress-nginx   --create-namespace<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>配置Ingress网络(暂无需配置)</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">kubectl apply -f nginx-ingress-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller
+spec:
+  type: NodePort  # 改为 NodePort 或 LoadBalancer（云环境）
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080  # 手动指定 NodePort（可选）
+    - name: https
+      port: 443
+      targetPort: 443
+      nodePort: 30443  # 手动指定 NodePort（可选）
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kubernetes/" rel="tag"># Kubernetes</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/08/20/Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1/" rel="prev" title="Ambari自定义服务">
+      <i class="fa fa-chevron-left"></i> Ambari自定义服务
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4"><span class="nav-number">1.</span> <span class="nav-text">Centos安装k8s集群</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E"><span class="nav-number">1.1.</span> <span class="nav-text">安装环境说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.2.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85docker"><span class="nav-number">1.3.</span> <span class="nav-text">安装docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85kubeadm-kubelet%E5%92%8Ckubectl"><span class="nav-number">1.4.</span> <span class="nav-text">安装kubeadm,kubelet和kubectl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2Kubernetes-Master%E8%8A%82%E7%82%B9"><span class="nav-number">1.5.</span> <span class="nav-text">部署Kubernetes Master节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2worker%E8%8A%82%E7%82%B9"><span class="nav-number">1.6.</span> <span class="nav-text">部署worker节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E7%BB%AD%E9%85%8D%E7%BD%AE"><span class="nav-number">1.7.</span> <span class="nav-text">后续配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Calico%E6%8F%92%E4%BB%B6"><span class="nav-number">1.8.</span> <span class="nav-text">安装Calico插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85%EF%BC%9A"><span class="nav-number">1.8.1.</span> <span class="nav-text">离线安装：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.8.2.</span> <span class="nav-text">在线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8Bpod%E5%AE%89%E8%A3%85%E6%83%85%E5%86%B5"><span class="nav-number">1.8.3.</span> <span class="nav-text">查看pod安装情况</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress%E6%8F%92%E4%BB%B6"><span class="nav-number">1.9.</span> <span class="nav-text">安装ingress插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Ingress-vs-LoadBalancer-vs-NodePort"><span class="nav-number">1.9.1.</span> <span class="nav-text">Ingress vs LoadBalancer vs NodePort</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.9.2.</span> <span class="nav-text">离线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress"><span class="nav-number">1.9.3.</span> <span class="nav-text">安装ingress</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">69</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
