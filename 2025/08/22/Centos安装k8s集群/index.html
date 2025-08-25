@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Centos安装k8s集群">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-08-22T02:13:02.000Z">
-<meta property="article:modified_time" content="2025-08-22T09:50:29.863Z">
+<meta property="article:modified_time" content="2025-08-25T07:18:56.411Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Kubernetes">
 <meta name="twitter:card" content="summary">
@@ -224,10 +224,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2025-08-22 10:13:02 / 修改时间：17:50:29" itemprop="dateCreated datePublished" datetime="2025-08-22T10:13:02+08:00">2025-08-22</time>
+              <time title="创建时间：2025-08-22 10:13:02" itemprop="dateCreated datePublished" datetime="2025-08-22T10:13:02+08:00">2025-08-22</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-08-25 15:18:56" itemprop="dateModified" datetime="2025-08-25T15:18:56+08:00">2025-08-25</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -584,6 +590,299 @@ spec:
       targetPort: 443
       nodePort: 30443  # 手动指定 NodePort（可选）
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="K8S安装Mysql"><a href="#K8S安装Mysql" class="headerlink" title="K8S安装Mysql"></a>K8S安装Mysql</h2><p>MySQL 是一个有状态、有数据的服务，它的数据需要持久化存储，不能只存在容器内（因为容器可能会被销毁、迁移）。<br>所以，在 Kubernetes 中运行 MySQL，我们通常会为它创建一个：<br><code>PersistentVolume（PV）</code>：表示一块持久化存储资源<br><code>PersistentVolumeClaim（PVC）</code>：表示应用（如 MySQL）对存储的需求<br>然后通过 StorageClass(SC) 或直接使用 NFS 类型的 PV，将数据保存到比如 NFS、云盘、本地磁盘等存储后端<br><strong>前提条件：</strong></p>
+<ol>
+<li>1 台 NFS 服务器（可以是集群外的机器，也可以是集群中的某一台节点） ，这台机器上 安装并配置了 NFS 服务端（nfs-server） ，它会 共享出一个目录（比如 /mnt/data/mysql），供 Kubernetes 集群中的节点挂载</li>
+<li>Kubernetes 的每个节点（运行 Pod 的机器）都需要安装 NFS 客户端工具，并且正确配置，能够挂载 NFS 共享目录</li>
+</ol>
+<p>让 Kubernetes 集群能够根据你的需求（比如通过 PVC 请求存储） 自动为你动态创建持久化存储（PV），而无需你手动预先创建每一个 PV<br>如果在 Kubernetes 中运行很多应用（比如 MySQL、Redis、应用数据库、日志收集等），它们都需要 持久化存储（PersistentVolume, PV），用来保存数据。</p>
+<p>如果使用 静态 PV（手动创建）：<br>需要提前手动为每个可能的存储需求创建 PV（比如大小、存储类型、访问模式等） 然后再创建 PVC 去绑定 ，很麻烦，不灵活，容易浪费或不够用</p>
+<p>StorageClass 是 Kubernetes 中的一种 API 资源，它定义了：</p>
+<ol>
+<li>“当用户提交 PVC 时，如何动态地创建出对应的 PV（持久化存储）”</li>
+<li>它相当于一个 “存储模板” 或 “存储供应器配置”</li>
+</ol>
+<h3 id="安装和挂载NFS"><a href="#安装和挂载NFS" class="headerlink" title="安装和挂载NFS"></a>安装和挂载NFS</h3><h4 id="安装NFS服务端"><a href="#安装NFS服务端" class="headerlink" title="安装NFS服务端"></a>安装NFS服务端</h4><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 安装NFS服务端
+yum install -y nfs-utils # 这里所有服务器都要安装
+
+# 定义共享目录及权限
+vi &#x2F;etc&#x2F;exports
+&#x2F;data&#x2F;nfs_share 172.16.0.0&#x2F;16(rw,sync,no_subtree_check,no_root_squash) 
+# 格式：&lt;共享目录&gt; &lt;允许的客户端IP&#x2F;网段&gt;(权限选项)
+# 示例：允许 192.168.1.0&#x2F;24 读写，其他只读
+mkdir -p &#x2F;data&#x2F;nfs_share
+chmod 777 &#x2F;data&#x2F;nfs_share
+# 启动服务，应用exports配置
+systemctl start nfs-server rpcbind  # 这里只需要一台服务器即可
+systemctl enable nfs-server rpcbind # 这里只需要一台服务器即可
+exportfs -a #加载配置生效 # 这里只需要一台服务器即可<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="配置NFS客户端验证NFS挂载使用"><a href="#配置NFS客户端验证NFS挂载使用" class="headerlink" title="配置NFS客户端验证NFS挂载使用"></a>配置NFS客户端验证NFS挂载使用</h4><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 创建本地目录
+mkdir &#x2F;data&#x2F;nfs
+# 挂载远程NFS目录
+mkdir -p &#x2F;data&#x2F;nfs
+mount -t nfs 172.16.7.135:&#x2F;data&#x2F;nfs_share &#x2F;data&#x2F;nfs
+## 验证读写
+# 写入数据到本地挂载目录
+echo 111 &gt; &#x2F;data&#x2F;nfs&#x2F;test.txt 
+# 查看NFS服务端目录
+cat &#x2F;data&#x2F;nfs_share&#x2F;test.txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="配置动态SC"><a href="#配置动态SC" class="headerlink" title="配置动态SC"></a>配置动态SC</h3><h4 id="安装NFS-Provisioner"><a href="#安装NFS-Provisioner" class="headerlink" title="安装NFS Provisioner"></a>安装NFS Provisioner</h4><p>创建 RBAC 权限<br>k8s-nfs-provisioner.yaml</p>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> storage.k8s.io/v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> StorageClass
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client
+<span class="token key atrule">provisioner</span><span class="token punctuation">:</span> k8s<span class="token punctuation">-</span>sigs.io/nfs<span class="token punctuation">-</span>subdir<span class="token punctuation">-</span>external<span class="token punctuation">-</span>provisioner <span class="token comment"># 指定一个供应商的名字</span>
+<span class="token comment"># or choose another name, 必须匹配 deployment 的 env PROVISIONER_NAME'</span>
+<span class="token key atrule">parameters</span><span class="token punctuation">:</span>
+  <span class="token key atrule">archiveOnDelete</span><span class="token punctuation">:</span> <span class="token string">"false"</span> <span class="token comment"># 删除 PV 的时候，PV 中的内容是否备份</span>
+<span class="token punctuation">---</span>
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+  <span class="token key atrule">labels</span><span class="token punctuation">:</span>
+    <span class="token key atrule">app</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+  <span class="token key atrule">namespace</span><span class="token punctuation">:</span> default
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">1</span>
+  <span class="token key atrule">strategy</span><span class="token punctuation">:</span>
+    <span class="token key atrule">type</span><span class="token punctuation">:</span> Recreate
+  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
+    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
+      <span class="token key atrule">app</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+  <span class="token key atrule">template</span><span class="token punctuation">:</span>
+    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
+        <span class="token key atrule">app</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
+      <span class="token key atrule">serviceAccountName</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+          <span class="token key atrule">image</span><span class="token punctuation">:</span> ccr.ccs.tencentyun.com/gcr<span class="token punctuation">-</span>containers/nfs<span class="token punctuation">-</span>subdir<span class="token punctuation">-</span>external<span class="token punctuation">-</span>provisioner<span class="token punctuation">:</span>v4.0.2
+          <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
+            <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>root
+              <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /persistentvolumes
+          <span class="token key atrule">env</span><span class="token punctuation">:</span>
+            <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> PROVISIONER_NAME
+              <span class="token key atrule">value</span><span class="token punctuation">:</span> k8s<span class="token punctuation">-</span>sigs.io/nfs<span class="token punctuation">-</span>subdir<span class="token punctuation">-</span>external<span class="token punctuation">-</span>provisioner
+            <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> NFS_SERVER
+              <span class="token key atrule">value</span><span class="token punctuation">:</span> 172.16.7.135 <span class="token comment"># NFS 服务器的地址</span>
+            <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> NFS_PATH
+              <span class="token key atrule">value</span><span class="token punctuation">:</span> /data/nfs_share <span class="token comment"># NFS 服务器的共享目录</span>
+      <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>root
+          <span class="token key atrule">nfs</span><span class="token punctuation">:</span>
+            <span class="token key atrule">server</span><span class="token punctuation">:</span> 172.16.7.135
+            <span class="token key atrule">path</span><span class="token punctuation">:</span> /data/nfs_share
+<span class="token punctuation">---</span>
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> ServiceAccount
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+  <span class="token key atrule">namespace</span><span class="token punctuation">:</span> default
+<span class="token punctuation">---</span>
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> ClusterRole
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> rbac.authorization.k8s.io/v1
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner<span class="token punctuation">-</span>runner
+<span class="token key atrule">rules</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">apiGroups</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">""</span><span class="token punctuation">]</span>
+    <span class="token key atrule">resources</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"nodes"</span><span class="token punctuation">]</span>
+    <span class="token key atrule">verbs</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"get"</span><span class="token punctuation">,</span> <span class="token string">"list"</span><span class="token punctuation">,</span> <span class="token string">"watch"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">apiGroups</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">""</span><span class="token punctuation">]</span>
+    <span class="token key atrule">resources</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"persistentvolumes"</span><span class="token punctuation">]</span>
+    <span class="token key atrule">verbs</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"get"</span><span class="token punctuation">,</span> <span class="token string">"list"</span><span class="token punctuation">,</span> <span class="token string">"watch"</span><span class="token punctuation">,</span> <span class="token string">"create"</span><span class="token punctuation">,</span> <span class="token string">"delete"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">apiGroups</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">""</span><span class="token punctuation">]</span>
+    <span class="token key atrule">resources</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"persistentvolumeclaims"</span><span class="token punctuation">]</span>
+    <span class="token key atrule">verbs</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"get"</span><span class="token punctuation">,</span> <span class="token string">"list"</span><span class="token punctuation">,</span> <span class="token string">"watch"</span><span class="token punctuation">,</span> <span class="token string">"update"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">apiGroups</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"storage.k8s.io"</span><span class="token punctuation">]</span>
+    <span class="token key atrule">resources</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"storageclasses"</span><span class="token punctuation">]</span>
+    <span class="token key atrule">verbs</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"get"</span><span class="token punctuation">,</span> <span class="token string">"list"</span><span class="token punctuation">,</span> <span class="token string">"watch"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">apiGroups</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">""</span><span class="token punctuation">]</span>
+    <span class="token key atrule">resources</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"events"</span><span class="token punctuation">]</span>
+    <span class="token key atrule">verbs</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"create"</span><span class="token punctuation">,</span> <span class="token string">"update"</span><span class="token punctuation">,</span> <span class="token string">"patch"</span><span class="token punctuation">]</span>
+<span class="token punctuation">---</span>
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> ClusterRoleBinding
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> rbac.authorization.k8s.io/v1
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> run<span class="token punctuation">-</span>nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+<span class="token key atrule">subjects</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">kind</span><span class="token punctuation">:</span> ServiceAccount
+    <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+    <span class="token key atrule">namespace</span><span class="token punctuation">:</span> default
+<span class="token key atrule">roleRef</span><span class="token punctuation">:</span>
+  <span class="token key atrule">kind</span><span class="token punctuation">:</span> ClusterRole
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner<span class="token punctuation">-</span>runner
+  <span class="token key atrule">apiGroup</span><span class="token punctuation">:</span> rbac.authorization.k8s.io
+<span class="token punctuation">---</span>
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> Role
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> rbac.authorization.k8s.io/v1
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> leader<span class="token punctuation">-</span>locking<span class="token punctuation">-</span>nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+  <span class="token key atrule">namespace</span><span class="token punctuation">:</span> default
+<span class="token key atrule">rules</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">apiGroups</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">""</span><span class="token punctuation">]</span>
+    <span class="token key atrule">resources</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"endpoints"</span><span class="token punctuation">]</span>
+    <span class="token key atrule">verbs</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"get"</span><span class="token punctuation">,</span> <span class="token string">"list"</span><span class="token punctuation">,</span> <span class="token string">"watch"</span><span class="token punctuation">,</span> <span class="token string">"create"</span><span class="token punctuation">,</span> <span class="token string">"update"</span><span class="token punctuation">,</span> <span class="token string">"patch"</span><span class="token punctuation">]</span>
+<span class="token punctuation">---</span>
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> RoleBinding
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> rbac.authorization.k8s.io/v1
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> leader<span class="token punctuation">-</span>locking<span class="token punctuation">-</span>nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+  <span class="token key atrule">namespace</span><span class="token punctuation">:</span> default
+<span class="token key atrule">subjects</span><span class="token punctuation">:</span>
+  <span class="token punctuation">-</span> <span class="token key atrule">kind</span><span class="token punctuation">:</span> ServiceAccount
+    <span class="token key atrule">name</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+    <span class="token key atrule">namespace</span><span class="token punctuation">:</span> default
+<span class="token key atrule">roleRef</span><span class="token punctuation">:</span>
+  <span class="token key atrule">kind</span><span class="token punctuation">:</span> Role
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> leader<span class="token punctuation">-</span>locking<span class="token punctuation">-</span>nfs<span class="token punctuation">-</span>client<span class="token punctuation">-</span>provisioner
+  <span class="token key atrule">apiGroup</span><span class="token punctuation">:</span> rbac.authorization.k8s.io<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>安装k8s-nfs-provisioner.yaml</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 安装
+kubectl apply -f  k8s-nfs-provisioner.yaml
+# 验证 StorageClass
+kubectl get storageclass<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="K8S安装Mysql-1"><a href="#K8S安装Mysql-1" class="headerlink" title="K8S安装Mysql"></a>K8S安装Mysql</h3><p><code>vi mysql-k8s.yaml</code></p>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml"><span class="token punctuation">---</span>
+<span class="token comment"># 1. MySQL Deployment</span>
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> Deployment
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> mysql<span class="token punctuation">-</span>deployment
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">replicas</span><span class="token punctuation">:</span> <span class="token number">1</span>
+  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
+    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
+      <span class="token key atrule">app</span><span class="token punctuation">:</span> mysql
+  <span class="token key atrule">template</span><span class="token punctuation">:</span>
+    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
+        <span class="token key atrule">app</span><span class="token punctuation">:</span> mysql
+    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
+      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mysql
+          <span class="token key atrule">image</span><span class="token punctuation">:</span> mysql<span class="token punctuation">:</span><span class="token number">8.0</span>
+          <span class="token key atrule">env</span><span class="token punctuation">:</span>
+            <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> MYSQL_ROOT_PASSWORD
+              <span class="token key atrule">value</span><span class="token punctuation">:</span> digiwin@123
+          <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+            <span class="token punctuation">-</span> <span class="token key atrule">containerPort</span><span class="token punctuation">:</span> <span class="token number">3307</span>
+          <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
+            <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mysql<span class="token punctuation">-</span>persistent<span class="token punctuation">-</span>storage
+              <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /var/lib/mysql
+      <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mysql<span class="token punctuation">-</span>persistent<span class="token punctuation">-</span>storage
+          <span class="token key atrule">persistentVolumeClaim</span><span class="token punctuation">:</span>
+            <span class="token key atrule">claimName</span><span class="token punctuation">:</span> mysql<span class="token punctuation">-</span>pvc
+<span class="token punctuation">---</span>
+<span class="token comment"># 2. MySQL PVC（显式使用 nfs-client 存储类）</span>
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> PersistentVolumeClaim
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> mysql<span class="token punctuation">-</span>pvc
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">accessModes</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> ReadWriteOnce
+  <span class="token key atrule">storageClassName</span><span class="token punctuation">:</span> nfs<span class="token punctuation">-</span>client  <span class="token comment"># 使用你部署的动态 NFS 存储类</span>
+  <span class="token key atrule">resources</span><span class="token punctuation">:</span>
+    <span class="token key atrule">requests</span><span class="token punctuation">:</span>
+      <span class="token key atrule">storage</span><span class="token punctuation">:</span> 1Gi
+<span class="token punctuation">---</span>
+<span class="token comment"># 3. MySQL Service（ClusterIP，集群内访问）</span>
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> Service
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> mysql<span class="token punctuation">-</span>service
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">type</span><span class="token punctuation">:</span> ClusterIP
+  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
+    <span class="token key atrule">app</span><span class="token punctuation">:</span> mysql
+  <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> mysql
+      <span class="token key atrule">port</span><span class="token punctuation">:</span> <span class="token number">3307</span>
+      <span class="token key atrule">targetPort</span><span class="token punctuation">:</span> <span class="token number">3307</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>安装k8s-nfs-provisioner.yaml</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 安装
+kubectl apply -f  mysql-k8s.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>启动后报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl get pods
+NAME                                     READY   STATUS         RESTARTS   AGE
+mysql-deployment-557f98d759-4qzrp        0&#x2F;1     ErrImagePull   0          23s
+nfs-client-provisioner-7f44f49d7-2ldbk   1&#x2F;1     Running        0          99m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>是因为docker 拉取镜像有问题，修改docker镜像配置，然后在3台服务器上都提前手动拉取mysql的镜像</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim &#x2F;etc&#x2F;docker&#x2F;daemon.json 
+&#123;
+&quot;registry-mirrors&quot;: [
+                &quot;https:&#x2F;&#x2F;do.nark.eu.org&quot;,
+                &quot;https:&#x2F;&#x2F;dc.j8.work&quot;,
+                &quot;https:&#x2F;&#x2F;docker.m.daocloud.io&quot;,
+                &quot;https:&#x2F;&#x2F;dockerproxy.com&quot;,
+                &quot;https:&#x2F;&#x2F;docker.mirrors.ustc.edu.cn&quot;,
+                &quot;https:&#x2F;&#x2F;docker.nju.edu.cn&quot;
+    ],
+
+&quot;exec-opts&quot;: [&quot;native.cgroupdriver&#x3D;systemd&quot;]
+&#125;
+systemctl daemon-reload
+systemctl restart docker
+docker pull mysql:8.0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>重新执行命令：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">kubectl apply -f  mysql-k8s.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>还是报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl get pods
+NAME                                     READY   STATUS             RESTARTS        AGE
+mysql-deployment-587b8dc4d8-vcfsd        0&#x2F;1     CrashLoopBackOff   1 (7s ago)      11s
+nfs-client-provisioner-7f44f49d7-2ldbk   1&#x2F;1     Running            2 (4m35s ago)   165m
+[root@ddp1 ~]# kubectl describe pod mysql-deployment-587b8dc4d8-vcfsd
+Events:
+  Type     Reason            Age                From               Message
+  ----     ------            ----               ----               -------
+  Warning  FailedScheduling  71s                default-scheduler  0&#x2F;3 nodes are available: 3 pod has unbound immediate PersistentVolumeClaims.
+  Normal   Scheduled         70s                default-scheduler  Successfully assigned default&#x2F;mysql-deployment-587b8dc4d8-vcfsd to ddp2
+  Normal   Pulled            27s (x4 over 69s)  kubelet            Container image &quot;mysql:8.0&quot; already present on machine
+  Normal   Created           26s (x4 over 69s)  kubelet            Created container mysql
+  Normal   Started           26s (x4 over 69s)  kubelet            Started container mysql
+  Warning  BackOff           12s (x6 over 67s)  kubelet            Back-off restarting failed container
+
+kubectl logs mysql-deployment-7f44f49d7-2ldbk 
+2025-08-25 06:43:38+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.43-1.el9 started.
+chown: changing ownership of &#39;&#x2F;var&#x2F;lib&#x2F;mysql&#x2F;&#39;: Operation not permitted
+chown: changing ownership of &#39;&#x2F;var&#x2F;lib&#x2F;mysql&#39;: Operation not permitted<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这是因为NFS 与 Kubernetes 挂载时涉及的权限问题<br>Kubernetes 挂载 NFS 类型的 PV（通过 PVC）时：</p>
+<ul>
+<li>使用的是 动态存储 Provisioner（如 nfs-subdir-external-provisioner）</li>
+<li>它会在你指定的 NFS 服务端共享目录（比如 /data/nfs_share）下，动态创建一个子目录（例如：/data/nfs_share/default-mysql-pvc-xxxxx）</li>
+<li>然后 Kubernetes 会把这个子目录作为 <strong>PV，挂载到容器内的 /var/lib/mysql</strong></li>
+<li>*表面上：** 是 Kubernetes Pod 中的 mysql 容器（通常是 root 用户启动，或以 mysql 用户运行）</li>
+<li>*实际上：** 是该容器通过 NFS 挂载访问服务端的共享目录</li>
+<li>*关键点：**<br> NFS 服务端会对访问的用户进行 UID/GID 映射，如果 NFS 服务端启用了 root_squash（默认通常是启用的！），那么： 来自客户端的 root 用户（UID 0），在访问 NFS 共享目录时，会被映射为匿名用户（通常是 nobody 或 nfsnobody，UID 65534 或类似），没有写权限！</li>
+</ul>
+<p>这就导致：<br>即使你在容器中是 root，在 NFS 服务端看来，你可能只是个没有权限的匿名用户<br>所以你无法在 NFS 目录中创建文件、修改属主、初始化 MySQL 数据等操作！</p>
+<p>因此，若使用 NFS 作为持久化存储，需检查 NFS 服务端配置，确保添加 no_root_squash 选项以允许 root 用户操作共享目录<br>5。修改后需重启 NFS 服务</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim &#x2F;etc&#x2F;exports
+&#x2F;data&#x2F;nfs_share 172.16.0.0&#x2F;16(rw,sync,no_subtree_check,no_root_squash) # 增加no_root_squash
+systemctl restart rpcbind &amp;&amp; systemctl restart nfs<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>再次重新安装：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">kubectl delete -f  mysql-k8s.yaml 
+kubectl apply -f  mysql-k8s.yaml 
+[root@ddp1 ~]# kubectl get pods
+NAME                                     READY   STATUS    RESTARTS      AGE
+mysql-deployment-587b8dc4d8-xdccx        1&#x2F;1     Running   0             13m
+nfs-client-provisioner-7f44f49d7-2ldbk   1&#x2F;1     Running   2 (35m ago)   3h16m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>到此，服务正常启动了<br>但是通过telnet无法连通mysql，因为Service 是 ClusterIP 类型，只能被集群内的其他 Pod 访问，如果想要在容器外被访问，需要使用NodePort</p>
+<p>查看集群有哪些 Service</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl get svc
+NAME            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+kubernetes      ClusterIP   10.0.0.1      &lt;none&gt;        443&#x2F;TCP    3d
+mysql-service   ClusterIP   10.8.235.95   &lt;none&gt;        3307&#x2F;TCP   16m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看到是ClusterIP类型</p>
+<p>可以进入容器内去操作mysql：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">kubectl exec -it mysql-deployment-587b8dc4d8-xdccx -- bash<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>至此，mysql服务可以正常使用了</p>
+
     </div>
 
     
@@ -664,7 +963,7 @@ spec:
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4"><span class="nav-number">1.</span> <span class="nav-text">Centos安装k8s集群</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E"><span class="nav-number">1.1.</span> <span class="nav-text">安装环境说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.2.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85docker"><span class="nav-number">1.3.</span> <span class="nav-text">安装docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85kubeadm-kubelet%E5%92%8Ckubectl"><span class="nav-number">1.4.</span> <span class="nav-text">安装kubeadm,kubelet和kubectl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2Kubernetes-Master%E8%8A%82%E7%82%B9"><span class="nav-number">1.5.</span> <span class="nav-text">部署Kubernetes Master节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2worker%E8%8A%82%E7%82%B9"><span class="nav-number">1.6.</span> <span class="nav-text">部署worker节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E7%BB%AD%E9%85%8D%E7%BD%AE"><span class="nav-number">1.7.</span> <span class="nav-text">后续配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Calico%E6%8F%92%E4%BB%B6"><span class="nav-number">1.8.</span> <span class="nav-text">安装Calico插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85%EF%BC%9A"><span class="nav-number">1.8.1.</span> <span class="nav-text">离线安装：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.8.2.</span> <span class="nav-text">在线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8Bpod%E5%AE%89%E8%A3%85%E6%83%85%E5%86%B5"><span class="nav-number">1.8.3.</span> <span class="nav-text">查看pod安装情况</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress%E6%8F%92%E4%BB%B6"><span class="nav-number">1.9.</span> <span class="nav-text">安装ingress插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Ingress-vs-LoadBalancer-vs-NodePort"><span class="nav-number">1.9.1.</span> <span class="nav-text">Ingress vs LoadBalancer vs NodePort</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.9.2.</span> <span class="nav-text">离线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress"><span class="nav-number">1.9.3.</span> <span class="nav-text">安装ingress</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4"><span class="nav-number">1.</span> <span class="nav-text">Centos安装k8s集群</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E"><span class="nav-number">1.1.</span> <span class="nav-text">安装环境说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.2.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85docker"><span class="nav-number">1.3.</span> <span class="nav-text">安装docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85kubeadm-kubelet%E5%92%8Ckubectl"><span class="nav-number">1.4.</span> <span class="nav-text">安装kubeadm,kubelet和kubectl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2Kubernetes-Master%E8%8A%82%E7%82%B9"><span class="nav-number">1.5.</span> <span class="nav-text">部署Kubernetes Master节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2worker%E8%8A%82%E7%82%B9"><span class="nav-number">1.6.</span> <span class="nav-text">部署worker节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E7%BB%AD%E9%85%8D%E7%BD%AE"><span class="nav-number">1.7.</span> <span class="nav-text">后续配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Calico%E6%8F%92%E4%BB%B6"><span class="nav-number">1.8.</span> <span class="nav-text">安装Calico插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85%EF%BC%9A"><span class="nav-number">1.8.1.</span> <span class="nav-text">离线安装：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.8.2.</span> <span class="nav-text">在线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8Bpod%E5%AE%89%E8%A3%85%E6%83%85%E5%86%B5"><span class="nav-number">1.8.3.</span> <span class="nav-text">查看pod安装情况</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress%E6%8F%92%E4%BB%B6"><span class="nav-number">1.9.</span> <span class="nav-text">安装ingress插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Ingress-vs-LoadBalancer-vs-NodePort"><span class="nav-number">1.9.1.</span> <span class="nav-text">Ingress vs LoadBalancer vs NodePort</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.9.2.</span> <span class="nav-text">离线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress"><span class="nav-number">1.9.3.</span> <span class="nav-text">安装ingress</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#K8S%E5%AE%89%E8%A3%85Mysql"><span class="nav-number">2.</span> <span class="nav-text">K8S安装Mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%92%8C%E6%8C%82%E8%BD%BDNFS"><span class="nav-number">2.1.</span> <span class="nav-text">安装和挂载NFS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85NFS%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="nav-number">2.1.1.</span> <span class="nav-text">安装NFS服务端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AENFS%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%AA%8C%E8%AF%81NFS%E6%8C%82%E8%BD%BD%E4%BD%BF%E7%94%A8"><span class="nav-number">2.1.2.</span> <span class="nav-text">配置NFS客户端验证NFS挂载使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E5%8A%A8%E6%80%81SC"><span class="nav-number">2.2.</span> <span class="nav-text">配置动态SC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85NFS-Provisioner"><span class="nav-number">2.2.1.</span> <span class="nav-text">安装NFS Provisioner</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#K8S%E5%AE%89%E8%A3%85Mysql-1"><span class="nav-number">2.3.</span> <span class="nav-text">K8S安装Mysql</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
