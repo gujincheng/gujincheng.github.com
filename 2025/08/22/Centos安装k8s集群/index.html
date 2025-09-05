@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Centos安装k8s集群">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-08-22T02:13:02.000Z">
-<meta property="article:modified_time" content="2025-08-25T07:18:56.411Z">
+<meta property="article:modified_time" content="2025-09-05T10:01:17.314Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Kubernetes">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-08-25 15:18:56" itemprop="dateModified" datetime="2025-08-25T15:18:56+08:00">2025-08-25</time>
+                <time title="修改时间：2025-09-05 18:01:17" itemprop="dateModified" datetime="2025-09-05T18:01:17+08:00">2025-09-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -339,23 +339,37 @@ enabled&#x3D;1
 gpgcheck&#x3D;1
 repo_gpgcheck&#x3D;1
 gpgkey&#x3D;https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;yum&#x2F;doc&#x2F;yum-key.gpg https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;yum&#x2F;doc&#x2F;rpm-package-key.gpg
-EOF<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+EOF
+yum clean all
+yum makecache<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>安装指定版本的kubeadm,kubelet,kubectl<br>到 <strong>所有节点</strong> 执行<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 列出所有版本
 yum list kubelet --showduplicates
 ## 安装指定版本的kubeadm,kubelet,kubectl
-yum install -y kubelet-1.23.6 kubeadm-1.23.6 kubectl-1.23.6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>设置开机自启<br>master上需要kubeadm init之后才能启动，worker需要kubeadm join之后才能启动<br>所以这里应该是要最后配置的<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start kubelet
-systemctl enable kubelet<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-每个节点（不管是 Master 还是 Worker）都必须运行 kubelet，否则该节点无法正常工作，Kubernetes 集群也就无法完整运行！</li>
+yum install -y kubelet-1.23.6 kubeadm-1.23.6 kubectl-1.23.6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+一安装完就启动是启动不起来的，会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Sep 05 15:18:34 ddp1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http:&#x2F;&#x2F;lists.freedesktop.org&#x2F;mailman&#x2F;listinfo&#x2F;systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Sep 05 15:18:34 ddp1 kubelet[15194]: E0905 15:18:34.386967   15194 server.go:205] &quot;Failed to load kubelet config file&quot; err&#x3D;&quot;failed to load Kubelet config file &#x2F;var&#x2F;lib&#x2F;kubelet&#x2F;config.yaml, error failed to read kubelet config file \&quot;&#x2F;var&#x2F;lib&#x2F;kubelet&#x2F;config.yaml\&quot;, error: open &#x2F;var&#x2F;lib&#x2F;kubelet&#x2F;config.yaml: no such file or directory&quot; path&#x3D;&quot;&#x2F;var&#x2F;lib&#x2F;kubelet&#x2F;config.yaml&quot;
+Sep 05 15:18:34 ddp1 systemd[1]: kubelet.service: main process exited, code&#x3D;exited, status&#x3D;1&#x2F;FAILURE
+Sep 05 15:18:34 ddp1 systemd[1]: Unit kubelet.service entered failed state.
+Sep 05 15:18:34 ddp1 systemd[1]: kubelet.service failed.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+根本原因：需要在init后再启动<br>解决方案：再init后再启动</li>
 </ol>
-<p>这里启动报错：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Aug 22 11:42:57 ddp1 kubelet[24473]: I0822 11:42:57.353755   24473 dynamic_cafile_content.go:156] &quot;Starting controller&quot; name&#x3D;&quot;client-ca-bundle::&#x2F;etc&#x2F;kubernetes&#x2F;pki&#x2F;ca.crt&quot;
+<p>启动报错：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">journalctl -u kubelet -xe --no-pager
+Aug 22 11:42:57 ddp1 kubelet[24473]: I0822 11:42:57.353755   24473 dynamic_cafile_content.go:156] &quot;Starting controller&quot; name&#x3D;&quot;client-ca-bundle::&#x2F;etc&#x2F;kubernetes&#x2F;pki&#x2F;ca.crt&quot;
 Aug 22 11:42:57 ddp1 kubelet[24473]: I0822 11:42:57.397684   24473 server.go:693] &quot;--cgroups-per-qos enabled, but --cgroup-root was not specified.  defaulting to &#x2F;&quot;
 Aug 22 11:42:57 ddp1 kubelet[24473]: E0822 11:42:57.397788   24473 server.go:302] &quot;Failed to run kubelet&quot; err&#x3D;&quot;failed to run Kubelet: running with swap on is not supported, please disable swap! or set --fail-swap-on flag to false. &#x2F;proc&#x2F;swaps contained: [Filename\t\t\t\tType\t\tSize\tUsed\tPriority &#x2F;dev&#x2F;dm-1                               partition\t8257532\t0\t-2]&quot;
 Aug 22 11:42:57 ddp1 systemd[1]: kubelet.service: main process exited, code&#x3D;exited, status&#x3D;1&#x2F;FAILURE
 Aug 22 11:42:57 ddp1 systemd[1]: Unit kubelet.service entered failed state.
-Aug 22 11:42:57 ddp1 systemd[1]: kubelet.service failed.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p><strong>问题原因：</strong> Kubelet 不支持在开启 Swap 的系统上运行<br>再次报错：</p>
+Aug 22 11:42:57 ddp1 systemd[1]: kubelet.service failed.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>问题原因：</strong> Kubelet 不支持在开启 Swap 的系统上运行</p>
+<p>再次报错：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Aug 22 11:47:03 ddp1 kubelet[26583]: I0822 11:47:03.411512   26583 docker_service.go:264] &quot;Docker Info&quot; dockerInfo&#x3D;&amp;&#123;ID:5ce8744d-378e-496b-8dd0-25daa6df788c Containers:0 ContainersRunning:0 ContainersPaused:0 ContainersStopped:0 Images:7 Driver:overlay2 DriverStatus:[[Backing Filesystem xfs] [Supports d_type true] [Using metacopy false] [Native Overlay Diff true] [userxattr false]] SystemStatus:[] Plugins:&#123;Volume:[local] Network:[bridge host ipvlan macvlan null overlay] Authorization:[] Log:[awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog]&#125; MemoryLimit:true SwapLimit:true KernelMemory:true KernelMemoryTCP:true CPUCfsPeriod:true CPUCfsQuota:true CPUShares:true CPUSet:true PidsLimit:true IPv4Forwarding:true BridgeNfIptables:true BridgeNfIP6tables:true Debug:false NFd:24 OomKillDisable:true NGoroutines:35 SystemTime:2025-08-22T11:47:03.406858121+08:00 LoggingDriver:json-file CgroupDriver:cgroupfs CgroupVersion:1 NEventsListener:0 KernelVersion:3.10.0-1160.el7.x86_64 OperatingSystem:CentOS Linux 7 (Core) OSVersion:7 OSType:linux Architecture:x86_64 IndexServerAddress:https:&#x2F;&#x2F;index.docker.io&#x2F;v1&#x2F; RegistryConfig:0xc00017c770 NCPU:8 MemTotal:16655888384 GenericResources:[] DockerRootDir:&#x2F;var&#x2F;lib&#x2F;docker HTTPProxy: HTTPSProxy: NoProxy: Name:ddp1 Labels:[] ExperimentalBuild:false ServerVersion:24.0.7 ClusterStore: ClusterAdvertise: Runtimes:map[io.containerd.runc.v2:&#123;Path:runc Args:[] Shim:&lt;nil&gt;&#125; runc:&#123;Path:runc Args:[] Shim:&lt;nil&gt;&#125;] DefaultRuntime:runc Swarm:&#123;NodeID: NodeAddr: LocalNodeState:inactive ControlAvailable:false Error: RemoteManagers:[] Nodes:0 Managers:0 Cluster:&lt;nil&gt; Warnings:[]&#125; LiveRestoreEnabled:false Isolation: InitBinary:docker-init ContainerdCommit:&#123;ID:61f9fd88f79f081d64d6fa3bb1a0dc71ec870523 Expected:61f9fd88f79f081d64d6fa3bb1a0dc71ec870523&#125; RuncCommit:&#123;ID:v1.1.9-0-gccaecfc Expected:v1.1.9-0-gccaecfc&#125; InitCommit:&#123;ID:de40ad0 Expected:de40ad0&#125; SecurityOptions:[name&#x3D;seccomp,profile&#x3D;builtin] ProductLicense: DefaultAddressPools:[] Warnings:[]&#125;
 Aug 22 11:47:03 ddp1 kubelet[26583]: E0822 11:47:03.411538   26583 server.go:302] &quot;Failed to run kubelet&quot; err&#x3D;&quot;failed to run Kubelet: misconfiguration: kubelet cgroup driver: \&quot;systemd\&quot; is different from docker cgroup driver: \&quot;cgroupfs\&quot;&quot;
 Aug 22 11:47:03 ddp1 systemd[1]: kubelet.service: main process exited, code&#x3D;exited, status&#x3D;1&#x2F;FAILURE
@@ -442,20 +456,31 @@ Run &#39;kubectl get nodes&#39; on the control-plane to see this node join the c
 在所有worker上执行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p $HOME&#x2F;.kube
 scp ddp1:&#x2F;etc&#x2F;kubernetes&#x2F;admin.conf $HOME&#x2F;.kube&#x2F;config
 sudo chown $(id -u):$(id -g) $HOME&#x2F;.kube&#x2F;config<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-执行完成后查看集群节点，此时均为NotReady状态，待后面网络插件Calico安装完成后，会变成Ready状态<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl get nodes
+<h3 id="启动kubelet并设置开机自启"><a href="#启动kubelet并设置开机自启" class="headerlink" title="启动kubelet并设置开机自启"></a>启动kubelet并设置开机自启</h3></li>
+</ol>
+<p><strong>master上需要kubeadm init之后才能启动，worker需要kubeadm join之后才能启动</strong></p>
+<blockquote>
+<blockquote>
+<p>所以这里应该是要最后配置的</p>
+</blockquote>
+</blockquote>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">systemctl start kubelet
+systemctl enable kubelet<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>每个节点（不管是 Master 还是 Worker）都必须运行 kubelet，否则该节点无法正常工作，Kubernetes 集群也就无法完整运行！</p>
+<p>执行完成后查看集群节点，此时均为NotReady状态，待后面网络插件Calico安装完成后，会变成Ready状态</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl get nodes
 NAME   STATUS     ROLES                  AGE   VERSION
 ddp1   NotReady   control-plane,master   45m   v1.23.6
 ddp2   NotReady   &lt;none&gt;                 15m   v1.23.6
 ddp3   NotReady   &lt;none&gt;                 13m   v1.23.6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="后续配置"><a href="#后续配置" class="headerlink" title="后续配置"></a>后续配置</h3>Master 节点（Control Plane 节点）： 默认情况下，Master 节点会被标记为不可调度（unschedulable），即不允许普通 Pod 跑在上面<br>Worker 节点（Node 节点）：负责运行你的 业务 Pod，比如 Deployment、StatefulSet、DaemonSet 创建的容器<br>Master 节点在初始化时（比如运行 kubeadm init），会自动给它打上一个污点（Taint），用来阻止普通 Pod 调度上去。<br>在集群资源有限的情况下，我们需要 配置Master节点也作为Node节点，移除Master节点的反亲和性<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl taint node --all node-role.kubernetes.io&#x2F;master-
+<h3 id="后续配置"><a href="#后续配置" class="headerlink" title="后续配置"></a>后续配置</h3><p>Master 节点（Control Plane 节点）： 默认情况下，Master 节点会被标记为不可调度（unschedulable），即不允许普通 Pod 跑在上面<br>Worker 节点（Node 节点）：负责运行你的 业务 Pod，比如 Deployment、StatefulSet、DaemonSet 创建的容器<br>Master 节点在初始化时（比如运行 kubeadm init），会自动给它打上一个污点（Taint），用来阻止普通 Pod 调度上去。<br>在集群资源有限的情况下，我们需要 配置Master节点也作为Node节点，移除Master节点的反亲和性</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 ~]# kubectl taint node --all node-role.kubernetes.io&#x2F;master-
 node&#x2F;ddp1 untainted
 taint &quot;node-role.kubernetes.io&#x2F;master&quot; not found
 taint &quot;node-role.kubernetes.io&#x2F;master&quot; not found<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 
-</li>
-</ol>
 <h3 id="安装Calico插件"><a href="#安装Calico插件" class="headerlink" title="安装Calico插件"></a>安装Calico插件</h3><p>网络插件是必要部件，常用的有Flannel、Calico等。云厂商一般是结合VPC有自己的一套实现。<br>CNI 全称是“Container Networking Interface”，即容器网络接口，它提供了一种标准的插件机制，用于连接容器到底层网络中。CNI 插件是一种可执行程序，它将实现容器网络连接的一些逻辑打包在一起，允许容器使用不同的网络模型，并提供了一组网络抽象接口。在 Kubernetes 等容器编排平台中，CNI 插件被广泛使用来实现容器网络。<br>CNI 插件可以由第三方厂商开发和维护，因此，可以选择最适合自己的插件。CNI 插件通常运行在主机上，并由容器运行时调用，例如 Docker、rkt 等。当容器需要连接到主机网络时，CNI 插件将会为其创建必要的网络接口和路由规则。<br>一些常用的 CNI 插件包括：<br>Flannel：一个简单易用的网络解决方案，支持多种部署模式。<br>Calico：一个高度可扩展的容器网络方案，旨在为大规模生产环境提供网络和安全性。<br>Weave Net：一个分布式的容器网络方案，具有良好的可扩展性和高度自动化的管理。<br>Cilium：一个基于 eBPF 的容器网络和安全解决方案，提供强大的流量控制和安全性。<br>安装其中一种网络插件即可。本文使用了 Calico，建议使用 Flannel；使用Calico可能会存在 centos 系统内核版本问题</p>
-<h4 id="离线安装："><a href="#离线安装：" class="headerlink" title="离线安装："></a>离线安装：</h4><p>提前准备好calico的相关images<br>在所有节点执行</p>
+<h4 id="离线安装："><a href="#离线安装：" class="headerlink" title="离线安装："></a>离线安装：</h4><p>提前准备好calico的相关images<br>在<strong>所有节点</strong>执行</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd calico
 docker load -i cni-3.25.0.tar
 docker load -i node-3.25.0.tar
@@ -471,7 +496,7 @@ docker load -i kube-controllers-3.25.0.tar<span aria-hidden="true" class="line-n
 # 在下面添加
     - name: IP_AUTODETECTION_METHOD
       value: &quot;interface&#x3D;enp0s3&quot;	# enp0s3为本地网卡名<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>在Master节点执行<br>安装Calico<br><code>kubectl apply -f calico.yaml</code><br>安装完成，稍等片刻后查看node，可以看到所有节点均为Ready状态</p>
+<p>仅在<strong>Master节点</strong>执行<br>安装Calico<br><code>kubectl apply -f calico.yaml</code><br>安装完成，稍等片刻后查看node，可以看到所有节点均为Ready状态</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp1 calico]# kubectl get node
 NAME   STATUS   ROLES                  AGE    VERSION
 ddp1   Ready    control-plane,master   179m   v1.23.6
@@ -501,7 +526,8 @@ ddp1   Ready    control-plane,master   179m   v1.23.6
 ddp2   Ready    &lt;none&gt;                 148m   v1.23.6
 ddp3   Ready    &lt;none&gt;                 147m   v1.23.6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h4 id="查看pod安装情况"><a href="#查看pod安装情况" class="headerlink" title="查看pod安装情况"></a>查看pod安装情况</h4><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">root@ddp1 calico]# kubectl get pods -n kube-system
+<h4 id="查看pod安装情况"><a href="#查看pod安装情况" class="headerlink" title="查看pod安装情况"></a>查看pod安装情况</h4><p>查看Kubernetes 系统 容器，需要增加-n kube-system</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">root@ddp1 calico]# kubectl get pods -n kube-system
 NAME                                       READY   STATUS              RESTARTS      AGE
 calico-kube-controllers-64cc74d646-bprpr   0&#x2F;1     ContainerCreating   0             9s
 calico-node-cqjw7                          0&#x2F;1     Running             0             9s
@@ -882,6 +908,7 @@ mysql-service   ClusterIP   10.8.235.95   &lt;none&gt;        3307&#x2F;TCP   16
 <p>可以进入容器内去操作mysql：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">kubectl exec -it mysql-deployment-587b8dc4d8-xdccx -- bash<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>至此，mysql服务可以正常使用了</p>
+<p>可以参考一下<a target="_blank" rel="noopener" href="https://www.cnblogs.com/renshengdezheli/p/16686769.html">Centos7 安装部署Kubernetes(k8s)集群</a></p>
 
     </div>
 
@@ -963,7 +990,7 @@ mysql-service   ClusterIP   10.8.235.95   &lt;none&gt;        3307&#x2F;TCP   16
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4"><span class="nav-number">1.</span> <span class="nav-text">Centos安装k8s集群</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E"><span class="nav-number">1.1.</span> <span class="nav-text">安装环境说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.2.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85docker"><span class="nav-number">1.3.</span> <span class="nav-text">安装docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85kubeadm-kubelet%E5%92%8Ckubectl"><span class="nav-number">1.4.</span> <span class="nav-text">安装kubeadm,kubelet和kubectl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2Kubernetes-Master%E8%8A%82%E7%82%B9"><span class="nav-number">1.5.</span> <span class="nav-text">部署Kubernetes Master节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2worker%E8%8A%82%E7%82%B9"><span class="nav-number">1.6.</span> <span class="nav-text">部署worker节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E7%BB%AD%E9%85%8D%E7%BD%AE"><span class="nav-number">1.7.</span> <span class="nav-text">后续配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Calico%E6%8F%92%E4%BB%B6"><span class="nav-number">1.8.</span> <span class="nav-text">安装Calico插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85%EF%BC%9A"><span class="nav-number">1.8.1.</span> <span class="nav-text">离线安装：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.8.2.</span> <span class="nav-text">在线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8Bpod%E5%AE%89%E8%A3%85%E6%83%85%E5%86%B5"><span class="nav-number">1.8.3.</span> <span class="nav-text">查看pod安装情况</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress%E6%8F%92%E4%BB%B6"><span class="nav-number">1.9.</span> <span class="nav-text">安装ingress插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Ingress-vs-LoadBalancer-vs-NodePort"><span class="nav-number">1.9.1.</span> <span class="nav-text">Ingress vs LoadBalancer vs NodePort</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.9.2.</span> <span class="nav-text">离线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress"><span class="nav-number">1.9.3.</span> <span class="nav-text">安装ingress</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#K8S%E5%AE%89%E8%A3%85Mysql"><span class="nav-number">2.</span> <span class="nav-text">K8S安装Mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%92%8C%E6%8C%82%E8%BD%BDNFS"><span class="nav-number">2.1.</span> <span class="nav-text">安装和挂载NFS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85NFS%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="nav-number">2.1.1.</span> <span class="nav-text">安装NFS服务端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AENFS%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%AA%8C%E8%AF%81NFS%E6%8C%82%E8%BD%BD%E4%BD%BF%E7%94%A8"><span class="nav-number">2.1.2.</span> <span class="nav-text">配置NFS客户端验证NFS挂载使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E5%8A%A8%E6%80%81SC"><span class="nav-number">2.2.</span> <span class="nav-text">配置动态SC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85NFS-Provisioner"><span class="nav-number">2.2.1.</span> <span class="nav-text">安装NFS Provisioner</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#K8S%E5%AE%89%E8%A3%85Mysql-1"><span class="nav-number">2.3.</span> <span class="nav-text">K8S安装Mysql</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4"><span class="nav-number">1.</span> <span class="nav-text">Centos安装k8s集群</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E"><span class="nav-number">1.1.</span> <span class="nav-text">安装环境说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.2.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85docker"><span class="nav-number">1.3.</span> <span class="nav-text">安装docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85kubeadm-kubelet%E5%92%8Ckubectl"><span class="nav-number">1.4.</span> <span class="nav-text">安装kubeadm,kubelet和kubectl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2Kubernetes-Master%E8%8A%82%E7%82%B9"><span class="nav-number">1.5.</span> <span class="nav-text">部署Kubernetes Master节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2worker%E8%8A%82%E7%82%B9"><span class="nav-number">1.6.</span> <span class="nav-text">部署worker节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8kubelet%E5%B9%B6%E8%AE%BE%E7%BD%AE%E5%BC%80%E6%9C%BA%E8%87%AA%E5%90%AF"><span class="nav-number">1.7.</span> <span class="nav-text">启动kubelet并设置开机自启</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E7%BB%AD%E9%85%8D%E7%BD%AE"><span class="nav-number">1.8.</span> <span class="nav-text">后续配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Calico%E6%8F%92%E4%BB%B6"><span class="nav-number">1.9.</span> <span class="nav-text">安装Calico插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85%EF%BC%9A"><span class="nav-number">1.9.1.</span> <span class="nav-text">离线安装：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.9.2.</span> <span class="nav-text">在线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8Bpod%E5%AE%89%E8%A3%85%E6%83%85%E5%86%B5"><span class="nav-number">1.9.3.</span> <span class="nav-text">查看pod安装情况</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress%E6%8F%92%E4%BB%B6"><span class="nav-number">1.10.</span> <span class="nav-text">安装ingress插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Ingress-vs-LoadBalancer-vs-NodePort"><span class="nav-number">1.10.1.</span> <span class="nav-text">Ingress vs LoadBalancer vs NodePort</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85"><span class="nav-number">1.10.2.</span> <span class="nav-text">离线安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ingress"><span class="nav-number">1.10.3.</span> <span class="nav-text">安装ingress</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#K8S%E5%AE%89%E8%A3%85Mysql"><span class="nav-number">2.</span> <span class="nav-text">K8S安装Mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%92%8C%E6%8C%82%E8%BD%BDNFS"><span class="nav-number">2.1.</span> <span class="nav-text">安装和挂载NFS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85NFS%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="nav-number">2.1.1.</span> <span class="nav-text">安装NFS服务端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AENFS%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%AA%8C%E8%AF%81NFS%E6%8C%82%E8%BD%BD%E4%BD%BF%E7%94%A8"><span class="nav-number">2.1.2.</span> <span class="nav-text">配置NFS客户端验证NFS挂载使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E5%8A%A8%E6%80%81SC"><span class="nav-number">2.2.</span> <span class="nav-text">配置动态SC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85NFS-Provisioner"><span class="nav-number">2.2.1.</span> <span class="nav-text">安装NFS Provisioner</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#K8S%E5%AE%89%E8%A3%85Mysql-1"><span class="nav-number">2.3.</span> <span class="nav-text">K8S安装Mysql</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

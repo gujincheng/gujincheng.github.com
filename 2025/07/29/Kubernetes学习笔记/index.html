@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gujincheng.github.io/uploads/202502/Kubernetes%E5%8F%91%E5%B1%95%E5%8E%86%E5%8F%B2.png">
 <meta property="article:published_time" content="2025-07-29T03:07:48.000Z">
-<meta property="article:modified_time" content="2025-08-22T02:13:48.252Z">
+<meta property="article:modified_time" content="2025-09-05T10:15:55.666Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Kubernetes">
 <meta name="twitter:card" content="summary">
@@ -234,7 +234,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-08-22 10:13:48" itemprop="dateModified" datetime="2025-08-22T10:13:48+08:00">2025-08-22</time>
+                <time title="修改时间：2025-09-05 18:15:55" itemprop="dateModified" datetime="2025-09-05T18:15:55+08:00">2025-09-05</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -290,6 +290,31 @@
 <h3 id="为什么需要-Kubernetes，它能做什么？"><a href="#为什么需要-Kubernetes，它能做什么？" class="headerlink" title="为什么需要 Kubernetes，它能做什么？"></a>为什么需要 Kubernetes，它能做什么？</h3><p>容器是打包和运行应用程序的好方式。在生产环境中， 你需要管理运行着应用程序的容器，并确保服务不会下线。 例如，如果一个容器发生故障，则你需要启动另一个容器。 如果此行为交由给系统处理，是不是会更容易一些？<br>这就是 Kubernetes 要来做的事情！ Kubernetes 为你提供了一个可弹性运行分布式系统的框架。 Kubernetes 会满足你的扩展要求、故障转移你的应用、提供部署模式等。</p>
 <h3 id="Kubernetes-的历史背景"><a href="#Kubernetes-的历史背景" class="headerlink" title="Kubernetes 的历史背景"></a>Kubernetes 的历史背景</h3><p><img src="/uploads/202502/Kubernetes%E5%8F%91%E5%B1%95%E5%8E%86%E5%8F%B2.png" alt="Kubernetes发展历史"></p>
 <p>学习文档可以参考官网<a target="_blank" rel="noopener" href="https://kubernetes.io/zh-cn/docs/home/">Kubernetes 文档</a><br>感觉官网写的还可以</p>
+<h3 id="Operator与Helm的概念与对比"><a href="#Operator与Helm的概念与对比" class="headerlink" title="Operator与Helm的概念与对比"></a>Operator与Helm的概念与对比</h3><h4 id="Helm的概念"><a href="#Helm的概念" class="headerlink" title="Helm的概念"></a>Helm的概念</h4><p>Helm 是 Kubernetes 的一个 包管理工具，类似于 Linux 系统中的 apt、yum 或 brew。</p>
+<p>它用于：</p>
+<p>简化 Kubernetes 应用（比如微服务、数据库、中间件等）的部署<br>通过一种叫做 Charts 的打包格式，把 Kubernetes 的 YAML 资源文件（如 Deployment、Service、ConfigMap 等）组织起来<br>支持 版本管理、参数化配置、依赖管理、升级/回滚 等功能</p>
+<h4 id="Operator的概念"><a href="#Operator的概念" class="headerlink" title="Operator的概念"></a>Operator的概念</h4><p>Operator 是一种 基于 Kubernetes 的自定义控制器（Custom Controller）开发模式，用于 自动化管理某个有状态应用（比如数据库、中间件、分布式系统）的整个生命周期。</p>
+<p>它是由 CoreOS（现属 Red Hat） 提出的理念，并通过 Kubernetes Operator SDK / Kubebuilder 等工具来实现。</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>定位</th>
+<th>一句话说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Helm</td>
+<td>应用打包与部署工具</td>
+<td>用模板化 YAML，让你一键部署别人写好的 Kubernetes 应用（比如 Redis、MySQL）</td>
+</tr>
+<tr>
+<td>Operator</td>
+<td>应用自动化运维框架</td>
+<td>把运维专家的知识变成代码，让软件自动管理某个有状态服务的整个生命周期（比如数据库集群）</td>
+</tr>
+</tbody></table>
+<p>如果你只是想快速部署一个应用（比如 Redis、Nginx），用 Helm 就够了！<br>如果你想封装一个数据库/中间件的全生命周期管理能力（自动部署、修复、升级），那你需要 Operator！</p>
 
     </div>
 
@@ -374,7 +399,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8EDocker%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">1.1.</span> <span class="nav-text">与Docker的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Kubernetes%EF%BC%8C%E5%AE%83%E8%83%BD%E5%81%9A%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.2.</span> <span class="nav-text">为什么需要 Kubernetes，它能做什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kubernetes-%E7%9A%84%E5%8E%86%E5%8F%B2%E8%83%8C%E6%99%AF"><span class="nav-number">1.3.</span> <span class="nav-text">Kubernetes 的历史背景</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8EDocker%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">1.1.</span> <span class="nav-text">与Docker的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Kubernetes%EF%BC%8C%E5%AE%83%E8%83%BD%E5%81%9A%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.2.</span> <span class="nav-text">为什么需要 Kubernetes，它能做什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kubernetes-%E7%9A%84%E5%8E%86%E5%8F%B2%E8%83%8C%E6%99%AF"><span class="nav-number">1.3.</span> <span class="nav-text">Kubernetes 的历史背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Operator%E4%B8%8EHelm%E7%9A%84%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%AF%B9%E6%AF%94"><span class="nav-number">1.4.</span> <span class="nav-text">Operator与Helm的概念与对比</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Helm%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="nav-number">1.4.1.</span> <span class="nav-text">Helm的概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Operator%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="nav-number">1.4.2.</span> <span class="nav-text">Operator的概念</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
