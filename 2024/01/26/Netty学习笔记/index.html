@@ -488,7 +488,7 @@
   <span class="token key atrule">file</span><span class="token punctuation">:</span> /root/ltgx<span class="token punctuation">-</span>api/netty<span class="token punctuation">-</span>server.log<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>CustomServerHandler类不能用spring维护，这里添加@Component(“customServerHandler”)，之后使用BeanFactoryContext.findBeanByName，会报空指针异常，不知道因为什么</li>
 <li>根据spring-netty-demo默认的代码，netty-client收到server的反馈后，不会自动断开连接，正常的业务应该是，server端发出反馈后，就应该把channel关闭，然后客户端收到server的反馈后，也应该正常关闭<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">// server端应该添加以下代码：</span>
-ctx<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span>responseJson <span class="token operator">+</span> <span class="token class-name">Constants</span><span class="token punctuation">.</span>delimiter<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addListener</span><span class="token punctuation">(</span><span class="token class-name">ChannelFutureListener</span><span class="token punctuation">.</span>CLOSE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ctx<span class="token punctuation">.</span><span class="token function">write</span><span class="token punctuation">(</span>responseJson <span class="token operator">+</span> <span class="token class-name">Constants</span><span class="token punctuation">.</span>delimiter<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addListener</span><span class="token punctuation">(</span><span class="token class-name">ChannelFutureListener</span><span class="token punctuation">.</span><span class="token constant">CLOSE</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token annotation punctuation">@Override</span>
 <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">channelReadComplete</span><span class="token punctuation">(</span><span class="token class-name">ChannelHandlerContext</span> ctx<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
     ctx<span class="token punctuation">.</span><span class="token function">flush</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -609,7 +609,7 @@ group<span class="token punctuation">.</span><span class="token function">shutdo
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

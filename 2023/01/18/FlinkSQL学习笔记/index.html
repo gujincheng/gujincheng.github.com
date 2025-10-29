@@ -320,14 +320,14 @@
 <span class="token keyword">set</span> execution<span class="token punctuation">.</span>checkpointing<span class="token punctuation">.</span><span class="token keyword">interval</span><span class="token operator">=</span><span class="token number">3</span>sec<span class="token punctuation">;</span>
 
 <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> customer <span class="token punctuation">(</span>
-  <span class="token punctuation">`</span>c_custkey<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>c_name<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>c_address<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>c_nationkey<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>c_phone<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>c_acctbal<span class="token punctuation">`</span> <span class="token keyword">decimal</span><span class="token punctuation">(</span><span class="token number">15</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>c_mktsegment<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>c_comment<span class="token punctuation">`</span> string 
+  <span class="token identifier"><span class="token punctuation">`</span>c_custkey<span class="token punctuation">`</span></span> <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>c_name<span class="token punctuation">`</span></span> string <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>c_address<span class="token punctuation">`</span></span> string <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>c_nationkey<span class="token punctuation">`</span></span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>c_phone<span class="token punctuation">`</span></span> string <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>c_acctbal<span class="token punctuation">`</span></span> <span class="token keyword">decimal</span><span class="token punctuation">(</span><span class="token number">15</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>c_mktsegment<span class="token punctuation">`</span></span> string <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>c_comment<span class="token punctuation">`</span></span> string 
 <span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
 <span class="token string">'connector'</span><span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
 <span class="token string">'hostname'</span><span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
@@ -343,15 +343,15 @@
 
 
 <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> orders <span class="token punctuation">(</span>
-  <span class="token punctuation">`</span>o_orderkey<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>o_custkey<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>o_orderstatus<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>o_totalprice<span class="token punctuation">`</span> <span class="token keyword">decimal</span><span class="token punctuation">(</span><span class="token number">15</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>o_orderdate<span class="token punctuation">`</span> <span class="token keyword">date</span> <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>o_orderpriority<span class="token punctuation">`</span> string <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>o_clerk<span class="token punctuation">`</span> string<span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>o_shippriority<span class="token punctuation">`</span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>o_comment<span class="token punctuation">`</span> string
+  <span class="token identifier"><span class="token punctuation">`</span>o_orderkey<span class="token punctuation">`</span></span> <span class="token keyword">int</span> <span class="token keyword">primary</span> <span class="token keyword">key</span> <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>o_custkey<span class="token punctuation">`</span></span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>o_orderstatus<span class="token punctuation">`</span></span> string <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>o_totalprice<span class="token punctuation">`</span></span> <span class="token keyword">decimal</span><span class="token punctuation">(</span><span class="token number">15</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>o_orderdate<span class="token punctuation">`</span></span> <span class="token keyword">date</span> <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>o_orderpriority<span class="token punctuation">`</span></span> string <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>o_clerk<span class="token punctuation">`</span></span> string<span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>o_shippriority<span class="token punctuation">`</span></span> <span class="token keyword">int</span> <span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>o_comment<span class="token punctuation">`</span></span> string
 <span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
 <span class="token string">'connector'</span><span class="token operator">=</span> <span class="token string">'mysql-cdc'</span><span class="token punctuation">,</span>
 <span class="token string">'hostname'</span><span class="token operator">=</span> <span class="token string">'150.158.190.192'</span><span class="token punctuation">,</span>
@@ -517,7 +517,7 @@ o_orderstatus string
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -285,16 +285,16 @@
 </ul>
 <a id="more"></a>
 
-<h2 id="Mqtt简介"><a href="#Mqtt简介" class="headerlink" title="Mqtt简介"></a>Mqtt简介</h2><h2 id="centos搭建EMQ-emqx服务器"><a href="#centos搭建EMQ-emqx服务器" class="headerlink" title="centos搭建EMQ emqx服务器"></a>centos搭建EMQ emqx服务器</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">curl -s https:&#x2F;&#x2F;assets.emqx.com&#x2F;scripts&#x2F;install-emqx-rpm.sh | sudo bash
-yum install emqx
-emqx start | stop | restart
+<h2 id="Mqtt简介"><a href="#Mqtt简介" class="headerlink" title="Mqtt简介"></a>Mqtt简介</h2><h2 id="centos搭建EMQ-emqx服务器"><a href="#centos搭建EMQ-emqx服务器" class="headerlink" title="centos搭建EMQ emqx服务器"></a>centos搭建EMQ emqx服务器</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">curl</span> <span class="token parameter variable">-s</span> https://assets.emqx.com/scripts/install-emqx-rpm.sh <span class="token operator">|</span> <span class="token function">sudo</span> <span class="token function">bash</span>
+yum <span class="token function">install</span> emqx
+emqx start <span class="token operator">|</span> stop <span class="token operator">|</span> restart
 emqx_ctl status
-## 卸载
+<span class="token comment">## 卸载</span>
 emqx uninstall
-# 添加用户
-emqx_ctl admins add gujc gujc@123
-# 给admin用户赋密码
-emqx_ctl admins passwd admin admin@123<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token comment"># 添加用户</span>
+emqx_ctl admins <span class="token function">add</span> gujc gujc@123
+<span class="token comment"># 给admin用户赋密码</span>
+emqx_ctl admins <span class="token function">passwd</span> admin admin@123<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="默认占用的-TCP-端口"><a href="#默认占用的-TCP-端口" class="headerlink" title="默认占用的 TCP 端口"></a>默认占用的 TCP 端口</h3><table>
 <thead>
 <tr>
@@ -333,15 +333,15 @@ emqx_ctl admins passwd admin admin@123<span aria-hidden="true" class="line-numbe
 <li>停止consumer，并把session也关闭，发送数据，这时候数据还是会被直接丢弃掉<br>当Qos=0的时候，效果和Qos=1一摸一样，没有生效</li>
 </ol>
 <p>这里考虑使用mosquitto测试一下看看，首先安装</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum -y install epel-release
-yum -y install mosquitto
-# 启动mosquitto
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum <span class="token parameter variable">-y</span> <span class="token function">install</span> epel-release
+yum <span class="token parameter variable">-y</span> <span class="token function">install</span> mosquitto
+<span class="token comment"># 启动mosquitto</span>
 systemctl start mosquitto
-# 开机自启
-systemctl enable mosquitto<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token comment"># 开机自启</span>
+systemctl <span class="token builtin class-name">enable</span> mosquitto<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>测试案例：</p>
 <ol>
-<li>发布消息<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mosquitto_pub -h localhost -t &quot;test&quot; -i &quot;client2&quot; -q 0 -m &quot;bbb&quot; # -q 0 代表qos&#x3D;0<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<li>发布消息<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mosquitto_pub <span class="token parameter variable">-h</span> localhost <span class="token parameter variable">-t</span> <span class="token string">"test"</span> <span class="token parameter variable">-i</span> <span class="token string">"client2"</span> <span class="token parameter variable">-q</span> <span class="token number">0</span> <span class="token parameter variable">-m</span> <span class="token string">"bbb"</span> <span class="token comment"># -q 0 代表qos=0</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 参数说明：<pre class="line-numbers language-text" data-language="text"><code class="language-text">-d 打印debug信息
 -f 将指定文件的内容作为发送消息的内容
 -h 指定要连接的域名 默认为localhost
@@ -359,7 +359,7 @@ systemctl enable mosquitto<span aria-hidden="true" class="line-numbers-rows"><sp
 --will-qos Will的QoS值。该参数需要与--will-topic一起使用
 --will-retain 指定Will消息被当做一个retain消息（即消息被广播后，该消息被保留起来）。该参数需要与--will-topic一起使用
 --will-topic 用户发送Will消息的topic<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>订阅消息<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mosquitto_sub -c -h localhost -t &quot;test&quot; -i &quot;client1&quot; -q 0 # -c 代表<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<li>订阅消息<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mosquitto_sub <span class="token parameter variable">-c</span> <span class="token parameter variable">-h</span> localhost <span class="token parameter variable">-t</span> <span class="token string">"test"</span> <span class="token parameter variable">-i</span> <span class="token string">"client1"</span> <span class="token parameter variable">-q</span> <span class="token number">0</span> <span class="token comment"># -c 代表</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 参数说明：<pre class="line-numbers language-text" data-language="text"><code class="language-text">-c 设定‘clean session’为无效状态，这样一直保持订阅状态，即便是已经失去连接，如果再次连接仍旧能够接收的断开期间发送的消息。
 -d 打印debug信息
 -h 指定要连接的域名 默认为localhost
@@ -399,7 +399,7 @@ import java.util.List;
 public class MqttSource extends AbstractSource
         implements Configurable, PollableSource &#123;
 
-    private static final Logger log &#x3D; LoggerFactory.getLogger(MqttSource.class);
+    private static final Logger log = LoggerFactory.getLogger(MqttSource.class);
 
     private String host;
     private String topic;
@@ -413,38 +413,38 @@ public class MqttSource extends AbstractSource
     private String password;
     private Boolean retryConnection;
 
-    private String clientId &#x3D; MqttSourceConstants.getUuid();
+    private String clientId = MqttSourceConstants.getUuid();
 
-    private MemoryPersistence memoryPersistence &#x3D; null;
-    private MqttConnectOptions mqttConnectOptions &#x3D; null;
-    private MqttClient mqttClient &#x3D; null;
+    private MemoryPersistence memoryPersistence = null;
+    private MqttConnectOptions mqttConnectOptions = null;
+    private MqttClient mqttClient = null;
 
     private Context context;
     private Event event;
-    private final List&lt;Event&gt; eventList &#x3D; new ArrayList&lt;Event&gt;();
+    private final List&lt;Event> eventList = new ArrayList&lt;Event>();
 
-    &#x2F;**
+    /**
      * Process business
      *
      * @return
-     *&#x2F;
+     */
     @Override
     public Status process() &#123;
 
-        if (null !&#x3D; mqttClient &amp;&amp; mqttClient.isConnected()) &#123;
-            if (null !&#x3D; topic &amp;&amp; null !&#x3D; qos) &#123;
+        if (null != mqttClient &amp;&amp; mqttClient.isConnected()) &#123;
+            if (null != topic &amp;&amp; null != qos) &#123;
                 try &#123;
                     mqttClient.subscribe(topic, qos);
                 &#125; catch (MqttException e) &#123;
-                    log.error(&quot;Subscription topic &#123;&#125; has an exception, the exception is: &#123;&#125;&quot;, topic, e.fillInStackTrace());
+                    log.error("Subscription topic &#123;&#125; has an exception, the exception is: &#123;&#125;", topic, e.fillInStackTrace());
                 &#125;
             &#125; else &#123;
-                throw new ConfigurationException(&quot;Mqtt host or topic config error.&quot;);
+                throw new ConfigurationException("Mqtt host or topic config error.");
             &#125;
             return Status.READY;
         &#125; else &#123;
             if (retryConnection) &#123;
-                log.error(&quot;The MQTT connection is disconnected and reconnected ......&quot;);
+                log.error("The MQTT connection is disconnected and reconnected ......");
                 reConnect();
                 return Status.READY;
             &#125;
@@ -462,83 +462,83 @@ public class MqttSource extends AbstractSource
         return 0;
     &#125;
 
-    &#x2F;**
+    /**
      * Mqtt configure
      *
      * @param context
-     *&#x2F;
+     */
     @Override
     public void configure(Context context) &#123;
-        this.context &#x3D; context;
+        this.context = context;
 
-        host &#x3D; context.getString(MqttSourceConstants.HOST);
-        log.info(&quot;host &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&gt; &#123;&#125;&quot; ,host);
-        if (host &#x3D;&#x3D; null) &#123;
-            throw new ConfigurationException(&quot;Mqtt host must be specified.&quot;);
+        host = context.getString(MqttSourceConstants.HOST);
+        log.info("host =====> &#123;&#125;" ,host);
+        if (host == null) &#123;
+            throw new ConfigurationException("Mqtt host must be specified.");
         &#125;
 
-        topic &#x3D; context.getString(MqttSourceConstants.TOPIC);
-        log.info(&quot;topic &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&gt; &#123;&#125;&quot; ,topic);
-        if (topic &#x3D;&#x3D; null) &#123;
-            throw new ConfigurationException(&quot;Mqtt topic must be specified.&quot;);
+        topic = context.getString(MqttSourceConstants.TOPIC);
+        log.info("topic =====> &#123;&#125;" ,topic);
+        if (topic == null) &#123;
+            throw new ConfigurationException("Mqtt topic must be specified.");
         &#125;
 
-        qos &#x3D; context.getInteger(MqttSourceConstants.QOS, MqttSourceConstants.DEFAULT_QOS);
-        batchSize &#x3D; context.getInteger(MqttSourceConstants.BATCH_SIZE);
+        qos = context.getInteger(MqttSourceConstants.QOS, MqttSourceConstants.DEFAULT_QOS);
+        batchSize = context.getInteger(MqttSourceConstants.BATCH_SIZE);
 
-        cleanSession &#x3D; context.getBoolean(MqttSourceConstants.IF_SESSION_CLEAN, MqttSourceConstants.DEFAULT_IF_SESSION_CLEAN);
-        connectionTimeout &#x3D; context.getInteger(MqttSourceConstants.CONNECTION_TIMEOUT, MqttSourceConstants.DEFAULT_CONNECTION_TIMEOUT);
-        keepAliveInterval &#x3D; context.getInteger(MqttSourceConstants.KEEP_ALIVE_INTERVAL, MqttSourceConstants.DEFAULT_KEEP_ALIVE_INTERVAL);
+        cleanSession = context.getBoolean(MqttSourceConstants.IF_SESSION_CLEAN, MqttSourceConstants.DEFAULT_IF_SESSION_CLEAN);
+        connectionTimeout = context.getInteger(MqttSourceConstants.CONNECTION_TIMEOUT, MqttSourceConstants.DEFAULT_CONNECTION_TIMEOUT);
+        keepAliveInterval = context.getInteger(MqttSourceConstants.KEEP_ALIVE_INTERVAL, MqttSourceConstants.DEFAULT_KEEP_ALIVE_INTERVAL);
 
-        username &#x3D; context.getString(MqttSourceConstants.USERNAME);
-        password &#x3D; context.getString(MqttSourceConstants.PASSWORD);
+        username = context.getString(MqttSourceConstants.USERNAME);
+        password = context.getString(MqttSourceConstants.PASSWORD);
 
-        retryConnection &#x3D; context.getBoolean(MqttSourceConstants.RETRY_CONNECTION, MqttSourceConstants.DEFAULT_RETRY_CONNECTION);
+        retryConnection = context.getBoolean(MqttSourceConstants.RETRY_CONNECTION, MqttSourceConstants.DEFAULT_RETRY_CONNECTION);
     &#125;
 
-    &#x2F;**
+    /**
      * Start Job
-     *&#x2F;
+     */
     @Override
     public synchronized void start() &#123;
-        log.info(&quot;Starting mqtt source job ......&quot;);
+        log.info("Starting mqtt source job ......");
 
-        mqttConnectOptions &#x3D; new MqttConnectOptions();
-        memoryPersistence &#x3D; new MemoryPersistence();
+        mqttConnectOptions = new MqttConnectOptions();
+        memoryPersistence = new MemoryPersistence();
 
-        if (null !&#x3D; memoryPersistence &amp;&amp; null !&#x3D; host) &#123;
+        if (null != memoryPersistence &amp;&amp; null != host) &#123;
             try &#123;
-                mqttClient &#x3D; new MqttClient(host, clientId, memoryPersistence);
+                mqttClient = new MqttClient(host, clientId, memoryPersistence);
             &#125; catch (MqttException e) &#123;
-                throw new ConfigurationException(&quot;Mqtt host config error and error message : &#123;&#125;&quot;, e.fillInStackTrace());
+                throw new ConfigurationException("Mqtt host config error and error message : &#123;&#125;", e.fillInStackTrace());
             &#125;
         &#125;
 
-        if (null !&#x3D; mqttConnectOptions) &#123;
+        if (null != mqttConnectOptions) &#123;
 
             mqttConnectOptions.setCleanSession(cleanSession);
             mqttConnectOptions.setConnectionTimeout(connectionTimeout);
             mqttConnectOptions.setKeepAliveInterval(keepAliveInterval);
-            if (null !&#x3D; username) &#123;
+            if (null != username) &#123;
                 mqttConnectOptions.setUserName(username);
             &#125;
-            if (null !&#x3D; password) &#123;
+            if (null != password) &#123;
                 mqttConnectOptions.setPassword(password.toCharArray());
             &#125;
 
-            if (null !&#x3D; mqttClient &amp;&amp; !mqttClient.isConnected()) &#123;
+            if (null != mqttClient &amp;&amp; !mqttClient.isConnected()) &#123;
 
                 mqttClient.setCallback(new MqttCallback() &#123;
                     @Override
                     public void connectionLost(Throwable cause) &#123;
-                        log.error(&quot;MqttClient disconnect call back retry connect......&quot;);
+                        log.error("MqttClient disconnect call back retry connect......");
                         reConnect();
                     &#125;
 
                     @Override
                     public void messageArrived(String topic, MqttMessage message) &#123;
-                        event &#x3D; EventBuilder.withBody(message.getPayload());
-                        if (null &#x3D;&#x3D; batchSize) &#123;
+                        event = EventBuilder.withBody(message.getPayload());
+                        if (null == batchSize) &#123;
                             getChannelProcessor().processEvent(event);
                         &#125; else if (eventList.size() &lt; batchSize) &#123;
                             eventList.add(event);
@@ -556,61 +556,61 @@ public class MqttSource extends AbstractSource
                 try &#123;
                     mqttClient.connect(mqttConnectOptions);
                 &#125; catch (MqttException e) &#123;
-                    log.error(&quot;Get the MQTT connection exception, exception information is : &#123;&#125;&quot;, e.fillInStackTrace());
+                    log.error("Get the MQTT connection exception, exception information is : &#123;&#125;", e.fillInStackTrace());
                     reConnect();
                 &#125;
             &#125;
         &#125;
     &#125;
 
-    &#x2F;**
+    /**
      * 重连
-     *&#x2F;
+     */
     public void reConnect() &#123;
 
         try &#123;
             Thread.sleep(10000);
         &#125; catch (InterruptedException e) &#123;
-            log.error(&quot;Retry Get the MQTT Thread sleep exception, exception information is : &#123;&#125;&quot;, e.fillInStackTrace());
+            log.error("Retry Get the MQTT Thread sleep exception, exception information is : &#123;&#125;", e.fillInStackTrace());
         &#125;
 
-        if (null !&#x3D; mqttClient &amp;&amp; !mqttClient.isConnected() &amp;&amp; null !&#x3D; mqttConnectOptions) &#123;
+        if (null != mqttClient &amp;&amp; !mqttClient.isConnected() &amp;&amp; null != mqttConnectOptions) &#123;
             try &#123;
                 mqttClient.connect(mqttConnectOptions);
             &#125; catch (MqttException e) &#123;
-                log.error(&quot;Retry Get the MQTT connection exception, exception information is : &#123;&#125;&quot;, e.fillInStackTrace());
+                log.error("Retry Get the MQTT connection exception, exception information is : &#123;&#125;", e.fillInStackTrace());
             &#125;
         &#125; else &#123;
             start();
         &#125;
     &#125;
 
-    &#x2F;**
+    /**
      * close source
-     *&#x2F;
+     */
     @Override
     public synchronized void stop() &#123;
-        if (mqttClient !&#x3D; null) &#123;
+        if (mqttClient != null) &#123;
             try &#123;
                 mqttClient.close();
             &#125; catch (MqttException e) &#123;
-                log.error(&quot;mqttClient close an error occurs : &#123;&#125;&quot;, e.fillInStackTrace());
+                log.error("mqttClient close an error occurs : &#123;&#125;", e.fillInStackTrace());
             &#125;
         &#125;
 
-        if (mqttConnectOptions !&#x3D; null) &#123;
-            mqttConnectOptions &#x3D; null;
+        if (mqttConnectOptions != null) &#123;
+            mqttConnectOptions = null;
         &#125;
 
-        if (memoryPersistence !&#x3D; null) &#123;
+        if (memoryPersistence != null) &#123;
             try &#123;
                 memoryPersistence.close();
             &#125; catch (MqttPersistenceException e) &#123;
-                log.error(&quot;memoryPersistence close an error occurs : &#123;&#125;&quot;, e.fillInStackTrace());
+                log.error("memoryPersistence close an error occurs : &#123;&#125;", e.fillInStackTrace());
             &#125;
         &#125;
 
-        log.info(&quot;Mqtt Source &#123;&#125; stopped success.&quot;, getName());
+        log.info("Mqtt Source &#123;&#125; stopped success.", getName());
         super.stop();
     &#125;
 
@@ -624,64 +624,64 @@ import java.util.UUID;
 
 public class MqttSourceConstants &#123;
 
-    public static final String HOST &#x3D; &quot;host&quot;;
-    public static final String TOPIC &#x3D; &quot;topic&quot;;
+    public static final String HOST = "host";
+    public static final String TOPIC = "topic";
 
-    public static final String QOS &#x3D; &quot;qos&quot;;
-    public static final String BATCH_SIZE &#x3D; &quot;batchSize&quot;;
+    public static final String QOS = "qos";
+    public static final String BATCH_SIZE = "batchSize";
 
-    public static final String USERNAME &#x3D; &quot;username&quot;;
-    public static final String PASSWORD &#x3D; &quot;password&quot;;
+    public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
 
-    public static final String IF_SESSION_CLEAN &#x3D; &quot;cleanSession&quot;;
-    public static final String CONNECTION_TIMEOUT &#x3D; &quot;connectionTimeout&quot;;
-    public static final String KEEP_ALIVE_INTERVAL &#x3D; &quot;keepAliveInterval&quot;;
+    public static final String IF_SESSION_CLEAN = "cleanSession";
+    public static final String CONNECTION_TIMEOUT = "connectionTimeout";
+    public static final String KEEP_ALIVE_INTERVAL = "keepAliveInterval";
 
-    public static final String RETRY_CONNECTION &#x3D; &quot;retryConnection&quot;;
+    public static final String RETRY_CONNECTION = "retryConnection";
 
-    public static final Integer DEFAULT_QOS &#x3D; 1;
+    public static final Integer DEFAULT_QOS = 1;
 
-    public static final Boolean DEFAULT_IF_SESSION_CLEAN &#x3D; false;
-    public static final Integer DEFAULT_CONNECTION_TIMEOUT &#x3D; 30;
-    public static final Integer DEFAULT_KEEP_ALIVE_INTERVAL &#x3D; 60;
+    public static final Boolean DEFAULT_IF_SESSION_CLEAN = false;
+    public static final Integer DEFAULT_CONNECTION_TIMEOUT = 30;
+    public static final Integer DEFAULT_KEEP_ALIVE_INTERVAL = 60;
 
-    public static final Boolean DEFAULT_RETRY_CONNECTION &#x3D; false;
+    public static final Boolean DEFAULT_RETRY_CONNECTION = false;
 
     public static String getUuid() &#123;
-        return UUID.randomUUID().toString().replaceAll(&quot;-&quot;, &quot;&quot;).substring(0, 8);
+        return UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8);
     &#125;
 
 &#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>任务配置：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 配置文件名称为 mqtt.conf
-# 指定Source的类型
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 配置文件名称为 mqtt.conf</span>
+<span class="token comment"># 指定Source的类型</span>
 
-agent.sources &#x3D; mqtt
-agent.channels &#x3D; memory-channel
-agent.sinks &#x3D; logger
+agent.sources <span class="token operator">=</span> mqtt
+agent.channels <span class="token operator">=</span> memory-channel
+agent.sinks <span class="token operator">=</span> logger
 
-agent.sources.mqtt.type &#x3D; org.apache.flume.source.mqtt.MqttSource
-agent.sources.mqtt.host &#x3D; tcp:&#x2F;&#x2F;150.158.190.192:1883
-agent.sources.mqtt.topic &#x3D; flume-demo
-agent.sources.mqtt.qos &#x3D; 1
-#agent.sources.mqtt.batchSize &#x3D; 1000
-agent.sources.mqtt.cleanSession &#x3D; false
-agent.sources.mqtt.connectionTimeout &#x3D; 10
-agent.sources.mqtt.keepAliveInterval &#x3D; 100
-#agent.sources.mqtt.username &#x3D; admin
-#agent.sources.mqtt.password &#x3D; admin@123
-agent.sources.mqtt.retryConnection &#x3D; true
+agent.sources.mqtt.type <span class="token operator">=</span> org.apache.flume.source.mqtt.MqttSource
+agent.sources.mqtt.host <span class="token operator">=</span> tcp://150.158.190.192:1883
+agent.sources.mqtt.topic <span class="token operator">=</span> flume-demo
+agent.sources.mqtt.qos <span class="token operator">=</span> <span class="token number">1</span>
+<span class="token comment">#agent.sources.mqtt.batchSize = 1000</span>
+agent.sources.mqtt.cleanSession <span class="token operator">=</span> <span class="token boolean">false</span>
+agent.sources.mqtt.connectionTimeout <span class="token operator">=</span> <span class="token number">10</span>
+agent.sources.mqtt.keepAliveInterval <span class="token operator">=</span> <span class="token number">100</span>
+<span class="token comment">#agent.sources.mqtt.username = admin</span>
+<span class="token comment">#agent.sources.mqtt.password = admin@123</span>
+agent.sources.mqtt.retryConnection <span class="token operator">=</span> <span class="token boolean">true</span>
 
-agent.channels.memory-channel.type &#x3D; memory
+agent.channels.memory-channel.type <span class="token operator">=</span> memory
 
-agent.sinks.logger.type &#x3D; logger
+agent.sinks.logger.type <span class="token operator">=</span> logger
 
-agent.sources.mqtt.channels &#x3D; memory-channel
-agent.sinks.logger.channel &#x3D; memory-channel<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+agent.sources.mqtt.channels <span class="token operator">=</span> memory-channel
+agent.sinks.logger.channel <span class="token operator">=</span> memory-channel<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>任务启动：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flume-ng agent --name agent --conf $FLUME_HOME&#x2F;conf --conf-file mqtt.conf -Dflume.root.logger&#x3D;INFO,console<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flume-ng agent <span class="token parameter variable">--name</span> agent <span class="token parameter variable">--conf</span> <span class="token variable">$FLUME_HOME</span>/conf --conf-file mqtt.conf <span class="token parameter variable">-Dflume.root.logger</span><span class="token operator">=</span>INFO,console<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>这里需要注意的是，–name 的值，应该与配置文件里的一样，这里一开始测试的时候，写成了mqtt，导致flume获取不到任务配置</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">02 十一月 2022 17:29:35,413 INFO  [main] (org.apache.flume.node.Application.startAllComponents:207)  - Starting new configuration:&#123; sourceRunners:&#123;&#125; sinkRunners:&#123;&#125; channels:&#123;&#125; &#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">02 十一月 <span class="token number">2022</span> <span class="token number">17</span>:29:35,413 INFO  <span class="token punctuation">[</span>main<span class="token punctuation">]</span> <span class="token punctuation">(</span>org.apache.flume.node.Application.startAllComponents:207<span class="token punctuation">)</span>  - Starting new configuration:<span class="token punctuation">&#123;</span> sourceRunners:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> sinkRunners:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> channels:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <h2 id="如何保证数据不丢失"><a href="#如何保证数据不丢失" class="headerlink" title="如何保证数据不丢失"></a>如何保证数据不丢失</h2><p>mqtt的每个client都有一个session，emqx的每个session都有一个飞行队列，防止因网络等原因客户端失联导致的数据丢失，使用方法：</p>
 <ol>
@@ -797,7 +797,7 @@ agent.sinks.logger.channel &#x3D; memory-channel<span aria-hidden="true" class="
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

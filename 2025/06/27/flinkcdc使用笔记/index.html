@@ -285,42 +285,42 @@
 <h2 id="flinkcdc使用笔记"><a href="#flinkcdc使用笔记" class="headerlink" title="flinkcdc使用笔记"></a>flinkcdc使用笔记</h2><p>flink-cdc 3.4可以支持pipeline写数据到iceberg，这里尝试一下</p>
 <h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>需要注意的是，flink-cdc3.4需要使用最低1.19版本的flink</p>
 <ol>
-<li>解压flink和flink-cdc的安装包<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf flink-1.19.2-bin-scala_2.12.tgz -C . 
-tar zxvf flink-cdc-3.4.0-bin.tar.gz -C .<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
-<li>下载pipeline包<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cp flink-cdc-pipeline-connector-iceberg-3.4.0.jar  flink-cdc-3.4.0&#x2F;lib
-cp flink-cdc-pipeline-connector-mysql-3.4.0.jar  flink-cdc-3.4.0&#x2F;lib
-cp mysql-connector-j-8.0.31.jar flink-cdc-3.4.0&#x2F;lib<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
-<li>下载iceberg runtime包<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cp flink-sql-connector-hive-2.3.9_2.12-1.17.2.jar flink-1.19.2&#x2F;lib
-cp iceberg-flink-runtime-1.17-1.4.3.jar flink-1.19.2&#x2F;lib
-cp mysql-connector-j-8.0.31.jar flink-1.19.2&#x2F;lib<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
-<li>启动flink standalone集群<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">bin&#x2F;start-cluster.sh<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>解压flink和flink-cdc的安装包<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">tar</span> zxvf flink-1.19.2-bin-scala_2.12.tgz <span class="token parameter variable">-C</span> <span class="token builtin class-name">.</span> 
+<span class="token function">tar</span> zxvf flink-cdc-3.4.0-bin.tar.gz <span class="token parameter variable">-C</span> <span class="token builtin class-name">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>下载pipeline包<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">cp</span> flink-cdc-pipeline-connector-iceberg-3.4.0.jar  flink-cdc-3.4.0/lib
+<span class="token function">cp</span> flink-cdc-pipeline-connector-mysql-3.4.0.jar  flink-cdc-3.4.0/lib
+<span class="token function">cp</span> mysql-connector-j-8.0.31.jar flink-cdc-3.4.0/lib<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+<li>下载iceberg runtime包<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">cp</span> flink-sql-connector-hive-2.3.9_2.12-1.17.2.jar flink-1.19.2/lib
+<span class="token function">cp</span> iceberg-flink-runtime-1.17-1.4.3.jar flink-1.19.2/lib
+<span class="token function">cp</span> mysql-connector-j-8.0.31.jar flink-1.19.2/lib<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+<li>启动flink standalone集群<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">bin/start-cluster.sh<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
 <li>编写mysql-to-iceberg.yaml<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">source:
   type: mysql
   name: MySQL Source
   hostname: xxxx
-  port: 3306
+  port: <span class="token number">3306</span>
   username: root
   password: root123456
   tables: test.gjc_test_iceberg_streaming_delay
-  server-id: 5401-5404
+  server-id: <span class="token number">5401</span>-5404
 
 sink:
   type: iceberg
   name: Iceberg Sink
   catalog.properties.type: hive
-  catalog.properties.uri: thrift:&#x2F;&#x2F;xxxx:9083
-  catalog.properties.hive-conf-dir: &#x2F;root&#x2F;gujc&#x2F;flink-1.17.2&#x2F;conf
+  catalog.properties.uri: thrift://xxxx:9083
+  catalog.properties.hive-conf-dir: /root/gujc/flink-1.17.2/conf
 
 pipeline:
   name: MySQL to Iceberg Pipeline
-  parallelism: 1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>启动flink-cdc任务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">bin&#x2F;flink-cdc.sh mysql-to-iceberg.yaml <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-数据可以正常采集进iceberg，但是，和手动写flinksql实时采集写icebebrg效果一样，没办法捕捉增量数据<br>flink-cdc自动建表的语句比较简单：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token operator">|</span> <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> <span class="token punctuation">`</span>iceberg_catalog<span class="token punctuation">`</span><span class="token punctuation">.</span><span class="token punctuation">`</span>test<span class="token punctuation">`</span><span class="token punctuation">.</span><span class="token punctuation">`</span>gjc_test_iceberg_streaming_delay<span class="token punctuation">`</span> <span class="token punctuation">(</span>
-  <span class="token punctuation">`</span>id<span class="token punctuation">`</span> <span class="token keyword">INT</span> <span class="token operator">NOT</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>name<span class="token punctuation">`</span> <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">2147483647</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>age<span class="token punctuation">`</span> <span class="token keyword">BIGINT</span><span class="token punctuation">,</span>
-  <span class="token punctuation">`</span>create_time<span class="token punctuation">`</span> <span class="token keyword">TIMESTAMP</span><span class="token punctuation">(</span><span class="token number">6</span><span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token keyword">LOCAL</span> <span class="token keyword">TIME</span> ZONE <span class="token operator">NOT</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span>
-  <span class="token keyword">CONSTRAINT</span> <span class="token punctuation">`</span>c7fdfd2e<span class="token operator">-</span><span class="token number">19</span>ca<span class="token operator">-</span><span class="token number">418</span>f<span class="token operator">-</span><span class="token number">9</span>ab2<span class="token operator">-</span>a9458a7f32f9<span class="token punctuation">`</span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token punctuation">(</span><span class="token punctuation">`</span>id<span class="token punctuation">`</span><span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
+  parallelism: <span class="token number">1</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>启动flink-cdc任务<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">bin/flink-cdc.sh mysql-to-iceberg.yaml <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+数据可以正常采集进iceberg，但是，和手动写flinksql实时采集写icebebrg效果一样，没办法捕捉增量数据<br>flink-cdc自动建表的语句比较简单：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token operator">|</span> <span class="token keyword">CREATE</span> <span class="token keyword">TABLE</span> <span class="token identifier"><span class="token punctuation">`</span>iceberg_catalog<span class="token punctuation">`</span></span><span class="token punctuation">.</span><span class="token identifier"><span class="token punctuation">`</span>test<span class="token punctuation">`</span></span><span class="token punctuation">.</span><span class="token identifier"><span class="token punctuation">`</span>gjc_test_iceberg_streaming_delay<span class="token punctuation">`</span></span> <span class="token punctuation">(</span>
+  <span class="token identifier"><span class="token punctuation">`</span>id<span class="token punctuation">`</span></span> <span class="token keyword">INT</span> <span class="token operator">NOT</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>name<span class="token punctuation">`</span></span> <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">2147483647</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>age<span class="token punctuation">`</span></span> <span class="token keyword">BIGINT</span><span class="token punctuation">,</span>
+  <span class="token identifier"><span class="token punctuation">`</span>create_time<span class="token punctuation">`</span></span> <span class="token keyword">TIMESTAMP</span><span class="token punctuation">(</span><span class="token number">6</span><span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token keyword">LOCAL</span> <span class="token keyword">TIME</span> ZONE <span class="token operator">NOT</span> <span class="token boolean">NULL</span><span class="token punctuation">,</span>
+  <span class="token keyword">CONSTRAINT</span> <span class="token identifier"><span class="token punctuation">`</span>c7fdfd2e-19ca-418f-9ab2-a9458a7f32f9<span class="token punctuation">`</span></span> <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span> <span class="token punctuation">(</span><span class="token identifier"><span class="token punctuation">`</span>id<span class="token punctuation">`</span></span><span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
 <span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
   <span class="token string">'write.parquet.compression-codec'</span> <span class="token operator">=</span> <span class="token string">'zstd'</span>
 <span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
@@ -330,7 +330,7 @@ pipeline:
   age <span class="token keyword">int</span> <span class="token punctuation">,</span>
   create_time <span class="token keyword">TIMESTAMP</span> <span class="token punctuation">,</span>
   update_time <span class="token keyword">TIMESTAMP</span><span class="token punctuation">,</span>
-  <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span><span class="token punctuation">`</span>id<span class="token punctuation">`</span><span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
+  <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span><span class="token identifier"><span class="token punctuation">`</span>id<span class="token punctuation">`</span></span><span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
 <span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
   <span class="token string">'format-version'</span> <span class="token operator">=</span> <span class="token string">'2'</span><span class="token punctuation">,</span>
   <span class="token string">'write.format.default'</span> <span class="token operator">=</span> <span class="token string">'parquet'</span><span class="token punctuation">,</span>
@@ -349,7 +349,7 @@ pipeline:
   age <span class="token keyword">int</span> <span class="token punctuation">,</span>
   create_time <span class="token keyword">TIMESTAMP</span> <span class="token punctuation">,</span>
   update_time <span class="token keyword">TIMESTAMP</span><span class="token punctuation">,</span>
-  <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span><span class="token punctuation">`</span>id<span class="token punctuation">`</span><span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
+  <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span><span class="token identifier"><span class="token punctuation">`</span>id<span class="token punctuation">`</span></span><span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
 <span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
   <span class="token string">'format-version'</span> <span class="token operator">=</span> <span class="token string">'2'</span><span class="token punctuation">,</span>
   <span class="token string">'write.format.default'</span> <span class="token operator">=</span> <span class="token string">'parquet'</span><span class="token punctuation">,</span>
@@ -368,7 +368,7 @@ pipeline:
   age <span class="token keyword">int</span> <span class="token punctuation">,</span>
   create_time <span class="token keyword">TIMESTAMP</span> <span class="token punctuation">,</span>
   update_time <span class="token keyword">TIMESTAMP</span><span class="token punctuation">,</span>
-  <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span><span class="token punctuation">`</span>id<span class="token punctuation">`</span><span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
+  <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span><span class="token identifier"><span class="token punctuation">`</span>id<span class="token punctuation">`</span></span><span class="token punctuation">)</span> <span class="token operator">NOT</span> ENFORCED
 <span class="token punctuation">)</span> <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
   <span class="token string">'format-version'</span> <span class="token operator">=</span> <span class="token string">'2'</span><span class="token punctuation">,</span>
   <span class="token string">'write.upsert.enabled'</span> <span class="token operator">=</span> <span class="token string">'true'</span><span class="token punctuation">,</span>
@@ -483,7 +483,7 @@ pipeline:
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

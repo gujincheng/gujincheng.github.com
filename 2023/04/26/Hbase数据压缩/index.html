@@ -315,7 +315,7 @@
 <li>对于 MapReduce，可以压缩中间数据、输出或二者。相应地调整您为 MapReduce 作业提供的参数。</li>
 </ul>
 <h2 id="压缩方式"><a href="#压缩方式" class="headerlink" title="压缩方式"></a>压缩方式</h2><h3 id="创建表的时候指定"><a href="#创建表的时候指定" class="headerlink" title="创建表的时候指定"></a>创建表的时候指定</h3><ol>
-<li>直接在hbase建表<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create &#39;gjc_test&#39;,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>直接在hbase建表<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">create <span class="token string">'gjc_test'</span>,<span class="token punctuation">&#123;</span>NAME<span class="token operator">=</span><span class="token operator">></span><span class="token string">'f1'</span>,COMPRESSION<span class="token operator">=</span><span class="token operator">></span><span class="token string">'Snappy'</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
 <li>在phoenix建表<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">create</span> <span class="token keyword">table</span> ORACLEARCHIVESPACECOLLECTED_LATEST_BAK<span class="token punctuation">(</span>
 EID                  <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
 DEVICEID             <span class="token keyword">VARCHAR</span><span class="token punctuation">,</span>
@@ -336,16 +336,16 @@ DF_PERCENT_USE_VALUE <span class="token keyword">VARCHAR</span><span class="toke
 <span class="token keyword">CONSTRAINT</span> my_pk <span class="token keyword">PRIMARY</span> <span class="token keyword">KEY</span><span class="token punctuation">(</span>EID<span class="token punctuation">,</span>DEVICEID<span class="token punctuation">,</span>FLUMETIMESTAMP<span class="token punctuation">,</span>SOURCE_DB_ID<span class="token punctuation">)</span>
 <span class="token punctuation">)</span> column_encoded_bytes<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="对已有的表的数据进行压缩"><a href="#对已有的表的数据进行压缩" class="headerlink" title="对已有的表的数据进行压缩"></a>对已有的表的数据进行压缩</h3></li>
-<li>在hbase中压缩<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 禁用表
-disable &#39;device_logs&#39;
-# 修改info列族的压缩格式
-alter &#39;device_logs&#39; ,&#123;NAME&#x3D;&gt;&#39;f1&#39;,COMPRESSION&#x3D;&gt;&#39;Snappy&#39;&#125;
-# 启用表
-enable &#39;device_logs&#39;
-# 查看表信息
-describe &#39;device_logs&#39;
-# 手动触发major_compaction
-major_compact &#39;device_logs&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>在hbase中压缩<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 禁用表</span>
+disable <span class="token string">'device_logs'</span>
+<span class="token comment"># 修改info列族的压缩格式</span>
+alter <span class="token string">'device_logs'</span> ,<span class="token punctuation">&#123;</span>NAME<span class="token operator">=</span><span class="token operator">></span><span class="token string">'f1'</span>,COMPRESSION<span class="token operator">=</span><span class="token operator">></span><span class="token string">'Snappy'</span><span class="token punctuation">&#125;</span>
+<span class="token comment"># 启用表</span>
+<span class="token builtin class-name">enable</span> <span class="token string">'device_logs'</span>
+<span class="token comment"># 查看表信息</span>
+describe <span class="token string">'device_logs'</span>
+<span class="token comment"># 手动触发major_compaction</span>
+major_compact <span class="token string">'device_logs'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>通过phoenix方式压缩<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">ALTER</span> <span class="token keyword">TABLE</span> SNMP_BIZ_CPU_LATEST <span class="token keyword">SET</span> COMPRESSION<span class="token operator">=</span><span class="token string">'SNAPPY'</span><span class="token punctuation">;</span>
 <span class="token comment">-- 在phoenix执行完后，如果想要数据文件立刻复制，需要手动触发major_compaction，在hbase执行</span>
 major_compact <span class="token string">'SNMP_BIZ_CPU_LATEST'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
@@ -389,26 +389,26 @@ upsert <span class="token keyword">into</span> WINDOWSSECURITYCEV20201472COLLECT
        COMPLIANCE           <span class="token punctuation">,</span>
        ENFORCEMENT          
 <span class="token keyword">from</span> WINDOWSSECURITYCEV20201472COLLECTED_BAK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="使用YCSB测试Hbase读写性能"><a href="#使用YCSB测试Hbase读写性能" class="headerlink" title="使用YCSB测试Hbase读写性能"></a>使用YCSB测试Hbase读写性能</h2>YCSB工具安装：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 到githup上下载ycsb-hbase20-binding-0.17.0.tar.gz
-https:&#x2F;&#x2F;github.com&#x2F;brianfrankcooper&#x2F;YCSB&#x2F;releases&#x2F;tag&#x2F;0.17.0
-cd &#x2F;root&#x2F;gujc&#x2F;ycsb-hbase20-binding-0.17.0&#x2F;workloads
-cat workloada
-recordcount&#x3D;150000
-operationcount&#x3D;150000
-workload&#x3D;site.ycsb.workloads.CoreWorkload
+<h2 id="使用YCSB测试Hbase读写性能"><a href="#使用YCSB测试Hbase读写性能" class="headerlink" title="使用YCSB测试Hbase读写性能"></a>使用YCSB测试Hbase读写性能</h2>YCSB工具安装：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 到githup上下载ycsb-hbase20-binding-0.17.0.tar.gz</span>
+https://github.com/brianfrankcooper/YCSB/releases/tag/0.17.0
+<span class="token builtin class-name">cd</span> /root/gujc/ycsb-hbase20-binding-0.17.0/workloads
+<span class="token function">cat</span> workloada
+<span class="token assign-left variable">recordcount</span><span class="token operator">=</span><span class="token number">150000</span>
+<span class="token assign-left variable">operationcount</span><span class="token operator">=</span><span class="token number">150000</span>
+<span class="token assign-left variable">workload</span><span class="token operator">=</span>site.ycsb.workloads.CoreWorkload
 
-readallfields&#x3D;true
+<span class="token assign-left variable">readallfields</span><span class="token operator">=</span>true
 
-readproportion&#x3D;0.5
-updateproportion&#x3D;0.5
-scanproportion&#x3D;0
-insertproportion&#x3D;0
+<span class="token assign-left variable">readproportion</span><span class="token operator">=</span><span class="token number">0.5</span>
+<span class="token assign-left variable">updateproportion</span><span class="token operator">=</span><span class="token number">0.5</span>
+<span class="token assign-left variable">scanproportion</span><span class="token operator">=</span><span class="token number">0</span>
+<span class="token assign-left variable">insertproportion</span><span class="token operator">=</span><span class="token number">0</span>
 
-requestdistribution&#x3D;zipfian
-# 生成数据
-bin&#x2F;ycsb load hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info
-# 测试数据
-bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#x2F;conf&#x2F; -p table&#x3D;gjc_test -p columnfamily&#x3D;info<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token assign-left variable">requestdistribution</span><span class="token operator">=</span>zipfian
+<span class="token comment"># 生成数据</span>
+bin/ycsb load hbase20 <span class="token parameter variable">-P</span> workloads/workloada <span class="token parameter variable">-cp</span> /etc/hbase/conf/ <span class="token parameter variable">-p</span> <span class="token assign-left variable">table</span><span class="token operator">=</span>gjc_test <span class="token parameter variable">-p</span> <span class="token assign-left variable">columnfamily</span><span class="token operator">=</span>info
+<span class="token comment"># 测试数据</span>
+bin/ycsb run hbase20 <span class="token parameter variable">-P</span> workloads/workloada <span class="token parameter variable">-cp</span> /etc/hbase/conf/ <span class="token parameter variable">-p</span> <span class="token assign-left variable">table</span><span class="token operator">=</span>gjc_test <span class="token parameter variable">-p</span> <span class="token assign-left variable">columnfamily</span><span class="token operator">=</span>info<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="HBase中的Compaction详解"><a href="#HBase中的Compaction详解" class="headerlink" title="HBase中的Compaction详解"></a>HBase中的Compaction详解</h2>HBase是基于一种LSM-Tree（Log-Structured Merge Tree）存储模型设计的，写入路径上是先写入WAL（Write-Ahead-Log）即预写日志，再写入memstore缓存，满足一定条件后执行flush操作将缓存数据刷写到磁盘，生成一个HFile数据文件。随着数据不断写入，磁盘HFile文件就会越来越多，文件太多会影响HBase查询性能，主要体现在查询数据的io次数增加。为了优化查询性能，HBase会合并小的HFile以减少文件数量，这种合并HFile的操作称为Compaction，这也是为什么要进行Compaction的主要原因。<h3 id="Compaction的作用"><a href="#Compaction的作用" class="headerlink" title="Compaction的作用"></a>Compaction的作用</h3>其实Compaction操作属于资源密集型操作特别是IO密集型，这点后面也会提及到，Compaction其实就是以短时间内的IO消耗，以换取相对稳定的读取性能。<h3 id="Compaction-分类"><a href="#Compaction-分类" class="headerlink" title="Compaction 分类"></a>Compaction 分类</h3>HBase Compaction分为两种：Minor Compaction 与 Major Compaction，通常我们简称为小合并、大合并。<br><img src="/uploads/202303/Compaction%E5%88%86%E7%B1%BB.png" alt="hbase集群告警-压缩队列"><br>Minor Compaction：指选取一些小的、相邻的HFile将他们合并成一个更大的HFile。默认情况下，minor compaction会删除选取HFile中的TTL过期数据。<br>Major Compaction：指将一个Store中所有的HFile合并成一个HFile，这个过程会清理三类没有意义的数据：被删除的数据（打了Delete标记的数据）、TTL过期数据、版本号超过设定版本号的数据。另外，一般情况下，Major Compaction时间会持续比较长，整个过程会消耗大量系统资源，对上层业务有比较大的影响。因此，生产环境下通常关闭自动触发Major Compaction功能，改为手动在业务低峰期触发。<blockquote>
 <p>这里值得关注，默认情况下Minor Compaction也会删除数据，但只是删除合并HFile中的TTL过期数据。Major Compaction是完全删除无效数据，包括被删除的数据、TTL过期数据以及版本号过大的数据。</p>
 </blockquote>
@@ -462,7 +462,7 @@ bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#
 <p>具体可以参考<a target="_blank" rel="noopener" href="http://hbasefly.com/2016/07/13/hbase-compaction-1/">HBase Compaction的前生今世－身世之旅</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/Lzx116/article/details/125215951">Hbase的MinorCompact过程解析及参数调优</a></p>
 <h2 id="hbase性能优化"><a href="#hbase性能优化" class="headerlink" title="hbase性能优化"></a>hbase性能优化</h2><p>在阿里云正式区做数据压缩的时候，因为这个集群内有一张表单表数据量就有6T，表太大了，不敢随便压缩，并且，hbase集群一直在告警<br><img src="/uploads/202303/hbase%E9%9B%86%E7%BE%A4%E5%91%8A%E8%AD%A6-%E5%8E%8B%E7%BC%A9%E9%98%9F%E5%88%97.png" alt="hbase集群告警-压缩队列"></p>
 <h3 id="分析原因"><a href="#分析原因" class="headerlink" title="分析原因"></a>分析原因</h3><p>这里分析了一下告警原因：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">5.6 T    6.3 T    &#x2F;hbase&#x2F;data&#x2F;default&#x2F;TraceV2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token number">5.6</span> T    <span class="token number">6.3</span> T    /hbase/data/default/TraceV2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>TraceV2这张表每个小时能增长40G的数据，并且，该表设置了TTL，也就是说，每小时它要写40G数据，然后还要清理掉40G的数据。这么频繁的写操作，就会造成频繁的compaction</p>
 <h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>因此需要对hbase做性能优化</p>
 
@@ -565,7 +565,7 @@ bin&#x2F;ycsb run hbase20 -P workloads&#x2F;workloada -cp &#x2F;etc&#x2F;hbase&#
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

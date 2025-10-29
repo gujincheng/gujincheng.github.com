@@ -276,73 +276,73 @@
 </ul>
 <h2 id="impala3-4源码编译"><a href="#impala3-4源码编译" class="headerlink" title="impala3.4源码编译"></a>impala3.4源码编译</h2><p>最近在集成impala与hudi，但是impala需要在3.4版本以后才支持hudi的读取，所以这里尝试升级impala，废话不多说，下面是编译步骤：</p>
 <p>Apache Impala是以源码的形式release的，因此需要自行在对应的平台上编译。找一个跟集群环境一致的机器。<br>根据文档中的“Building Impala without Test Data (for testing Impala)”章节来编译Impala:<br><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/IMPALA/Building+Impala">https://cwiki.apache.org/confluence/display/IMPALA/Building+Impala</a></p>
-<h3 id="下载impala源码"><a href="#下载impala源码" class="headerlink" title="下载impala源码"></a>下载impala源码</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone --single-branch --branch 3.4.1 https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;impala.git impala-3.4
-cd impala-3.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<h3 id="bin-bootstrap-system-sh-脚本安装编译依赖："><a href="#bin-bootstrap-system-sh-脚本安装编译依赖：" class="headerlink" title="bin/bootstrap_system.sh 脚本安装编译依赖："></a>bin/bootstrap_system.sh 脚本安装编译依赖：</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export IMPALA_HOME&#x3D;&#96;pwd&#96;
-.&#x2F;bin&#x2F;bootstrap_system.sh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="下载impala源码"><a href="#下载impala源码" class="headerlink" title="下载impala源码"></a>下载impala源码</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">git</span> clone --single-branch <span class="token parameter variable">--branch</span> <span class="token number">3.4</span>.1 https://github.com/apache/impala.git impala-3.4
+<span class="token builtin class-name">cd</span> impala-3.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="bin-bootstrap-system-sh-脚本安装编译依赖："><a href="#bin-bootstrap-system-sh-脚本安装编译依赖：" class="headerlink" title="bin/bootstrap_system.sh 脚本安装编译依赖："></a>bin/bootstrap_system.sh 脚本安装编译依赖：</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">export</span> <span class="token assign-left variable">IMPALA_HOME</span><span class="token operator">=</span><span class="token variable"><span class="token variable">`</span><span class="token builtin class-name">pwd</span><span class="token variable">`</span></span>
+./bin/bootstrap_system.sh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <h4 id="bin-bootstrap-system-sh-踩坑记录"><a href="#bin-bootstrap-system-sh-踩坑记录" class="headerlink" title="bin/bootstrap_system.sh 踩坑记录"></a>bin/bootstrap_system.sh 踩坑记录</h4><ul>
-<li>package make-1:3.82-24.el7.x86_64 is already installed<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 很明显，这个包已经安装过，remove之后重新执行
+<li>package make-1:3.82-24.el7.x86_64 is already installed<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment">## 很明显，这个包已经安装过，remove之后重新执行</span>
 yum remove make-1:3.82-24.el7.x86_64<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
 <li>apache-ant-1.9.14-bin.tar.gz下载失败<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">正在清理软件源： base docker-ce-stable epel extras updates
 Cleaning up list of fastest mirrors
-++ redhat sudo wget -nv https:&#x2F;&#x2F;downloads.apache.org&#x2F;ant&#x2F;binaries&#x2F;apache-ant-1.9.14-bin.tar.gz
-++ [[ true &#x3D;&#x3D; true ]]
-++ sudo wget -nv https:&#x2F;&#x2F;downloads.apache.org&#x2F;ant&#x2F;binaries&#x2F;apache-ant-1.9.14-bin.tar.gz
-https:&#x2F;&#x2F;downloads.apache.org&#x2F;ant&#x2F;binaries&#x2F;apache-ant-1.9.14-bin.tar.gz:
-2022-05-05 13:36:24 错误 404：Not Found。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-解决方法是：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 修改bootstrap_system.sh ant下载地址
-vim $IMPALA_HOME&#x2F;bin&#x2F;bootstrap_system.sh
+++ redhat <span class="token function">sudo</span> <span class="token function">wget</span> <span class="token parameter variable">-nv</span> https://downloads.apache.org/ant/binaries/apache-ant-1.9.14-bin.tar.gz
+++ <span class="token punctuation">[</span><span class="token punctuation">[</span> <span class="token boolean">true</span> <span class="token operator">==</span> <span class="token boolean">true</span> <span class="token punctuation">]</span><span class="token punctuation">]</span>
+++ <span class="token function">sudo</span> <span class="token function">wget</span> <span class="token parameter variable">-nv</span> https://downloads.apache.org/ant/binaries/apache-ant-1.9.14-bin.tar.gz
+https://downloads.apache.org/ant/binaries/apache-ant-1.9.14-bin.tar.gz:
+<span class="token number">2022</span>-05-05 <span class="token number">13</span>:36:24 错误 <span class="token number">404</span>：Not Found。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+解决方法是：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 修改bootstrap_system.sh ant下载地址</span>
+<span class="token function">vim</span> <span class="token variable">$IMPALA_HOME</span>/bin/bootstrap_system.sh
 
-244   https:&#x2F;&#x2F;downloads.apache.org&#x2F;ant&#x2F;binaries&#x2F;apache-ant-1.10.12-bin.tar.gz
-245 redhat sha512sum -c - &lt;&lt;&lt; &#39;2287dc5cfc21043c14e5413f9afb1c87c9f266ec2a9ba2d3bf2285446f6e4ccb59b558bf2e5c57911a05dfa293c7d5c7ad60ac9f744ba11406f4e6f9a27b2403  apache-ant-1.10.12-bin.tar.gz&#39;
-246 redhat sudo tar -C &#x2F;usr&#x2F;local -xzf apache-ant-1.10.12-bin.tar.gz
-247 redhat sudo ln -s &#x2F;usr&#x2F;local&#x2F;apache-ant-1.10.12&#x2F;bin&#x2F;ant &#x2F;usr&#x2F;local&#x2F;bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>Data directory is not empty!<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Hint: the preferred way to do this is now &quot;postgresql-setup initdb&quot;
-Data directory is not empty!<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<span class="token number">244</span>   https://downloads.apache.org/ant/binaries/apache-ant-1.10.12-bin.tar.gz
+<span class="token number">245</span> redhat sha512sum <span class="token parameter variable">-c</span> - <span class="token operator">&lt;&lt;&lt;</span> <span class="token string">'2287dc5cfc21043c14e5413f9afb1c87c9f266ec2a9ba2d3bf2285446f6e4ccb59b558bf2e5c57911a05dfa293c7d5c7ad60ac9f744ba11406f4e6f9a27b2403  apache-ant-1.10.12-bin.tar.gz'</span>
+<span class="token number">246</span> redhat <span class="token function">sudo</span> <span class="token function">tar</span> <span class="token parameter variable">-C</span> /usr/local <span class="token parameter variable">-xzf</span> apache-ant-1.10.12-bin.tar.gz
+<span class="token number">247</span> redhat <span class="token function">sudo</span> <span class="token function">ln</span> <span class="token parameter variable">-s</span> /usr/local/apache-ant-1.10.12/bin/ant /usr/local/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>Data directory is not empty!<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Hint: the preferred way to <span class="token keyword">do</span> this is now <span class="token string">"postgresql-setup initdb"</span>
+Data directory is not empty<span class="token operator">!</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 这个问题是因为多次执行了bin/bootstrap_system.sh，导致初始化postgresql多次，这里只需要删除<code>/var/lib/pgsql</code>下的data文件夹和<code>initdb.log</code><br>然后重新执行bin/bootstrap_system.sh即可</li>
 </ul>
 <p>如果之前在这台机器上编译过Impala，也可以跳过上面这一步。直接进行编译：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">source $IMPALA_HOME&#x2F;bin&#x2F;impala-config.sh
-$IMPALA_HOME&#x2F;buildall.sh -noclean -notests -release<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<h3 id="编译成功查看"><a href="#编译成功查看" class="headerlink" title="编译成功查看"></a>编译成功查看</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@V-NJ-2-220 impala]# ll -h be&#x2F;build&#x2F;latest&#x2F;service&#x2F;impalad fe&#x2F;target&#x2F;impala-frontend-0.1-SNAPSHOT.jar
--rwxr-xr-x. 1 root root 530M 5月   6 16:39 be&#x2F;build&#x2F;latest&#x2F;service&#x2F;impalad
--rw-r--r--. 1 root root 7.5M 5月   6 16:41 fe&#x2F;target&#x2F;impala-frontend-0.1-SNAPSHOT.jar
-[root@V-NJ-2-220 impala]# strings be&#x2F;build&#x2F;latest&#x2F;service&#x2F;impalad | grep 3.4.1-
-3.4.1-RELEASE<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">source</span> <span class="token variable">$IMPALA_HOME</span>/bin/impala-config.sh
+<span class="token variable">$IMPALA_HOME</span>/buildall.sh <span class="token parameter variable">-noclean</span> <span class="token parameter variable">-notests</span> <span class="token parameter variable">-release</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="编译成功查看"><a href="#编译成功查看" class="headerlink" title="编译成功查看"></a>编译成功查看</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token punctuation">[</span>root@V-NJ-2-220 impala<span class="token punctuation">]</span><span class="token comment"># ll -h be/build/latest/service/impalad fe/target/impala-frontend-0.1-SNAPSHOT.jar</span>
+-rwxr-xr-x. <span class="token number">1</span> root root 530M <span class="token number">5</span>月   <span class="token number">6</span> <span class="token number">16</span>:39 be/build/latest/service/impalad
+-rw-r--r--. <span class="token number">1</span> root root <span class="token number">7</span>.5M <span class="token number">5</span>月   <span class="token number">6</span> <span class="token number">16</span>:41 fe/target/impala-frontend-0.1-SNAPSHOT.jar
+<span class="token punctuation">[</span>root@V-NJ-2-220 impala<span class="token punctuation">]</span><span class="token comment"># strings be/build/latest/service/impalad | grep 3.4.1-</span>
+<span class="token number">3.4</span>.1-RELEASE<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>impala默认使用静态编译，但还是有一些动态依赖，用 ldd 指令查看：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@V-NJ-2-220 impala]# ldd be&#x2F;build&#x2F;latest&#x2F;service&#x2F;impalad
-	linux-vdso.so.1 &#x3D;&gt;  (0x00007fff13bda000)
-	&#x2F;usr&#x2F;lib&#x2F;jvm&#x2F;java-1.8.0-openjdk-1.8.0.322.b06-1.el7_9.x86_64&#x2F;jre&#x2F;lib&#x2F;amd64&#x2F;libjsig.so (0x00007f03f6fbe000)
-	libpthread.so.0 &#x3D;&gt; &#x2F;lib64&#x2F;libpthread.so.0 (0x00007f03f6da2000)
-	libsasl2.so.3 &#x3D;&gt; &#x2F;lib64&#x2F;libsasl2.so.3 (0x00007f03f6b85000)
-	libjvm.so &#x3D;&gt; &#x2F;usr&#x2F;lib&#x2F;jvm&#x2F;java-1.8.0-openjdk-1.8.0.322.b06-1.el7_9.x86_64&#x2F;jre&#x2F;lib&#x2F;amd64&#x2F;server&#x2F;libjvm.so (0x00007f03f5ada000)
-	libkudu_client.so.0 &#x3D;&gt; &#x2F;root&#x2F;gujc&#x2F;impala&#x2F;toolchain&#x2F;kudu-4ed0dbbd1&#x2F;release&#x2F;lib64&#x2F;libkudu_client.so.0 (0x00007f03f53f7000)
-	librt.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;librt.so.1 (0x00007f03f51ef000)
-	libdl.so.2 &#x3D;&gt; &#x2F;lib64&#x2F;libdl.so.2 (0x00007f03f4feb000)
-	libssl.so.10 &#x3D;&gt; &#x2F;lib64&#x2F;libssl.so.10 (0x00007f03f4d79000)
-	libcrypto.so.10 &#x3D;&gt; &#x2F;lib64&#x2F;libcrypto.so.10 (0x00007f03f4916000)
-	libkrb5.so.3 &#x3D;&gt; &#x2F;lib64&#x2F;libkrb5.so.3 (0x00007f03f462d000)
-	libgssapi_krb5.so.2 &#x3D;&gt; &#x2F;lib64&#x2F;libgssapi_krb5.so.2 (0x00007f03f43e0000)
-	libstdc++.so.6 &#x3D;&gt; &#x2F;root&#x2F;gujc&#x2F;impala&#x2F;toolchain&#x2F;snappy-1.1.4&#x2F;lib&#x2F;libstdc++.so.6 (0x00007f03f40d6000)
-	libm.so.6 &#x3D;&gt; &#x2F;lib64&#x2F;libm.so.6 (0x00007f03f3dd4000)
-	libgcc_s.so.1 &#x3D;&gt; &#x2F;root&#x2F;gujc&#x2F;impala&#x2F;toolchain&#x2F;snappy-1.1.4&#x2F;lib&#x2F;libgcc_s.so.1 (0x00007f03f3bbd000)
-	libc.so.6 &#x3D;&gt; &#x2F;lib64&#x2F;libc.so.6 (0x00007f03f37ef000)
-	&#x2F;lib64&#x2F;ld-linux-x86-64.so.2 (0x00007f03f71c2000)
-	libresolv.so.2 &#x3D;&gt; &#x2F;lib64&#x2F;libresolv.so.2 (0x00007f03f35d5000)
-	libcrypt.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libcrypt.so.1 (0x00007f03f339e000)
-	libk5crypto.so.3 &#x3D;&gt; &#x2F;lib64&#x2F;libk5crypto.so.3 (0x00007f03f316b000)
-	libcom_err.so.2 &#x3D;&gt; &#x2F;lib64&#x2F;libcom_err.so.2 (0x00007f03f2f67000)
-	libkrb5support.so.0 &#x3D;&gt; &#x2F;lib64&#x2F;libkrb5support.so.0 (0x00007f03f2d57000)
-	libz.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libz.so.1 (0x00007f03f2b41000)
-	libkeyutils.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libkeyutils.so.1 (0x00007f03f293d000)
-	libfreebl3.so &#x3D;&gt; &#x2F;lib64&#x2F;libfreebl3.so (0x00007f03f273a000)
-	libselinux.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libselinux.so.1 (0x00007f03f2513000)
-	libpcre.so.1 &#x3D;&gt; &#x2F;lib64&#x2F;libpcre.so.1 (0x00007f03f22b1000)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token punctuation">[</span>root@V-NJ-2-220 impala<span class="token punctuation">]</span><span class="token comment"># ldd be/build/latest/service/impalad</span>
+	linux-vdso.so.1 <span class="token operator">=</span><span class="token operator">></span>  <span class="token punctuation">(</span>0x00007fff13bda000<span class="token punctuation">)</span>
+	/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.322.b06-1.el7_9.x86_64/jre/lib/amd64/libjsig.so <span class="token punctuation">(</span>0x00007f03f6fbe000<span class="token punctuation">)</span>
+	libpthread.so.0 <span class="token operator">=</span><span class="token operator">></span> /lib64/libpthread.so.0 <span class="token punctuation">(</span>0x00007f03f6da2000<span class="token punctuation">)</span>
+	libsasl2.so.3 <span class="token operator">=</span><span class="token operator">></span> /lib64/libsasl2.so.3 <span class="token punctuation">(</span>0x00007f03f6b85000<span class="token punctuation">)</span>
+	libjvm.so <span class="token operator">=</span><span class="token operator">></span> /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.322.b06-1.el7_9.x86_64/jre/lib/amd64/server/libjvm.so <span class="token punctuation">(</span>0x00007f03f5ada000<span class="token punctuation">)</span>
+	libkudu_client.so.0 <span class="token operator">=</span><span class="token operator">></span> /root/gujc/impala/toolchain/kudu-4ed0dbbd1/release/lib64/libkudu_client.so.0 <span class="token punctuation">(</span>0x00007f03f53f7000<span class="token punctuation">)</span>
+	librt.so.1 <span class="token operator">=</span><span class="token operator">></span> /lib64/librt.so.1 <span class="token punctuation">(</span>0x00007f03f51ef000<span class="token punctuation">)</span>
+	libdl.so.2 <span class="token operator">=</span><span class="token operator">></span> /lib64/libdl.so.2 <span class="token punctuation">(</span>0x00007f03f4feb000<span class="token punctuation">)</span>
+	libssl.so.10 <span class="token operator">=</span><span class="token operator">></span> /lib64/libssl.so.10 <span class="token punctuation">(</span>0x00007f03f4d79000<span class="token punctuation">)</span>
+	libcrypto.so.10 <span class="token operator">=</span><span class="token operator">></span> /lib64/libcrypto.so.10 <span class="token punctuation">(</span>0x00007f03f4916000<span class="token punctuation">)</span>
+	libkrb5.so.3 <span class="token operator">=</span><span class="token operator">></span> /lib64/libkrb5.so.3 <span class="token punctuation">(</span>0x00007f03f462d000<span class="token punctuation">)</span>
+	libgssapi_krb5.so.2 <span class="token operator">=</span><span class="token operator">></span> /lib64/libgssapi_krb5.so.2 <span class="token punctuation">(</span>0x00007f03f43e0000<span class="token punctuation">)</span>
+	libstdc++.so.6 <span class="token operator">=</span><span class="token operator">></span> /root/gujc/impala/toolchain/snappy-1.1.4/lib/libstdc++.so.6 <span class="token punctuation">(</span>0x00007f03f40d6000<span class="token punctuation">)</span>
+	libm.so.6 <span class="token operator">=</span><span class="token operator">></span> /lib64/libm.so.6 <span class="token punctuation">(</span>0x00007f03f3dd4000<span class="token punctuation">)</span>
+	libgcc_s.so.1 <span class="token operator">=</span><span class="token operator">></span> /root/gujc/impala/toolchain/snappy-1.1.4/lib/libgcc_s.so.1 <span class="token punctuation">(</span>0x00007f03f3bbd000<span class="token punctuation">)</span>
+	libc.so.6 <span class="token operator">=</span><span class="token operator">></span> /lib64/libc.so.6 <span class="token punctuation">(</span>0x00007f03f37ef000<span class="token punctuation">)</span>
+	/lib64/ld-linux-x86-64.so.2 <span class="token punctuation">(</span>0x00007f03f71c2000<span class="token punctuation">)</span>
+	libresolv.so.2 <span class="token operator">=</span><span class="token operator">></span> /lib64/libresolv.so.2 <span class="token punctuation">(</span>0x00007f03f35d5000<span class="token punctuation">)</span>
+	libcrypt.so.1 <span class="token operator">=</span><span class="token operator">></span> /lib64/libcrypt.so.1 <span class="token punctuation">(</span>0x00007f03f339e000<span class="token punctuation">)</span>
+	libk5crypto.so.3 <span class="token operator">=</span><span class="token operator">></span> /lib64/libk5crypto.so.3 <span class="token punctuation">(</span>0x00007f03f316b000<span class="token punctuation">)</span>
+	libcom_err.so.2 <span class="token operator">=</span><span class="token operator">></span> /lib64/libcom_err.so.2 <span class="token punctuation">(</span>0x00007f03f2f67000<span class="token punctuation">)</span>
+	libkrb5support.so.0 <span class="token operator">=</span><span class="token operator">></span> /lib64/libkrb5support.so.0 <span class="token punctuation">(</span>0x00007f03f2d57000<span class="token punctuation">)</span>
+	libz.so.1 <span class="token operator">=</span><span class="token operator">></span> /lib64/libz.so.1 <span class="token punctuation">(</span>0x00007f03f2b41000<span class="token punctuation">)</span>
+	libkeyutils.so.1 <span class="token operator">=</span><span class="token operator">></span> /lib64/libkeyutils.so.1 <span class="token punctuation">(</span>0x00007f03f293d000<span class="token punctuation">)</span>
+	libfreebl3.so <span class="token operator">=</span><span class="token operator">></span> /lib64/libfreebl3.so <span class="token punctuation">(</span>0x00007f03f273a000<span class="token punctuation">)</span>
+	libselinux.so.1 <span class="token operator">=</span><span class="token operator">></span> /lib64/libselinux.so.1 <span class="token punctuation">(</span>0x00007f03f2513000<span class="token punctuation">)</span>
+	libpcre.so.1 <span class="token operator">=</span><span class="token operator">></span> /lib64/libpcre.so.1 <span class="token punctuation">(</span>0x00007f03f22b1000<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这些 so 文件大部分是系统自带的或者已安装的，我们只要复制跟Impala版本相关的就好，比如说 libkudu_client.so.0，其它的不需要一并复制。<br>这里说的复制，是指，需要把非系统安装的依赖，复制到CM的安装文件夹内，可以看出，只有libkudu_client是放在新编译的源码内的，其他的都是引用的系统安装的依赖</p>
 <h2 id="新版本impala部署"><a href="#新版本impala部署" class="headerlink" title="新版本impala部署"></a>新版本impala部署</h2><p>我们来生成一个和 /opt/cloudera/parcels/CDH/lib/impala 目录结构一样的目录，然后通过在 CM 里设置 IMPALA_HOME 环境变量来使用它<br>具体的文件结构这里就不细看了，可以参考<a target="_blank" rel="noopener" href="https://www.freesion.com/article/8587908372/">在CDH6.3中单独升级IMPALA到APACHE IMPALA 3.4</a></p>
-<h3 id="生成新Impala目录"><a href="#生成新Impala目录" class="headerlink" title="生成新Impala目录"></a>生成新Impala目录</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;opt&#x2F;cloudera&#x2F;parcels&#x2F;CDH&#x2F;lib
-cp -r impala impala-3.4
-cd impala-3.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h3 id="生成新Impala目录"><a href="#生成新Impala目录" class="headerlink" title="生成新Impala目录"></a>生成新Impala目录</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">cd</span> /opt/cloudera/parcels/CDH/lib
+<span class="token function">cp</span> <span class="token parameter variable">-r</span> impala impala-3.4
+<span class="token builtin class-name">cd</span> impala-3.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>下面按照一下步骤操作：</p>
 <ol>
 <li>把lib目录里的jar包都删了，剩下so文件</li>
@@ -356,27 +356,27 @@ cd impala-3.4<span aria-hidden="true" class="line-numbers-rows"><span></span><sp
 <li>然后重启整个Impala集群</li>
 </ol>
 <p>通过beeline链接impala，查看输出日志：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@V-NJ-2-220 ~]# beeline -u &quot;jdbc:impala:&#x2F;&#x2F;xxxx:21050;AuthMech&#x3D;3;UID&#x3D;root;PWD&#x3D;;UseSasl&#x3D;0&quot;
-WARNING: Use &quot;yarn jar&quot; to launch YARN applications.
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token punctuation">[</span>root@V-NJ-2-220 ~<span class="token punctuation">]</span><span class="token comment"># beeline -u "jdbc:impala://xxxx:21050;AuthMech=3;UID=root;PWD=;UseSasl=0"</span>
+WARNING: Use <span class="token string">"yarn jar"</span> to launch YARN applications.
 SLF4J: Class path contains multiple SLF4J bindings.
-SLF4J: Found binding in [jar:file:&#x2F;opt&#x2F;cloudera&#x2F;parcels&#x2F;CDH-6.2.0-1.cdh6.2.0.p0.967373&#x2F;jars&#x2F;log4j-slf4j-impl-2.8.2.jar!&#x2F;org&#x2F;slf4j&#x2F;impl&#x2F;StaticLoggerBinder.class]
-SLF4J: Found binding in [jar:file:&#x2F;opt&#x2F;cloudera&#x2F;parcels&#x2F;CDH-6.2.0-1.cdh6.2.0.p0.967373&#x2F;jars&#x2F;slf4j-log4j12-1.7.25.jar!&#x2F;org&#x2F;slf4j&#x2F;impl&#x2F;StaticLoggerBinder.class]
-SLF4J: See http:&#x2F;&#x2F;www.slf4j.org&#x2F;codes.html#multiple_bindings for an explanation.
-SLF4J: Actual binding is of type [org.apache.logging.slf4j.Log4jLoggerFactory]
-Connecting to jdbc:impala:&#x2F;&#x2F;xxxx:21050;AuthMech&#x3D;3;UID&#x3D;root;PWD&#x3D;;UseSasl&#x3D;0
-Connected to: Impala (version 3.4.1-RELEASE)
-Driver: ImpalaJDBC (version 02.06.03.1004)
-Error: [Cloudera][JDBC](11975) Unsupported transaction isolation level: 4. (state&#x3D;HY000,code&#x3D;11975)
-Beeline version 2.1.1-cdh6.2.0 by Apache Hive
-0: jdbc:impala:&#x2F;&#x2F;xxxx:21050&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+SLF4J: Found binding <span class="token keyword">in</span> <span class="token punctuation">[</span>jar:file:/opt/cloudera/parcels/CDH-6.2.0-1.cdh6.2.0.p0.967373/jars/log4j-slf4j-impl-2.8.2.jar<span class="token operator">!</span>/org/slf4j/impl/StaticLoggerBinder.class<span class="token punctuation">]</span>
+SLF4J: Found binding <span class="token keyword">in</span> <span class="token punctuation">[</span>jar:file:/opt/cloudera/parcels/CDH-6.2.0-1.cdh6.2.0.p0.967373/jars/slf4j-log4j12-1.7.25.jar<span class="token operator">!</span>/org/slf4j/impl/StaticLoggerBinder.class<span class="token punctuation">]</span>
+SLF4J: See http://www.slf4j.org/codes.html<span class="token comment">#multiple_bindings for an explanation.</span>
+SLF4J: Actual binding is of <span class="token builtin class-name">type</span> <span class="token punctuation">[</span>org.apache.logging.slf4j.Log4jLoggerFactory<span class="token punctuation">]</span>
+Connecting to jdbc:impala://xxxx:21050<span class="token punctuation">;</span><span class="token assign-left variable">AuthMech</span><span class="token operator">=</span><span class="token number">3</span><span class="token punctuation">;</span><span class="token assign-left variable"><span class="token environment constant">UID</span></span><span class="token operator">=</span>root<span class="token punctuation">;</span><span class="token assign-left variable"><span class="token environment constant">PWD</span></span><span class="token operator">=</span><span class="token punctuation">;</span><span class="token assign-left variable">UseSasl</span><span class="token operator">=</span><span class="token number">0</span>
+Connected to: Impala <span class="token punctuation">(</span>version <span class="token number">3.4</span>.1-RELEASE<span class="token punctuation">)</span>
+Driver: ImpalaJDBC <span class="token punctuation">(</span>version 02.06.03.1004<span class="token punctuation">)</span>
+Error: <span class="token punctuation">[</span>Cloudera<span class="token punctuation">]</span><span class="token punctuation">[</span>JDBC<span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token number">11975</span><span class="token punctuation">)</span> Unsupported transaction isolation level: <span class="token number">4</span>. <span class="token punctuation">(</span>state<span class="token operator">=</span>HY000,code<span class="token operator">=</span><span class="token number">11975</span><span class="token punctuation">)</span>
+Beeline version <span class="token number">2.1</span>.1-cdh6.2.0 by Apache Hive
+<span class="token number">0</span>: jdbc:impala://xxxx:2105<span class="token operator"><span class="token file-descriptor important">0</span>></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>可以看出，现在的impala是3.4.1-RELEASE版本的了<br>具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45104537/article/details/121487197">CDH6.3.2升级impala3.2至impala3.4详细步骤</a></p>
 <p>impala的源码里默认制定的hudi版本是<code>0.5.0-incubating</code>,这里测试了一下，把hudi的版本改成了0.10.1编译不通过<br>之后impala还会不会维护3.x版本？因为4.x不支持hive2，仅支持hive3，这样升级的代价更大</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">IMPALA_HBASE_VERSION    &#x3D; 2.1.0-cdh6.x-SNAPSHOT
-IMPALA_HUDI_VERSION     &#x3D; 0.5.0-incubating
-IMPALA_SENTRY_VERSION   &#x3D; 2.1.0-cdh6.x-SNAPSHOT
-IMPALA_KUDU_VERSION     &#x3D; 4ed0dbbd1
-IMPALA_KUDU_JAVA_VERSION&#x3D; 1.12.0-SNAPSHOT
-IMPALA_RANGER_VERSION   &#x3D; 2.0.0.7.0.2.0-212<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">IMPALA_HBASE_VERSION    <span class="token operator">=</span> <span class="token number">2.1</span>.0-cdh6.x-SNAPSHOT
+IMPALA_HUDI_VERSION     <span class="token operator">=</span> <span class="token number">0.5</span>.0-incubating
+IMPALA_SENTRY_VERSION   <span class="token operator">=</span> <span class="token number">2.1</span>.0-cdh6.x-SNAPSHOT
+IMPALA_KUDU_VERSION     <span class="token operator">=</span> 4ed0dbbd1
+<span class="token assign-left variable">IMPALA_KUDU_JAVA_VERSION</span><span class="token operator">=</span> <span class="token number">1.12</span>.0-SNAPSHOT
+IMPALA_RANGER_VERSION   <span class="token operator">=</span> <span class="token number">2.0</span>.0.7.0.2.0-212<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 
     </div>
@@ -475,7 +475,7 @@ IMPALA_RANGER_VERSION   &#x3D; 2.0.0.7.0.2.0-212<span aria-hidden="true" class="
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

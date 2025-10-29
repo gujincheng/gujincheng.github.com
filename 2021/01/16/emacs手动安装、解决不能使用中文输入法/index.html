@@ -284,41 +284,41 @@
 <li>解决不能使用中文输入法</li>
 </ul>
 <a id="more"></a>
-<h2 id="emacs的安装"><a href="#emacs的安装" class="headerlink" title="emacs的安装"></a>emacs的安装</h2><h3 id="emacs的下载，解压"><a href="#emacs的下载，解压" class="headerlink" title="emacs的下载，解压"></a>emacs的下载，解压</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wget http:&#x2F;&#x2F;mirrors.ustc.edu.cn&#x2F;gnu&#x2F;emacs&#x2F;emacs-25.3.tar.gz
-tar -zxf emacs-25.3.tar.gz -C &#x2F;opt&#x2F;modules
-cd &#x2F;opt&#x2F;modules&#x2F;emacs-25.3&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<h3 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">.&#x2F;configure --prefix&#x3D;&#x2F;usr&#x2F;local --with-x-toolkit&#x3D;gtk<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="emacs的安装"><a href="#emacs的安装" class="headerlink" title="emacs的安装"></a>emacs的安装</h2><h3 id="emacs的下载，解压"><a href="#emacs的下载，解压" class="headerlink" title="emacs的下载，解压"></a>emacs的下载，解压</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">wget</span> http://mirrors.ustc.edu.cn/gnu/emacs/emacs-25.3.tar.gz
+<span class="token function">tar</span> <span class="token parameter variable">-zxf</span> emacs-25.3.tar.gz <span class="token parameter variable">-C</span> /opt/modules
+<span class="token builtin class-name">cd</span> /opt/modules/emacs-25.3/<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h3 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">./configure <span class="token parameter variable">--prefix</span><span class="token operator">=</span>/usr/local --with-x-toolkit<span class="token operator">=</span>gtk<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>这里会报错。</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">You seem to be running X, but no X development libraries
-were found.  You should install the relevant development files for X
-and for the toolkit you want, such as Gtk+, Lesstif or Motif.  Also make
-sure you have development files for image handling, i.e.
+were found.  You should <span class="token function">install</span> the relevant development files <span class="token keyword">for</span> X
+and <span class="token keyword">for</span> the toolkit you want, such as Gtk+, Lesstif or Motif.  Also <span class="token function">make</span>
+sure you have development files <span class="token keyword">for</span> image handling, i.e.
 tiff, gif, jpeg, png and xpm.
 If you are sure you want Emacs compiled without X window support, pass
   --without-x
 to configure.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>需要下载相关依赖</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get install libxpm-dev
-sudo apt-get install libjpeg62-dev
-sudo apt-get install libgif-dev
-sudo apt-get install libtiff5-dev
-sudo apt-get install libncurses5-dev
-sudo apt-get install libgtk2.0-dev<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> libxpm-dev
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> libjpeg62-dev
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> libgif-dev
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> libtiff5-dev
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> libncurses5-dev
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> libgtk2.0-dev<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>重新编译后正常</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">make
-sudo make install<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">make</span>
+<span class="token function">sudo</span> <span class="token function">make</span> <span class="token function">install</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>到此，emac的安装已经结束</p>
 <h3 id="安装spacemacs"><a href="#安装spacemacs" class="headerlink" title="安装spacemacs"></a>安装spacemacs</h3><p>spacemacs可以在emacs里使用vim的命令，让emacs更人性化一点。</p>
 <p>安装很简单，就是clone项目到~/.emacs.d目录去</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;syl20bnr&#x2F;spacemacs ~&#x2F;.emacs.d<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">git</span> clone https://github.com/syl20bnr/spacemacs ~/.emacs.d<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>安装完spacemacs，第一次启动emacs会加载很多包，没关系，等一会就好了</p>
 <h3 id="解决emacs不能使用中文输入法"><a href="#解决emacs不能使用中文输入法" class="headerlink" title="解决emacs不能使用中文输入法"></a>解决emacs不能使用中文输入法</h3><p>我的环境是ubuntu16.04，系统语言是English，但是在vim里，gedit都可以输入中文。只有emacs不行，在网上查了原因，是emacs自带的一个bug，因为比较久远，不会再修复了<br>这里在修复之前，已经安装了搜狗输入法</p>
 <p>这里的处理办法是：<br>    在 .bashrc文件下添加：<br>    export LC_CTYPE=zh_CN.UTF-8<br>这样不会修改整个系统的环境，但是只针对自己这个用户来书，够用了。但是报了没有zh_CN.UTF-8这个文件</p>
 <p>原因是系统中还没有中文语言包<br>这里安装一下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get install  -y language-pack-zh-hans
-sudo apt-get install -y language-pack-zh-hant
-cd &#x2F;usr&#x2F;share&#x2F;locales    
-sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span>  <span class="token parameter variable">-y</span> language-pack-zh-hans
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token parameter variable">-y</span> language-pack-zh-hant
+<span class="token builtin class-name">cd</span> /usr/share/locales    
+<span class="token function">sudo</span> ./install-language-pack zh_CN   <span class="token comment">##开始安装zh_CN中文字符集</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p><img src="/uploads/202101/emacs-install-error.png" alt="emacs-install-error"><br>这里的报错不用管<br>然后重启电脑就好了。</p>
 <h3 id="Emacs-Org-mode"><a href="#Emacs-Org-mode" class="headerlink" title="Emacs Org-mode"></a>Emacs Org-mode</h3><p>使用emacs生成 表格是真的方便</p>
 <h4 id="生成表格"><a href="#生成表格" class="headerlink" title="生成表格"></a>生成表格</h4><p><code>C-c |</code>    :生成表格，在buffer区域会提示输入N*M,代表N列M行的表格（注意，这里的<code>*</code>其实输入的是<code>x</code>）<br>使用<code>TAB</code>格式化表格</p>
@@ -422,7 +422,7 @@ sudo .&#x2F;install-language-pack zh_CN   ##开始安装zh_CN中文字符集<spa
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

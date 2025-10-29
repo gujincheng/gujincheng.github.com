@@ -322,22 +322,22 @@
 <li>原则上所有表、字段、任务都需要添加注释，任务有特定的注释规范，见下文任务注释说明</li>
 </ol>
 <p>任务注释说明：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># # # # # # -CopyRight# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -
-#   AppName: offline_ods_bm_cust_info
-#   Description: 计算售前商机_客户基本信息表，保留历史与最新的数据
-#   Source Table:
-#        pom.stg_bm_cust_info
-#   Output Table:
-#        pom.ods_bm_cust_info
-#   Version 1.00
-#   Language:bash shell
-#   CreateDate: 2022&#x2F;04&#x2F;14 14:43
-#   Author: gujc
-#   ITCode: 17405
-#   Email: gujc@digiwin.com
-# # # # # # Update Log# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#   2022-04-15 修改history分区数据不全的问题
-# # # # # # Environment# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># # # # # # -CopyRight# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # -</span>
+<span class="token comment">#   AppName: offline_ods_bm_cust_info</span>
+<span class="token comment">#   Description: 计算售前商机_客户基本信息表，保留历史与最新的数据</span>
+<span class="token comment">#   Source Table:</span>
+<span class="token comment">#        pom.stg_bm_cust_info</span>
+<span class="token comment">#   Output Table:</span>
+<span class="token comment">#        pom.ods_bm_cust_info</span>
+<span class="token comment">#   Version 1.00</span>
+<span class="token comment">#   Language:bash shell</span>
+<span class="token comment">#   CreateDate: 2022/04/14 14:43</span>
+<span class="token comment">#   Author: gujc</span>
+<span class="token comment">#   ITCode: 17405</span>
+<span class="token comment">#   Email: gujc@digiwin.com</span>
+<span class="token comment"># # # # # # Update Log# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="token comment">#   2022-04-15 修改history分区数据不全的问题</span>
+<span class="token comment"># # # # # # Environment# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <ol>
 <li>提供任务名，方便任务创建时任务的获取以及平台中任务查询 </li>
 <li>提供创建者、创建日期、功能描述等信息，方便后期维护跟踪 </li>
@@ -385,15 +385,15 @@
 <p>其他规范可以参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/453180860">HQL过程体开发规范</a></p>
 <h4 id="任务脚本案例"><a href="#任务脚本案例" class="headerlink" title="任务脚本案例"></a>任务脚本案例</h4><p>数仓脚本开发统一提交到<a target="_blank" rel="noopener" href="https://gitlab.digiwincloud.com.cn/data-middle-platform/DataWarehouse">DataWarehose</a><br>为了方便编码，让数据研发人员专注于业务逻辑，这里对shell异常捕捉、执行引擎的选择等做了封装，开发人员只要按照固定的模版填充sql即可：</p>
 <ol>
-<li>删除hive临时表：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot; clear Temporary table $&#123;TABLE_TMP_01&#125;,write into Temporary table&quot;
-drop_tmp_table -tbn &quot;$&#123;TABLE_TMP_01&#125;&quot; -engine hive -env hwCloud<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<li>删除hive临时表：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token assign-left variable">V_MSG</span><span class="token operator">=</span><span class="token string">" clear Temporary table <span class="token variable">$&#123;TABLE_TMP_01&#125;</span>,write into Temporary table"</span>
+drop_tmp_table <span class="token parameter variable">-tbn</span> <span class="token string">"<span class="token variable">$&#123;TABLE_TMP_01&#125;</span>"</span> <span class="token parameter variable">-engine</span> hive <span class="token parameter variable">-env</span> hwCloud<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 参数说明：</li>
 </ol>
 <p>-tbn：表名<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云</p>
 <ol start="2">
-<li>执行sql语句：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">V_MSG&#x3D;&quot;INSERT OVERWRITE TABLE partition active&quot;
-V_SQL&#x3D;&quot;
-INSERT OVERWRITE TABLE $&#123;TABLE_TMP_01&#125; partition(dp &#x3D; &#39;active&#39;,end_date &#x3D; &#39;99991231&#39;)
+<li>执行sql语句：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token assign-left variable">V_MSG</span><span class="token operator">=</span><span class="token string">"INSERT OVERWRITE TABLE partition active"</span>
+<span class="token assign-left variable">V_SQL</span><span class="token operator">=</span><span class="token string">"
+INSERT OVERWRITE TABLE <span class="token variable">$&#123;TABLE_TMP_01&#125;</span> partition(dp = 'active',end_date = '99991231')
 SELECT activity_id          --活动id
       ,activity_no          --活动编号
       ,activity_name        --活动名称
@@ -401,10 +401,10 @@ SELECT activity_id          --活动id
       ,contact_times        --接触次数
       ,manage_status        --状态
       ,tenantsid            --租户id
-FROM $&#123;TABLE_INPUT_01&#125; -- 因为每天取得数据都是最新的数据，所以，stg表就是最新的数据
+FROM <span class="token variable">$&#123;TABLE_INPUT_01&#125;</span> -- 因为每天取得数据都是最新的数据，所以，stg表就是最新的数据
 ;
-&quot;
-runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -engine hive -env hwCloud || return $?<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+"</span>
+runsql <span class="token parameter variable">-sql</span> <span class="token string">"<span class="token variable">$&#123;V_SQL&#125;</span>"</span> <span class="token parameter variable">-msg</span> <span class="token string">"<span class="token variable">$&#123;V_MSG&#125;</span>"</span> <span class="token parameter variable">-engine</span> hive <span class="token parameter variable">-env</span> hwCloud <span class="token operator">||</span> <span class="token builtin class-name">return</span> <span class="token variable">$?</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 参数说明：</li>
 </ol>
 <p>-sql：要执行的sql语句<br>-msg：执行sql提示信息<br>-engine：选择执行引擎，这里目前可以选择hive和impala<br>-env: 执行环境<br>    hwCloud:华为云<br>    aliCloud：阿里云正式区<br>    aliCloudTest： 阿里云测试区<br>    azureCloud: 微软云<br>|| return $? : 获取代码执行状态 </p>
@@ -519,7 +519,7 @@ runsql -sql &quot;$&#123;V_SQL&#125;&quot; -msg &quot;$&#123;V_MSG&#125;&quot; -
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

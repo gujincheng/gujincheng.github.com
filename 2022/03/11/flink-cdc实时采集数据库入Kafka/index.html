@@ -407,14 +407,14 @@
 <p>编写代码如下：</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
 
-<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span></span><span class="token punctuation">;</span>
 
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token operator">*</span></span><span class="token punctuation">;</span>
 
 
 <span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Mysql2Kakfa</span> <span class="token punctuation">&#123;</span>
@@ -525,26 +525,26 @@
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>在idea里可以执行，结果如图：<br><img src="/uploads/202203/Idea%E6%89%A7%E8%A1%8Cflinkcdc%E4%BB%A3%E7%A0%81%E6%88%90%E5%8A%9F.png" alt="Idea执行flinkcdc代码成功"></p>
 <p>但是通过打成jar包上传到集群中，就开始报错了，执行命令如下</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">flink run <span class="token parameter variable">-c</span> com.digiwin.flink.cdc2kafka.Mysql2Kakfa FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>报错如下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.RuntimeException: Failed to get driver instance for jdbcUrl&#x3D;jdbc:mysql:&#x2F;&#x2F;ddp5.hadoop:3306&#x2F;?useInformationSchema&#x3D;true&amp;nullCatalogMeansCurrent&#x3D;false&amp;useUnicode&#x3D;true&amp;characterEncoding&#x3D;UTF-8&amp;characterSetResults&#x3D;UTF-8&amp;zeroDateTimeBehavior&#x3D;CONVERT_TO_NULL
-        at com.zaxxer.hikari.util.DriverDataSource.&lt;init&gt;(DriverDataSource.java:114)
-        at com.zaxxer.hikari.pool.PoolBase.initializeDataSource(PoolBase.java:331)
-        at com.zaxxer.hikari.pool.PoolBase.&lt;init&gt;(PoolBase.java:114)
-        at com.zaxxer.hikari.pool.HikariPool.&lt;init&gt;(HikariPool.java:108)
-        at com.zaxxer.hikari.HikariDataSource.&lt;init&gt;(HikariDataSource.java:81)
-        at com.ververica.cdc.connectors.mysql.source.connection.PooledDataSourceFactory.createPooledDataSource(PooledDataSourceFactory.java:54)
-        at com.ververica.cdc.connectors.mysql.source.connection.JdbcConnectionPools.getOrCreateConnectionPool(JdbcConnectionPools.java:51)
-        at com.ververica.cdc.connectors.mysql.source.connection.JdbcConnectionFactory.connect(JdbcConnectionFactory.java:53)
-        at io.debezium.jdbc.JdbcConnection.connection(JdbcConnection.java:872)
-        at io.debezium.jdbc.JdbcConnection.connection(JdbcConnection.java:867)
-        at io.debezium.jdbc.JdbcConnection.connect(JdbcConnection.java:413)
-        at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection(DebeziumUtils.java:62)
-        ... 31 more
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.RuntimeException: Failed to get driver instance <span class="token keyword">for</span> <span class="token assign-left variable">jdbcUrl</span><span class="token operator">=</span>jdbc:mysql://ddp5.hadoop:3306/?useInformationSchema<span class="token operator">=</span>true<span class="token operator">&amp;</span><span class="token assign-left variable">nullCatalogMeansCurrent</span><span class="token operator">=</span>false<span class="token operator">&amp;</span><span class="token assign-left variable">useUnicode</span><span class="token operator">=</span>true<span class="token operator">&amp;</span><span class="token assign-left variable">characterEncoding</span><span class="token operator">=</span>UTF-8<span class="token operator">&amp;</span><span class="token assign-left variable">characterSetResults</span><span class="token operator">=</span>UTF-8<span class="token operator">&amp;</span><span class="token assign-left variable">zeroDateTimeBehavior</span><span class="token operator">=</span>CONVERT_TO_NULL
+        at com.zaxxer.hikari.util.DriverDataSource.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>DriverDataSource.java:114<span class="token punctuation">)</span>
+        at com.zaxxer.hikari.pool.PoolBase.initializeDataSource<span class="token punctuation">(</span>PoolBase.java:331<span class="token punctuation">)</span>
+        at com.zaxxer.hikari.pool.PoolBase.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>PoolBase.java:114<span class="token punctuation">)</span>
+        at com.zaxxer.hikari.pool.HikariPool.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>HikariPool.java:108<span class="token punctuation">)</span>
+        at com.zaxxer.hikari.HikariDataSource.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>HikariDataSource.java:81<span class="token punctuation">)</span>
+        at com.ververica.cdc.connectors.mysql.source.connection.PooledDataSourceFactory.createPooledDataSource<span class="token punctuation">(</span>PooledDataSourceFactory.java:54<span class="token punctuation">)</span>
+        at com.ververica.cdc.connectors.mysql.source.connection.JdbcConnectionPools.getOrCreateConnectionPool<span class="token punctuation">(</span>JdbcConnectionPools.java:51<span class="token punctuation">)</span>
+        at com.ververica.cdc.connectors.mysql.source.connection.JdbcConnectionFactory.connect<span class="token punctuation">(</span>JdbcConnectionFactory.java:53<span class="token punctuation">)</span>
+        at io.debezium.jdbc.JdbcConnection.connection<span class="token punctuation">(</span>JdbcConnection.java:872<span class="token punctuation">)</span>
+        at io.debezium.jdbc.JdbcConnection.connection<span class="token punctuation">(</span>JdbcConnection.java:867<span class="token punctuation">)</span>
+        at io.debezium.jdbc.JdbcConnection.connect<span class="token punctuation">(</span>JdbcConnection.java:413<span class="token punctuation">)</span>
+        at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection<span class="token punctuation">(</span>DebeziumUtils.java:62<span class="token punctuation">)</span>
+        <span class="token punctuation">..</span>. <span class="token number">31</span> <span class="token function">more</span>
 Caused by: java.sql.SQLException: No suitable driver
-        at java.sql.DriverManager.getDriver(DriverManager.java:315)
-        at com.zaxxer.hikari.util.DriverDataSource.&lt;init&gt;(DriverDataSource.java:106)
-        ... 42 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+        at java.sql.DriverManager.getDriver<span class="token punctuation">(</span>DriverManager.java:315<span class="token punctuation">)</span>
+        at com.zaxxer.hikari.util.DriverDataSource.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>DriverDataSource.java:106<span class="token punctuation">)</span>
+        <span class="token punctuation">..</span>. <span class="token number">42</span> <span class="token function">more</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>期间换了cdc的版本，换成2.0.0和2.1.1都可以执行，但是2.1.0就是不行就是报<code>No suitable driver</code><br>最终找到原因：</p>
 <blockquote>
 <p>因为${FLINK_HOME}/lib下我放的cdc jar包是2.1.1的，但是，我pom文件里写的是2.1.0，两个版本不一样导致的</p>
@@ -556,13 +556,13 @@ Caused by: java.sql.SQLException: No suitable driver
 </ol>
 <p>中间还遇到一个问题：<br>因为代码里写了<code>setParallelism(4)</code>,然后使用的又是standalone方式启动任务，然后就报错了：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.CompletionException: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Could not acquire the minimum required resources.
-	at java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:292)
-	at java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:308)
-	at java.util.concurrent.CompletableFuture.uniApply(CompletableFuture.java:607)
-	at java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:591)
-	... 33 more
+	at java.util.concurrent.CompletableFuture.encodeThrowable<span class="token punctuation">(</span>CompletableFuture.java:292<span class="token punctuation">)</span>
+	at java.util.concurrent.CompletableFuture.completeThrowable<span class="token punctuation">(</span>CompletableFuture.java:308<span class="token punctuation">)</span>
+	at java.util.concurrent.CompletableFuture.uniApply<span class="token punctuation">(</span>CompletableFuture.java:607<span class="token punctuation">)</span>
+	at java.util.concurrent.CompletableFuture<span class="token variable">$UniApply</span>.tryFire<span class="token punctuation">(</span>CompletableFuture.java:591<span class="token punctuation">)</span>
+	<span class="token punctuation">..</span>. <span class="token number">33</span> <span class="token function">more</span>
 Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Could not acquire the minimum required resources.
-	... 29 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+	<span class="token punctuation">..</span>. <span class="token number">29</span> <span class="token function">more</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>经过测试，把<code>setParallelism(4)</code>去掉就可以了</p>
 <blockquote>
 <p>这里需要测试一下，以yarn的方式，设置多个并行度是否可行，总感觉设置多个并行度是可以的，应该是哪里没配置好</p>
@@ -590,80 +590,80 @@ Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableExce
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这两个依赖是和其他的依赖是互相冲突的，planner添加provided，kafka的我暂时直接去掉了</p>
 <p>这里如果<code>planner</code>不provided，会报如下错误：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">org.apache.flink.client.program.ProgramInvocationException: The main method caused an error: Unable to instantiate java compiler
-    at org.apache.flink.client.program.PackagedProgram.callMainMethod(PackagedProgram.java:372)
-    at org.apache.flink.client.program.PackagedProgram.invokeInteractiveModeForExecution(PackagedProgram.java:222)
-    at org.apache.flink.client.ClientUtils.executeProgram(ClientUtils.java:114)
-    at org.apache.flink.client.cli.CliFrontend.executeProgram(CliFrontend.java:812)
-    at org.apache.flink.client.cli.CliFrontend.run(CliFrontend.java:246)
-    at org.apache.flink.client.cli.CliFrontend.parseAndRun(CliFrontend.java:1054)
-    at org.apache.flink.client.cli.CliFrontend.lambda$main$10(CliFrontend.java:1132)
-    at java.security.AccessController.doPrivileged(Native Method)
-    at javax.security.auth.Subject.doAs(Subject.java:422)
-    at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1762)
-    at org.apache.flink.runtime.security.contexts.HadoopSecurityContext.runSecured(HadoopSecurityContext.java:41)
-    at org.apache.flink.client.cli.CliFrontend.main(CliFrontend.java:1132)
-Caused by: java.lang.IllegalStateException: Unable to instantiate java compiler
-    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.compile(JaninoRelMetadataProvider.java:428)
-    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.load3(JaninoRelMetadataProvider.java:374)
-    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.lambda$static$0(JaninoRelMetadataProvider.java:109)
-    at org.apache.flink.calcite.shaded.com.google.common.cache.CacheLoader$FunctionToCacheLoader.load(CacheLoader.java:165)
-    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache$LoadingValueReference.loadFuture(LocalCache.java:3529)
-    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache$Segment.loadSync(LocalCache.java:2278)
-    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache$Segment.lockedGetOrLoad(LocalCache.java:2155)
-    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache$Segment.get(LocalCache.java:2045)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">org.apache.flink.client.program.ProgramInvocationException: The main method caused an error: Unable to instantiate <span class="token function">java</span> compiler
+    at org.apache.flink.client.program.PackagedProgram.callMainMethod<span class="token punctuation">(</span>PackagedProgram.java:372<span class="token punctuation">)</span>
+    at org.apache.flink.client.program.PackagedProgram.invokeInteractiveModeForExecution<span class="token punctuation">(</span>PackagedProgram.java:222<span class="token punctuation">)</span>
+    at org.apache.flink.client.ClientUtils.executeProgram<span class="token punctuation">(</span>ClientUtils.java:114<span class="token punctuation">)</span>
+    at org.apache.flink.client.cli.CliFrontend.executeProgram<span class="token punctuation">(</span>CliFrontend.java:812<span class="token punctuation">)</span>
+    at org.apache.flink.client.cli.CliFrontend.run<span class="token punctuation">(</span>CliFrontend.java:246<span class="token punctuation">)</span>
+    at org.apache.flink.client.cli.CliFrontend.parseAndRun<span class="token punctuation">(</span>CliFrontend.java:1054<span class="token punctuation">)</span>
+    at org.apache.flink.client.cli.CliFrontend.lambda<span class="token variable">$main</span><span class="token variable">$10</span><span class="token punctuation">(</span>CliFrontend.java:1132<span class="token punctuation">)</span>
+    at java.security.AccessController.doPrivileged<span class="token punctuation">(</span>Native Method<span class="token punctuation">)</span>
+    at javax.security.auth.Subject.doAs<span class="token punctuation">(</span>Subject.java:422<span class="token punctuation">)</span>
+    at org.apache.hadoop.security.UserGroupInformation.doAs<span class="token punctuation">(</span>UserGroupInformation.java:1762<span class="token punctuation">)</span>
+    at org.apache.flink.runtime.security.contexts.HadoopSecurityContext.runSecured<span class="token punctuation">(</span>HadoopSecurityContext.java:41<span class="token punctuation">)</span>
+    at org.apache.flink.client.cli.CliFrontend.main<span class="token punctuation">(</span>CliFrontend.java:1132<span class="token punctuation">)</span>
+Caused by: java.lang.IllegalStateException: Unable to instantiate <span class="token function">java</span> compiler
+    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.compile<span class="token punctuation">(</span>JaninoRelMetadataProvider.java:428<span class="token punctuation">)</span>
+    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.load3<span class="token punctuation">(</span>JaninoRelMetadataProvider.java:374<span class="token punctuation">)</span>
+    at org.apache.calcite.rel.metadata.JaninoRelMetadataProvider.lambda<span class="token variable">$static</span><span class="token variable">$0</span><span class="token punctuation">(</span>JaninoRelMetadataProvider.java:109<span class="token punctuation">)</span>
+    at org.apache.flink.calcite.shaded.com.google.common.cache.CacheLoader<span class="token variable">$FunctionToCacheLoader</span>.load<span class="token punctuation">(</span>CacheLoader.java:165<span class="token punctuation">)</span>
+    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache<span class="token variable">$LoadingValueReference</span>.loadFuture<span class="token punctuation">(</span>LocalCache.java:3529<span class="token punctuation">)</span>
+    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache<span class="token variable">$Segment</span>.loadSync<span class="token punctuation">(</span>LocalCache.java:2278<span class="token punctuation">)</span>
+    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache<span class="token variable">$Segment</span>.lockedGetOrLoad<span class="token punctuation">(</span>LocalCache.java:2155<span class="token punctuation">)</span>
+    at org.apache.flink.calcite.shaded.com.google.common.cache.LocalCache<span class="token variable">$Segment</span>.get<span class="token punctuation">(</span>LocalCache.java:2045<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>Flink 1.10把客户端的ClassLoader解析顺序调整为了Child优先，这就导致用户的Jar包不能包含Flink框架的classes，比如常见的Calcite、Flink-Planner依赖、Hive依赖等等。用户需要把有冲突classes的jar放到flink-home/lib下，或者调整策略为Parent优先<br>这里参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/woloqun/article/details/105657539">flink sql包冲突异常</a></p>
 <p>如果不去除kafka的依赖，会报如下错误：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.NoClassDefFoundError: org&#x2F;apache&#x2F;kafka&#x2F;common&#x2F;utils&#x2F;ThreadUtils
-	at com.ververica.cdc.debezium.internal.FlinkOffsetBackingStore.start(FlinkOffsetBackingStore.java:152)
-	at com.ververica.cdc.debezium.internal.FlinkOffsetBackingStore.configure(FlinkOffsetBackingStore.java:71)
-	at io.debezium.embedded.EmbeddedEngine.run(EmbeddedEngine.java:690)
-	at io.debezium.embedded.ConvertingEngineBuilder$2.run(ConvertingEngineBuilder.java:188)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-	at java.lang.Thread.run(Thread.java:750)
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.NoClassDefFoundError: org/apache/kafka/common/utils/ThreadUtils
+	at com.ververica.cdc.debezium.internal.FlinkOffsetBackingStore.start<span class="token punctuation">(</span>FlinkOffsetBackingStore.java:152<span class="token punctuation">)</span>
+	at com.ververica.cdc.debezium.internal.FlinkOffsetBackingStore.configure<span class="token punctuation">(</span>FlinkOffsetBackingStore.java:71<span class="token punctuation">)</span>
+	at io.debezium.embedded.EmbeddedEngine.run<span class="token punctuation">(</span>EmbeddedEngine.java:690<span class="token punctuation">)</span>
+	at io.debezium.embedded.ConvertingEngineBuilder<span class="token variable">$2</span>.run<span class="token punctuation">(</span>ConvertingEngineBuilder.java:188<span class="token punctuation">)</span>
+	at java.util.concurrent.ThreadPoolExecutor.runWorker<span class="token punctuation">(</span>ThreadPoolExecutor.java:1149<span class="token punctuation">)</span>
+	at java.util.concurrent.ThreadPoolExecutor<span class="token variable">$Worker</span>.run<span class="token punctuation">(</span>ThreadPoolExecutor.java:624<span class="token punctuation">)</span>
+	at java.lang.Thread.run<span class="token punctuation">(</span>Thread.java:750<span class="token punctuation">)</span>
 Caused by: java.lang.ClassNotFoundException: org.apache.kafka.common.utils.ThreadUtils
-	at java.net.URLClassLoader.findClass(URLClassLoader.java:387)
-	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
-	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:355)
-	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+	at java.net.URLClassLoader.findClass<span class="token punctuation">(</span>URLClassLoader.java:387<span class="token punctuation">)</span>
+	at java.lang.ClassLoader.loadClass<span class="token punctuation">(</span>ClassLoader.java:418<span class="token punctuation">)</span>
+	at sun.misc.Launcher<span class="token variable">$AppClassLoader</span>.loadClass<span class="token punctuation">(</span>Launcher.java:355<span class="token punctuation">)</span>
+	at java.lang.ClassLoader.loadClass<span class="token punctuation">(</span>ClassLoader.java:351<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 
 <h3 id="提交flinkcdc任务到yarn上"><a href="#提交flinkcdc任务到yarn上" class="headerlink" title="提交flinkcdc任务到yarn上"></a>提交flinkcdc任务到yarn上</h3><p>添加checkpoint<br>报错如下：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.util.FlinkRuntimeException: Failed to create checkpoint storage at checkpoint coordinator side.
-        at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.&lt;init&gt;(CheckpointCoordinator.java:325)
-Caused by: java.io.IOException: Cannot instantiate file system for URI: hdfs:&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa
-        at org.apache.flink.runtime.fs.hdfs.HadoopFsFactory.create(HadoopFsFactory.java:196)
-        at org.apache.flink.core.fs.FileSystem.getUnguardedFileSystem(FileSystem.java:526)
+        at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>CheckpointCoordinator.java:325<span class="token punctuation">)</span>
+Caused by: java.io.IOException: Cannot instantiate <span class="token function">file</span> system <span class="token keyword">for</span> URI: hdfs://flink/checkpoint/cdc/gjc_test_Mysql2Kakfa
+        at org.apache.flink.runtime.fs.hdfs.HadoopFsFactory.create<span class="token punctuation">(</span>HadoopFsFactory.java:196<span class="token punctuation">)</span>
+        at org.apache.flink.core.fs.FileSystem.getUnguardedFileSystem<span class="token punctuation">(</span>FileSystem.java:526<span class="token punctuation">)</span>
 Caused by: java.lang.IllegalArgumentException: java.net.UnknownHostException: flink
-        at org.apache.hadoop.security.SecurityUtil.buildTokenService(SecurityUtil.java:445)
-        at org.apache.hadoop.hdfs.NameNodeProxiesClient.createProxyWithClientProtocol(NameNodeProxiesClient.java:132)
+        at org.apache.hadoop.security.SecurityUtil.buildTokenService<span class="token punctuation">(</span>SecurityUtil.java:445<span class="token punctuation">)</span>
+        at org.apache.hadoop.hdfs.NameNodeProxiesClient.createProxyWithClientProtocol<span class="token punctuation">(</span>NameNodeProxiesClient.java:132<span class="token punctuation">)</span>
 Caused by: java.net.UnknownHostException: flink
-        ... 34 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+        <span class="token punctuation">..</span>. <span class="token number">34</span> <span class="token function">more</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.sql.SQLNonTransientConnectionException: Data source rejected establishment of connection,  message from server: &quot;Too many connections&quot;
-        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:110)
-        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:97)
-        at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
-        at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:836)
-        at com.mysql.cj.jdbc.ConnectionImpl.&lt;init&gt;(ConnectionImpl.java:456)
-        at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:246)
-        at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:197)
-        at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:138)
-        at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:364)
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.sql.SQLNonTransientConnectionException: Data <span class="token builtin class-name">source</span> rejected establishment of connection,  message from server: <span class="token string">"Too many connections"</span>
+        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException<span class="token punctuation">(</span>SQLError.java:110<span class="token punctuation">)</span>
+        at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException<span class="token punctuation">(</span>SQLError.java:97<span class="token punctuation">)</span>
+        at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException<span class="token punctuation">(</span>SQLExceptionsMapping.java:122<span class="token punctuation">)</span>
+        at com.mysql.cj.jdbc.ConnectionImpl.createNewIO<span class="token punctuation">(</span>ConnectionImpl.java:836<span class="token punctuation">)</span>
+        at com.mysql.cj.jdbc.ConnectionImpl.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>ConnectionImpl.java:456<span class="token punctuation">)</span>
+        at com.mysql.cj.jdbc.ConnectionImpl.getInstance<span class="token punctuation">(</span>ConnectionImpl.java:246<span class="token punctuation">)</span>
+        at com.mysql.cj.jdbc.NonRegisteringDriver.connect<span class="token punctuation">(</span>NonRegisteringDriver.java:197<span class="token punctuation">)</span>
+        at com.zaxxer.hikari.util.DriverDataSource.getConnection<span class="token punctuation">(</span>DriverDataSource.java:138<span class="token punctuation">)</span>
+        at com.zaxxer.hikari.pool.PoolBase.newConnection<span class="token punctuation">(</span>PoolBase.java:364<span class="token punctuation">)</span>
         <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>貌似flinkcdc没有及时关闭mysql链接,这里把mysql的最大连接数调大了，在<code>my.cnf</code>里添加<code>max_connections = 1000</code>，然后重启mysql服务</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.CompletionException: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Slot request bulk is not fulfillable! Could not allocate the required slot within slot request timeout
-        at java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:292)
-        at java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:308)
-        at java.util.concurrent.CompletableFuture.uniApply(CompletableFuture.java:593)
-        at java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:577)
-        ... 33 more
-Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Slot request bulk is not fulfillable! Could not allocate the required slot within slot request timeout
-        at org.apache.flink.runtime.jobmaster.slotpool.PhysicalSlotRequestBulkCheckerImpl.lambda$schedulePendingRequestBulkWithTimestampCheck$0(PhysicalSlotRequestBulkCheckerImpl.java:86)
-        ... 26 more
-Caused by: java.util.concurrent.TimeoutException: Timeout has occurred: 300000 ms
-        ... 27 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.CompletionException: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Slot request bulk is not fulfillable<span class="token operator">!</span> Could not allocate the required slot within slot request <span class="token function">timeout</span>
+        at java.util.concurrent.CompletableFuture.encodeThrowable<span class="token punctuation">(</span>CompletableFuture.java:292<span class="token punctuation">)</span>
+        at java.util.concurrent.CompletableFuture.completeThrowable<span class="token punctuation">(</span>CompletableFuture.java:308<span class="token punctuation">)</span>
+        at java.util.concurrent.CompletableFuture.uniApply<span class="token punctuation">(</span>CompletableFuture.java:593<span class="token punctuation">)</span>
+        at java.util.concurrent.CompletableFuture<span class="token variable">$UniApply</span>.tryFire<span class="token punctuation">(</span>CompletableFuture.java:577<span class="token punctuation">)</span>
+        <span class="token punctuation">..</span>. <span class="token number">33</span> <span class="token function">more</span>
+Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Slot request bulk is not fulfillable<span class="token operator">!</span> Could not allocate the required slot within slot request <span class="token function">timeout</span>
+        at org.apache.flink.runtime.jobmaster.slotpool.PhysicalSlotRequestBulkCheckerImpl.lambda<span class="token variable">$schedulePendingRequestBulkWithTimestampCheck</span><span class="token variable">$0</span><span class="token punctuation">(</span>PhysicalSlotRequestBulkCheckerImpl.java:86<span class="token punctuation">)</span>
+        <span class="token punctuation">..</span>. <span class="token number">26</span> <span class="token function">more</span>
+Caused by: java.util.concurrent.TimeoutException: Timeout has occurred: <span class="token number">300000</span> ms
+        <span class="token punctuation">..</span>. <span class="token number">27</span> <span class="token function">more</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里乍一看，以为是资源不够，然后我加大资源，换资源队列，最后还是解决不了<br>最终在网上找到原因，是因为当时方便在idea里测试代码，在pom文件里添加了如下依赖：</p>
 <pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.flink<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
@@ -672,21 +672,21 @@ Caused by: java.util.concurrent.TimeoutException: Timeout has occurred: 300000 m
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里给依赖加上<code>&lt;scope&gt;provided&lt;/scope&gt;</code>,或者去掉clients的依赖即可</p>
 <p>然后又遇到以下问题：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.yarn.YarnClusterDescriptor$YarnDeploymentException: The YARN application unexpectedly switched to state FAILED during deployment.
-Diagnostics from YARN: Application application_1640152414594_2461 failed 1 times (global limit &#x3D;2; local limit is &#x3D;1) due to AM Container for appattempt_1640152414594_2461_000001 exited with  exitCode: 1
-...
-For more detailed output, check the application tracking page: http:&#x2F;&#x2F;ddp2.hadoop:8088&#x2F;cluster&#x2F;app&#x2F;application_1640152414594_2461 Then click on links to logs of each attempt.
-. Failing the application.
-If log aggregation is enabled on your cluster, use this command to further investigate the issue:
-yarn logs -applicationId application_1640152414594_2461<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.yarn.YarnClusterDescriptor<span class="token variable">$YarnDeploymentException</span><span class="token builtin class-name">:</span> The YARN application unexpectedly switched to state FAILED during deployment.
+Diagnostics from YARN: Application application_1640152414594_2461 failed <span class="token number">1</span> <span class="token builtin class-name">times</span> <span class="token punctuation">(</span>global limit <span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">;</span> <span class="token builtin class-name">local</span> limit is <span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span> due to AM Container <span class="token keyword">for</span> appattempt_1640152414594_2461_000001 exited with  exitCode: <span class="token number">1</span>
+<span class="token punctuation">..</span>.
+For <span class="token function">more</span> detailed output, check the application tracking page: http://ddp2.hadoop:8088/cluster/app/application_1640152414594_2461 Then click on links to logs of each attempt.
+<span class="token builtin class-name">.</span> Failing the application.
+If log aggregation is enabled on your cluster, use this <span class="token builtin class-name">command</span> to further investigate the issue:
+<span class="token function">yarn</span> logs <span class="token parameter variable">-applicationId</span> application_1640152414594_2461<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>通过查看application_1640152414594_2461的日志：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.lang.NoSuchMethodError: org.apache.commons.cli.Option.builder(Ljava&#x2F;lang&#x2F;String;)Lorg&#x2F;apache&#x2F;commons&#x2F;cli&#x2F;Option$Builder;
-        at org.apache.flink.runtime.entrypoint.parser.CommandLineOptions.&lt;clinit&gt;(CommandLineOptions.java:27)
-        at org.apache.flink.runtime.entrypoint.DynamicParametersConfigurationParserFactory.options(DynamicParametersConfigurationParserFactory.java:43)
-        at org.apache.flink.runtime.entrypoint.DynamicParametersConfigurationParserFactory.getOptions(DynamicParametersConfigurationParserFactory.java:50)
-        at org.apache.flink.runtime.entrypoint.parser.CommandLineParser.parse(CommandLineParser.java:42)
-        at org.apache.flink.runtime.entrypoint.ClusterEntrypointUtils.parseParametersOrExit(ClusterEntrypointUtils.java:63)
-        at org.apache.flink.yarn.entrypoint.YarnJobClusterEntrypoint.main(YarnJobClusterEntrypoint.java:89)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception <span class="token keyword">in</span> thread <span class="token string">"main"</span> java.lang.NoSuchMethodError: org.apache.commons.cli.Option.builder<span class="token punctuation">(</span>Ljava/lang/String<span class="token punctuation">;</span><span class="token punctuation">)</span>Lorg/apache/commons/cli/Option<span class="token variable">$Builder</span><span class="token punctuation">;</span>
+        at org.apache.flink.runtime.entrypoint.parser.CommandLineOptions.<span class="token operator">&lt;</span>clinit<span class="token operator">></span><span class="token punctuation">(</span>CommandLineOptions.java:27<span class="token punctuation">)</span>
+        at org.apache.flink.runtime.entrypoint.DynamicParametersConfigurationParserFactory.options<span class="token punctuation">(</span>DynamicParametersConfigurationParserFactory.java:43<span class="token punctuation">)</span>
+        at org.apache.flink.runtime.entrypoint.DynamicParametersConfigurationParserFactory.getOptions<span class="token punctuation">(</span>DynamicParametersConfigurationParserFactory.java:50<span class="token punctuation">)</span>
+        at org.apache.flink.runtime.entrypoint.parser.CommandLineParser.parse<span class="token punctuation">(</span>CommandLineParser.java:42<span class="token punctuation">)</span>
+        at org.apache.flink.runtime.entrypoint.ClusterEntrypointUtils.parseParametersOrExit<span class="token punctuation">(</span>ClusterEntrypointUtils.java:63<span class="token punctuation">)</span>
+        at org.apache.flink.yarn.entrypoint.YarnJobClusterEntrypoint.main<span class="token punctuation">(</span>YarnJobClusterEntrypoint.java:89<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里在网上查了以下原因，说是因为缺少commons.cli相关的jar，按照网上的说法，去下载了一个commons-cli的jar包放到${FLINK_HOME}\lib下<br>但是，还是没有解决这个问题。<br>最终解决办法：<br>去掉hadoop相关的依赖:</p>
 <pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.hadoop<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
@@ -710,19 +710,19 @@ yarn logs -applicationId application_1640152414594_2461<span aria-hidden="true" 
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//配置ck的状态后端</span>
 env<span class="token punctuation">.</span><span class="token function">setStateBackend</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">HashMapStateBackend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">//设置系统异常退出或人为 Cancel 掉，不删除checkpoint数据</span>
-env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setExternalizedCheckpointCleanup</span><span class="token punctuation">(</span><span class="token class-name">CheckpointConfig</span><span class="token punctuation">.</span><span class="token class-name">ExternalizedCheckpointCleanup</span><span class="token punctuation">.</span>RETAIN_ON_CANCELLATION<span class="token punctuation">)</span><span class="token punctuation">;</span>
+env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setExternalizedCheckpointCleanup</span><span class="token punctuation">(</span><span class="token class-name">CheckpointConfig<span class="token punctuation">.</span>ExternalizedCheckpointCleanup</span><span class="token punctuation">.</span><span class="token constant">RETAIN_ON_CANCELLATION</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">//设置checkpoint存储目录</span>
 env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs://flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 env<span class="token punctuation">.</span><span class="token function">enableCheckpointing</span><span class="token punctuation">(</span><span class="token number">3000</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>启动任务后，在hdfs上查看checkpoint文件夹：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp2 ~]# hadoop fs -ls &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;
-Found 3 items
-drwxr-xr-x   - root supergroup          0 2022-03-19 11:51 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27
-drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;shared
-drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token punctuation">[</span>root@ddp2 ~<span class="token punctuation">]</span><span class="token comment"># hadoop fs -ls /flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/</span>
+Found <span class="token number">3</span> items
+drwxr-xr-x   - root supergroup          <span class="token number">0</span> <span class="token number">2022</span>-03-19 <span class="token number">11</span>:51 /flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/chk-27
+drwxr-xr-x   - root supergroup          <span class="token number">0</span> <span class="token number">2022</span>-03-19 <span class="token number">11</span>:49 /flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/shared
+drwxr-xr-x   - root supergroup          <span class="token number">0</span> <span class="token number">2022</span>-03-19 <span class="token number">11</span>:49 /flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <ol>
 <li>手动取消flink任务</li>
-<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -s hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27 -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar -hostName ddp5.hadoop -yourPort 3306 -dbName gjc_test -tableName gjc_test.gjc_test_binlog -userName root -password root123456<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token variable">$&#123;FLINK_HOME&#125;</span>/bin/flink run <span class="token parameter variable">-m</span> yarn-cluster <span class="token parameter variable">-yjm</span> <span class="token number">1024</span> <span class="token parameter variable">-ytm</span> <span class="token number">1024</span> <span class="token parameter variable">-yqu</span> root.default <span class="token parameter variable">-ynm</span> gjc_test_flink-cdc-mysql <span class="token parameter variable">-s</span> hdfs:///flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/chk-27 <span class="token parameter variable">-c</span> com.digiwin.flink.cdc2kafka.Mysql2Kakfa target/FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar <span class="token parameter variable">-hostName</span> ddp5.hadoop <span class="token parameter variable">-yourPort</span> <span class="token number">3306</span> <span class="token parameter variable">-dbName</span> gjc_test <span class="token parameter variable">-tableName</span> gjc_test.gjc_test_binlog <span class="token parameter variable">-userName</span> root <span class="token parameter variable">-password</span> root123456<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <blockquote>
 <p>这里注意：-s 需要在jar包之前指定，在jar包之后指定就不生效了</p>
 </blockquote>
@@ -739,33 +739,33 @@ drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;chec
         <span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="设置多个并行度"><a href="#设置多个并行度" class="headerlink" title="设置多个并行度"></a>设置多个并行度</h3><p>Flinkcdc任务在standalone模式下（这里只是在一台节点上启动了standalone），设置多并行度，报如下错误：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.CompletionException: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Could not acquire the minimum required resources.
-	at java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:292)
-	at java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:308)
-	at java.util.concurrent.CompletableFuture.uniApply(CompletableFuture.java:607)
-	at java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:591)
-	... 33 more
+	at java.util.concurrent.CompletableFuture.encodeThrowable<span class="token punctuation">(</span>CompletableFuture.java:292<span class="token punctuation">)</span>
+	at java.util.concurrent.CompletableFuture.completeThrowable<span class="token punctuation">(</span>CompletableFuture.java:308<span class="token punctuation">)</span>
+	at java.util.concurrent.CompletableFuture.uniApply<span class="token punctuation">(</span>CompletableFuture.java:607<span class="token punctuation">)</span>
+	at java.util.concurrent.CompletableFuture<span class="token variable">$UniApply</span>.tryFire<span class="token punctuation">(</span>CompletableFuture.java:591<span class="token punctuation">)</span>
+	<span class="token punctuation">..</span>. <span class="token number">33</span> <span class="token function">more</span>
 Caused by: org.apache.flink.runtime.jobmanager.scheduler.NoResourceAvailableException: Could not acquire the minimum required resources.
-	... 29 more
+	<span class="token punctuation">..</span>. <span class="token number">29</span> <span class="token function">more</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p><img src="/uploads/202203/Standalone%E6%A8%A1%E5%BC%8F%E7%9A%84Flink%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E6%83%85%E5%86%B5.png" alt="Standalone模式的Flink集群资源情况"><br>这是因为，只有一个节点的flink集群，这里只有一个slot，启动不了3个并行度<br>这种情况在yarn上运行的时候不存在这种问题</p>
 <h3 id="测试采集没有主键的表"><a href="#测试采集没有主键的表" class="headerlink" title="测试采集没有主键的表"></a>测试采集没有主键的表</h3><p>采集没有主键的表，通过DataStream的方式没找到办法，但是通过StreamTableEnvironment的方式，可以采集<br>下面是代码：</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
 
-<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStreamSource</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">Table</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span>bridge<span class="token punctuation">.</span>java<span class="token punctuation">.</span></span><span class="token class-name">StreamTableEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>types<span class="token punctuation">.</span></span><span class="token class-name">Row</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>datastream<span class="token punctuation">.</span></span><span class="token class-name">DataStreamSource</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">Table</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span>bridge<span class="token punctuation">.</span>java<span class="token punctuation">.</span></span><span class="token class-name">StreamTableEnvironment</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>types<span class="token punctuation">.</span></span><span class="token class-name">Row</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span></span><span class="token punctuation">;</span>
 
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">ArrayList</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Arrays</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">List</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">ArrayList</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Arrays</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">List</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span></span><span class="token punctuation">;</span>
 
 <span class="token comment">/**
  * 主要测试FlinkCDC采集Mysql，包含断点续传，提交任务到yarn上
@@ -874,10 +874,10 @@ sp_configure <span class="token string">'Agent XPs'</span><span class="token pun
 GO   
 <span class="token keyword">RECONFIGURE</span>   
 GO<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-这里这样设置了没有用，需要用下面的方式设置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#启用SQL Server代理
-sudo &#x2F;opt&#x2F;mssql&#x2F;bin&#x2F;mssql-conf set sqlagent.enabled true
-#需要重启服务生效
-sudo systemctl restart mssql-server<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+这里这样设置了没有用，需要用下面的方式设置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment">#启用SQL Server代理</span>
+<span class="token function">sudo</span> /opt/mssql/bin/mssql-conf <span class="token builtin class-name">set</span> sqlagent.enabled <span class="token boolean">true</span>
+<span class="token comment">#需要重启服务生效</span>
+<span class="token function">sudo</span> systemctl restart mssql-server<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 也可以通过图形界面操作：<br>开始–&gt; [win + R] –&gt; services.msc – 启动SQL server 代理服务。<blockquote>
 <p>这里实测，如果不开启agent服务，虽然表最终能开启cdc，但是，往表里添加数据等操作，cdc并没有生效<br><img src="/uploads/202203/%E6%9C%AA%E5%BC%80%E5%90%AFagent%E6%9C%8D%E5%8A%A1CDC%E6%9C%AA%E7%94%9F%E6%95%88.png" alt="未开启agent服务CDC未生效"></p>
 </blockquote>
@@ -934,8 +934,8 @@ go
 <span class="token comment">--test               /var/opt/mssql/data/test.mdf                                                                                                         </span>
 <span class="token comment">--test_log           /var/opt/mssql/data/test_log.ldf   </span>
 <span class="token comment">--TEST_CDC           /var/opt/mssql/data/TEST_CDC.ndf</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-如果不添加CDC专用的文件组和文件，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Msg 22973, Level 16, State 1, Server golden-02, Procedure sys.sp_cdc_enable_table_internal, Line 361
-The specified filegroup &#39;CDC&#39; is not a valid filegroup for database &#39;test&#39;. Specify a valid existing filegroup or create the named filegroup, and retry the operation.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+如果不添加CDC专用的文件组和文件，会报如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Msg <span class="token number">22973</span>, Level <span class="token number">16</span>, State <span class="token number">1</span>, Server golden-02, Procedure sys.sp_cdc_enable_table_internal, Line <span class="token number">361</span>
+The specified filegroup <span class="token string">'CDC'</span> is not a valid filegroup <span class="token keyword">for</span> database <span class="token string">'test'</span><span class="token builtin class-name">.</span> Specify a valid existing filegroup or create the named filegroup, and retry the operation.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
 <li>开启表级别的CDC：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">EXEC</span> sys<span class="token punctuation">.</span>sp_cdc_enable_table
         <span class="token variable">@source_schema</span> <span class="token operator">=</span> <span class="token string">'dbo'</span><span class="token punctuation">,</span> <span class="token comment">-- source_schema</span>
         <span class="token variable">@source_name</span> <span class="token operator">=</span> <span class="token string">'table_name'</span><span class="token punctuation">,</span> <span class="token comment">-- table_name</span>
@@ -982,13 +982,13 @@ The specified filegroup &#39;CDC&#39; is not a valid filegroup for database &#39
 <p>JAVA代码如下：</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
 
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">EnvironmentSettings</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">Table</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span>bridge<span class="token punctuation">.</span>java<span class="token punctuation">.</span></span><span class="token class-name">StreamTableEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>types<span class="token punctuation">.</span></span><span class="token class-name">Row</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">EnvironmentSettings</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span></span><span class="token class-name">Table</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>table<span class="token punctuation">.</span>api<span class="token punctuation">.</span>bridge<span class="token punctuation">.</span>java<span class="token punctuation">.</span></span><span class="token class-name">StreamTableEnvironment</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>types<span class="token punctuation">.</span></span><span class="token class-name">Row</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span></span><span class="token punctuation">;</span>
 
 
 <span class="token comment">/**
@@ -1023,22 +1023,22 @@ The specified filegroup &#39;CDC&#39; is not a valid filegroup for database &#39
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>提交的standalone报如下错：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"> The program finished with the following exception:
-org.apache.flink.client.program.ProgramInvocationException: The main method caused an error: Unable to create a source for reading table &#39;default_catalog.default_database.gjc_test_binlog&#39;.
+org.apache.flink.client.program.ProgramInvocationException: The main method caused an error: Unable to create a <span class="token builtin class-name">source</span> <span class="token keyword">for</span> reading table <span class="token string">'default_catalog.default_database.gjc_test_binlog'</span><span class="token builtin class-name">.</span>
 Table options are:
-&#39;connector&#39;&#x3D;&#39;sqlserver-cdc&#39;
-&#39;database-name&#39;&#x3D;&#39;test&#39;
-&#39;hostname&#39;&#x3D;&#39;192.168.233.129&#39;
-&#39;password&#39;&#x3D;&#39;Gjc123!@#&#39;
-&#39;port&#39;&#x3D;&#39;1433&#39;
-&#39;schema-name&#39;&#x3D;&#39;dbo&#39;
-&#39;table-name&#39;&#x3D;&#39;gjc_test_binlog&#39;
-&#39;username&#39;&#x3D;&#39;sa&#39;
-	at org.apache.flink.client.program.PackagedProgram.callMainMethod(PackagedProgram.java:372)
-Caused by: org.apache.flink.table.api.ValidationException: Unable to create a source for reading table &#39;default_catalog.default_database.gjc_test_binlog&#39;.
-	at org.apache.flink.table.factories.FactoryUtil.createTableSource(FactoryUtil.java:137)
-	... 8 more
-Caused by: org.apache.flink.table.api.ValidationException: Cannot discover a connector using option: &#39;connector&#39;&#x3D;&#39;sqlserver-cdc&#39;
-Caused by: org.apache.flink.table.api.ValidationException: Could not find any factory for identifier &#39;sqlserver-cdc&#39; that implements &#39;org.apache.flink.table.factories.DynamicTableFactory&#39; in the classpath.
+<span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'sqlserver-cdc'</span>
+<span class="token string">'database-name'</span><span class="token operator">=</span><span class="token string">'test'</span>
+<span class="token string">'hostname'</span><span class="token operator">=</span><span class="token string">'192.168.233.129'</span>
+<span class="token string">'password'</span><span class="token operator">=</span><span class="token string">'Gjc123!@#'</span>
+<span class="token string">'port'</span><span class="token operator">=</span><span class="token string">'1433'</span>
+<span class="token string">'schema-name'</span><span class="token operator">=</span><span class="token string">'dbo'</span>
+<span class="token string">'table-name'</span><span class="token operator">=</span><span class="token string">'gjc_test_binlog'</span>
+<span class="token string">'username'</span><span class="token operator">=</span><span class="token string">'sa'</span>
+	at org.apache.flink.client.program.PackagedProgram.callMainMethod<span class="token punctuation">(</span>PackagedProgram.java:372<span class="token punctuation">)</span>
+Caused by: org.apache.flink.table.api.ValidationException: Unable to create a <span class="token builtin class-name">source</span> <span class="token keyword">for</span> reading table <span class="token string">'default_catalog.default_database.gjc_test_binlog'</span><span class="token builtin class-name">.</span>
+	at org.apache.flink.table.factories.FactoryUtil.createTableSource<span class="token punctuation">(</span>FactoryUtil.java:137<span class="token punctuation">)</span>
+	<span class="token punctuation">..</span>. <span class="token number">8</span> <span class="token function">more</span>
+Caused by: org.apache.flink.table.api.ValidationException: Cannot discover a connector using option: <span class="token string">'connector'</span><span class="token operator">=</span><span class="token string">'sqlserver-cdc'</span>
+Caused by: org.apache.flink.table.api.ValidationException: Could not <span class="token function">find</span> any factory <span class="token keyword">for</span> identifier <span class="token string">'sqlserver-cdc'</span> that implements <span class="token string">'org.apache.flink.table.factories.DynamicTableFactory'</span> <span class="token keyword">in</span> the classpath.
 
 Available factory identifiers are:
 blackhole
@@ -1046,9 +1046,9 @@ datagen
 filesystem
 mysql-cdc
 print
-	at org.apache.flink.table.factories.FactoryUtil.discoverFactory(FactoryUtil.java:319)
-	at org.apache.flink.table.factories.FactoryUtil.enrichNoMatchingConnectorError(FactoryUtil.java:463)
-	... 34 more
+	at org.apache.flink.table.factories.FactoryUtil.discoverFactory<span class="token punctuation">(</span>FactoryUtil.java:319<span class="token punctuation">)</span>
+	at org.apache.flink.table.factories.FactoryUtil.enrichNoMatchingConnectorError<span class="token punctuation">(</span>FactoryUtil.java:463<span class="token punctuation">)</span>
+	<span class="token punctuation">..</span>. <span class="token number">34</span> <span class="token function">more</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里很奇怪，在idea里能直接执行，以sqlClient的方式也能正常执行，但是，写java代码就不能执行了<br>数据库配置已经读取到了，但是，还是报<code> Unable to create a source for reading table &#39;default_catalog.default_database.gjc_test_binlog&#39;.</code></p>
 <p>这里开启了sqlserver的angent服务以后，就成功了<br><img src="/uploads/202203/Flinksql%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%8F%96sqlserver%E6%88%90%E5%8A%9F.png" alt="Flinksql方式读取sqlserver成功"></p>
@@ -1059,28 +1059,28 @@ print
 
 <h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><ol>
 <li><p>以flinksql方式测试mysql8.0.x,报错</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.util.FlinkException: Global failure triggered by OperatorCoordinator for &#39;Source: TableSourceScan(table&#x3D;[[default_catalog, default_database, gjc_test_binlog]], fields&#x3D;[id, a, t_modified]) -&gt; SinkConversionToTuple2 -&gt; Sink: Print to Std. Out&#39; (operator cbc357ccb763df2852fee8c4fc7d55f2).
-	at org.apache.flink.runtime.operators.coordination.OperatorCoordinatorHolder$LazyInitializedCoordinatorContext.failJob(OperatorCoordinatorHolder.java:553)
-	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator$QuiesceableContext.failJob(RecreateOnResetOperatorCoordinator.java:223)
-	at org.apache.flink.runtime.source.coordinator.SourceCoordinatorContext.failJob(SourceCoordinatorContext.java:285)
-	at org.apache.flink.runtime.source.coordinator.SourceCoordinator.start(SourceCoordinator.java:133)
-	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator$DeferrableCoordinator.applyCall(RecreateOnResetOperatorCoordinator.java:291)
-	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator.start(RecreateOnResetOperatorCoordinator.java:70)
-	... 13 more
-Caused by: org.apache.flink.util.FlinkRuntimeException: com.zaxxer.hikari.pool.HikariPool$PoolInitializationException: Failed to initialize pool: Access denied for user &#39;root&#39;@&#39;localhost&#39; (using password: YES)
-	at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection(DebeziumUtils.java:65)
-	at com.ververica.cdc.connectors.mysql.MySqlValidator.validate(MySqlValidator.java:68)
-	at com.ververica.cdc.connectors.mysql.source.MySqlSource.createEnumerator(MySqlSource.java:174)
-	at org.apache.flink.runtime.source.coordinator.SourceCoordinator.start(SourceCoordinator.java:129)
-	... 30 more
-Caused by: com.zaxxer.hikari.pool.HikariPool$PoolInitializationException: Failed to initialize pool: Access denied for user &#39;root&#39;@&#39;localhost&#39; (using password: YES)
-	at com.zaxxer.hikari.pool.HikariPool.throwPoolInitializationException(HikariPool.java:596)
-	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:582)
-	at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection(DebeziumUtils.java:62)
-	... 33 more
-Caused by: java.sql.SQLException: Access denied for user &#39;root&#39;@&#39;localhost&#39; (using password: YES)
-	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:129)
-	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:97)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.flink.util.FlinkException: Global failure triggered by OperatorCoordinator <span class="token keyword">for</span> <span class="token string">'Source: TableSourceScan(table=[[default_catalog, default_database, gjc_test_binlog]], fields=[id, a, t_modified]) -> SinkConversionToTuple2 -> Sink: Print to Std. Out'</span> <span class="token punctuation">(</span>operator cbc357ccb763df2852fee8c4fc7d55f2<span class="token punctuation">)</span>.
+	at org.apache.flink.runtime.operators.coordination.OperatorCoordinatorHolder<span class="token variable">$LazyInitializedCoordinatorContext</span>.failJob<span class="token punctuation">(</span>OperatorCoordinatorHolder.java:553<span class="token punctuation">)</span>
+	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator<span class="token variable">$QuiesceableContext</span>.failJob<span class="token punctuation">(</span>RecreateOnResetOperatorCoordinator.java:223<span class="token punctuation">)</span>
+	at org.apache.flink.runtime.source.coordinator.SourceCoordinatorContext.failJob<span class="token punctuation">(</span>SourceCoordinatorContext.java:285<span class="token punctuation">)</span>
+	at org.apache.flink.runtime.source.coordinator.SourceCoordinator.start<span class="token punctuation">(</span>SourceCoordinator.java:133<span class="token punctuation">)</span>
+	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator<span class="token variable">$DeferrableCoordinator</span>.applyCall<span class="token punctuation">(</span>RecreateOnResetOperatorCoordinator.java:291<span class="token punctuation">)</span>
+	at org.apache.flink.runtime.operators.coordination.RecreateOnResetOperatorCoordinator.start<span class="token punctuation">(</span>RecreateOnResetOperatorCoordinator.java:70<span class="token punctuation">)</span>
+	<span class="token punctuation">..</span>. <span class="token number">13</span> <span class="token function">more</span>
+Caused by: org.apache.flink.util.FlinkRuntimeException: com.zaxxer.hikari.pool.HikariPool<span class="token variable">$PoolInitializationException</span><span class="token builtin class-name">:</span> Failed to initialize pool: Access denied <span class="token keyword">for</span> user <span class="token string">'root'</span>@<span class="token string">'localhost'</span> <span class="token punctuation">(</span>using password: YES<span class="token punctuation">)</span>
+	at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection<span class="token punctuation">(</span>DebeziumUtils.java:65<span class="token punctuation">)</span>
+	at com.ververica.cdc.connectors.mysql.MySqlValidator.validate<span class="token punctuation">(</span>MySqlValidator.java:68<span class="token punctuation">)</span>
+	at com.ververica.cdc.connectors.mysql.source.MySqlSource.createEnumerator<span class="token punctuation">(</span>MySqlSource.java:174<span class="token punctuation">)</span>
+	at org.apache.flink.runtime.source.coordinator.SourceCoordinator.start<span class="token punctuation">(</span>SourceCoordinator.java:129<span class="token punctuation">)</span>
+	<span class="token punctuation">..</span>. <span class="token number">30</span> <span class="token function">more</span>
+Caused by: com.zaxxer.hikari.pool.HikariPool<span class="token variable">$PoolInitializationException</span><span class="token builtin class-name">:</span> Failed to initialize pool: Access denied <span class="token keyword">for</span> user <span class="token string">'root'</span>@<span class="token string">'localhost'</span> <span class="token punctuation">(</span>using password: YES<span class="token punctuation">)</span>
+	at com.zaxxer.hikari.pool.HikariPool.throwPoolInitializationException<span class="token punctuation">(</span>HikariPool.java:596<span class="token punctuation">)</span>
+	at com.zaxxer.hikari.pool.HikariPool.checkFailFast<span class="token punctuation">(</span>HikariPool.java:582<span class="token punctuation">)</span>
+	at com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils.openJdbcConnection<span class="token punctuation">(</span>DebeziumUtils.java:62<span class="token punctuation">)</span>
+	<span class="token punctuation">..</span>. <span class="token number">33</span> <span class="token function">more</span>
+Caused by: java.sql.SQLException: Access denied <span class="token keyword">for</span> user <span class="token string">'root'</span>@<span class="token string">'localhost'</span> <span class="token punctuation">(</span>using password: YES<span class="token punctuation">)</span>
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException<span class="token punctuation">(</span>SQLError.java:129<span class="token punctuation">)</span>
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException<span class="token punctuation">(</span>SQLError.java:97<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>但是，明明已经指定了数据库ip等信息，</p>
 </li>
 <li><p>navicat能连接sqlserver，但是jdbc连接不上sqlserver<br>根据网上的说法，检查了 </p>
@@ -1194,7 +1194,7 @@ Caused by: java.sql.SQLException: Access denied for user &#39;root&#39;@&#39;loc
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文主要包括：  Centos安装k8s集群">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-08-22T02:13:02.000Z">
-<meta property="article:modified_time" content="2025-09-05T10:01:17.314Z">
+<meta property="article:modified_time" content="2025-09-08T09:34:09.605Z">
 <meta property="article:author" content="Golden">
 <meta property="article:tag" content="Kubernetes">
 <meta name="twitter:card" content="summary">
@@ -232,7 +232,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-09-05 18:01:17" itemprop="dateModified" datetime="2025-09-05T18:01:17+08:00">2025-09-05</time>
+                <time title="修改时间：2025-09-08 17:34:09" itemprop="dateModified" datetime="2025-09-08T17:34:09+08:00">2025-09-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -403,7 +403,7 @@ systemctl restart docker<span aria-hidden="true" class="line-numbers-rows"><span
   --upload-certs<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 参数说明:</li>
 </ol>
-<p>–kubernetes-version: 指定版本<br>–image-repository：镜像仓库，离线安装需要把相关镜像先拉取下来，且此处无需再配置<br>–apiserver-advertise-address：集群通告地址,为通告给其它组件的IP，一般应为master节点的IP地址<br>–image-repository：由于默认拉取镜像地址k8s.gcr.io国内无法访问，这里指定镜像仓库地址<br>–kubernetes-version：K8s版本，与上面安装的一致<br>–service-cidr：集群内部虚拟网络，Pod统一访问入口<br>–pod-network-cidr：Pod网络，有两个值，打算使用calico网络插件时，最好使用10.96.0.0/16，192.168.0.0/16，打算使用flannel网络插件时最好使用10.244.0.0/16<br>–control-plane-endpoint: 该参数用于定义一个稳定的访问端点（通常是负载均衡器地址或 DNS 名称），所有工作节点和其他控制平面节点都通过这个端点与集群通信。在 HA 集群中，必须配置。<br>–upload-certs：自动分发证书供其他控制平面节点加入</p>
+<p>–kubernetes-version: 指定版本<br>–image-repository：镜像仓库，离线安装需要把相关镜像先拉取下来，且此处无需再配置<br>–apiserver-advertise-address：集群通告地址,为通告给其它组件的IP，一般应为master节点的IP地址<br>–image-repository：由于默认拉取镜像地址k8s.gcr.io国内无法访问，这里指定镜像仓库地址<br>–kubernetes-version：K8s版本，与上面安装的一致<br>–service-cidr：集群内部虚拟网络，Pod统一访问入口<br>–pod-network-cidr：Pod网络，有两个值，打算使用calico网络插件时，最好使用10.96.0.0/16，192.168.0.0/16，打算使用flannel网络插件时最好使用10.244.0.0/16,这里的网段不能与主机网络再同一个网段，否则calico安装完后，master节点和worker网络ping不通<br>–control-plane-endpoint: 该参数用于定义一个稳定的访问端点（通常是负载均衡器地址或 DNS 名称），所有工作节点和其他控制平面节点都通过这个端点与集群通信。在 HA 集群中，必须配置。<br>–upload-certs：自动分发证书供其他控制平面节点加入</p>
 <p><strong>注意：</strong> </p>
 <ol>
 <li>版本必须和上边安装的kubelet,kubead,kubectl保持一致</li>
@@ -455,7 +455,9 @@ sudo chown $(id -u):$(id -g) $HOME&#x2F;.kube&#x2F;config<span aria-hidden="true
 Run &#39;kubectl get nodes&#39; on the control-plane to see this node join the cluster.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 在所有worker上执行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p $HOME&#x2F;.kube
 scp ddp1:&#x2F;etc&#x2F;kubernetes&#x2F;admin.conf $HOME&#x2F;.kube&#x2F;config
-sudo chown $(id -u):$(id -g) $HOME&#x2F;.kube&#x2F;config<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+sudo chown $(id -u):$(id -g) $HOME&#x2F;.kube&#x2F;config
+## 或者，把&#x2F;etc&#x2F;kubernetes&#x2F;admin.conf scp到所有worker节点
+export KUBECONFIG&#x3D;&#x2F;etc&#x2F;kubernetes&#x2F;admin.conf<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="启动kubelet并设置开机自启"><a href="#启动kubelet并设置开机自启" class="headerlink" title="启动kubelet并设置开机自启"></a>启动kubelet并设置开机自启</h3></li>
 </ol>
 <p><strong>master上需要kubeadm init之后才能启动，worker需要kubeadm join之后才能启动</strong></p>
@@ -930,7 +932,10 @@ mysql-service   ClusterIP   10.8.235.95   &lt;none&gt;        3307&#x2F;TCP   16
     <a href="/2025/08/20/Ambari%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1/" rel="prev" title="Ambari自定义服务">
       <i class="fa fa-chevron-left"></i> Ambari自定义服务
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2025/10/29/Hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D/" rel="next" title="Hbase元数据修复">
+      Hbase元数据修复 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -1006,7 +1011,7 @@ mysql-service   ClusterIP   10.8.235.95   &lt;none&gt;        3307&#x2F;TCP   16
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -358,7 +358,7 @@
 <p>在写java或者scala的时候，直接写=号右边的内容，然后加一个.var,然后enter，就可以自动补全左边的定义变量的操作<br>在编辑java的时候，在调用类和正在编辑的类中来回切换： option + command + 方向键</p>
 </blockquote>
 <h2 id="github网页可以访问，但是ping不通"><a href="#github网页可以访问，但是ping不通" class="headerlink" title="github网页可以访问，但是ping不通"></a>github网页可以访问，但是ping不通</h2><p>最近从github上拉取代码，总是报超时，ping github.com后连不通<br>一开始以为是国外ip访问不了，翻墙试了一下，还是不行<br>最后解决方法，修改hosts文件<br>原因是直接ping github.com返回的服务器ip ping不通，但是github本身是有很多ip的，我们挑一个可以ping的通的ip</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">140.82.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"><span class="token number">140.82</span>.113.4 github.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>问题解决</p>
 <h2 id="idea配置lombok–idea2019不兼容问题"><a href="#idea配置lombok–idea2019不兼容问题" class="headerlink" title="idea配置lombok–idea2019不兼容问题"></a>idea配置lombok–idea2019不兼容问题</h2><p>使用idea开启配置lombok出现不兼容问题.<br>解决方法：打开lombok压缩包,修改META-INF/plugin.xml文件,直接在压缩包下用解压文件打开修改即可<br>具体步骤如下：</p>
 <ol>
@@ -380,10 +380,10 @@
 <li>复制<code>C:\Users\Golden\jihuo\Tool\IDEA激活码.txt</code>去IDEA激活即可</li>
 </ol>
 <h2 id="Windows下IDEA使用git提交代码报错"><a href="#Windows下IDEA使用git提交代码报错" class="headerlink" title="Windows下IDEA使用git提交代码报错"></a>Windows下IDEA使用git提交代码报错</h2><p>在windows下使用IDEA的git提交代码报错：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">error: unable to read askpass response from &#39;C:\Users\Golden\AppData\Local\JetBrains\IntelliJIdea2023.2\tmp\intellij-git-askpass-local.sh&#39;
-bash: line 1: &#x2F;dev&#x2F;tty: No such device or address
-error: failed to execute prompt script (exit code 1)
-fatal: could not read Username for &#39;http:&#x2F;&#x2F;10.40.42.38&#39;: No such file or directory<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">error: unable to <span class="token builtin class-name">read</span> askpass response from <span class="token string">'C:\Users\Golden\AppData\Local\JetBrains\IntelliJIdea2023.2\tmp\intellij-git-askpass-local.sh'</span>
+bash: line <span class="token number">1</span>: /dev/tty: No such device or address
+error: failed to execute prompt script <span class="token punctuation">(</span>exit code <span class="token number">1</span><span class="token punctuation">)</span>
+fatal: could not <span class="token builtin class-name">read</span> Username <span class="token keyword">for</span> <span class="token string">'http://10.40.42.38'</span><span class="token builtin class-name">:</span> No such <span class="token function">file</span> or directory<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>在设置里勾选git的相应配置：<br><img src="/uploads/202310/IDEA%E8%A7%A3%E5%86%B3git%E6%8A%A5%E9%94%99.png" alt="IDEA解决git报错"></p>
 <h2 id="Windows下激活Navicat-16"><a href="#Windows下激活Navicat-16" class="headerlink" title="Windows下激活Navicat 16"></a>Windows下激活Navicat 16</h2><ol>
 <li>下载Navicat16及其注册器</li>
@@ -497,7 +497,7 @@ fatal: could not read Username for &#39;http:&#x2F;&#x2F;10.40.42.38&#39;: No su
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

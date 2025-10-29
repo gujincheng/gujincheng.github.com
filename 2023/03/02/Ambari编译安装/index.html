@@ -395,29 +395,29 @@ vim ambari/ambari-admin/pom.xml
 <h3 id="修改多处源码pom文件"><a href="#修改多处源码pom文件" class="headerlink" title="修改多处源码pom文件"></a>修改多处源码pom文件</h3><p>ambari源码内多处pom文件写死了repository和mirror，里面的很多url都是访问不了的。<br>把这些都删除掉。</p>
 <p>可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_51205511/article/details/121861883">Ambari源码编译、安装（包括异常处理）</a><br><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.7.6">Ambari官网</a></p>
 <h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3><ol>
-<li><code>Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.4:install-node-and-yarn</code><pre class="line-numbers language-text" data-language="text"><code class="language-text">[ERROR] Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.4:install-node-and-yarn (install node and yarn) on project ambari-web: Could not download Yarn: Could not download https:&#x2F;&#x2F;github.com&#x2F;yarnpkg&#x2F;yarn&#x2F;releases&#x2F;download&#x2F;v0.23.2&#x2F;yarn-v0.23.2.tar.gz: Remote host closed connection during handshake: SSL peer shut down incorrectly -&gt; [Help 1]
+<li><code>Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.4:install-node-and-yarn</code><pre class="line-numbers language-text" data-language="text"><code class="language-text">[ERROR] Failed to execute goal com.github.eirslett:frontend-maven-plugin:1.4:install-node-and-yarn (install node and yarn) on project ambari-web: Could not download Yarn: Could not download https://github.com/yarnpkg/yarn/releases/download/v0.23.2/yarn-v0.23.2.tar.gz: Remote host closed connection during handshake: SSL peer shut down incorrectly -> [Help 1]
 [ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
 [ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http:&#x2F;&#x2F;cwiki.apache.org&#x2F;confluence&#x2F;display&#x2F;MAVEN&#x2F;MojoFailureException
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
 [ERROR]
 [ERROR] After correcting the problems, you can resume the build with the command
-[ERROR]   mvn &lt;args&gt; -rf :ambari-web<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+[ERROR]   mvn &lt;args> -rf :ambari-web<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 解决办法：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p ~&#x2F;.m2&#x2F;repository&#x2F;com&#x2F;github&#x2F;eirslett&#x2F;yarn&#x2F;0.21.3&#x2F;yarn-0.21.3.&#x2F;
 cd ~&#x2F;.m2&#x2F;repository&#x2F;com&#x2F;github&#x2F;eirslett&#x2F;yarn&#x2F;0.21.3&#x2F;yarn-0.21.3.&#x2F;
 wget https:&#x2F;&#x2F;github.com&#x2F;yarnpkg&#x2F;yarn&#x2F;releases&#x2F;download&#x2F;v0.23.2&#x2F;yarn-v0.23.2.tar.gz<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
-<li><code>Failed to run task: &#39;yarn install --ignore-engines --pure-lockfile&#39; failed</code><pre class="line-numbers language-text" data-language="text"><code class="language-text">[ERROR] Failed to execute goal org.codehaus.mojo:exec-maven-plugin:1.2.1:exec (Bower install) on project ambari-admin: Command execution failed. Process exited with an error: 1 (Exit value: 1) -&gt; [Help 1]
+<li><code>Failed to run task: &#39;yarn install --ignore-engines --pure-lockfile&#39; failed</code><pre class="line-numbers language-text" data-language="text"><code class="language-text">[ERROR] Failed to execute goal org.codehaus.mojo:exec-maven-plugin:1.2.1:exec (Bower install) on project ambari-admin: Command execution failed. Process exited with an error: 1 (Exit value: 1) -> [Help 1]
 [ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
 [ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http:&#x2F;&#x2F;cwiki.apache.org&#x2F;confluence&#x2F;display&#x2F;MAVEN&#x2F;MojoExecutionException
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
 [ERROR]
 [ERROR] After correcting the problems, you can resume the build with the command
-[ERROR]   mvn &lt;args&gt; -rf :ambari-admin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+[ERROR]   mvn &lt;args> -rf :ambari-admin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 解决办法：安装git，并且调整nodejs版本&lt;= v11.15.0</li>
 </ol>
 <ol start="3">
@@ -638,7 +638,7 @@ Caused by: java.sql.SQLSyntaxErrorException: Table &#39;ambari.metainfo&#39; doe
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

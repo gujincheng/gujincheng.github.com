@@ -300,18 +300,18 @@
      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>password</span><span class="token punctuation">></span></span>a398K4py<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>password</span><span class="token punctuation">></span></span>
    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>server</span><span class="token punctuation">></span></span>
  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>servers</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>命令行执行如下命令<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">maven 插件版本 :&quot;maven-deploy-plugin:2.7&quot;
+<li>命令行执行如下命令<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">maven 插件版本 <span class="token builtin class-name">:</span><span class="token string">"maven-deploy-plugin:2.7"</span>
 
-mvn deploy:deploy-file -DgroupId&#x3D;com.cloudera
--DartifactId&#x3D;ImpalaJDBC41
--Dversion&#x3D;2.6.3
--Dpackaging&#x3D;jar
--Dfile&#x3D;C:\Users\digiwin\Desktop\数据服务\ImpalaJDBC41-2.6.3.jar
--Durl&#x3D;https:&#x2F;&#x2F;repo.digiwincloud.com.cn&#x2F;maven&#x2F;repository&#x2F;releases&#x2F;
--DrepositoryId&#x3D;deploymentRepo
+mvn deploy:deploy-file <span class="token parameter variable">-DgroupId</span><span class="token operator">=</span>com.cloudera
+<span class="token parameter variable">-DartifactId</span><span class="token operator">=</span>ImpalaJDBC41
+<span class="token parameter variable">-Dversion</span><span class="token operator">=</span><span class="token number">2.6</span>.3
+<span class="token parameter variable">-Dpackaging</span><span class="token operator">=</span>jar
+<span class="token parameter variable">-Dfile</span><span class="token operator">=</span>C:<span class="token punctuation">\</span>Users<span class="token punctuation">\</span>digiwin<span class="token punctuation">\</span>Desktop<span class="token punctuation">\</span>数据服务<span class="token punctuation">\</span>ImpalaJDBC41-2.6.3.jar
+<span class="token parameter variable">-Durl</span><span class="token operator">=</span>https://repo.digiwincloud.com.cn/maven/repository/releases/
+<span class="token parameter variable">-DrepositoryId</span><span class="token operator">=</span>deploymentRepo
 
-#去除换行符：
-mvn deploy:deploy-file -DgroupId&#x3D;com.cloudera -DartifactId&#x3D;ImpalaJDBC41 -Dversion&#x3D;2.6.3 -Dpackaging&#x3D;jar -Dfile&#x3D;C:\Users\digiwin\Desktop\数据服务\ImpalaJDBC41-2.6.3.jar -Durl&#x3D;https:&#x2F;&#x2F;repo.digiwincloud.com.cn&#x2F;maven&#x2F;repository&#x2F;releases&#x2F; -DrepositoryId&#x3D;deploymentRepo<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<span class="token comment">#去除换行符：</span>
+mvn deploy:deploy-file <span class="token parameter variable">-DgroupId</span><span class="token operator">=</span>com.cloudera <span class="token parameter variable">-DartifactId</span><span class="token operator">=</span>ImpalaJDBC41 <span class="token parameter variable">-Dversion</span><span class="token operator">=</span><span class="token number">2.6</span>.3 <span class="token parameter variable">-Dpackaging</span><span class="token operator">=</span>jar <span class="token parameter variable">-Dfile</span><span class="token operator">=</span>C:<span class="token punctuation">\</span>Users<span class="token punctuation">\</span>digiwin<span class="token punctuation">\</span>Desktop<span class="token punctuation">\</span>数据服务<span class="token punctuation">\</span>ImpalaJDBC41-2.6.3.jar <span class="token parameter variable">-Durl</span><span class="token operator">=</span>https://repo.digiwincloud.com.cn/maven/repository/releases/ <span class="token parameter variable">-DrepositoryId</span><span class="token operator">=</span>deploymentRepo<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>pom 文件中配置私有仓库坐标<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>repositories</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>repository</span><span class="token punctuation">></span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>id</span><span class="token punctuation">></span></span>deploymentRepo<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>id</span><span class="token punctuation">></span></span>
@@ -506,7 +506,7 @@ mvn deploy:deploy-file -DgroupId&#x3D;com.cloudera -DartifactId&#x3D;ImpalaJDBC4
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -294,12 +294,12 @@
 <h2 id="网上的说法："><a href="#网上的说法：" class="headerlink" title="网上的说法："></a>网上的说法：</h2><p>hive元数据问题，需要重新初始化hive的元数据<br>但是这个方法肯定不适合我，因为仓库里的表不能受影响，上千张表呢，如果初始化了，所有表都要重新创建。</p>
 <h2 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h2><ul>
 <li><p>首先查看服务器上/tmp/${user}/hive.log文件，这个是公司服务器当时配置的详细的hive执行日志。<br>在日志中，有一段报错：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2019-07-06T10:01:53,737 ERROR [370c0a81-c922-4c61-8315-264c39b372c3 main] metastore.RetryingHMSHandler: MetaException(message:Hive Schema version 3.1.0 does not match metastore&#39;s schema version 1.2.0 Metastore is not upgraded or corrupt)
-        at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:9063)
-        at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:9027)
-        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token number">2019</span>-07-06T10:01:53,737 ERROR <span class="token punctuation">[</span>370c0a81-c922-4c61-8315-264c39b372c3 main<span class="token punctuation">]</span> metastore.RetryingHMSHandler: MetaException<span class="token punctuation">(</span>message:Hive Schema version <span class="token number">3.1</span>.0 does not match metastore's schema version <span class="token number">1.2</span>.0 Metastore is not upgraded or corrupt<span class="token punctuation">)</span>
+        at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema<span class="token punctuation">(</span>ObjectStore.java:9063<span class="token punctuation">)</span>
+        at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema<span class="token punctuation">(</span>ObjectStore.java:9027<span class="token punctuation">)</span>
+        at sun.reflect.NativeMethodAccessorImpl.invoke0<span class="token punctuation">(</span>Native Method<span class="token punctuation">)</span>
+        at sun.reflect.NativeMethodAccessorImpl.invoke<span class="token punctuation">(</span>NativeMethodAccessorImpl.java:62<span class="token punctuation">)</span>
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke<span class="token punctuation">(</span>DelegatingMethodAccessorImpl.java:43<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里的意思是，hive的版本是3.1.0，但是元数据中的版本信息是1.2.0，因此报错。</p>
 </li>
 <li><p>到hive的元数据库里查了下version表里的数据，确实版本是1.2.0</p>
@@ -342,15 +342,15 @@
 <li><code>hive.metastore.schema.verification.record.version</code> 如果设置为true，每次启动spark的时候，如果检查了hive的版本和spark编译的版本不一致，那么就会修改hive的元数据</li>
 </ul>
 <p>这里的修改需要设置</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hive.metastore.schema.verification&#x3D;false   
-hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token assign-left variable">hive.metastore.schema.verification</span><span class="token operator">=</span>false   
+<span class="token assign-left variable">hive.metastore.schema.verification.record.version</span><span class="token operator">=</span>false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>以下有3个反例：</p>
 <ul>
 <li>如过这两个都为true，那么spark会修改hive元数据</li>
-<li>如果<code>hive.metastore.schema.verification=true</code>，<br>并且<code>hive.metastore.schema.verification.record.version=false</code>，这时候启动spark就会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: MetaException(message:Hive Schema version 1.2.0 does not match metastore&#39;s schema version 3.1.0 Metastore is not upgraded or corrupt)
-	at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema(ObjectStore.java:6679)
-	at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema(ObjectStore.java:6645)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>如果<code>hive.metastore.schema.verification=true</code>，<br>并且<code>hive.metastore.schema.verification.record.version=false</code>，这时候启动spark就会报错：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: MetaException<span class="token punctuation">(</span>message:Hive Schema version <span class="token number">1.2</span>.0 does not match metastore's schema version <span class="token number">3.1</span>.0 Metastore is not upgraded or corrupt<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.metastore.ObjectStore.checkSchema<span class="token punctuation">(</span>ObjectStore.java:6679<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.metastore.ObjectStore.verifySchema<span class="token punctuation">(</span>ObjectStore.java:6645<span class="token punctuation">)</span>
+	at sun.reflect.NativeMethodAccessorImpl.invoke0<span class="token punctuation">(</span>Native Method<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>如果设置<code>hive.metastore.schema.verification=false</code><br>且<code>hive.metastore.schema.verification.record.version=true</code>，spark还是会修改hive的元数据</li>
 </ul>
 <p><img src="/uploads/202101/hive-metastore-schema-verification.png" alt="hive-metastore-schema-verification"><br><img src="/uploads/202101/hive-metastore-latest-effect.png" alt="hive-metastore-latest-effect"></p>
@@ -456,7 +456,7 @@ hive.metastore.schema.verification.record.version&#x3D;false<span aria-hidden="t
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

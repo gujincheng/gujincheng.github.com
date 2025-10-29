@@ -292,49 +292,49 @@
 <h2 id="Kafka简介"><a href="#Kafka简介" class="headerlink" title="Kafka简介"></a>Kafka简介</h2></li>
 </ul>
 <h2 id="Kafka可以干什么？"><a href="#Kafka可以干什么？" class="headerlink" title="Kafka可以干什么？"></a>Kafka可以干什么？</h2><h2 id="Kafka安装与启动"><a href="#Kafka安装与启动" class="headerlink" title="Kafka安装与启动"></a>Kafka安装与启动</h2><h3 id="Kafka安装"><a href="#Kafka安装" class="headerlink" title="Kafka安装"></a>Kafka安装</h3><p>Kafka需要用到java，安装前需要安装java，这里省略<br>Kafka可以使用内置的zookeeper，也可以使用单独的zookeeper，一般生产环境都是使用单独的zookeeper集群<br>zookeeper安装可以参考<a href="https://gujincheng.github.io/2021/01/21/Zookeeper%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89/">Zookeeper学习笔记（一）</a><br>官网下载Kafka安装包，并解压</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf kafka-2.11.0.tar.gz -C .
-cd kafka-2.11.0&#x2F;config
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">tar</span> zxvf kafka-2.11.0.tar.gz <span class="token parameter variable">-C</span> <span class="token builtin class-name">.</span>
+<span class="token builtin class-name">cd</span> kafka-2.11.0/config
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>修改server.properties</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">host.name&#x3D;golden-02
-# 指定kafka日志文件的存储目录
-log.dirs&#x3D;&#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F;kafka-logs
-# 指定zookeeper的连接地址，多个地址用逗号分隔
-zookeeper.connect&#x3D;golden-02:2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"><span class="token assign-left variable">host.name</span><span class="token operator">=</span>golden-02
+<span class="token comment"># 指定kafka日志文件的存储目录</span>
+<span class="token assign-left variable">log.dirs</span><span class="token operator">=</span>/opt/modules/kafka-2.11.0/kafka-logs
+<span class="token comment"># 指定zookeeper的连接地址，多个地址用逗号分隔</span>
+<span class="token assign-left variable">zookeeper.connect</span><span class="token operator">=</span>golden-02:2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里设置了kafka-logs，手动生成了这个文件夹</p>
 <p>最后，设置Kakfa的环境变量</p>
-<h3 id="Kafka启动等操作"><a href="#Kafka启动等操作" class="headerlink" title="Kafka启动等操作"></a>Kafka启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
-cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
-# 关闭
-cd &#x2F;opt&#x2F;modules&#x2F;kafka-2.11.0&#x2F; &amp;&amp; bin&#x2F;kafka-server-stop.sh <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="Kafka操作样例"><a href="#Kafka操作样例" class="headerlink" title="Kafka操作样例"></a>Kafka操作样例</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看所有topic
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --list
-## 创建topic
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --create --replication-factor 3 --partitions 1 --topic first
-## 删除topic
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092 --delete --topic first
-## 发送消息
-bin&#x2F;kafka-console-producer.sh --broker-list golden-02:9092 --topic first
-# 或者下面命令
-bin&#x2F;kafka-console-producer.sh --bootstrap-server golden-02:9092 --topic first
-## 消费消息
-bin&#x2F;kafka-console-consumer.sh  --bootstrap-server golden-02:9092  --from-beginning --topic first
-## 查看某个Topic的详情
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-02:9092  --describe --topic first
-## 查看某个group_id的消费情况，offset
-bin&#x2F;kafka-consumer-groups.sh --bootstrap-server golden-02:9092 --describe --group fink-test
+<h3 id="Kafka启动等操作"><a href="#Kafka启动等操作" class="headerlink" title="Kafka启动等操作"></a>Kafka启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 启动</span>
+<span class="token builtin class-name">cd</span> /opt/modules/kafka-2.11.0/ <span class="token operator">&amp;&amp;</span> bin/kafka-server-start.sh config/server.properties <span class="token operator">&amp;</span>
+<span class="token comment"># 关闭</span>
+<span class="token builtin class-name">cd</span> /opt/modules/kafka-2.11.0/ <span class="token operator">&amp;&amp;</span> bin/kafka-server-stop.sh <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Kafka操作样例"><a href="#Kafka操作样例" class="headerlink" title="Kafka操作样例"></a>Kafka操作样例</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment">## 查看所有topic</span>
+bin/kafka-topics.sh --bootstrap-server golden-02:9092 <span class="token parameter variable">--list</span>
+<span class="token comment">## 创建topic</span>
+bin/kafka-topics.sh --bootstrap-server golden-02:9092 <span class="token parameter variable">--create</span> --replication-factor <span class="token number">3</span> <span class="token parameter variable">--partitions</span> <span class="token number">1</span> <span class="token parameter variable">--topic</span> first
+<span class="token comment">## 删除topic</span>
+bin/kafka-topics.sh --bootstrap-server golden-02:9092 <span class="token parameter variable">--delete</span> <span class="token parameter variable">--topic</span> first
+<span class="token comment">## 发送消息</span>
+bin/kafka-console-producer.sh --broker-list golden-02:9092 <span class="token parameter variable">--topic</span> first
+<span class="token comment"># 或者下面命令</span>
+bin/kafka-console-producer.sh --bootstrap-server golden-02:9092 <span class="token parameter variable">--topic</span> first
+<span class="token comment">## 消费消息</span>
+bin/kafka-console-consumer.sh  --bootstrap-server golden-02:9092  --from-beginning <span class="token parameter variable">--topic</span> first
+<span class="token comment">## 查看某个Topic的详情</span>
+bin/kafka-topics.sh --bootstrap-server golden-02:9092  <span class="token parameter variable">--describe</span> <span class="token parameter variable">--topic</span> first
+<span class="token comment">## 查看某个group_id的消费情况，offset</span>
+bin/kafka-consumer-groups.sh --bootstrap-server golden-02:9092 <span class="token parameter variable">--describe</span> <span class="token parameter variable">--group</span> fink-test
 
-## 重置offset
-kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset 210000 --execute
-kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset --to-latest --execute
-kafka-consumer-groups --group dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset --to-datetime 2022-10-25T12:30:00.000 --execute
+<span class="token comment">## 重置offset</span>
+kafka-consumer-groups <span class="token parameter variable">--group</span> dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset <span class="token number">210000</span> <span class="token parameter variable">--execute</span>
+kafka-consumer-groups <span class="token parameter variable">--group</span> dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset --to-latest <span class="token parameter variable">--execute</span>
+kafka-consumer-groups <span class="token parameter variable">--group</span> dwd4rule_group --bootstrap-server ddp3.hadoop:9092 --reset-offsets --all-topics --to-offset --to-datetime <span class="token number">2022</span>-10-25T12:30:00.000 <span class="token parameter variable">--execute</span>
 
-# cdh版本命令
-kafka-topics --zookeeper xxxx:2181 --list
-kafka-topics --zookeeper xxxx:2181 --delete --topic users_source_mysql
-kafka-topics --zookeeper xxxx:2181 --create --replication-factor 1 --partitions 1 --topic first
-kafka-console-consumer --bootstrap-server xxxx:9092  --from-beginning --topic users_source_mysql
-kafka-console-producer --broker-list xxxx:9092 --topic first
+<span class="token comment"># cdh版本命令</span>
+kafka-topics <span class="token parameter variable">--zookeeper</span> xxxx:2181 <span class="token parameter variable">--list</span>
+kafka-topics <span class="token parameter variable">--zookeeper</span> xxxx:2181 <span class="token parameter variable">--delete</span> <span class="token parameter variable">--topic</span> users_source_mysql
+kafka-topics <span class="token parameter variable">--zookeeper</span> xxxx:2181 <span class="token parameter variable">--create</span> --replication-factor <span class="token number">1</span> <span class="token parameter variable">--partitions</span> <span class="token number">1</span> <span class="token parameter variable">--topic</span> first
+kafka-console-consumer --bootstrap-server xxxx:9092  --from-beginning <span class="token parameter variable">--topic</span> users_source_mysql
+kafka-console-producer --broker-list xxxx:9092 <span class="token parameter variable">--topic</span> first
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>选项说明：  </p>
 <ul>
@@ -350,53 +350,53 @@ kafka-console-producer --broker-list xxxx:9092 --topic first
 </li>
 </ul>
 <h2 id="Kafka数据迁移"><a href="#Kafka数据迁移" class="headerlink" title="Kafka数据迁移"></a>Kafka数据迁移</h2><p>公司的kafka数据存储所在磁盘空间太小，后期扩容后，也没有把扩容后的磁盘加入到kafka。现在想把之前的磁盘换到新扩容的磁盘里</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp3 ~]# df -h
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token punctuation">[</span>root@ddp3 ~<span class="token punctuation">]</span><span class="token comment"># df -h</span>
 Filesystem      Size  Used Avail Use% Mounted on
-devtmpfs         16G     0   16G   0% &#x2F;dev
-tmpfs            16G     0   16G   0% &#x2F;dev&#x2F;shm
-tmpfs            16G  856K   16G   1% &#x2F;run
-tmpfs            16G     0   16G   0% &#x2F;sys&#x2F;fs&#x2F;cgroup
-&#x2F;dev&#x2F;vda1        99G   86G  8.2G  92% &#x2F;
-&#x2F;dev&#x2F;vdb1       296G   90G  193G  32% &#x2F;data
-cm_processes     16G   29M   16G   1% &#x2F;run&#x2F;cloudera-scm-agent&#x2F;process
-tmpfs           3.1G     0  3.1G   0% &#x2F;run&#x2F;user&#x2F;0
-overlay          99G   86G  8.2G  92% &#x2F;var&#x2F;lib&#x2F;docker&#x2F;overlay2&#x2F;eab5e26d05206a9ae6591a28f66bebd4dc79529d2fcc462a135c855052fd49bd&#x2F;merged
-shm              64M     0   64M   0% &#x2F;var&#x2F;lib&#x2F;docker&#x2F;containers&#x2F;2733068e2bd0a33d90df3ce3a011a651e8d6a9ab81b4782fe2f9896701e48f1e&#x2F;shm<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+devtmpfs         16G     <span class="token number">0</span>   16G   <span class="token number">0</span>% /dev
+tmpfs            16G     <span class="token number">0</span>   16G   <span class="token number">0</span>% /dev/shm
+tmpfs            16G  856K   16G   <span class="token number">1</span>% /run
+tmpfs            16G     <span class="token number">0</span>   16G   <span class="token number">0</span>% /sys/fs/cgroup
+/dev/vda1        99G   86G  <span class="token number">8</span>.2G  <span class="token number">92</span>% /
+/dev/vdb1       296G   90G  193G  <span class="token number">32</span>% /data
+cm_processes     16G   29M   16G   <span class="token number">1</span>% /run/cloudera-scm-agent/process
+tmpfs           <span class="token number">3</span>.1G     <span class="token number">0</span>  <span class="token number">3</span>.1G   <span class="token number">0</span>% /run/user/0
+overlay          99G   86G  <span class="token number">8</span>.2G  <span class="token number">92</span>% /var/lib/docker/overlay2/eab5e26d05206a9ae6591a28f66bebd4dc79529d2fcc462a135c855052fd49bd/merged
+shm              64M     <span class="token number">0</span>   64M   <span class="token number">0</span>% /var/lib/docker/containers/2733068e2bd0a33d90df3ce3a011a651e8d6a9ab81b4782fe2f9896701e48f1e/shm<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>kafka数据存储在<code>/dev/vda1</code>磁盘下，现在想换到<code>/dev/vdb1</code><br>需要解决两个问题：</p>
 <ol>
 <li>kafka数据盘挂在新的文件夹下</li>
 <li>kakfa的历史数据需要移动到新的文件夹下</li>
 </ol>
 <p>但是不知道直接mv历史数据到新的磁盘下，数据会不会丢失，这里在自己电脑上做一下测试<br>本机的server.properties里配置的<code>log.dirs=/opt/modules/kafka-2.8.0/kafka-logs</code><br>目标是把数据迁移到<code>/tmp/kafka/kafka-logs</code><br>具体操作步骤：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 1. 创建kafkatopic
-bin&#x2F;kafka-topics.sh --bootstrap-server golden-cloud:9092 --create --replication-factor 1 --partitions 3 --topic first
-# 2. 向topic里发送4条数据，aaa&#x2F;bbb&#x2F;ccc&#x2F;ddd
-bin&#x2F;kafka-console-producer.sh --broker-list golden-cloud:9092 --topic first
-# 3.kafka服务不停止，直接mv文件夹
-cd &#x2F;tmp&#x2F;kafka&#x2F; &amp;&amp; mv &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F; .
-# 这时候kafka因为数据文件夹切换了，kafka服务报错停止
-[2022-03-31 16:57:50,559] ERROR Error while reading checkpoint file &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F;cleaner-offset-checkpoint (kafka.server.LogDirFailureChannel)
-java.nio.file.NoSuchFileException: &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs&#x2F;cleaner-offset-checkpoint
-	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
-	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
-	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
-	at sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:214)
-	at java.nio.file.Files.newByteChannel(Files.java:361)
-	at java.nio.file.Files.newByteChannel(Files.java:407)
-	at java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:384)
-	at java.nio.file.Files.newInputStream(Files.java:152)
-	at java.nio.file.Files.newBufferedReader(Files.java:2784)
-...
-[2022-03-31 16:57:50,584] WARN [ReplicaManager broker&#x3D;0] Broker 0 stopped fetcher for partitions __consumer_offsets-22,__consumer_offsets-30,__consumer_offsets-8,__consumer_offsets-21,__consumer_offsets-4,__consumer_offsets-27,__consumer_offsets-7,__consumer_offsets-9,first-1,__consumer_offsets-46,__consumer_offsets-25,__consumer_offsets-35,__consumer_offsets-41,__consumer_offsets-33,__consumer_offsets-23,__consumer_offsets-49,__consumer_offsets-47,__consumer_offsets-16,__consumer_offsets-28,__consumer_offsets-31,__consumer_offsets-36,__consumer_offsets-42,__consumer_offsets-3,__consumer_offsets-18,first-2,__consumer_offsets-37,first-0,__consumer_offsets-15,__consumer_offsets-24,__consumer_offsets-38,__consumer_offsets-17,__consumer_offsets-48,__consumer_offsets-19,__consumer_offsets-11,__consumer_offsets-13,__consumer_offsets-2,__consumer_offsets-43,__consumer_offsets-6,__consumer_offsets-14,__consumer_offsets-20,__consumer_offsets-0,__consumer_offsets-44,__consumer_offsets-39,__consumer_offsets-12,__consumer_offsets-45,__consumer_offsets-1,__consumer_offsets-5,__consumer_offsets-26,__consumer_offsets-29,__consumer_offsets-34,__consumer_offsets-10,__consumer_offsets-32,__consumer_offsets-40 and stopped moving logs for partitions  because they are in the failed log directory &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs. (kafka.server.ReplicaManager)
-[2022-03-31 16:57:50,584] WARN Stopping serving logs in dir &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs (kafka.log.LogManager)
-[2022-03-31 16:57:50,586] ERROR Shutdown broker because all log dirs in &#x2F;opt&#x2F;modules&#x2F;kafka-2.8.0&#x2F;kafka-logs have failed (kafka.log.LogManager)
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 1. 创建kafkatopic</span>
+bin/kafka-topics.sh --bootstrap-server golden-cloud:9092 <span class="token parameter variable">--create</span> --replication-factor <span class="token number">1</span> <span class="token parameter variable">--partitions</span> <span class="token number">3</span> <span class="token parameter variable">--topic</span> first
+<span class="token comment"># 2. 向topic里发送4条数据，aaa/bbb/ccc/ddd</span>
+bin/kafka-console-producer.sh --broker-list golden-cloud:9092 <span class="token parameter variable">--topic</span> first
+<span class="token comment"># 3.kafka服务不停止，直接mv文件夹</span>
+<span class="token builtin class-name">cd</span> /tmp/kafka/ <span class="token operator">&amp;&amp;</span> <span class="token function">mv</span> /opt/modules/kafka-2.8.0/kafka-logs/ <span class="token builtin class-name">.</span>
+<span class="token comment"># 这时候kafka因为数据文件夹切换了，kafka服务报错停止</span>
+<span class="token punctuation">[</span><span class="token number">2022</span>-03-31 <span class="token number">16</span>:57:50,559<span class="token punctuation">]</span> ERROR Error <span class="token keyword">while</span> reading checkpoint <span class="token function">file</span> /opt/modules/kafka-2.8.0/kafka-logs/cleaner-offset-checkpoint <span class="token punctuation">(</span>kafka.server.LogDirFailureChannel<span class="token punctuation">)</span>
+java.nio.file.NoSuchFileException: /opt/modules/kafka-2.8.0/kafka-logs/cleaner-offset-checkpoint
+	at sun.nio.fs.UnixException.translateToIOException<span class="token punctuation">(</span>UnixException.java:86<span class="token punctuation">)</span>
+	at sun.nio.fs.UnixException.rethrowAsIOException<span class="token punctuation">(</span>UnixException.java:102<span class="token punctuation">)</span>
+	at sun.nio.fs.UnixException.rethrowAsIOException<span class="token punctuation">(</span>UnixException.java:107<span class="token punctuation">)</span>
+	at sun.nio.fs.UnixFileSystemProvider.newByteChannel<span class="token punctuation">(</span>UnixFileSystemProvider.java:214<span class="token punctuation">)</span>
+	at java.nio.file.Files.newByteChannel<span class="token punctuation">(</span>Files.java:361<span class="token punctuation">)</span>
+	at java.nio.file.Files.newByteChannel<span class="token punctuation">(</span>Files.java:407<span class="token punctuation">)</span>
+	at java.nio.file.spi.FileSystemProvider.newInputStream<span class="token punctuation">(</span>FileSystemProvider.java:384<span class="token punctuation">)</span>
+	at java.nio.file.Files.newInputStream<span class="token punctuation">(</span>Files.java:152<span class="token punctuation">)</span>
+	at java.nio.file.Files.newBufferedReader<span class="token punctuation">(</span>Files.java:2784<span class="token punctuation">)</span>
+<span class="token punctuation">..</span>.
+<span class="token punctuation">[</span><span class="token number">2022</span>-03-31 <span class="token number">16</span>:57:50,584<span class="token punctuation">]</span> WARN <span class="token punctuation">[</span>ReplicaManager <span class="token assign-left variable">broker</span><span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">]</span> Broker <span class="token number">0</span> stopped fetcher <span class="token keyword">for</span> partitions __consumer_offsets-22,__consumer_offsets-30,__consumer_offsets-8,__consumer_offsets-21,__consumer_offsets-4,__consumer_offsets-27,__consumer_offsets-7,__consumer_offsets-9,first-1,__consumer_offsets-46,__consumer_offsets-25,__consumer_offsets-35,__consumer_offsets-41,__consumer_offsets-33,__consumer_offsets-23,__consumer_offsets-49,__consumer_offsets-47,__consumer_offsets-16,__consumer_offsets-28,__consumer_offsets-31,__consumer_offsets-36,__consumer_offsets-42,__consumer_offsets-3,__consumer_offsets-18,first-2,__consumer_offsets-37,first-0,__consumer_offsets-15,__consumer_offsets-24,__consumer_offsets-38,__consumer_offsets-17,__consumer_offsets-48,__consumer_offsets-19,__consumer_offsets-11,__consumer_offsets-13,__consumer_offsets-2,__consumer_offsets-43,__consumer_offsets-6,__consumer_offsets-14,__consumer_offsets-20,__consumer_offsets-0,__consumer_offsets-44,__consumer_offsets-39,__consumer_offsets-12,__consumer_offsets-45,__consumer_offsets-1,__consumer_offsets-5,__consumer_offsets-26,__consumer_offsets-29,__consumer_offsets-34,__consumer_offsets-10,__consumer_offsets-32,__consumer_offsets-40 and stopped moving logs <span class="token keyword">for</span> partitions  because they are <span class="token keyword">in</span> the failed log directory /opt/modules/kafka-2.8.0/kafka-logs. <span class="token punctuation">(</span>kafka.server.ReplicaManager<span class="token punctuation">)</span>
+<span class="token punctuation">[</span><span class="token number">2022</span>-03-31 <span class="token number">16</span>:57:50,584<span class="token punctuation">]</span> WARN Stopping serving logs <span class="token keyword">in</span> <span class="token function">dir</span> /opt/modules/kafka-2.8.0/kafka-logs <span class="token punctuation">(</span>kafka.log.LogManager<span class="token punctuation">)</span>
+<span class="token punctuation">[</span><span class="token number">2022</span>-03-31 <span class="token number">16</span>:57:50,586<span class="token punctuation">]</span> ERROR Shutdown broker because all log <span class="token function">dirs</span> <span class="token keyword">in</span> /opt/modules/kafka-2.8.0/kafka-logs have failed <span class="token punctuation">(</span>kafka.log.LogManager<span class="token punctuation">)</span>
 
-# 4. 修改server.properties的配置
-log.dirs&#x3D;&#x2F;tmp&#x2F;kafka&#x2F;kafka-logs
-# 5. 重启kafka服务
-bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &amp;
-# 6. 消费kafka first topic的数据
-bin&#x2F;kafka-console-consumer.sh  --bootstrap-server golden-cloud:9092  --from-beginning --topic first
+<span class="token comment"># 4. 修改server.properties的配置</span>
+<span class="token assign-left variable">log.dirs</span><span class="token operator">=</span>/tmp/kafka/kafka-logs
+<span class="token comment"># 5. 重启kafka服务</span>
+bin/kafka-server-start.sh config/server.properties <span class="token operator">&amp;</span>
+<span class="token comment"># 6. 消费kafka first topic的数据</span>
+bin/kafka-console-consumer.sh  --bootstrap-server golden-cloud:9092  --from-beginning <span class="token parameter variable">--topic</span> first
 bbb
 aaa
 ddd
@@ -411,9 +411,9 @@ ccc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span>
 <li>测试数据是否完整，一切正常后，删除原本数据文件夹</li>
 </ol>
 <h2 id="kafka配置外网访问"><a href="#kafka配置外网访问" class="headerlink" title="kafka配置外网访问"></a>kafka配置外网访问</h2><p>具体可以参考<a target="_blank" rel="noopener" href="https://www.dianjilingqu.com/620803.html">kafka配置外网访问</a></p>
-<h2 id="编译kafka"><a href="#编译kafka" class="headerlink" title="编译kafka"></a>编译kafka</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;kafka.git -b 2.8.1
-cd kafka
-.&#x2F;gradlew -PscalaVersion&#x3D;2.12.13 clean releaseTarGz -x signArchives<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h2 id="编译kafka"><a href="#编译kafka" class="headerlink" title="编译kafka"></a>编译kafka</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">git</span> clone https://github.com/apache/kafka.git <span class="token parameter variable">-b</span> <span class="token number">2.8</span>.1
+<span class="token builtin class-name">cd</span> kafka
+./gradlew <span class="token parameter variable">-PscalaVersion</span><span class="token operator">=</span><span class="token number">2.12</span>.13 clean releaseTarGz <span class="token parameter variable">-x</span> signArchives<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>默认情况下，Kafka的发行版压缩包会生成在core/build/distributions目录中</p>
 
     </div>
@@ -515,7 +515,7 @@ cd kafka
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

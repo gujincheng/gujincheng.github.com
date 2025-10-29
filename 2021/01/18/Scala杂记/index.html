@@ -318,15 +318,15 @@
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="array转json"><a href="#array转json" class="headerlink" title="array转json"></a>array转json</h3><p>一开始使用JSON.toJSONString(typeTageArr)这种方式，但是报如下错</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">error: ambiguous reference to overloaded definition,
-both method toJSONString in object JSON of type (x$1: Any, x$2: com.alibaba.fastjson.serializer.SerializerFeature*)String
-and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+both method toJSONString <span class="token keyword">in</span> object JSON of <span class="token builtin class-name">type</span> <span class="token punctuation">(</span>x<span class="token variable">$1</span><span class="token builtin class-name">:</span> Any, x<span class="token variable">$2</span><span class="token builtin class-name">:</span> com.alibaba.fastjson.serializer.SerializerFeature*<span class="token punctuation">)</span>String
+and  method toJSONString <span class="token keyword">in</span> object JSON of <span class="token builtin class-name">type</span> <span class="token punctuation">(</span>x<span class="token variable">$1</span><span class="token builtin class-name">:</span> Any<span class="token punctuation">)</span>String<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>从报错的信息当中我们得知是scala对对重载定义的模糊引用造成，从fastjson的源码中可以看到，有两个toJSONString的方法：</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
         <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> emptyFilters<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">&#125;</span>
 
 <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span><span class="token class-name">Object</span> object<span class="token punctuation">,</span> <span class="token class-name">SerializerFeature</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> features<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-    <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> DEFAULT_GENERATE_FEATURE<span class="token punctuation">,</span> features<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token function">toJSONString</span><span class="token punctuation">(</span>object<span class="token punctuation">,</span> <span class="token constant">DEFAULT_GENERATE_FEATURE</span><span class="token punctuation">,</span> features<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>在第二个方法中SerializerFeature… features 是一个可变长参数，带有变长参数的方法重载使得scala在调用方法时感到“模糊”，就无法匹配参数的类型</p>
 <p>所以在array或者map转json对象的时候，使用json4s比较好<br>使用案例：</p>
@@ -436,7 +436,7 @@ and  method toJSONString in object JSON of type (x$1: Any)String<span aria-hidde
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

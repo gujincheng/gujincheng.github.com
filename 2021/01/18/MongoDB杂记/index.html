@@ -281,7 +281,7 @@
 
       
         <h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection<span class="token punctuation">(</span><span class="token string">'all-aa-bb_cc_dd_20200129'</span><span class="token punctuation">)</span>.find<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
     </div>
 
@@ -382,7 +382,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -291,12 +291,12 @@
 <li>还可以在<code>spark-default.conf</code>里指定<code>spark.jars    /opt/hive/udf.jar</code></li>
 </ul>
 <h2 id="Truncated-the-string-representation-of-a-plan-since-it-was-too-large"><a href="#Truncated-the-string-representation-of-a-plan-since-it-was-too-large" class="headerlink" title="Truncated the string representation of a plan since it was too large"></a>Truncated the string representation of a plan since it was too large</h2><p>在<code>spark-default.conf</code>里设置</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.sql.debug.maxToStringFields   2000
-spark.debug.maxToStringFields   2000<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.sql.debug.maxToStringFields   <span class="token number">2000</span>
+spark.debug.maxToStringFields   <span class="token number">2000</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <h2 id="使用sparksql默认情况下会生成很多小文件，设置如下参数可以解决："><a href="#使用sparksql默认情况下会生成很多小文件，设置如下参数可以解决：" class="headerlink" title="使用sparksql默认情况下会生成很多小文件，设置如下参数可以解决："></a>使用sparksql默认情况下会生成很多小文件，设置如下参数可以解决：</h2><ul>
-<li>通过设置spark参数，<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">set spark.sql.adaptive.enabled&#x3D;true;
-set set spark.sql.adaptive.shuffle.targetPostShuffleInputSize &#x3D; 134217728;
-# 在sql中添加：distribute by cast(rand() * 5 as int)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<li>通过设置spark参数，<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">set</span> <span class="token assign-left variable">spark.sql.adaptive.enabled</span><span class="token operator">=</span>true<span class="token punctuation">;</span>
+<span class="token builtin class-name">set</span> <span class="token builtin class-name">set</span> spark.sql.adaptive.shuffle.targetPostShuffleInputSize <span class="token operator">=</span> <span class="token number">134217728</span><span class="token punctuation">;</span>
+<span class="token comment"># 在sql中添加：distribute by cast(rand() * 5 as int)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 具体可以参考：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/ddd2382a738a">如何避免Spark SQL做数据导入时产生大量小文件</a><br>这个方式不太靠谱，一开始设置的时候，没什么问题，但是后面不知道集群配置更改了什么，导致这个设置失效了。</li>
 <li>通过REPARTITION或者COALESCE，将Hive风格的Coalesce and Repartition Hint 应用到Spark SQL</li>
 </ul>
@@ -312,79 +312,79 @@ set set spark.sql.adaptive.shuffle.targetPostShuffleInputSize &#x3D; 134217728;
        business_name                                                                                       <span class="token comment">--商家名称</span>
 <span class="token keyword">from</span> <span class="token keyword">temp</span><span class="token punctuation">.</span>app_prom_realtime_marketing_use_coupon_effect_da_20210311_01<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>注意：单纯使用<code>/*+ COALESCE(1) */</code>，文件数不是1，但也不会有200个空文件了，通过设置两个<code>set</code>，保证文件数可以为1<br>这种方式对spark的版本有要求，最好在2.4.x以上<br>还可以设置一下<code>set spark.sql.hive.mergeFiles=true;</code></p>
-<h2 id="spark-sql-cli-输出日志级别为warn"><a href="#spark-sql-cli-输出日志级别为warn" class="headerlink" title="spark-sql cli 输出日志级别为warn"></a>spark-sql cli 输出日志级别为warn</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-sql --name &#39;gjc_spark_cli&#39; \
-          --conf &quot;spark.driver.extraJavaOptions&#x3D;-Dlog4j.configuration&#x3D;file:configure&#x2F;log4j.properties&quot; \  ## 用自己的log4j替代客户端的。公司客户端的是info级别，垃圾信息太多
-          --conf spark.ui.showConsoleProgress&#x3D;true \      ## 这个参数可以看到执行进度条
-          --master yarn \
-          --num-executors 20 \
-          --executor-memory 6G \
-          --driver-cores 4 \
+<h2 id="spark-sql-cli-输出日志级别为warn"><a href="#spark-sql-cli-输出日志级别为warn" class="headerlink" title="spark-sql cli 输出日志级别为warn"></a>spark-sql cli 输出日志级别为warn</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-sql <span class="token parameter variable">--name</span> <span class="token string">'gjc_spark_cli'</span> <span class="token punctuation">\</span>
+          <span class="token parameter variable">--conf</span> <span class="token string">"spark.driver.extraJavaOptions=-Dlog4j.configuration=file:configure/log4j.properties"</span> <span class="token punctuation">\</span>  <span class="token comment">## 用自己的log4j替代客户端的。公司客户端的是info级别，垃圾信息太多</span>
+          <span class="token parameter variable">--conf</span> <span class="token assign-left variable">spark.ui.showConsoleProgress</span><span class="token operator">=</span>true <span class="token punctuation">\</span>      <span class="token comment">## 这个参数可以看到执行进度条</span>
+          <span class="token parameter variable">--master</span> <span class="token function">yarn</span> <span class="token punctuation">\</span>
+          --num-executors <span class="token number">20</span> <span class="token punctuation">\</span>
+          --executor-memory 6G <span class="token punctuation">\</span>
+          --driver-cores <span class="token number">4</span> <span class="token punctuation">\</span>
           --driver-memory 6G<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="sparksql读取hive数据报错"><a href="#sparksql读取hive数据报错" class="headerlink" title="sparksql读取hive数据报错"></a>sparksql读取hive数据报错</h2><ul>
-<li>问题：  <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.ExecutionException: java.lang.IndexOutOfBoundsException: Index: 0
-	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
-	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat.generateSplitsInfo(OrcInputFormat.java:1016)
-	... 65 more
-Caused by: java.lang.IndexOutOfBoundsException: Index: 0
-	at java.util.Collections$EmptyList.get(Collections.java:4454)
-	at org.apache.hadoop.hive.ql.io.orc.OrcProto$Type.getSubtypes(OrcProto.java:12240)
-	at org.apache.hadoop.hive.ql.io.orc.ReaderImpl.getColumnIndicesFromNames(ReaderImpl.java:651)
-	at org.apache.hadoop.hive.ql.io.orc.ReaderImpl.getRawDataSizeOfColumns(ReaderImpl.java:634)
-	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat$SplitGenerator.populateAndCacheStripeDetails(OrcInputFormat.java:927)
-	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat$SplitGenerator.call(OrcInputFormat.java:836)
-	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat$SplitGenerator.call(OrcInputFormat.java:702)
-	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
-	at java.lang.Thread.run(Thread.java:748)
+<li>问题：  <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.util.concurrent.ExecutionException: java.lang.IndexOutOfBoundsException: Index: <span class="token number">0</span>
+	at java.util.concurrent.FutureTask.report<span class="token punctuation">(</span>FutureTask.java:122<span class="token punctuation">)</span>
+	at java.util.concurrent.FutureTask.get<span class="token punctuation">(</span>FutureTask.java:192<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat.generateSplitsInfo<span class="token punctuation">(</span>OrcInputFormat.java:1016<span class="token punctuation">)</span>
+	<span class="token punctuation">..</span>. <span class="token number">65</span> <span class="token function">more</span>
+Caused by: java.lang.IndexOutOfBoundsException: Index: <span class="token number">0</span>
+	at java.util.Collections<span class="token variable">$EmptyList</span>.get<span class="token punctuation">(</span>Collections.java:4454<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.OrcProto<span class="token variable">$Type</span>.getSubtypes<span class="token punctuation">(</span>OrcProto.java:12240<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.ReaderImpl.getColumnIndicesFromNames<span class="token punctuation">(</span>ReaderImpl.java:651<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.ReaderImpl.getRawDataSizeOfColumns<span class="token punctuation">(</span>ReaderImpl.java:634<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat<span class="token variable">$SplitGenerator</span>.populateAndCacheStripeDetails<span class="token punctuation">(</span>OrcInputFormat.java:927<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat<span class="token variable">$SplitGenerator</span>.call<span class="token punctuation">(</span>OrcInputFormat.java:836<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat<span class="token variable">$SplitGenerator</span>.call<span class="token punctuation">(</span>OrcInputFormat.java:702<span class="token punctuation">)</span>
+	at java.util.concurrent.FutureTask.run<span class="token punctuation">(</span>FutureTask.java:266<span class="token punctuation">)</span>
+	at java.util.concurrent.ThreadPoolExecutor.runWorker<span class="token punctuation">(</span>ThreadPoolExecutor.java:1142<span class="token punctuation">)</span>
+	at java.util.concurrent.ThreadPoolExecutor<span class="token variable">$Worker</span>.run<span class="token punctuation">(</span>ThreadPoolExecutor.java:617<span class="token punctuation">)</span>
+	at java.lang.Thread.run<span class="token punctuation">(</span>Thread.java:748<span class="token punctuation">)</span>
 java.lang.RuntimeException: serious problem
-	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat.generateSplitsInfo(OrcInputFormat.java:1021)
-	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat.getSplits(OrcInputFormat.java:1048)
-	at org.apache.spark.rdd.HadoopRDD.getPartitions(HadoopRDD.scala:200)
-	at org.apache.spark.rdd.RDD$$anonfun$partitions$2.apply(RDD.scala:253)
-	at org.apache.spark.rdd.RDD$$anonfun$partitions$2.apply(RDD.scala:251)
-	at scala.Option.getOrElse(Option.scala:121)
-	at org.apache.spark.rdd.RDD.partitions(RDD.scala:251)
-	at org.apache.spark.rdd.MapPartitionsRDD.getPartitions(MapPartitionsRDD.scala:46)
-	at org.apache.spark.rdd.RDD$$anonfun$partitions$2.apply(RDD.scala:253)
-	at org.apache.spark.rdd.RDD$$anonfun$partitions$2.apply(RDD.scala:251)
-	at scala.Option.getOrElse(Option.scala:121)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat.generateSplitsInfo<span class="token punctuation">(</span>OrcInputFormat.java:1021<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.OrcInputFormat.getSplits<span class="token punctuation">(</span>OrcInputFormat.java:1048<span class="token punctuation">)</span>
+	at org.apache.spark.rdd.HadoopRDD.getPartitions<span class="token punctuation">(</span>HadoopRDD.scala:200<span class="token punctuation">)</span>
+	at org.apache.spark.rdd.RDD<span class="token variable">$$</span>anonfun<span class="token variable">$partitions</span><span class="token variable">$2</span>.apply<span class="token punctuation">(</span>RDD.scala:253<span class="token punctuation">)</span>
+	at org.apache.spark.rdd.RDD<span class="token variable">$$</span>anonfun<span class="token variable">$partitions</span><span class="token variable">$2</span>.apply<span class="token punctuation">(</span>RDD.scala:251<span class="token punctuation">)</span>
+	at scala.Option.getOrElse<span class="token punctuation">(</span>Option.scala:121<span class="token punctuation">)</span>
+	at org.apache.spark.rdd.RDD.partitions<span class="token punctuation">(</span>RDD.scala:251<span class="token punctuation">)</span>
+	at org.apache.spark.rdd.MapPartitionsRDD.getPartitions<span class="token punctuation">(</span>MapPartitionsRDD.scala:46<span class="token punctuation">)</span>
+	at org.apache.spark.rdd.RDD<span class="token variable">$$</span>anonfun<span class="token variable">$partitions</span><span class="token variable">$2</span>.apply<span class="token punctuation">(</span>RDD.scala:253<span class="token punctuation">)</span>
+	at org.apache.spark.rdd.RDD<span class="token variable">$$</span>anonfun<span class="token variable">$partitions</span><span class="token variable">$2</span>.apply<span class="token punctuation">(</span>RDD.scala:251<span class="token punctuation">)</span>
+	at scala.Option.getOrElse<span class="token punctuation">(</span>Option.scala:121<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>原因：<br> sparksql生成的hive表有空文件，但是sparksql读取空文件的时候，因为表示orc格式的，导致sparksql解析orc文件出错。但是用hive却可以正常读取。</li>
 </ul>
 <h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>设置<code>set spark.sql.hive.convertMetastoreOrc=true</code><br>单纯的设置以上参数还是会报错：  </p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">java.lang.IndexOutOfBoundsException
-	at java.nio.Buffer.checkIndex(Buffer.java:540)
-	at java.nio.HeapByteBuffer.get(HeapByteBuffer.java:139)
-	at org.apache.hadoop.hive.ql.io.orc.ReaderImpl.extractMetaInfoFromFooter(ReaderImpl.java:374)
-	at org.apache.hadoop.hive.ql.io.orc.ReaderImpl.&lt;init&gt;(ReaderImpl.java:316)
-	at org.apache.hadoop.hive.ql.io.orc.OrcFile.createReader(OrcFile.java:187)
-	at org.apache.spark.sql.hive.orc.OrcFileOperator$$anonfun$getFileReader$2.apply(OrcFileOperator.scala:75)
-	at org.apache.spark.sql.hive.orc.OrcFileOperator$$anonfun$getFileReader$2.apply(OrcFileOperator.scala:73)
-	at scala.collection.Iterator$$anon$11.next(Iterator.scala:409)
-	at scala.collection.TraversableOnce$class.collectFirst(TraversableOnce.scala:145)
-	at scala.collection.AbstractIterator.collectFirst(Iterator.scala:1336)
-	at org.apache.spark.sql.hive.orc.OrcFileOperator$.getFileReader(OrcFileOperator.scala:86)
-	at org.apache.spark.sql.hive.orc.OrcFileOperator$$anonfun$readSchema$1.apply(OrcFileOperator.scala:95)
-	at org.apache.spark.sql.hive.orc.OrcFileOperator$$anonfun$readSchema$1.apply(OrcFileOperator.scala:95)
-	at scala.collection.immutable.Stream.flatMap(Stream.scala:489)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+	at java.nio.Buffer.checkIndex<span class="token punctuation">(</span>Buffer.java:540<span class="token punctuation">)</span>
+	at java.nio.HeapByteBuffer.get<span class="token punctuation">(</span>HeapByteBuffer.java:139<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.ReaderImpl.extractMetaInfoFromFooter<span class="token punctuation">(</span>ReaderImpl.java:374<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.ReaderImpl.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>ReaderImpl.java:316<span class="token punctuation">)</span>
+	at org.apache.hadoop.hive.ql.io.orc.OrcFile.createReader<span class="token punctuation">(</span>OrcFile.java:187<span class="token punctuation">)</span>
+	at org.apache.spark.sql.hive.orc.OrcFileOperator<span class="token variable">$$</span>anonfun<span class="token variable">$getFileReader</span><span class="token variable">$2</span>.apply<span class="token punctuation">(</span>OrcFileOperator.scala:75<span class="token punctuation">)</span>
+	at org.apache.spark.sql.hive.orc.OrcFileOperator<span class="token variable">$$</span>anonfun<span class="token variable">$getFileReader</span><span class="token variable">$2</span>.apply<span class="token punctuation">(</span>OrcFileOperator.scala:73<span class="token punctuation">)</span>
+	at scala.collection.Iterator<span class="token variable">$$</span>anon<span class="token variable">$11</span>.next<span class="token punctuation">(</span>Iterator.scala:409<span class="token punctuation">)</span>
+	at scala.collection.TraversableOnce<span class="token variable">$class</span>.collectFirst<span class="token punctuation">(</span>TraversableOnce.scala:145<span class="token punctuation">)</span>
+	at scala.collection.AbstractIterator.collectFirst<span class="token punctuation">(</span>Iterator.scala:1336<span class="token punctuation">)</span>
+	at org.apache.spark.sql.hive.orc.OrcFileOperator$.getFileReader<span class="token punctuation">(</span>OrcFileOperator.scala:86<span class="token punctuation">)</span>
+	at org.apache.spark.sql.hive.orc.OrcFileOperator<span class="token variable">$$</span>anonfun<span class="token variable">$readSchema</span><span class="token variable">$1</span>.apply<span class="token punctuation">(</span>OrcFileOperator.scala:95<span class="token punctuation">)</span>
+	at org.apache.spark.sql.hive.orc.OrcFileOperator<span class="token variable">$$</span>anonfun<span class="token variable">$readSchema</span><span class="token variable">$1</span>.apply<span class="token punctuation">(</span>OrcFileOperator.scala:95<span class="token punctuation">)</span>
+	at scala.collection.immutable.Stream.flatMap<span class="token punctuation">(</span>Stream.scala:489<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>需要再设置<code>set spark.sql.orc.impl=native</code><br>参考<a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SPARK-19809">SPARK-19809</a> </p>
 <h2 id="两个大表关联，报OOM"><a href="#两个大表关联，报OOM" class="headerlink" title="两个大表关联，报OOM"></a>两个大表关联，报OOM</h2><p>主表数据量6000多万，从表1亿，关联后出现OOM的情况</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Container killed by YARN for exceeding memory limits. 6.3 GB of 6 GB physical memory used. 
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">Container killed by YARN <span class="token keyword">for</span> exceeding memory limits. <span class="token number">6.3</span> GB of <span class="token number">6</span> GB physical memory used. 
 Consider boosting spark.yarn.executor.memoryOverhead.
 
-FetchFailed(null, shuffleId&#x3D;4, mapId&#x3D;-1, reduceId&#x3D;121, message&#x3D;
-org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output location for shuffle 4
-	at org.apache.spark.MapOutputTracker$$anonfun$convertMapStatuses$2.apply(MapOutputTracker.scala:867)
-	at org.apache.spark.MapOutputTracker$$anonfun$convertMapStatuses$2.apply(MapOutputTracker.scala:863)
-	at scala.collection.TraversableLike$WithFilter$$anonfun$foreach$1.apply(TraversableLike.scala:733)
-	at scala.collection.IndexedSeqOptimized$class.foreach(IndexedSeqOptimized.scala:33)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+FetchFailed<span class="token punctuation">(</span>null, <span class="token assign-left variable">shuffleId</span><span class="token operator">=</span><span class="token number">4</span>, <span class="token assign-left variable">mapId</span><span class="token operator">=</span>-1, <span class="token assign-left variable">reduceId</span><span class="token operator">=</span><span class="token number">121</span>, <span class="token assign-left variable">message</span><span class="token operator">=</span>
+org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output location <span class="token keyword">for</span> shuffle <span class="token number">4</span>
+	at org.apache.spark.MapOutputTracker<span class="token variable">$$</span>anonfun<span class="token variable">$convertMapStatuses</span><span class="token variable">$2</span>.apply<span class="token punctuation">(</span>MapOutputTracker.scala:867<span class="token punctuation">)</span>
+	at org.apache.spark.MapOutputTracker<span class="token variable">$$</span>anonfun<span class="token variable">$convertMapStatuses</span><span class="token variable">$2</span>.apply<span class="token punctuation">(</span>MapOutputTracker.scala:863<span class="token punctuation">)</span>
+	at scala.collection.TraversableLike<span class="token variable">$WithFilter</span><span class="token variable">$$</span>anonfun<span class="token variable">$foreach</span><span class="token variable">$1</span>.apply<span class="token punctuation">(</span>TraversableLike.scala:733<span class="token punctuation">)</span>
+	at scala.collection.IndexedSeqOptimized<span class="token variable">$class</span>.foreach<span class="token punctuation">(</span>IndexedSeqOptimized.scala:33<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>分析了一下原因，在计算主表和从表的时候，都是使用spark-sql的默认并行度，<br>所以最终都是输出200个文件，最后关联完成还是写出200个文件</p>
 <p>这里设置spark-sql的默认并行度为1000，这样主表和从表的数据文件都会变成1000，每次关联的数据量就会小很多<br><code>set spark.sql.shuffle.partitions = 1000;</code><br>问题解决</p>
 <h2 id="spark-sql读取hive-orc表报数组越界"><a href="#spark-sql读取hive-orc表报数组越界" class="headerlink" title="spark-sql读取hive orc表报数组越界"></a>spark-sql读取hive orc表报数组越界</h2><p>最近公司上云，spark版本切换到3.0.0，很多数据上传到腾讯云上的环境后，spark-sql报数组越界，具体报错信息如下：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.ArrayIndexOutOfBoundsException: 11
-	at org.apache.orc.mapred.OrcStruct.getFieldValue(OrcStruct.java:49)
-	at org.apache.spark.sql.execution.datasources.orc.OrcDeserializer.deserialize(OrcDeserializer.scala:60)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: java.lang.ArrayIndexOutOfBoundsException: <span class="token number">11</span>
+	at org.apache.orc.mapred.OrcStruct.getFieldValue<span class="token punctuation">(</span>OrcStruct.java:49<span class="token punctuation">)</span>
+	at org.apache.spark.sql.execution.datasources.orc.OrcDeserializer.deserialize<span class="token punctuation">(</span>OrcDeserializer.scala:60<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>具体问题：使用spark-sql读取hive表，<code>select *</code>可以读取，但是<code>select</code>字段名，就会报数组越界<br>在网上查了很多办法，最终查到原因应该是spark-sql和hive引擎解析orc的方式不一样。</p>
 <p>可以通过设置<code>set spark.sql.orc.impl = hive;</code>来解决<br>参考了<a target="_blank" rel="noopener" href="https://support.huaweicloud.com/cmpntguide-mrs/mrs_01_1964.html">配置矢量化读取ORC数据</a><br><a target="_blank" rel="noopener" href="http://support-it.huawei.com/docs/zh-cn/fusioninsight-all/maintenance-guide/zh-cn_topic_0261891154.html">spark查询ORC表失败，在hive可以正常查询</a></p>
 <h2 id="Cannot-overwrite-a-path-that-is-also-being-read-from"><a href="#Cannot-overwrite-a-path-that-is-also-being-read-from" class="headerlink" title="Cannot overwrite a path that is also being read from."></a>Cannot overwrite a path that is also being read from.</h2><p>1.设置 spark.sql.hive.convertMetastoreParquet=false或者spark.sql.hive.convertMetastoreOrc=false</p>
@@ -488,7 +488,7 @@ org.apache.spark.shuffle.MetadataFetchFailedException: Missing an output locatio
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

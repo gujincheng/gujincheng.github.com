@@ -339,7 +339,7 @@
 </li>
 </ul>
 <h2 id="在vim里使用类似Emacs里的orgmode"><a href="#在vim里使用类似Emacs里的orgmode" class="headerlink" title="在vim里使用类似Emacs里的orgmode"></a>在vim里使用类似Emacs里的orgmode</h2><ul>
-<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin &#39;jceb&#x2F;vim-orgmode&#39;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在.vimrc里添加配置：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Plugin <span class="token string">'jceb/vim-orgmode'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
 <li>在vim命令行模式运行：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">:PluginInstall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 之后就能直接用vim编辑.org文件，目前vim-orgmode有如下功能：<br>当前 vim orgmode不支持所有orgmode功能，但它非常有用。 已经支持的功能的简短列表：</li>
 <li>语法高亮显示</li>
@@ -354,11 +354,11 @@
 <li>导出到其他格式( 通过 Emacs’org模式</li>
 </ul>
 <h2 id="vim设置leader键"><a href="#vim设置leader键" class="headerlink" title="vim设置leader键"></a>vim设置leader键</h2><p>leader 键简单的说就是一个前缀键，可以自由设定<br>例如，绑定leader键为‘，’</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&quot; 设置 leader 键，例子为,键，也可以设置为其他的 默认为&quot;&#x2F;&quot;
-let mapleader&#x3D;&quot;,&quot;
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token string">" 设置 leader 键，例子为,键，也可以设置为其他的 默认为"</span>/<span class="token string">"
+let mapleader="</span>,<span class="token string">"
  
-&quot; 设置快捷键，关闭一个窗口
-map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+"</span> 设置快捷键，关闭一个窗口
+map <span class="token operator">&lt;</span>leader<span class="token operator">></span>wq :wq<span class="token operator">&lt;</span>CR<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这个例子中，在 vim 的<code>normal-mode</code>下，按空格键+w+q 就可以保存文件退出窗口<br>在这个leader的前提下，就不会有键冲突的的情况了</p>
 
     </div>
@@ -460,7 +460,7 @@ map &lt;leader&gt;wq :wq&lt;CR&gt;<span aria-hidden="true" class="line-numbers-r
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

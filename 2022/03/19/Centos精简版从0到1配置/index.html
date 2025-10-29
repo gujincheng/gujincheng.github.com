@@ -496,9 +496,9 @@ java.net.ConnectException: Connection refused (Connection refused)
 	at java.lang.Thread.run(Thread.java:750)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>其实就是需要在每台节点都启动一下zk服务，否则的话，端口不同</p>
 <h4 id="安装Kafka"><a href="#安装Kafka" class="headerlink" title="安装Kafka"></a>安装Kafka</h4><p>编辑<code>config/server.properties</code></p>
-<pre class="line-numbers language-properties" data-language="properties"><code class="language-properties"><span class="token attr-name">broker.id</span><span class="token punctuation">=</span><span class="token attr-value">1</span>
-<span class="token attr-name">log.dirs</span><span class="token punctuation">=</span><span class="token attr-value">/opt/modules/kafka-3.1.0/kafka-logs  ## 需要自己创建出来</span>
-<span class="token attr-name">zookeeper.connect</span><span class="token punctuation">=</span><span class="token attr-value">golden-01:2181,golden-02:2181,golden-03:2181</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-properties" data-language="properties"><code class="language-properties"><span class="token key attr-name">broker.id</span><span class="token punctuation">=</span><span class="token value attr-value">1</span>
+<span class="token key attr-name">log.dirs</span><span class="token punctuation">=</span><span class="token value attr-value">/opt/modules/kafka-3.1.0/kafka-logs  ## 需要自己创建出来</span>
+<span class="token key attr-name">zookeeper.connect</span><span class="token punctuation">=</span><span class="token value attr-value">golden-01:2181,golden-02:2181,golden-03:2181</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>kafka启动：<br><strong>需要在每台节点都启动一下</strong>：</p>
 <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">nohup bin&#x2F;kafka-server-start.sh config&#x2F;server.properties &gt;&gt; output.log 2&gt;&amp;1 &amp;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>这里编写自动化脚本来实现每台节点都启动的操作</p>
@@ -822,7 +822,7 @@ source ~&#x2F;.bashrc<span aria-hidden="true" class="line-numbers-rows"><span></
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

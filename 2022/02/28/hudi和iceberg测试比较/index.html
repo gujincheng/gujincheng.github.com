@@ -368,7 +368,7 @@
   name <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
   age <span class="token keyword">INT</span><span class="token punctuation">,</span>
   ts <span class="token keyword">TIMESTAMP</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-  <span class="token punctuation">`</span><span class="token keyword">partition</span><span class="token punctuation">`</span> <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+  <span class="token identifier"><span class="token punctuation">`</span>partition<span class="token punctuation">`</span></span> <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
 <span class="token punctuation">)</span>
 <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
   <span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'hudi'</span><span class="token punctuation">,</span>
@@ -384,17 +384,17 @@
   <span class="token punctuation">(</span><span class="token string">'id5'</span><span class="token punctuation">,</span><span class="token string">'Sophia'</span><span class="token punctuation">,</span><span class="token number">18</span><span class="token punctuation">,</span><span class="token keyword">TIMESTAMP</span> <span class="token string">'1970-01-01 00:00:05'</span><span class="token punctuation">,</span><span class="token string">'par3'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">-- 查询数据</span>
 <span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> t1<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>查询hdfs上文件记录<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs -ls hdfs:&#x2F;&#x2F;&#x2F;user&#x2F;hive&#x2F;warehouse&#x2F;hudi.db&#x2F;t1
--rw-r--r--   1 gujincheng supergroup       1397 2022-04-06 09:33 hdfs:&#x2F;&#x2F;&#x2F;user&#x2F;hive&#x2F;warehouse&#x2F;hudi.db&#x2F;t1&#x2F;.cbde2bbe-5097-44e9-a5b1-7419be14b63e_20220406093302182.log.1_3-4-0
-drwxr-xr-x   - gujincheng supergroup          0 2022-04-06 09:33 hdfs:&#x2F;&#x2F;&#x2F;user&#x2F;hive&#x2F;warehouse&#x2F;hudi.db&#x2F;t1&#x2F;.hoodie
--rw-r--r--   1 gujincheng supergroup         96 2022-04-06 09:33 hdfs:&#x2F;&#x2F;&#x2F;user&#x2F;hive&#x2F;warehouse&#x2F;hudi.db&#x2F;t1&#x2F;.hoodie_partition_metadata<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<li>查询hdfs上文件记录<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs <span class="token parameter variable">-ls</span> hdfs:///user/hive/warehouse/hudi.db/t1
+-rw-r--r--   <span class="token number">1</span> gujincheng supergroup       <span class="token number">1397</span> <span class="token number">2022</span>-04-06 09:33 hdfs:///user/hive/warehouse/hudi.db/t1/.cbde2bbe-5097-44e9-a5b1-7419be14b63e_20220406093302182.log.1_3-4-0
+drwxr-xr-x   - gujincheng supergroup          <span class="token number">0</span> <span class="token number">2022</span>-04-06 09:33 hdfs:///user/hive/warehouse/hudi.db/t1/.hoodie
+-rw-r--r--   <span class="token number">1</span> gujincheng supergroup         <span class="token number">96</span> <span class="token number">2022</span>-04-06 09:33 hdfs:///user/hive/warehouse/hudi.db/t1/.hoodie_partition_metadata<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 ###同步hudi元数据到hive<br>一般来说Hudi表在用Spark或者Flink写入数据时会自动同步到Hive外部表， 此时可以直接通过beeline查询同步的外部表， 若写入引擎没有开启自动同步，则需要手动利用hudi客户端工具run_hive_sync_tool.sh 进行同步具体可以参考官网查看相关参数。<br>上述创建的表，没有开启自动同步，需要使用run_hive_sync_tool.sh进行同步<h4 id="hive环境准备"><a href="#hive环境准备" class="headerlink" title="hive环境准备"></a>hive环境准备</h4></li>
-<li>将 hudi-hadoop-mr-bundle 导入 hive。在 hive 根目录下创建 auxlib/ 文件夹，并将 hudi-hadoop-mr-bundle-0.x.x-SNAPSHOT.jar 移动到 auxlib 中。 hudi-hadoop-mr-bundle-0.x.x-SNAPSHOT.jar 位于包/hudi-hadoop-mr-bundle/target。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;opt&#x2F;modules&#x2F;hive-2.3.9&#x2F; &amp;&amp; mkdir auxlib
-cp ~&#x2F;hudi&#x2F;packaging&#x2F;hudi-hadoop-mr-bundle&#x2F;target&#x2F;hudi-hadoop-mr-bundle-0.10.1.jar auxlib<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
-<li>Flink sql客户端远程连接hive metastore时，需要开启hive metastore和hiveserver2服务，并且需要正确设置端口号。开启服务的命令：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># Enable hive metastore and hiveserver2
-nohup .&#x2F;bin&#x2F;hive --service metastore &amp;
-nohup .&#x2F;bin&#x2F;hive --service hiveserver2 &amp;
-# While modifying the jar package under auxlib, you need to restart the service.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>将 hudi-hadoop-mr-bundle 导入 hive。在 hive 根目录下创建 auxlib/ 文件夹，并将 hudi-hadoop-mr-bundle-0.x.x-SNAPSHOT.jar 移动到 auxlib 中。 hudi-hadoop-mr-bundle-0.x.x-SNAPSHOT.jar 位于包/hudi-hadoop-mr-bundle/target。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">cd</span> /opt/modules/hive-2.3.9/ <span class="token operator">&amp;&amp;</span> <span class="token function">mkdir</span> auxlib
+<span class="token function">cp</span> ~/hudi/packaging/hudi-hadoop-mr-bundle/target/hudi-hadoop-mr-bundle-0.10.1.jar auxlib<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>Flink sql客户端远程连接hive metastore时，需要开启hive metastore和hiveserver2服务，并且需要正确设置端口号。开启服务的命令：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># Enable hive metastore and hiveserver2</span>
+<span class="token function">nohup</span> ./bin/hive <span class="token parameter variable">--service</span> metastore <span class="token operator">&amp;</span>
+<span class="token function">nohup</span> ./bin/hive <span class="token parameter variable">--service</span> hiveserver2 <span class="token operator">&amp;</span>
+<span class="token comment"># While modifying the jar package under auxlib, you need to restart the service.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>Flink hive sync 现在支持 hms(hive metastore sync) 和 jdbc 两种 hive 同步模式。 hms 模式只需要配置 metastore uris。对于 jdbc 模式，JDBC 属性和 Metastore uris 都需要配置<br>所以，hive的metastore是必须的</li>
 </ol>
 <h4 id="flinksql自动同步hive元数据"><a href="#flinksql自动同步hive元数据" class="headerlink" title="flinksql自动同步hive元数据"></a>flinksql自动同步hive元数据</h4><ol>
@@ -403,7 +403,7 @@ nohup .&#x2F;bin&#x2F;hive --service hiveserver2 &amp;
   name <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
   age <span class="token keyword">INT</span><span class="token punctuation">,</span>
   ts <span class="token keyword">TIMESTAMP</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-  <span class="token punctuation">`</span><span class="token keyword">partition</span><span class="token punctuation">`</span> <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+  <span class="token identifier"><span class="token punctuation">`</span>partition<span class="token punctuation">`</span></span> <span class="token keyword">VARCHAR</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
 <span class="token punctuation">)</span>
 <span class="token keyword">WITH</span> <span class="token punctuation">(</span>
   <span class="token string">'connector'</span> <span class="token operator">=</span> <span class="token string">'hudi'</span><span class="token punctuation">,</span>
@@ -503,46 +503,46 @@ nohup .&#x2F;bin&#x2F;hive --service hiveserver2 &amp;
 <p>这里测试了一下，提交到standalone和提交到yarn上都是可以正常执行的。</p>
 <h3 id="hudi踩坑记录"><a href="#hudi踩坑记录" class="headerlink" title="hudi踩坑记录"></a>hudi踩坑记录</h3><ol>
 <li>hadoop 环境不对</li>
-<li>报<code>Caused by:java.lanq.NoClassDefFoundError:org/apache/hadoop/mapred/JobConf</code>，具体信息如下：<br><img src="/uploads/202204/hudi%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95-flink%E7%BC%BA%E5%B0%91hadoop%E7%9B%B8%E5%85%B3jar.png" alt="hudi踩坑记录-flink缺少hadoop相关jar"><br>问题原因：flink缺少hadoop相关依赖<br>解决办法：把hadoop-mapreduce相关jar放到flink lib下<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 确保如下几个jar包放在了flink的lib文件夹下
--rw-r--r-- 1 wheel 787K  4  6 16:56 hadoop-mapreduce-client-common-3.2.2.jar
--rw-r--r-- 1 wheel 1.6M  4  6 16:56 hadoop-mapreduce-client-core-3.2.2.jar
--rw-r--r-- 1 wheel  84K  4  6 16:57 hadoop-mapreduce-client-jobclient-3.2.2.jar
--rw-r--r-- 1 wheel  44M  4  7 15:10 hudi-flink-bundle_2.12-0.10.1.jar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>报<code>java.lang.NoClassDefFoundError: org/apache/thrift/TBase</code>,具体报错如下：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">java.lang.NoClassDefFoundError: org&#x2F;apache&#x2F;thrift&#x2F;TBase
-  at java.lang.ClassLoader.defineClass1(Native Method) ~[?:1.8.0_162]
-  at java.lang.ClassLoader.defineClass(ClassLoader.java:763) ~[?:1.8.0_162]
-...
-  at org.apache.hudi.hive.HiveSyncTool.&lt;init&gt;(HiveSyncTool.java:78) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
-  at org.apache.hudi.sink.utils.HiveSyncContext.hiveSyncTool(HiveSyncContext.java:51) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
-  at org.apache.hudi.sink.StreamWriteOperatorCoordinator.syncHive(StreamWriteOperatorCoordinator.java:302) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
-  at org.apache.hudi.sink.utils.NonThrownExecutor.lambda$execute$0(NonThrownExecutor.java:93) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
-  at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_162]
-  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_162]
-  at java.lang.Thread.run(Thread.java:748) [?:1.8.0_162]
+<li>报<code>Caused by:java.lanq.NoClassDefFoundError:org/apache/hadoop/mapred/JobConf</code>，具体信息如下：<br><img src="/uploads/202204/hudi%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95-flink%E7%BC%BA%E5%B0%91hadoop%E7%9B%B8%E5%85%B3jar.png" alt="hudi踩坑记录-flink缺少hadoop相关jar"><br>问题原因：flink缺少hadoop相关依赖<br>解决办法：把hadoop-mapreduce相关jar放到flink lib下<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 确保如下几个jar包放在了flink的lib文件夹下</span>
+-rw-r--r-- <span class="token number">1</span> wheel 787K  <span class="token number">4</span>  <span class="token number">6</span> <span class="token number">16</span>:56 hadoop-mapreduce-client-common-3.2.2.jar
+-rw-r--r-- <span class="token number">1</span> wheel <span class="token number">1</span>.6M  <span class="token number">4</span>  <span class="token number">6</span> <span class="token number">16</span>:56 hadoop-mapreduce-client-core-3.2.2.jar
+-rw-r--r-- <span class="token number">1</span> wheel  84K  <span class="token number">4</span>  <span class="token number">6</span> <span class="token number">16</span>:57 hadoop-mapreduce-client-jobclient-3.2.2.jar
+-rw-r--r-- <span class="token number">1</span> wheel  44M  <span class="token number">4</span>  <span class="token number">7</span> <span class="token number">15</span>:10 hudi-flink-bundle_2.12-0.10.1.jar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>报<code>java.lang.NoClassDefFoundError: org/apache/thrift/TBase</code>,具体报错如下：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">java.lang.NoClassDefFoundError: org/apache/thrift/TBase
+  at java.lang.ClassLoader.defineClass1<span class="token punctuation">(</span>Native Method<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
+  at java.lang.ClassLoader.defineClass<span class="token punctuation">(</span>ClassLoader.java:763<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
+<span class="token punctuation">..</span>.
+  at org.apache.hudi.hive.HiveSyncTool.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>HiveSyncTool.java:78<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+  at org.apache.hudi.sink.utils.HiveSyncContext.hiveSyncTool<span class="token punctuation">(</span>HiveSyncContext.java:51<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+  at org.apache.hudi.sink.StreamWriteOperatorCoordinator.syncHive<span class="token punctuation">(</span>StreamWriteOperatorCoordinator.java:302<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+  at org.apache.hudi.sink.utils.NonThrownExecutor.lambda<span class="token variable">$execute</span><span class="token variable">$0</span><span class="token punctuation">(</span>NonThrownExecutor.java:93<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+  at java.util.concurrent.ThreadPoolExecutor.runWorker<span class="token punctuation">(</span>ThreadPoolExecutor.java:1149<span class="token punctuation">)</span> <span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
+  at java.util.concurrent.ThreadPoolExecutor<span class="token variable">$Worker</span>.run<span class="token punctuation">(</span>ThreadPoolExecutor.java:624<span class="token punctuation">)</span> <span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
+  at java.lang.Thread.run<span class="token punctuation">(</span>Thread.java:748<span class="token punctuation">)</span> <span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
 Caused by: java.lang.ClassNotFoundException: org.apache.thrift.TBase
-  at java.net.URLClassLoader.findClass(URLClassLoader.java:381) ~[?:1.8.0_162]
-  at java.lang.ClassLoader.loadClass(ClassLoader.java:424) ~[?:1.8.0_162]
-  at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:338) ~[?:1.8.0_162]
-  at java.lang.ClassLoader.loadClass(ClassLoader.java:357) ~[?:1.8.0_162]
-  ... 19 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-这个问题找了很久，总是卡在flink同步元数据到hive。<br>想了一下原因，应该是flink在连接hms的时候，缺少依赖。这里在hudi源码里编译里好多次，怎么修改都不行，最后是把hive-exec的jar放到flink lib下<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">-rw-r--r-- 1 wheel  44M  4  6 22:39 hive-exec-2.3.9.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>报<code>java.lang.NoClassDefFoundError:org/apache/hudi/org/apache/hadoop/hive/ql/metadata/Hive</code>错误 ，具体报错如下：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2022-04-06 22:59:12,854 ERROR org.apache.hudi.sink.StreamWriteOperatorCoordinator          [] - Executor executes action [sync hive metadata for instant 20220406225911632] error
-java.lang.NoClassDefFoundError: org&#x2F;apache&#x2F;hudi&#x2F;org&#x2F;apache&#x2F;hadoop&#x2F;hive&#x2F;ql&#x2F;metadata&#x2F;Hive
- at org.apache.hudi.hive.ddl.HMSDDLExecutor.&lt;init&gt;(HMSDDLExecutor.java:68) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
- at org.apache.hudi.hive.HoodieHiveClient.&lt;init&gt;(HoodieHiveClient.java:76) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
- at org.apache.hudi.hive.HiveSyncTool.&lt;init&gt;(HiveSyncTool.java:78) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
- at org.apache.hudi.sink.utils.HiveSyncContext.hiveSyncTool(HiveSyncContext.java:51) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
- at org.apache.hudi.sink.StreamWriteOperatorCoordinator.syncHive(StreamWriteOperatorCoordinator.java:302) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
- at org.apache.hudi.sink.utils.NonThrownExecutor.lambda$execute$0(NonThrownExecutor.java:93) ~[hudi-flink-bundle_2.12-0.10.1.jar:0.10.1]
- at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_291]
- at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_291]
- at java.lang.Thread.run(Thread.java:748) [?:1.8.0_291]
+  at java.net.URLClassLoader.findClass<span class="token punctuation">(</span>URLClassLoader.java:381<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
+  at java.lang.ClassLoader.loadClass<span class="token punctuation">(</span>ClassLoader.java:424<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
+  at sun.misc.Launcher<span class="token variable">$AppClassLoader</span>.loadClass<span class="token punctuation">(</span>Launcher.java:338<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
+  at java.lang.ClassLoader.loadClass<span class="token punctuation">(</span>ClassLoader.java:357<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_162<span class="token punctuation">]</span>
+  <span class="token punctuation">..</span>. <span class="token number">19</span> <span class="token function">more</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这个问题找了很久，总是卡在flink同步元数据到hive。<br>想了一下原因，应该是flink在连接hms的时候，缺少依赖。这里在hudi源码里编译里好多次，怎么修改都不行，最后是把hive-exec的jar放到flink lib下<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">-rw-r--r-- <span class="token number">1</span> wheel  44M  <span class="token number">4</span>  <span class="token number">6</span> <span class="token number">22</span>:39 hive-exec-2.3.9.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>报<code>java.lang.NoClassDefFoundError:org/apache/hudi/org/apache/hadoop/hive/ql/metadata/Hive</code>错误 ，具体报错如下：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token number">2022</span>-04-06 <span class="token number">22</span>:59:12,854 ERROR org.apache.hudi.sink.StreamWriteOperatorCoordinator          <span class="token punctuation">[</span><span class="token punctuation">]</span> - Executor executes action <span class="token punctuation">[</span>sync hive metadata <span class="token keyword">for</span> instant <span class="token number">20220406225911632</span><span class="token punctuation">]</span> error
+java.lang.NoClassDefFoundError: org/apache/hudi/org/apache/hadoop/hive/ql/metadata/Hive
+ at org.apache.hudi.hive.ddl.HMSDDLExecutor.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>HMSDDLExecutor.java:68<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+ at org.apache.hudi.hive.HoodieHiveClient.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>HoodieHiveClient.java:76<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+ at org.apache.hudi.hive.HiveSyncTool.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>HiveSyncTool.java:78<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+ at org.apache.hudi.sink.utils.HiveSyncContext.hiveSyncTool<span class="token punctuation">(</span>HiveSyncContext.java:51<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+ at org.apache.hudi.sink.StreamWriteOperatorCoordinator.syncHive<span class="token punctuation">(</span>StreamWriteOperatorCoordinator.java:302<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+ at org.apache.hudi.sink.utils.NonThrownExecutor.lambda<span class="token variable">$execute</span><span class="token variable">$0</span><span class="token punctuation">(</span>NonThrownExecutor.java:93<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>hudi-flink-bundle_2.12-0.10.1.jar:0.10.1<span class="token punctuation">]</span>
+ at java.util.concurrent.ThreadPoolExecutor.runWorker<span class="token punctuation">(</span>ThreadPoolExecutor.java:1149<span class="token punctuation">)</span> <span class="token punctuation">[</span>?:1.8.0_291<span class="token punctuation">]</span>
+ at java.util.concurrent.ThreadPoolExecutor<span class="token variable">$Worker</span>.run<span class="token punctuation">(</span>ThreadPoolExecutor.java:624<span class="token punctuation">)</span> <span class="token punctuation">[</span>?:1.8.0_291<span class="token punctuation">]</span>
+ at java.lang.Thread.run<span class="token punctuation">(</span>Thread.java:748<span class="token punctuation">)</span> <span class="token punctuation">[</span>?:1.8.0_291<span class="token punctuation">]</span>
 Caused by: java.lang.ClassNotFoundException: org.apache.hudi.org.apache.hadoop.hive.ql.metadata.Hive
- at java.net.URLClassLoader.findClass(URLClassLoader.java:382) ~[?:1.8.0_291]
- at java.lang.ClassLoader.loadClass(ClassLoader.java:418) ~[?:1.8.0_291]
- at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:355) ~[?:1.8.0_291]
- at java.lang.ClassLoader.loadClass(ClassLoader.java:351) ~[?:1.8.0_291]
- ... 9 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+ at java.net.URLClassLoader.findClass<span class="token punctuation">(</span>URLClassLoader.java:382<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_291<span class="token punctuation">]</span>
+ at java.lang.ClassLoader.loadClass<span class="token punctuation">(</span>ClassLoader.java:418<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_291<span class="token punctuation">]</span>
+ at sun.misc.Launcher<span class="token variable">$AppClassLoader</span>.loadClass<span class="token punctuation">(</span>Launcher.java:355<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_291<span class="token punctuation">]</span>
+ at java.lang.ClassLoader.loadClass<span class="token punctuation">(</span>ClassLoader.java:351<span class="token punctuation">)</span> ~<span class="token punctuation">[</span>?:1.8.0_291<span class="token punctuation">]</span>
+ <span class="token punctuation">..</span>. <span class="token number">9</span> <span class="token function">more</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 问题原因：hudi对hive的代码进行了部分shade，这里在hudi的服务群里找到解决方案<br>解决办法：<br>参考master分支，修改<code>packaging/hudi-flink-bundle/pom.xml</code>，去掉hive相关的shade，把原本的<code>&lt;relocations&gt;</code>里的内容用master分支的替换掉，但是需要加上<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>relocation</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pattern</span><span class="token punctuation">></span></span>org.apache.parquet.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pattern</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>shadedPattern</span><span class="token punctuation">></span></span>$&#123;flink.bundle.shade.prefix&#125;org.apache.parquet.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>shadedPattern</span><span class="token punctuation">></span></span>
@@ -550,44 +550,44 @@ Caused by: java.lang.ClassNotFoundException: org.apache.hudi.org.apache.hadoop.h
 <li>hive里能查到hudi的表结构，但是查不到hudi的数据<br>问题描述：<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- 查询不到数据</span>
 <span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> hudi<span class="token punctuation">.</span>t2_rt<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 这里也想了很多办法，都找不到原因，最后，想了一下，hive在<code>select *</code>的时候，不会执行mr，这时候扫描不到与表结构匹配的文件不会报错<br>这里想着让它执行一下mr程序，让它必须读取一下数据文件<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token function">count</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">from</span> hudi<span class="token punctuation">.</span>t2_rt<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-这时候报如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Diagnostic Messages for this Task:
-Error: java.lang.IndexOutOfBoundsException: Index: 1, Size: 1
-at java.util.ArrayList.rangeCheck(ArrayList.java:657)
-at java.util.ArrayList.get(ArrayList.java:433)
-at org.apache.hadoop.hive.ql.io.parquet.read.DataWritableReadSupport.getProjectedGroupFields(DataWritableReadSupport.java:116)
-at org.apache.hadoop.hive.ql.io.parquet.read.DataWritableReadSupport.getSchemaByName(DataWritableReadSupport.java:176)
-at org.apache.hadoop.hive.ql.io.parquet.read.DataWritableReadSupport.getRequestedSchemaForIndexAccess(DataWritableReadSupport.java:289)
-at org.apache.hadoop.hive.ql.io.parquet.read.DataWritableReadSupport.init(DataWritableReadSupport.java:231)
-at org.apache.hadoop.hive.ql.io.parquet.ParquetRecordReaderBase.getSplit(ParquetRecordReaderBase.java:84)
-at org.apache.hadoop.hive.ql.io.parquet.read.ParquetRecordReaderWrapper.&lt;init&gt;(ParquetRecordReaderWrapper.java:78)
-at org.apache.hadoop.hive.ql.io.parquet.read.ParquetRecordReaderWrapper.&lt;init&gt;(ParquetRecordReaderWrapper.java:63)
-at org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat.getRecordReader(MapredParquetInputFormat.java:75)
-at org.apache.hudi.hadoop.HoodieParquetInputFormat.getRecordReader(HoodieParquetInputFormat.java:224)
-at org.apache.hadoop.mapred.MapTask$TrackedRecordReader.&lt;init&gt;(MapTask.java:175)
-at org.apache.hadoop.mapred.MapTask.runOldMapper(MapTask.java:444)
-at org.apache.hadoop.mapred.MapTask.run(MapTask.java:349)
-at org.apache.hadoop.mapred.YarnChild$2.run(YarnChild.java:174)
-at java.security.AccessController.doPrivileged(Native Method)
-at javax.security.auth.Subject.doAs(Subject.java:422)
-at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1875)
-at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:168)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+这时候报如下错误：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Diagnostic Messages <span class="token keyword">for</span> this Task:
+Error: java.lang.IndexOutOfBoundsException: Index: <span class="token number">1</span>, Size: <span class="token number">1</span>
+at java.util.ArrayList.rangeCheck<span class="token punctuation">(</span>ArrayList.java:657<span class="token punctuation">)</span>
+at java.util.ArrayList.get<span class="token punctuation">(</span>ArrayList.java:433<span class="token punctuation">)</span>
+at org.apache.hadoop.hive.ql.io.parquet.read.DataWritableReadSupport.getProjectedGroupFields<span class="token punctuation">(</span>DataWritableReadSupport.java:116<span class="token punctuation">)</span>
+at org.apache.hadoop.hive.ql.io.parquet.read.DataWritableReadSupport.getSchemaByName<span class="token punctuation">(</span>DataWritableReadSupport.java:176<span class="token punctuation">)</span>
+at org.apache.hadoop.hive.ql.io.parquet.read.DataWritableReadSupport.getRequestedSchemaForIndexAccess<span class="token punctuation">(</span>DataWritableReadSupport.java:289<span class="token punctuation">)</span>
+at org.apache.hadoop.hive.ql.io.parquet.read.DataWritableReadSupport.init<span class="token punctuation">(</span>DataWritableReadSupport.java:231<span class="token punctuation">)</span>
+at org.apache.hadoop.hive.ql.io.parquet.ParquetRecordReaderBase.getSplit<span class="token punctuation">(</span>ParquetRecordReaderBase.java:84<span class="token punctuation">)</span>
+at org.apache.hadoop.hive.ql.io.parquet.read.ParquetRecordReaderWrapper.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>ParquetRecordReaderWrapper.java:78<span class="token punctuation">)</span>
+at org.apache.hadoop.hive.ql.io.parquet.read.ParquetRecordReaderWrapper.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>ParquetRecordReaderWrapper.java:63<span class="token punctuation">)</span>
+at org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat.getRecordReader<span class="token punctuation">(</span>MapredParquetInputFormat.java:75<span class="token punctuation">)</span>
+at org.apache.hudi.hadoop.HoodieParquetInputFormat.getRecordReader<span class="token punctuation">(</span>HoodieParquetInputFormat.java:224<span class="token punctuation">)</span>
+at org.apache.hadoop.mapred.MapTask<span class="token variable">$TrackedRecordReader</span>.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>MapTask.java:175<span class="token punctuation">)</span>
+at org.apache.hadoop.mapred.MapTask.runOldMapper<span class="token punctuation">(</span>MapTask.java:444<span class="token punctuation">)</span>
+at org.apache.hadoop.mapred.MapTask.run<span class="token punctuation">(</span>MapTask.java:349<span class="token punctuation">)</span>
+at org.apache.hadoop.mapred.YarnChild<span class="token variable">$2</span>.run<span class="token punctuation">(</span>YarnChild.java:174<span class="token punctuation">)</span>
+at java.security.AccessController.doPrivileged<span class="token punctuation">(</span>Native Method<span class="token punctuation">)</span>
+at javax.security.auth.Subject.doAs<span class="token punctuation">(</span>Subject.java:422<span class="token punctuation">)</span>
+at org.apache.hadoop.security.UserGroupInformation.doAs<span class="token punctuation">(</span>UserGroupInformation.java:1875<span class="token punctuation">)</span>
+at org.apache.hadoop.mapred.YarnChild.main<span class="token punctuation">(</span>YarnChild.java:168<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 问题原因：<br>hive.input.format 默认是org.apache.hadoop.hive.ql.io.CombineHiveInputFormat,解析hudi表数据会存在问题<br>解决办法</li>
 <li>add jar /opt/cloudera/parcels/CDH/jars/hudi-hadoop-mr-bundle-0.11.0.jar;</li>
 <li>需要设置<code>set hive.input.format= org.apache.hadoop.hive.ql.io.HiveInputFormat;</code> 或者设置<code>set hive.input.format = org.apache.hudi.hadoop.hive.HoodieCombineHiveInputFormat;</code><br>如果不设置，可以直接<code>select * from hudi</code>，但是count会数据翻倍</li>
 </ol>
 <p>可以参考<a target="_blank" rel="noopener" href="https://www.yuque.com/docs/share/879349ce-7de4-4284-9126-9c2a3c93a91d#%20%E3%80%8AHive%20On%20Hudi%E3%80%8B">Hive On Hudi</a></p>
 <h3 id="hudi-0-11-0与flink整合"><a href="#hudi-0-11-0与flink整合" class="headerlink" title="hudi-0.11.0与flink整合"></a>hudi-0.11.0与flink整合</h3><p>hudi-0.11.0与flink整合简单很多，只需要把以下jar包放到flink/lib下</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">-rw-r--r--. 1 root root  35787665 5月   6 13:51 hive-exec-2.1.1-cdh6.2.0.jar
--rw-r--r--. 1 root root  83405474 5月  10 17:38 hudi-flink1.13-bundle_2.12-0.11.0.jar
--rw-r--r--. 1 root root  38046857 5月  10 15:39 hudi-hadoop-mr-bundle-0.11.0.jar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">-rw-r--r--. <span class="token number">1</span> root root  <span class="token number">35787665</span> <span class="token number">5</span>月   <span class="token number">6</span> <span class="token number">13</span>:51 hive-exec-2.1.1-cdh6.2.0.jar
+-rw-r--r--. <span class="token number">1</span> root root  <span class="token number">83405474</span> <span class="token number">5</span>月  <span class="token number">10</span> <span class="token number">17</span>:38 hudi-flink1.13-bundle_2.12-0.11.0.jar
+-rw-r--r--. <span class="token number">1</span> root root  <span class="token number">38046857</span> <span class="token number">5</span>月  <span class="token number">10</span> <span class="token number">15</span>:39 hudi-hadoop-mr-bundle-0.11.0.jar<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>不需要再把hadoop-mapreduce-client*几个jar包放到lib下了</p>
 <h3 id="hudi与spark的整合"><a href="#hudi与spark的整合" class="headerlink" title="hudi与spark的整合"></a>hudi与spark的整合</h3><p>首先修改hudi源码，把pom文件夹下的spark.version改成3.1.1，然后重新编译hudi源码</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">nohup mvn clean install -DskipTests -Dmaven.test.skip&#x3D;true -Dscala-2.12 -Dhadoop.version&#x3D;3.0.0-cdh6.2.0  -Dspark3 -Pflink-bundle-shade-hive2 &gt; nohup.log 2&gt;&amp;1 &amp;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">nohup</span> mvn clean <span class="token function">install</span> <span class="token parameter variable">-DskipTests</span> <span class="token parameter variable">-Dmaven.test.skip</span><span class="token operator">=</span>true -Dscala-2.12 <span class="token parameter variable">-Dhadoop.version</span><span class="token operator">=</span><span class="token number">3.0</span>.0-cdh6.2.0  <span class="token parameter variable">-Dspark3</span> -Pflink-bundle-shade-hive2 <span class="token operator">></span> nohup.log <span class="token operator"><span class="token file-descriptor important">2</span>></span><span class="token file-descriptor important">&amp;1</span> <span class="token operator">&amp;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>这里加了-Dspark3<br>复制packaging/hudi-spark-bundle/target/hudi-spark-bundle_2.12-0.10.1.jar<br>spark首先要与hive集成的，就是把hive-site.xml复制到spark/conf文件夹即可<br>spark-sql启动：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-sql --jars hudi-spark3.1.1-bundle_2.12-0.10.1.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-sql <span class="token parameter variable">--jars</span> hudi-spark3.1.1-bundle_2.12-0.10.1.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>spark-sql查询hudi表：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">use hudi;
-select * from t2_rt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">use hudi<span class="token punctuation">;</span>
+<span class="token keyword">select</span> * from t2_rt<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>经过检验，spark-sql可以查询flink写入hudi的表</p>
 <h3 id="hudi与impala整合"><a href="#hudi与impala整合" class="headerlink" title="hudi与impala整合"></a>hudi与impala整合</h3><p>hudi与impala整合需要注意亮点</p>
 <ol>
@@ -1119,7 +1119,7 @@ select * from test.iceberg_hive;<span aria-hidden="true" class="line-numbers-row
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

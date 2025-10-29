@@ -898,27 +898,27 @@
 <li>description: 描述信息。</li>
 <li>developer: 开发人员。<h4 id="打包发布"><a href="#打包发布" class="headerlink" title="打包发布"></a>打包发布</h4>DataX使用assembly打包，assembly的使用方法请咨询谷哥或者度娘。打包命令如下：<br><code>mvn clean package -DskipTests assembly:assembly</code><br>DataX插件需要遵循统一的目录结构：<pre class="line-numbers language-text" data-language="text"><code class="language-text">$&#123;DATAX_HOME&#125;
 |-- bin       
-|   &#96;-- datax.py
+|   `-- datax.py
 |-- conf
 |   |-- core.json
-|   &#96;-- logback.xml
+|   `-- logback.xml
 |-- lib
-|   &#96;-- datax-core-dependencies.jar
-&#96;-- plugin
+|   `-- datax-core-dependencies.jar
+`-- plugin
     |-- reader
-    |   &#96;-- mysqlreader
+    |   `-- mysqlreader
     |       |-- libs
-    |       |   &#96;-- mysql-reader-plugin-dependencies.jar
+    |       |   `-- mysql-reader-plugin-dependencies.jar
     |       |-- mysqlreader-0.0.1-SNAPSHOT.jar
-    |       &#96;-- plugin.json
-    &#96;-- writer
+    |       `-- plugin.json
+    `-- writer
         |-- mysqlwriter
         |   |-- libs
-        |   |   &#96;-- mysql-writer-plugin-dependencies.jar
+        |   |   `-- mysql-writer-plugin-dependencies.jar
         |   |-- mysqlwriter-0.0.1-SNAPSHOT.jar
-        |   &#96;-- plugin.json
+        |   `-- plugin.json
         |-- oceanbasewriter
-        &#96;-- odpswriter<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+        `-- odpswriter<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>${DATAX_HOME}/bin: 可执行程序目录。</li>
 <li>${DATAX_HOME}/conf: 框架配置目录。</li>
 <li>${DATAX_HOME}/lib: 框架依赖库目录。</li>
@@ -937,12 +937,12 @@
 <h3 id="抽取本地mysql报如下错误"><a href="#抽取本地mysql报如下错误" class="headerlink" title="抽取本地mysql报如下错误"></a>抽取本地mysql报如下错误</h3><ul>
 <li><p>报mysql链接不上，报错日志如下：</p>
 <pre class="line-numbers language-text" data-language="text"><code class="language-text">ERROR RetryUtil - Exception when calling callable, 异常Msg:DataX无法连接对应的数据库，可能原因是：
-1) 配置的ip&#x2F;port&#x2F;database&#x2F;jdbc错误，无法连接。
-2) 配置的username&#x2F;password错误，鉴权失败。请和DBA确认该数据库的连接信息是否正确。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
+1) 配置的ip/port/database/jdbc错误，无法连接。
+2) 配置的username/password错误，鉴权失败。请和DBA确认该数据库的连接信息是否正确。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></li>
 <li><p>*解决办法：**<br>datax里面的mysql驱动更换成合适的8.x的版本就好了:</p>
 </li>
 <li><p>报值非法</p>
-<pre class="line-numbers language-text" data-language="text"><code class="language-text">com.alibaba.datax.common.exception.DataXException: Code:[Common-00], Describe:[您提供的配置文件存在错误信息，请检查您的作业配置 .] - 任务读取配置文件出错. 配置文件路径[job.setting.speed.channel] 值非法, 期望是整数类型: For input string: &quot;&quot;. 请检查您的配置并作出修改.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">com.alibaba.datax.common.exception.DataXException: Code:[Common-00], Describe:[您提供的配置文件存在错误信息，请检查您的作业配置 .] - 任务读取配置文件出错. 配置文件路径[job.setting.speed.channel] 值非法, 期望是整数类型: For input string: "". 请检查您的配置并作出修改.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 </li>
 </ul>
@@ -1173,7 +1173,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

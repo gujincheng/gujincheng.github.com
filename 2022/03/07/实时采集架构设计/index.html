@@ -460,41 +460,41 @@
 <li>启动监控程序</li>
 </ol>
 <h2 id="方案可行性验证"><a href="#方案可行性验证" class="headerlink" title="方案可行性验证"></a>方案可行性验证</h2><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p><code>Flink CDC2.x</code>需要使用<code>Flink1.13.x</code>及以上的版本，首先需要替换集群的<code>Flink</code>版本，由于公司的大部分软件为<code>CDH</code>版本，这里的<code>Flin</code>k需要下载源码指定<code>CDH</code>版本的<code>Hadoop</code>重新编译</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mvn clean install -DskipTests -Dfast -Drat.skip&#x3D;true -Dhaoop.version&#x3D;3.0.0-cdh6.2.0 -Pvendor-repos -Dinclude-hadoop -Dscala-2.11 -T10C
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mvn clean <span class="token function">install</span> <span class="token parameter variable">-DskipTests</span> <span class="token parameter variable">-Dfast</span> <span class="token parameter variable">-Drat.skip</span><span class="token operator">=</span>true <span class="token parameter variable">-Dhaoop.version</span><span class="token operator">=</span><span class="token number">3.0</span>.0-cdh6.2.0 -Pvendor-repos -Dinclude-hadoop -Dscala-2.11 <span class="token parameter variable">-T10C</span>
 
-# -Dfast  #在flink根目录下pom.xml文件中fast配置项目中含快速设置,其中包含了多项构建时的跳过参数. #例如apache的文件头(rat)合法校验，代码风格检查，javadoc生成的跳过等，详细可阅读pom.xml
-# install maven的安装命令
-# -T10C #支持多处理器或者处理器核数参数,加快构建速度,推荐Maven3.3及以上
-# -Pinclude-hadoop  将hadoop的 jar包，打入到lib&#x2F;中
-# -Pvendor-repos   # 如果需要指定hadoop的发行商，如CDH，需要使用-Pvendor-repos
-# -Dscala-2.12     # 指定scala的版本为2.12
-# -Dhadoop.version&#x3D;3.0.0-cdh6.2.0  指定 hadoop 的版本，这里的版本与CDH集群版本的Hadoop一致就行<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token comment"># -Dfast  #在flink根目录下pom.xml文件中fast配置项目中含快速设置,其中包含了多项构建时的跳过参数. #例如apache的文件头(rat)合法校验，代码风格检查，javadoc生成的跳过等，详细可阅读pom.xml</span>
+<span class="token comment"># install maven的安装命令</span>
+<span class="token comment"># -T10C #支持多处理器或者处理器核数参数,加快构建速度,推荐Maven3.3及以上</span>
+<span class="token comment"># -Pinclude-hadoop  将hadoop的 jar包，打入到lib/中</span>
+<span class="token comment"># -Pvendor-repos   # 如果需要指定hadoop的发行商，如CDH，需要使用-Pvendor-repos</span>
+<span class="token comment"># -Dscala-2.12     # 指定scala的版本为2.12</span>
+<span class="token comment"># -Dhadoop.version=3.0.0-cdh6.2.0  指定 hadoop 的版本，这里的版本与CDH集群版本的Hadoop一致就行</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>在集群安装编译好的Flink软件，并配置环境变量</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export FLINK_HOME&#x3D;&#x2F;opt&#x2F;soft&#x2F;flink-1.13.6
-export PATH&#x3D;$PATH:$&#123;FLINK_HOME&#125;&#x2F;bin
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">export</span> <span class="token assign-left variable">FLINK_HOME</span><span class="token operator">=</span>/opt/soft/flink-1.13.6
+<span class="token builtin class-name">export</span> <span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token environment constant">$PATH</span><span class="token builtin class-name">:</span><span class="token variable">$&#123;FLINK_HOME&#125;</span>/bin
 
-export HADOOP_CLASSPATH&#x3D;&#96;hadoop classpath&#96;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token builtin class-name">export</span> <span class="token assign-left variable">HADOOP_CLASSPATH</span><span class="token operator">=</span><span class="token variable"><span class="token variable">`</span>hadoop classpath<span class="token variable">`</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里可以参考我的博客<a href="https://gujincheng.github.io/2022/03/10/maven%E7%BC%96%E8%AF%91Hudi%E4%B8%8EFlink%E6%BA%90%E7%A0%81/">maven编译Hudi与Flink源码</a></p>
 <h3 id="Flink-CDC实时采集Mysql入Kafka"><a href="#Flink-CDC实时采集Mysql入Kafka" class="headerlink" title="Flink CDC实时采集Mysql入Kafka"></a>Flink CDC实时采集Mysql入Kafka</h3><p>这里只是简单介绍一下测试流程和测试结果，具体可以参考我的博客<a href="https://gujincheng.github.io/2022/03/11/flink-cdc%E5%AE%9E%E6%97%B6%E9%87%87%E9%9B%86%E6%95%B0%E6%8D%AE%E5%BA%93%E5%85%A5Kafka/">flink-cdc实时采集数据库入Kafka</a></p>
 <h4 id="Mysql开启binlog"><a href="#Mysql开启binlog" class="headerlink" title="Mysql开启binlog"></a>Mysql开启binlog</h4><p>在/etc/my.cnf中mysqld节添加开启binlog的配置：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">#设置日志路径，注意路经需要mysql用户有权限写
-## &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;是binlog存储路径，mysql-bin是文件名
-## 在该文件夹下会生成 mysql-bin.000001、 mysql-bin.index文件
-log-bin &#x3D; &#x2F;data&#x2F;mysql&#x2F;logs&#x2F;mysql-bin
-#选择row模式
-binlog_format&#x3D;ROW
-##配置serverid
-server_id&#x3D;1
-#设置binlog清理时间
-expire_logs_days &#x3D; 7
-##binlog每个日志文件大小
-max_binlog_size &#x3D; 100m
-##binlog缓存大小
-binlog_cache_size &#x3D; 4m
-##最大binlog缓存大小
-max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment">#设置日志路径，注意路经需要mysql用户有权限写</span>
+<span class="token comment">## /data/mysql/logs/是binlog存储路径，mysql-bin是文件名</span>
+<span class="token comment">## 在该文件夹下会生成 mysql-bin.000001、 mysql-bin.index文件</span>
+log-bin <span class="token operator">=</span> /data/mysql/logs/mysql-bin
+<span class="token comment">#选择row模式</span>
+<span class="token assign-left variable">binlog_format</span><span class="token operator">=</span>ROW
+<span class="token comment">##配置serverid</span>
+<span class="token assign-left variable">server_id</span><span class="token operator">=</span><span class="token number">1</span>
+<span class="token comment">#设置binlog清理时间</span>
+expire_logs_days <span class="token operator">=</span> <span class="token number">7</span>
+<span class="token comment">##binlog每个日志文件大小</span>
+max_binlog_size <span class="token operator">=</span> 100m
+<span class="token comment">##binlog缓存大小</span>
+binlog_cache_size <span class="token operator">=</span> 4m
+<span class="token comment">##最大binlog缓存大小</span>
+max_binlog_cache_size <span class="token operator">=</span> 512m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>修改完配置后，重启mysql。执行SHOW VARIABLES LIKE ‘log_bin’; Value 值为 ON即可</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">service mysqld restart<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">service</span> mysqld restart<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h4 id="通过DataStream方式编写CDC代码"><a href="#通过DataStream方式编写CDC代码" class="headerlink" title="通过DataStream方式编写CDC代码"></a>通过DataStream方式编写CDC代码</h4><ol>
 <li>配置maven依赖<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.ververica<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
@@ -504,14 +504,14 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
 <li>编写java代码<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>digiwin<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>cdc2kafka</span><span class="token punctuation">;</span>
 
-<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span><span class="token punctuation">;</span>
-<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>connectors<span class="token punctuation">.</span>mysql<span class="token punctuation">.</span>source<span class="token punctuation">.</span></span><span class="token class-name">MySqlSource</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>ververica<span class="token punctuation">.</span>cdc<span class="token punctuation">.</span>debezium<span class="token punctuation">.</span></span><span class="token class-name">JsonDebeziumDeserializationSchema</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>api<span class="token punctuation">.</span>common<span class="token punctuation">.</span>eventtime<span class="token punctuation">.</span></span><span class="token class-name">WatermarkStrategy</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>flink<span class="token punctuation">.</span>streaming<span class="token punctuation">.</span>api<span class="token punctuation">.</span>environment<span class="token punctuation">.</span></span><span class="token class-name">StreamExecutionEnvironment</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">Logger</span></span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">org<span class="token punctuation">.</span>slf4j<span class="token punctuation">.</span></span><span class="token class-name">LoggerFactory</span></span><span class="token punctuation">;</span>
 
-<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token operator">*</span></span><span class="token punctuation">;</span>
 
 
 <span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Mysql2Kakfa</span> <span class="token punctuation">&#123;</span>
@@ -558,26 +558,26 @@ max_binlog_cache_size &#x3D; 512m<span aria-hidden="true" class="line-numbers-ro
 
     <span class="token punctuation">&#125;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-以per-job方式提交Flink任务到yarn上<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+以per-job方式提交Flink任务到yarn上<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token variable">$&#123;FLINK_HOME&#125;</span>/bin/flink run <span class="token parameter variable">-m</span> yarn-cluster <span class="token parameter variable">-yjm</span> <span class="token number">1024</span> <span class="token parameter variable">-ytm</span> <span class="token number">1024</span> <span class="token parameter variable">-yqu</span> root.default <span class="token parameter variable">-ynm</span> gjc_test_flink-cdc-mysql <span class="token parameter variable">-c</span> com.digiwin.flink.cdc2kafka.Mysql2Kakfa target/FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 数据很成功的采集到kafka了</li>
 </ol>
 <h4 id="添加断点续传"><a href="#添加断点续传" class="headerlink" title="添加断点续传"></a>添加断点续传</h4><p>首先在代码里添加checkpoint相关代码：</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//配置ck的状态后端</span>
 env<span class="token punctuation">.</span><span class="token function">setStateBackend</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">HashMapStateBackend</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">//设置系统异常退出或人为 Cancel 掉，不删除checkpoint数据</span>
-env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setExternalizedCheckpointCleanup</span><span class="token punctuation">(</span><span class="token class-name">CheckpointConfig</span><span class="token punctuation">.</span><span class="token class-name">ExternalizedCheckpointCleanup</span><span class="token punctuation">.</span>RETAIN_ON_CANCELLATION<span class="token punctuation">)</span><span class="token punctuation">;</span>
+env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setExternalizedCheckpointCleanup</span><span class="token punctuation">(</span><span class="token class-name">CheckpointConfig<span class="token punctuation">.</span>ExternalizedCheckpointCleanup</span><span class="token punctuation">.</span><span class="token constant">RETAIN_ON_CANCELLATION</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">//设置checkpoint存储目录</span>
 env<span class="token punctuation">.</span><span class="token function">getCheckpointConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setCheckpointStorage</span><span class="token punctuation">(</span><span class="token string">"hdfs://flink/checkpoint/cdc/gjc_test_Mysql2Kakfa"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 env<span class="token punctuation">.</span><span class="token function">enableCheckpointing</span><span class="token punctuation">(</span><span class="token number">3000</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>启动任务后，在hdfs上查看checkpoint文件夹：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@ddp2 ~]# hadoop fs -ls &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;
-Found 3 items
-drwxr-xr-x   - root supergroup          0 2022-03-19 11:51 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27
-drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;shared
-drwxr-xr-x   - root supergroup          0 2022-03-19 11:49 &#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token punctuation">[</span>root@ddp2 ~<span class="token punctuation">]</span><span class="token comment"># hadoop fs -ls /flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/</span>
+Found <span class="token number">3</span> items
+drwxr-xr-x   - root supergroup          <span class="token number">0</span> <span class="token number">2022</span>-03-19 <span class="token number">11</span>:51 /flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/chk-27
+drwxr-xr-x   - root supergroup          <span class="token number">0</span> <span class="token number">2022</span>-03-19 <span class="token number">11</span>:49 /flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/shared
+drwxr-xr-x   - root supergroup          <span class="token number">0</span> <span class="token number">2022</span>-03-19 <span class="token number">11</span>:49 /flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/taskowned<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <ol>
 <li>手动取消flink任务</li>
-<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$&#123;FLINK_HOME&#125;&#x2F;bin&#x2F;flink run -m yarn-cluster -yjm 1024 -ytm 1024 -yqu root.default -ynm gjc_test_flink-cdc-mysql -s hdfs:&#x2F;&#x2F;&#x2F;flink&#x2F;checkpoint&#x2F;cdc&#x2F;gjc_test_Mysql2Kakfa&#x2F;f24d4a641988987a47e2b6754b26481d&#x2F;chk-27 -c com.digiwin.flink.cdc2kafka.Mysql2Kakfa target&#x2F;FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>重新启动flink，需要注意的是，任务启动的时候，需要指定checkopint地址<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token variable">$&#123;FLINK_HOME&#125;</span>/bin/flink run <span class="token parameter variable">-m</span> yarn-cluster <span class="token parameter variable">-yjm</span> <span class="token number">1024</span> <span class="token parameter variable">-ytm</span> <span class="token number">1024</span> <span class="token parameter variable">-yqu</span> root.default <span class="token parameter variable">-ynm</span> gjc_test_flink-cdc-mysql <span class="token parameter variable">-s</span> hdfs:///flink/checkpoint/cdc/gjc_test_Mysql2Kakfa/f24d4a641988987a47e2b6754b26481d/chk-27 <span class="token parameter variable">-c</span> com.digiwin.flink.cdc2kafka.Mysql2Kakfa target/FlinkCDCTest-1.0-SNAPSHOT-jar-with-dependencies.jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
 <li>在mysql中添加数据<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">insert</span> <span class="token keyword">into</span> gjc_test_binlog <span class="token keyword">values</span><span class="token punctuation">(</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token number">9</span><span class="token punctuation">,</span><span class="token string">'2018-11-10'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
 <li>在flink监控页面查看日志<br>可以查看到，数据是从8，9开始的。断点续传测试成功</li>
@@ -697,7 +697,7 @@ tableName <span class="token operator">=</span> <span class="token string">"[a-z
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

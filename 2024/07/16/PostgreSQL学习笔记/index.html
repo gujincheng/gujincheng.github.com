@@ -286,13 +286,13 @@
 <li>常用的pgsql命令（备忘）</li>
 </ul>
 <a id="more"></a>
-<h2 id="PostgreSQL开启CDC"><a href="#PostgreSQL开启CDC" class="headerlink" title="PostgreSQL开启CDC"></a>PostgreSQL开启CDC</h2><h3 id="更改配置文件postgresql-conf"><a href="#更改配置文件postgresql-conf" class="headerlink" title="更改配置文件postgresql.conf"></a>更改配置文件postgresql.conf</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 更改wal日志方式为logical
-wal_level &#x3D; logical            # minimal, replica, or logical
-# 更改solts最大数量（默认值为10），flink-cdc默认一张表占用一个slots
-max_replication_slots &#x3D; 20           # max number of replication slots
-# 更改wal发送最大进程数（默认值为10），这个值和上面的solts设置一样
-max_wal_senders &#x3D; 20    # max number of walsender processes# 中断那些停止活动超过指定毫秒数的复制连接，可以适当设置大一点（默认60s）
-wal_sender_timeout &#x3D; 180s	# in milliseconds; 0 disable<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="PostgreSQL开启CDC"><a href="#PostgreSQL开启CDC" class="headerlink" title="PostgreSQL开启CDC"></a>PostgreSQL开启CDC</h2><h3 id="更改配置文件postgresql-conf"><a href="#更改配置文件postgresql-conf" class="headerlink" title="更改配置文件postgresql.conf"></a>更改配置文件postgresql.conf</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 更改wal日志方式为logical</span>
+wal_level <span class="token operator">=</span> logical            <span class="token comment"># minimal, replica, or logical</span>
+<span class="token comment"># 更改solts最大数量（默认值为10），flink-cdc默认一张表占用一个slots</span>
+max_replication_slots <span class="token operator">=</span> <span class="token number">20</span>           <span class="token comment"># max number of replication slots</span>
+<span class="token comment"># 更改wal发送最大进程数（默认值为10），这个值和上面的solts设置一样</span>
+max_wal_senders <span class="token operator">=</span> <span class="token number">20</span>    <span class="token comment"># max number of walsender processes# 中断那些停止活动超过指定毫秒数的复制连接，可以适当设置大一点（默认60s）</span>
+wal_sender_timeout <span class="token operator">=</span> 180s	<span class="token comment"># in milliseconds; 0 disable</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>wal_level是必须更改的，其它参数选着性更改，如果同步表数量超过10张建议修改为合适的值<br>更改配置文件postgresql.conf完成，需要重启pg服务生效，所以一般是在业务低峰期更改</p>
 <h3 id="新建用户并且给用户复制流权限"><a href="#新建用户并且给用户复制流权限" class="headerlink" title="新建用户并且给用户复制流权限"></a>新建用户并且给用户复制流权限</h3><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">-- pg新建用户</span>
 <span class="token keyword">CREATE</span> <span class="token keyword">USER</span> <span class="token keyword">user</span> <span class="token keyword">WITH</span> PASSWORD <span class="token string">'pwd'</span><span class="token punctuation">;</span>
@@ -450,7 +450,7 @@ wal_sender_timeout &#x3D; 180s	# in milliseconds; 0 disable<span aria-hidden="tr
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

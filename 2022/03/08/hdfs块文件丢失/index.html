@@ -288,12 +288,12 @@
 <h2 id="hdfs块文件丢失"><a href="#hdfs块文件丢失" class="headerlink" title="hdfs块文件丢失"></a>hdfs块文件丢失</h2><p>最近公司集群扩容，运维那边不知道怎么操作的，导致hdfs的block块文件丢失了。</p>
 <p>个人猜测，公司的五台节点，都新挂载了一个新盘，datanode上配置了新盘，重启之后，hadoop集群肯定是要负载均衡一下的，迁移一些文件到新盘<br>这时候namenode会可能会进入安全模式，CM上很多组件都会报红，这时候我们的运维强制退出了安全模式，重启了hadoop集群，但是只是猜测，具体原因找不到了</p>
 <p>先说问题描述：<br>启动hive的时候，报如下报错日志：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory &#x2F;tmp&#x2F;hive&#x2F;root&#x2F;eceb6690-1510-4703-8a4b-60ea03c3fcec. Name node is in safe mode.
-The reported blocks 10427 needs additional 4373 blocks to reach the threshold 0.9990 of total blocks 14815.
-The number of live datanodes 3 has reached the minimum number 1. Safe mode will be turned off automatically once the thresholds have been reached. NamenodeHostName:ddp2
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.newSafemodeException(FSNamesystem.java:1448)
-        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkNameNodeSafeMode(FSNamesystem.java:1435)
-        ... 12 more<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Caused by: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot create directory /tmp/hive/root/eceb6690-1510-4703-8a4b-60ea03c3fcec. Name <span class="token function">node</span> is <span class="token keyword">in</span> safe mode.
+The reported blocks <span class="token number">10427</span> needs additional <span class="token number">4373</span> blocks to reach the threshold <span class="token number">0.9990</span> of total blocks <span class="token number">14815</span>.
+The number of live datanodes <span class="token number">3</span> has reached the minimum number <span class="token number">1</span>. Safe mode will be turned off automatically once the thresholds have been reached. NamenodeHostName:ddp2
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.newSafemodeException<span class="token punctuation">(</span>FSNamesystem.java:1448<span class="token punctuation">)</span>
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkNameNodeSafeMode<span class="token punctuation">(</span>FSNamesystem.java:1435<span class="token punctuation">)</span>
+        <span class="token punctuation">..</span>. <span class="token number">12</span> <span class="token function">more</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>很明显，报错就是丢失了4373个block，导致namenode进入安全模式</p>
 <h3 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h3><p>出现前面提到的问题主要原因是客户端写入的数据没有及时保存到磁盘中，从而导致数据丢失；又因为数据块丢失达到一定的比率，导致hdfs启动进入安全模式。</p>
 <p>为了弄清楚导致安全模式的原因，下面主要对hdfs安全模式和如何退出安全模式进行分析。</p>
@@ -305,24 +305,24 @@ The number of live datanodes 3 has reached the minimum number 1. Safe mode will 
 <p>dfs.safemode.threshold.pct（缺省值0.999f）表示HDFS启动的时候，如果DataNode上报的block个数达到了元 数据 记录的block个数的0.999倍才可以离开安全模式，否则一直是这种只读模式。如果设为1则HDFS永远是处于SafeMode。</p>
 <h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>比较粗暴的方式，删除损坏掉的block</p>
 <ol>
-<li>执行命令退出安全模式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop dfsadmin -safemode leave<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>执行健康检查，删除损坏掉的block。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs fsck  &#x2F;  -delete<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<li>执行命令退出安全模式：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop dfsadmin <span class="token parameter variable">-safemode</span> leave<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>执行健康检查，删除损坏掉的block。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs <span class="token function">fsck</span>  /  <span class="token parameter variable">-delete</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 这里的路径虽然写的是<code>/</code>，但是不是删除所有文件，是删除根目录以下的所有的损坏的块文件</li>
 </ol>
 <p>生产环境一般考虑先恢复： 找到数据块的位置和丢失的数据信息</p>
 <ol>
-<li>查看/所有分区信息：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs hdfs fsck &#x2F; -files -blocks -locations<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
-<li>恢复数据文件，前提是，datanode里的block文件还存在，如果不存在了，虽然信息提示SUCCESS，但是其实还是没有恢复成功<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs debug recoverLease -path $&#123;path&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-我这里使用恢复命令没有效果，直接到datanode的文件存储目录查看了以下，报找不到的block都找不到<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;data&#x2F;dfs&#x2F;dn&#x2F;current ## 通过查看hdfs-site.xml查看datanode的文件实际存储位置
-find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下，文件名包含blk_1073743358_2534的文件。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<li>查看/所有分区信息：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs hdfs <span class="token function">fsck</span> / <span class="token parameter variable">-files</span> <span class="token parameter variable">-blocks</span> <span class="token parameter variable">-locations</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>恢复数据文件，前提是，datanode里的block文件还存在，如果不存在了，虽然信息提示SUCCESS，但是其实还是没有恢复成功<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hdfs debug recoverLease <span class="token parameter variable">-path</span> <span class="token variable">$&#123;path&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+我这里使用恢复命令没有效果，直接到datanode的文件存储目录查看了以下，报找不到的block都找不到<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">cd</span> /data/dfs/dn/current <span class="token comment">## 通过查看hdfs-site.xml查看datanode的文件实际存储位置</span>
+<span class="token function">find</span> <span class="token builtin class-name">.</span> <span class="token parameter variable">-name</span> <span class="token string">"blk_1073743358_2534*"</span>   <span class="token comment">## 查看当前目录及以下，文件名包含blk_1073743358_2534的文件。</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 
 
 </li>
 </ol>
 <p>通过查看hdfs-site.xmhjl找到datanode的日志文件路径：/var/log/hadoop-hdfs<br>查看datanode日志文件：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D1.png" alt="hdfs块文件丢失恢复1"><br>通过日志可以看出，之前的恢复命令有的成功，有的失败，这里分别找了成功和失败的block查看了一下，发现成功日志的block块是恢复成功了，但是失败的确实没有成功</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 以下文件是成功的block块的文件，查看block块所属哪个文件路径，可以通过hdfs hdfs fsck &#x2F; -files -blocks -locations命令查看
-[root@ddp3 tmp]# hadoop fs -ls &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041
--rw-r-----   3 digiwin hadoop      70423 2022-03-01 11:13 &#x2F;tmp&#x2F;logs&#x2F;digiwin&#x2F;logs&#x2F;application_1645166873581_4910&#x2F;ddp4_8041<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment">## 以下文件是成功的block块的文件，查看block块所属哪个文件路径，可以通过hdfs hdfs fsck / -files -blocks -locations命令查看</span>
+<span class="token punctuation">[</span>root@ddp3 tmp<span class="token punctuation">]</span><span class="token comment"># hadoop fs -ls /tmp/logs/digiwin/logs/application_1645166873581_4910/ddp4_8041</span>
+-rw-r-----   <span class="token number">3</span> digiwin hadoop      <span class="token number">70423</span> <span class="token number">2022</span>-03-01 <span class="token number">11</span>:13 /tmp/logs/digiwin/logs/application_1645166873581_4910/ddp4_8041<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>查看datanode3的log，找其中一块block查看具体的生成时间，已经从哪台节点复制过来的<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D2.png" alt="hdfs块文件丢失恢复2"><br>可以看出，blk_1073741854是2022-03-07 13:27:37从192.168.5.25复制过来的。<br>查看datanode3的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D3.png" alt="hdfs块文件丢失恢复3"><br>查看datanode5的blk_1073741854生成时间：<br><img src="/uploads/202203/hdfs%E5%9D%97%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E6%81%A2%E5%A4%8D4.png" alt="hdfs块文件丢失恢复4"><br>可以很明显的看出，blk_1073741854在dn5上是2022-03-04的时候生成的，但是dn3是2022-03-07新复制的<br>所以，数据恢复操作，要有一个前提，丢失的块不能没有副本，需要从其他副本节点复制过来</p>
 <p>这里也可以参考一下<a target="_blank" rel="noopener" href="https://www.cnblogs.com/prayer21/p/4819789.html">HDFS中datanode节点block损坏后的自动恢复过程</a></p>
 
@@ -425,7 +425,7 @@ find . -name &quot;blk_1073743358_2534*&quot;   ## 查看当前目录及以下�
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

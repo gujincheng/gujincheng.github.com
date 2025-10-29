@@ -289,7 +289,7 @@
 <p>Selenium可以根据我们的指令，让浏览器自动加载页面，获取需要的页面，甚至页面截屏，或者判断网站上某些动作是否发生。</p>
 <p>Selenium自己不带浏览器，不支持浏览器的功能，它需要与第三方浏览器结合在一起才能使用。但是我们有时候需要让它内嵌在代码中运行，所有我们需要用一个叫PhantomJS的工具代替真实的浏览器。</p>
 <h4 id="Selenium的安装"><a href="#Selenium的安装" class="headerlink" title="Selenium的安装"></a>Selenium的安装</h4><p>直接通过pip安装即可，这里没什么坑</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">pip install selenium<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">pip <span class="token function">install</span> selenium<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h3 id="PhantomJS"><a href="#PhantomJS" class="headerlink" title="PhantomJS"></a>PhantomJS</h3><p>PhantomJS是一个基于Webkit的”无界面”(headless)浏览器，它会把网站加载到内存并执行页面上的JavaScript，因为不会展示图形界面，所以运行起来比完整的浏览器更高效。</p>
 <p>如果我们把Selenium和PhantomJS结合在一起，就可以运行一个非常强大的网络爬虫了，这个爬虫可以处理JavaScript、Cookie、headers，以及任何我们真实用户需要做的事情。</p>
 <h4 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h4><ul>
@@ -298,8 +298,8 @@
 <li>PhantomsJS官方才考文档：<a target="_blank" rel="noopener" href="http://phantomjs.org/documention">http://phantomjs.org/documention</a></li>
 <li>这里不能通过pip、apt-get，yum等方式安装，一开始在自己虚拟机通过apt-get安装，但是一直报错。后来又全卸载，重新通过官网下载手动安装才行。</li>
 <li>在自己的远程服务器中运行代码，报错：<pre class="line-numbers language-python" data-language="python"><code class="language-python">TypeError<span class="token punctuation">:</span> urlopen<span class="token punctuation">(</span><span class="token punctuation">)</span> got multiple values <span class="token keyword">for</span> keyword argument <span class="token string">'body'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-原因是服务器的urllib3版本太低，卸载以后重装就好了<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo apt-get remove python-urllib3
-sudo pip install -U urllib3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+原因是服务器的urllib3版本太低，卸载以后重装就好了<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">sudo</span> <span class="token function">apt-get</span> remove python-urllib3
+<span class="token function">sudo</span> pip <span class="token function">install</span> <span class="token parameter variable">-U</span> urllib3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 下面是代码：<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#-*-  coding:utf-8 -*-</span>
 <span class="token keyword">from</span> selenium <span class="token keyword">import</span> webdriver
 <span class="token keyword">from</span> selenium<span class="token punctuation">.</span>webdriver<span class="token punctuation">.</span>common<span class="token punctuation">.</span>keys <span class="token keyword">import</span> Keys
@@ -439,7 +439,7 @@ driver<span class="token punctuation">.</span>save_screenshot<span class="token 
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

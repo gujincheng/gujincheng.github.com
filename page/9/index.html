@@ -198,6 +198,115 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/18/Scala%E6%9D%82%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/01/18/Scala%E6%9D%82%E8%AE%B0/" class="post-title-link" itemprop="url">Scala杂记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-18 17:53:31" itemprop="dateCreated datePublished" datetime="2021-01-18T17:53:31+08:00">2021-01-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-31 15:42:10" itemprop="dateModified" datetime="2022-03-31T15:42:10+08:00">2022-03-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/01/18/Scala%E6%9D%82%E8%AE%B0/" class="post-meta-item leancloud_visitors" data-flag-title="Scala杂记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/01/18/Scala%E6%9D%82%E8%AE%B0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/18/Scala%E6%9D%82%E8%AE%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本文主要包括：</p>
+<ul>
+<li>使用Scala解析Json</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/01/18/Scala%E6%9D%82%E8%AE%B0/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/18/Redis%E6%9D%82%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -294,9 +403,9 @@
 <p>所以，以后再操作生产环境数据库，特别是删除、大规模数据遍历、消耗性能比较大的情况下，在网上查的命令最好还是在测试环境测试一下再用，多么痛的领悟</p>
 <p>这里记录一下两个命令：</p>
 <h3 id="错误的命令"><a href="#错误的命令" class="headerlink" title="错误的命令"></a>错误的命令</h3><p>在数据量较大的情况下，千万别用类似keys *的操作，keys会把reids里所有的key一口气都遍历一遍，消耗性能奇高。。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;pws&#125;&#39; keys &#39;0^!*&#39; |xargs redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli <span class="token parameter variable">-h</span> <span class="token variable">$&#123;ip&#125;</span> <span class="token parameter variable">-p</span> <span class="token number">6379</span> <span class="token parameter variable">-n</span> <span class="token number">4</span> <span class="token parameter variable">-a</span> <span class="token string">'$&#123;pws&#125;'</span> keys <span class="token string">'0^!*'</span> <span class="token operator">|</span><span class="token function">xargs</span> redis-cli <span class="token parameter variable">-h</span> <span class="token variable">$&#123;ip&#125;</span> <span class="token parameter variable">-p</span> <span class="token number">6379</span> <span class="token parameter variable">-n</span> <span class="token number">4</span> <span class="token parameter variable">-a</span> <span class="token string">'$&#123;psw&#125;'</span> DEL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h3 id="正确的命令："><a href="#正确的命令：" class="headerlink" title="正确的命令："></a>正确的命令：</h3><p>在生产环境下，尽量使用scan</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; --scan --pattern &quot;0^!*&quot; | xargs -L 1000 redis-cli -h $&#123;ip&#125; -p 6379 -n 4 -a &#39;$&#123;psw&#125;&#39; del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-cli <span class="token parameter variable">-h</span> <span class="token variable">$&#123;ip&#125;</span> <span class="token parameter variable">-p</span> <span class="token number">6379</span> <span class="token parameter variable">-n</span> <span class="token number">4</span> <span class="token parameter variable">-a</span> <span class="token string">'$&#123;psw&#125;'</span> <span class="token parameter variable">--scan</span> <span class="token parameter variable">--pattern</span> <span class="token string">"0^!*"</span> <span class="token operator">|</span> <span class="token function">xargs</span> <span class="token parameter variable">-L</span> <span class="token number">1000</span> redis-cli <span class="token parameter variable">-h</span> <span class="token variable">$&#123;ip&#125;</span> <span class="token parameter variable">-p</span> <span class="token number">6379</span> <span class="token parameter variable">-n</span> <span class="token number">4</span> <span class="token parameter variable">-a</span> <span class="token string">'$&#123;psw&#125;'</span> del<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>具体可以参考：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/102092251">Redis 千万不要乱用KEYS命令，不然会挨打的</a>  </p>
 
       
@@ -397,7 +506,7 @@
 
       
           <h2 id="collection表名包含特殊字符"><a href="#collection表名包含特殊字符" class="headerlink" title="collection表名包含特殊字符"></a>collection表名包含特殊字符</h2><p>   当collection表名包含特殊字符时，mongo sehll在find()等操作时会报错，这时候，可以使用getCollection函数，把表明以字符串的形式传进函数内<br>例如：  </p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection(&#39;all-aa-bb_cc_dd_20200129&#39;).find()<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">db.getCollection<span class="token punctuation">(</span><span class="token string">'all-aa-bb_cc_dd_20200129'</span><span class="token punctuation">)</span>.find<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
       
     </div>
@@ -1167,112 +1276,6 @@ words <span class="token operator">=</span> <span class="token string-interpolat
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/avatar.jpg">
-      <meta itemprop="name" content="Golden">
-      <meta itemprop="description" content="计划推动变化">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Golden Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/" class="post-title-link" itemprop="url">emacs手动安装、解决不能使用中文输入法</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-01-16 19:47:17" itemprop="dateCreated datePublished" datetime="2021-01-16T19:47:17+08:00">2021-01-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-02-22 10:15:47" itemprop="dateModified" datetime="2023-02-22T10:15:47+08:00">2023-02-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
-                </span>
-            </span>
-
-          
-            <span id="/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/" class="post-meta-item leancloud_visitors" data-flag-title="emacs手动安装、解决不能使用中文输入法" title="阅读次数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span class="leancloud-visitors-count"></span>
-            </span>
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="far fa-comment"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本文主要包括：</p>
-<ul>
-<li>emacs下载杆状</li>
-<li>解决不能使用中文输入法</li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/01/16/emacs%E6%89%8B%E5%8A%A8%E5%AE%89%E8%A3%85%E3%80%81%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1344,7 +1347,7 @@ words <span class="token operator">=</span> <span class="token string-interpolat
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

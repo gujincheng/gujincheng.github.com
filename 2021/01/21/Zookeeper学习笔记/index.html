@@ -289,34 +289,34 @@
 <h2 id="Zookeeper简介"><a href="#Zookeeper简介" class="headerlink" title="Zookeeper简介"></a>Zookeeper简介</h2></li>
 </ul>
 <h2 id="Zookeeper可以干什么？"><a href="#Zookeeper可以干什么？" class="headerlink" title="Zookeeper可以干什么？"></a>Zookeeper可以干什么？</h2><h2 id="Zookeeper安装与启动"><a href="#Zookeeper安装与启动" class="headerlink" title="Zookeeper安装与启动"></a>Zookeeper安装与启动</h2><h3 id="Zookeeper安装"><a href="#Zookeeper安装" class="headerlink" title="Zookeeper安装"></a>Zookeeper安装</h3><p>Zookeeper需要用到java，安装前需要安装java，这里省略<br>官网下载Zookeeper安装包，并解压</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">tar zxvf zookeeper-3.4.6.tar.gz -C .
-cd zookeeper-3.4.6&#x2F;conf
-cp zoo_sample.cfg zoo.cfg <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">tar</span> zxvf zookeeper-3.4.6.tar.gz <span class="token parameter variable">-C</span> <span class="token builtin class-name">.</span>
+<span class="token builtin class-name">cd</span> zookeeper-3.4.6/conf
+<span class="token function">cp</span> zoo_sample.cfg zoo.cfg <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>修改zoo.cfg</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># The number of milliseconds of each tick
-tickTime&#x3D;2000
-# The number of ticks that the initial 
-# synchronization phase can take
-initLimit&#x3D;10
-# The number of ticks that can pass between 
-# sending a request and getting an acknowledgement
-syncLimit&#x3D;5
-# the directory where the snapshot is stored.
-# do not use &#x2F;tmp for storage, &#x2F;tmp here is just 
-# example sakes.
-dataDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkData
-dataLogDir&#x3D;&#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F;zkDataLog
-# the port at which the clients will connect
-clientPort&#x3D;2181<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># The number of milliseconds of each tick</span>
+<span class="token assign-left variable">tickTime</span><span class="token operator">=</span><span class="token number">2000</span>
+<span class="token comment"># The number of ticks that the initial </span>
+<span class="token comment"># synchronization phase can take</span>
+<span class="token assign-left variable">initLimit</span><span class="token operator">=</span><span class="token number">10</span>
+<span class="token comment"># The number of ticks that can pass between </span>
+<span class="token comment"># sending a request and getting an acknowledgement</span>
+<span class="token assign-left variable">syncLimit</span><span class="token operator">=</span><span class="token number">5</span>
+<span class="token comment"># the directory where the snapshot is stored.</span>
+<span class="token comment"># do not use /tmp for storage, /tmp here is just </span>
+<span class="token comment"># example sakes.</span>
+<span class="token assign-left variable">dataDir</span><span class="token operator">=</span>/opt/modules/zookeeper-3.4.6/zkData
+<span class="token assign-left variable">dataLogDir</span><span class="token operator">=</span>/opt/modules/zookeeper-3.4.6/zkDataLog
+<span class="token comment"># the port at which the clients will connect</span>
+<span class="token assign-left variable">clientPort</span><span class="token operator">=</span><span class="token number">2181</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这里设置了dataDir和dataLogDir，手动生成了这两个文件，不知道会不会自动生成<br>最后，设置Zookeeper的环境变量</p>
-<h3 id="Zookeeper启动等操作"><a href="#Zookeeper启动等操作" class="headerlink" title="Zookeeper启动等操作"></a>Zookeeper启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 启动
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh start
-# 关闭
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh stop
-# 查看ZK服务状态
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh status
-#  重启ZK服务
-cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServer.sh restart<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="Zookeeper启动等操作"><a href="#Zookeeper启动等操作" class="headerlink" title="Zookeeper启动等操作"></a>Zookeeper启动等操作</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 启动</span>
+<span class="token builtin class-name">cd</span> /opt/modules/zookeeper-3.4.6/ <span class="token operator">&amp;&amp;</span> bin/zkServer.sh start
+<span class="token comment"># 关闭</span>
+<span class="token builtin class-name">cd</span> /opt/modules/zookeeper-3.4.6/ <span class="token operator">&amp;&amp;</span> bin/zkServer.sh stop
+<span class="token comment"># 查看ZK服务状态</span>
+<span class="token builtin class-name">cd</span> /opt/modules/zookeeper-3.4.6/ <span class="token operator">&amp;&amp;</span> bin/zkServer.sh status
+<span class="token comment">#  重启ZK服务</span>
+<span class="token builtin class-name">cd</span> /opt/modules/zookeeper-3.4.6/ <span class="token operator">&amp;&amp;</span> bin/zkServer.sh restart<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="Zookeeper操作样例"><a href="#Zookeeper操作样例" class="headerlink" title="Zookeeper操作样例"></a>Zookeeper操作样例</h2>
     </div>
 
@@ -417,7 +417,7 @@ cd &#x2F;opt&#x2F;modules&#x2F;zookeeper-3.4.6&#x2F; &amp;&amp; bin&#x2F;zkServe
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

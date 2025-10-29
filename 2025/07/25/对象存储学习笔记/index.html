@@ -476,9 +476,9 @@
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>value</span><span class="token punctuation">></span></span>xxx<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>value</span><span class="token punctuation">></span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>HuaweiCloud Endpoint<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>property</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>命令行验证<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs -ls obs:&#x2F;&#x2F;ddp-data-test&#x2F;
-hdfs dfs -put hdfs_results.json obs:&#x2F;&#x2F;ddp-data-test&#x2F;
-hadoop fs -rm -r -skipTrash obs:&#x2F;&#x2F;ddp-data-test&#x2F;hdfs_results.json<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<li>命令行验证<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hadoop fs <span class="token parameter variable">-ls</span> obs://ddp-data-test/
+hdfs dfs <span class="token parameter variable">-put</span> hdfs_results.json obs://ddp-data-test/
+hadoop fs <span class="token parameter variable">-rm</span> <span class="token parameter variable">-r</span> <span class="token parameter variable">-skipTrash</span> obs://ddp-data-test/hdfs_results.json<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 其他操作就跟操作hdfs几乎一样</li>
 </ol>
 <h3 id="java操作OBS"><a href="#java操作OBS" class="headerlink" title="java操作OBS"></a>java操作OBS</h3><ol>
@@ -657,7 +657,7 @@ request<span class="token punctuation">.</span><span class="token function">setP
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -288,33 +288,33 @@
 
 
 <h2 id="大SQL报内存不够"><a href="#大SQL报内存不够" class="headerlink" title="大SQL报内存不够"></a>大SQL报内存不够</h2><p>执行2亿的数据group by，报错：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR 1064 (HY000): Memory of Queryac34fc2a-bfea-11ee-afb0-0cda411dfefe exceed limit. Pipeline Backend: 192.168.101.97, fragment: ac34fc2a-bfea-11ee-afb0-0cda411dff01 Used: 21478902080, Limit: 21474836480. Mem usage has exceed the limit of single query, You can change the limit by set session variable query_mem_limit<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR <span class="token number">1064</span> <span class="token punctuation">(</span>HY000<span class="token punctuation">)</span>: Memory of Queryac34fc2a-bfea-11ee-afb0-0cda411dfefe exceed limit. Pipeline Backend: <span class="token number">192.168</span>.101.97, fragment: ac34fc2a-bfea-11ee-afb0-0cda411dff01 Used: <span class="token number">21478902080</span>, Limit: <span class="token number">21474836480</span>. Mem usage has exceed the limit of single query, You can change the limit by <span class="token builtin class-name">set</span> session variable query_mem_limit<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>这里开启Starrocks的中间结果落盘：</p>
 <ol>
-<li>在 BE 配置文件 be.conf 中指定落盘路径 spill_local_storage_dir，并重启集群使修改生效。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spill_local_storage_dir&#x3D;&#x2F;&lt;dir_1&gt;[;&#x2F;&lt;dir_2&gt;]<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>在 BE 配置文件 be.conf 中指定落盘路径 spill_local_storage_dir，并重启集群使修改生效。<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token assign-left variable">spill_local_storage_dir</span><span class="token operator">=</span>/<span class="token operator">&lt;</span>dir_<span class="token operator"><span class="token file-descriptor important">1</span>></span><span class="token punctuation">[</span><span class="token punctuation">;</span>/<span class="token operator">&lt;</span>dir_<span class="token operator"><span class="token file-descriptor important">2</span>></span><span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
 <li>在SQL执行之前，首先设置以下参数<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">SET</span> enable_spill <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
 <span class="token keyword">SET</span> spill_mode <span class="token operator">=</span> <span class="token string">"auto"</span><span class="token punctuation">;</span>
 <span class="token keyword">set</span> query_timeout <span class="token operator">=</span> <span class="token number">600</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 通过设置以上参数，大sql可以正常执行</li>
 </ol>
 <h2 id="all-partitions-have-no-load-data"><a href="#all-partitions-have-no-load-data" class="headerlink" title="all partitions have no load data"></a>all partitions have no load data</h2><p>fe的日志里，存在大量的<code>all partitions have no load data</code>，这是因为，实时采集的时候，设置了每秒streamload一次。但是很多表其实是没有数据的<br>fe.warn.log日志：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">2024-02-01 16:39:16,437 WARN (thrift-server-pool-285904|291996) [FrontendServiceImpl.loadTxnPrepare():1562] failed to prepare txn_id: 40582: all partitions have no load data
-2024-02-01 16:39:16,450 WARN (thrift-server-pool-285910|292002) [FrontendServiceImpl.loadTxnRollback():1620] failed to rollback txn 40582: transaction not found: 40582
-2024-02-01 16:39:35,889 WARN (thrift-server-pool-285970|292062) [FrontendServiceImpl.loadTxnPrepare():1562] failed to prepare txn_id: 40583: all partitions have no load data
-2024-02-01 16:39:35,899 WARN (thrift-server-pool-285972|292064) [FrontendServiceImpl.loadTxnRollback():1620] failed to rollback txn 40583: transaction not found: 40583<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token number">2024</span>-02-01 <span class="token number">16</span>:39:16,437 WARN <span class="token punctuation">(</span>thrift-server-pool-285904<span class="token operator">|</span><span class="token number">291996</span><span class="token punctuation">)</span> <span class="token punctuation">[</span>FrontendServiceImpl.loadTxnPrepare<span class="token punctuation">(</span><span class="token punctuation">)</span>:1562<span class="token punctuation">]</span> failed to prepare txn_id: <span class="token number">40582</span>: all partitions have no load data
+<span class="token number">2024</span>-02-01 <span class="token number">16</span>:39:16,450 WARN <span class="token punctuation">(</span>thrift-server-pool-285910<span class="token operator">|</span><span class="token number">292002</span><span class="token punctuation">)</span> <span class="token punctuation">[</span>FrontendServiceImpl.loadTxnRollback<span class="token punctuation">(</span><span class="token punctuation">)</span>:1620<span class="token punctuation">]</span> failed to rollback txn <span class="token number">40582</span>: transaction not found: <span class="token number">40582</span>
+<span class="token number">2024</span>-02-01 <span class="token number">16</span>:39:35,889 WARN <span class="token punctuation">(</span>thrift-server-pool-285970<span class="token operator">|</span><span class="token number">292062</span><span class="token punctuation">)</span> <span class="token punctuation">[</span>FrontendServiceImpl.loadTxnPrepare<span class="token punctuation">(</span><span class="token punctuation">)</span>:1562<span class="token punctuation">]</span> failed to prepare txn_id: <span class="token number">40583</span>: all partitions have no load data
+<span class="token number">2024</span>-02-01 <span class="token number">16</span>:39:35,899 WARN <span class="token punctuation">(</span>thrift-server-pool-285972<span class="token operator">|</span><span class="token number">292064</span><span class="token punctuation">)</span> <span class="token punctuation">[</span>FrontendServiceImpl.loadTxnRollback<span class="token punctuation">(</span><span class="token punctuation">)</span>:1620<span class="token punctuation">]</span> failed to rollback txn <span class="token number">40583</span>: transaction not found: <span class="token number">40583</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>可以在fe.conf里设置<code>empty_load_as_error = false</code>来规避</p>
 <h2 id="Query-Profile-概述"><a href="#Query-Profile-概述" class="headerlink" title="Query Profile 概述"></a>Query Profile 概述</h2><p>通过将变量 enable_profile 设置为 true 以启用 Query Profile：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">SET global enable_profile &#x3D; true;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">SET global enable_profile <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>具体可以参考<a target="_blank" rel="noopener" href="https://docs.starrocks.io/zh/docs/administration/query_profile_overview/">Query Profile 概述</a></p>
 <h2 id="提高Starrocks的写入性能"><a href="#提高Starrocks的写入性能" class="headerlink" title="提高Starrocks的写入性能"></a>提高Starrocks的写入性能</h2><p>设置在be.conf里设置：<code>flush_thread_num_per_store=8</code></p>
 <h2 id="Too-many-versions-tablet-id-219542-version-count-1001-limit-1000"><a href="#Too-many-versions-tablet-id-219542-version-count-1001-limit-1000" class="headerlink" title="Too many versions. tablet_id: 219542, version_count: 1001, limit: 1000"></a>Too many versions. tablet_id: 219542, version_count: 1001, limit: 1000</h2><pre class="line-numbers language-text" data-language="text"><code class="language-text">Caused by: com.starrocks.connector.flink.manager.StarRocksStreamLoadFailedException: Failed to flush data to StarRocks, Error response:
 &#123;“Status”:“Fail”,“BeginTxnTimeMs”:0,“Message”:“Too many versions. tablet_id: 219542, version_count: 1001, limit: 1000”,“NumberUnselectedRows”:0,“CommitAndPublishTimeMs”:0,
 “Label”:“0e20db82-c001-4ba6-aa85-2bde651e2e17”,“LoadBytes”:889,“StreamLoadPutTimeMs”:5,“NumberTotalRows”:0,“WriteDataTimeMs”:86,“TxnId”:41058,“LoadTimeMs”:92,“ReadDataTimeMs”:0,“NumberLoadedRows”:0,“NumberFilteredRows”:0&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>在be.conf 里设置以下参数</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cumulative_compaction_num_threads_per_disk &#x3D; 4
-base_compaction_num_threads_per_disk &#x3D; 2
-cumulative_compaction_check_interval_seconds &#x3D; 2
-update_compaction_num_threads_per_disk &#x3D; 2 #（该参数属于主键模型单独的compaction参数）<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cumulative_compaction_num_threads_per_disk <span class="token operator">=</span> <span class="token number">4</span>
+base_compaction_num_threads_per_disk <span class="token operator">=</span> <span class="token number">2</span>
+cumulative_compaction_check_interval_seconds <span class="token operator">=</span> <span class="token number">2</span>
+update_compaction_num_threads_per_disk <span class="token operator">=</span> <span class="token number">2</span> <span class="token comment">#（该参数属于主键模型单独的compaction参数）</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h2 id="高并发执行越来越慢"><a href="#高并发执行越来越慢" class="headerlink" title="高并发执行越来越慢"></a>高并发执行越来越慢</h2><h2 id="执行sql时快时慢"><a href="#执行sql时快时慢" class="headerlink" title="执行sql时快时慢"></a>执行sql时快时慢</h2><p>具体表现在：<br>数据通过kafka_connetor导入到Starocks，刚开始查询速度很稳定，导入一段时间后，大概4个小时以后，再次查询相同的sql，每隔几秒钟，总有一个耗时比较长的。 并且kafka里的数据后期数据量就很少了。<br>把实时采集的程序停止后，查询就又变稳定了</p>
 <h2 id="问题排查流程–导入"><a href="#问题排查流程–导入" class="headerlink" title="问题排查流程–导入"></a>问题排查流程–导入</h2><p><a target="_blank" rel="noopener" href="https://forum.mirrorship.cn/t/topic/1680">https://forum.mirrorship.cn/t/topic/1680</a></p>
@@ -326,35 +326,35 @@ update_compaction_num_threads_per_disk &#x3D; 2 #（该参数属于主键模型�
 base_compaction_num_threads_per_disk &#x3D; 2
 cumulative_compaction_check_interval_seconds &#x3D; 2<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>对于主键表，可以适当调大 update_compaction_num_threads_per_disk 的值。适当调小 update_compaction_per_tablet_min_interval_seconds 的值。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">update_compaction_num_threads_per_disk &#x3D; 4
-update_compaction_per_tablet_min_interval_seconds &#x3D; 30<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">update_compaction_num_threads_per_disk <span class="token operator">=</span> <span class="token number">4</span>
+update_compaction_per_tablet_min_interval_seconds <span class="token operator">=</span> <span class="token number">30</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>对于出现too many tablet versions的表，如何修复这个表？<br>现在是这个表无法读取</p>
 <h3 id="starrocks高并发压测与优化"><a href="#starrocks高并发压测与优化" class="headerlink" title="starrocks高并发压测与优化"></a>starrocks高并发压测与优化</h3><p>可以查看官方拿sr与durid做的对比的描述：<a target="_blank" rel="noopener" href="https://forum.mirrorship.cn/t/topic/1687">高并发条件下 druid 和 starrocks 性能对比与调优实践</a></p>
 <h3 id="StarRocks-常见告警及处理办法"><a href="#StarRocks-常见告警及处理办法" class="headerlink" title="StarRocks 常见告警及处理办法"></a>StarRocks 常见告警及处理办法</h3><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/345qv3nC5PdLn6c3cxS8vQ">StarRocks 常见告警及处理办法</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/v_zqr_kvsw1bU4B5pNFL6w">StarRocks 最佳实践</a></p>
 <h3 id="BE宕机问题排查指南"><a href="#BE宕机问题排查指南" class="headerlink" title="BE宕机问题排查指南"></a>BE宕机问题排查指南</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ith321/article/details/139201572">BE宕机问题排查指南</a></p>
 <p>be CPU突然飙高问题排查：<br>查看具体线程里在做什么操作：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">perf top <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">perf <span class="token function">top</span> <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>通过perf top查看，starrocks::RuntimeState::log_error占用比较高</p>
 <p>在starrocks官方论坛里看到，是因为：<br>log_error 死锁，导致频繁打 cancel 日志，CPU高<br>query_pool 内存不释放</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">5 tids: 814,817,819,825,833
-0x7e6ea98  starrocks::RuntimeState::log_error(starrocks::Status const&amp;)
-0x7eaf680  starrocks::pipeline::ExchangeSinkOperator::set_finishing(starrocks::RuntimeState*)
-0x550130c  starrocks::pipeline::PipelineDriver::_mark_operator_finishing(std::shared_ptr&lt;starrocks::pipeline::Operator&gt;&amp;, starrocks::RuntimeState*)
-0x5502ce8  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
-0x7e4e6e8  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
-0x81649ec  starrocks::ThreadPool::dispatch_thread()
-0x815dc5c  starrocks::Thread::supervise_thread(void*)
-0xffff838fd5c8  (&#x2F;usr&#x2F;lib&#x2F;aarch64-linux-gnu&#x2F;libc.so.6+0x7d5c8)
-0xffff83965edc  (&#x2F;usr&#x2F;lib&#x2F;aarch64-linux-gnu&#x2F;libc.so.6+0xe5edc)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token number">5</span> tids: <span class="token number">814,817</span>,819,825,833
+0x7e6ea98  starrocks::RuntimeState::log_error<span class="token punctuation">(</span>starrocks::Status const<span class="token operator">&amp;</span><span class="token punctuation">)</span>
+0x7eaf680  starrocks::pipeline::ExchangeSinkOperator::set_finishing<span class="token punctuation">(</span>starrocks::RuntimeState*<span class="token punctuation">)</span>
+0x550130c  starrocks::pipeline::PipelineDriver::_mark_operator_finishing<span class="token punctuation">(</span>std::shared_ptr<span class="token operator">&lt;</span>starrocks::pipeline::Operator<span class="token operator">>&amp;</span>, starrocks::RuntimeState*<span class="token punctuation">)</span>
+0x5502ce8  starrocks::pipeline::PipelineDriver::process<span class="token punctuation">(</span>starrocks::RuntimeState*, int<span class="token punctuation">)</span>
+0x7e4e6e8  starrocks::pipeline::GlobalDriverExecutor::_worker_thread<span class="token punctuation">(</span><span class="token punctuation">)</span>
+0x81649ec  starrocks::ThreadPool::dispatch_thread<span class="token punctuation">(</span><span class="token punctuation">)</span>
+0x815dc5c  starrocks::Thread::supervise_thread<span class="token punctuation">(</span>void*<span class="token punctuation">)</span>
+0xffff838fd5c8  <span class="token punctuation">(</span>/usr/lib/aarch64-linux-gnu/libc.so.6+0x7d5c8<span class="token punctuation">)</span>
+0xffff83965edc  <span class="token punctuation">(</span>/usr/lib/aarch64-linux-gnu/libc.so.6+0xe5edc<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>解决方案： 升级到3.3.3+<br>如果不升级，只能重启be</p>
 <h3 id="高并发条件下-druid-和-starrocks-性能对比与调优实践"><a href="#高并发条件下-druid-和-starrocks-性能对比与调优实践" class="headerlink" title="高并发条件下 druid 和 starrocks 性能对比与调优实践"></a>高并发条件下 druid 和 starrocks 性能对比与调优实践</h3><p>可以参考<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/v_zqr_kvsw1bU4B5pNFL6w">高并发条件下 druid 和 starrocks 性能对比与调优实践</a></p>
 <h3 id="BE-磁盘IO高调查"><a href="#BE-磁盘IO高调查" class="headerlink" title="BE 磁盘IO高调查"></a>BE 磁盘IO高调查</h3><pre class="line-numbers language-text" data-language="text"><code class="language-text">我们3个BE节点的有一个 BE 节点， 发现这个单节点的 IO 接近打满了，其他两个节点正常。 tablet所有 be 是均匀分布的。 大部分表都是 6分桶 ，目前集群里的表都是主键模型。iotop看了下 这个节点相比其他节点 garbage_sweeper 占用很大的读 io<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p><img src="/uploads/202502/starrocks-IO%E9%AB%98.png" alt="StarRocksBE-IO高"></p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">## 查看具体是哪块磁盘的IO占用高
-iostat -x -k 1
-## 关注第4列和第7列，可以定位到是读写哪些⽂件导致的磁盘io被打满
-lsof -p $be_pid | grep &#39;$be_storage_path&#39; | grep &#39;w&#39;
-## <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment">## 查看具体是哪块磁盘的IO占用高</span>
+iostat <span class="token parameter variable">-x</span> <span class="token parameter variable">-k</span> <span class="token number">1</span>
+<span class="token comment">## 关注第4列和第7列，可以定位到是读写哪些⽂件导致的磁盘io被打满</span>
+<span class="token function">lsof</span> <span class="token parameter variable">-p</span> <span class="token variable">$be_pid</span> <span class="token operator">|</span> <span class="token function">grep</span> <span class="token string">'$be_storage_path'</span> <span class="token operator">|</span> <span class="token function">grep</span> <span class="token string">'w'</span>
+<span class="token comment">## </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
     </div>
 
@@ -455,7 +455,7 @@ lsof -p $be_pid | grep &#39;$be_storage_path&#39; | grep &#39;w&#39;
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

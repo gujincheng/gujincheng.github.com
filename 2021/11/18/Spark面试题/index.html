@@ -329,8 +329,8 @@
 <li>广播了大变量</li>
 </ol>
 <p>指定spark的垃圾回收算法G1GC：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">-conf spark.driver.extraJavaOptions&#x3D;&quot;-XX:+UseG1GC -Dlog4j.configuration&#x3D;log4j.properties&quot; \
---conf spark.executor.extraJavaOptions&#x3D;&quot;-XX:+UseG1GC -Dlog4j.configuration&#x3D;log4j.properties&quot; \<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token parameter variable">-conf</span> <span class="token assign-left variable">spark.driver.extraJavaOptions</span><span class="token operator">=</span><span class="token string">"-XX:+UseG1GC -Dlog4j.configuration=log4j.properties"</span> <span class="token punctuation">\</span>
+<span class="token parameter variable">--conf</span> <span class="token assign-left variable">spark.executor.extraJavaOptions</span><span class="token operator">=</span><span class="token string">"-XX:+UseG1GC -Dlog4j.configuration=log4j.properties"</span> <span class="token punctuation">\</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 
 
 <p><strong><font size = 5>13. RDD的弹性表现在哪几点？</font></strong></p>
@@ -456,7 +456,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

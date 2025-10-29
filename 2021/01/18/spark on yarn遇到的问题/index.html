@@ -289,40 +289,40 @@
 <a id="more"></a>
 <h1 id="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"><a href="#以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态" class="headerlink" title="以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态"></a>以yarn-client方式提交spark任务，任务一直卡在ACCEPTED状态</h1><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>   spark是以客户端的方式安装的，并没有启动spark的mesos集群，这时候的spark就相当与hive客户端。<br>   以local模型和yarn-cluster方式提交任务，都能正确额执行，但是一yarn-client方式就卡在ACCEPTED</p>
 <h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>在网上查了资料，都说是资源不够用，需要调整<code>yarn.scheduler.capacity.maximum-am-resource-percent</code>从0.1改成0.5，<br>但是我测试数据才几k，集群内存128G，所以我直接排除了这个原因。后来想到，只有<code>yarn-client</code>方式失败，那问题应该出来driver端。<br>就查看了一下服务器的/etc/hosts，发现diver上有集群其他节点的IP等信息，但是其他节点没有driver配置信息，导致<code>driver</code>能访问到集群，<br>但是集群其他节点访问不了driver，所以<code>local</code>模式可以执行<br><code>yarn-cluster</code>上可以执行，是因为客户端只要把任务提交到yarn上，客户端就没有用了。<br>但是<code>yarn-client</code>方式，客户端是充当了<code>driver</code>，<code>driver</code>需要一直和集群有通信，所以接收不到<code>resouceManager</code>的反馈。任务就一直卡住了</p>
-<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit \ 
-        --master yarn \
-        --deploy-mode client \
-        --num-executors 2 \
-        --executor-memory 1G \
-        --executor-cores 1 \
-        --conf spark.driver.host&#x3D;192.168.72.129\
+<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>   有两个方法：<br>   1、在命令后面加上一个–conf spark.driver.host=$your_ip_address，后面直接填客户端机器的IP地址就行<br> <pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark-submit <span class="token punctuation">\</span> 
+        <span class="token parameter variable">--master</span> <span class="token function">yarn</span> <span class="token punctuation">\</span>
+        --deploy-mode client <span class="token punctuation">\</span>
+        --num-executors <span class="token number">2</span> <span class="token punctuation">\</span>
+        --executor-memory 1G <span class="token punctuation">\</span>
+        --executor-cores <span class="token number">1</span> <span class="token punctuation">\</span>
+        <span class="token parameter variable">--conf</span> <span class="token assign-left variable">spark.driver.host</span><span class="token operator">=</span><span class="token number">192.168</span>.72.129<span class="token punctuation">\</span>
          dmp_broadcast_data_day.py
- &#96;&#96;&#96;   
-   2、在集群其他节点上都把driver服务器的IP加上去。
+ ``<span class="token variable"><span class="token variable">`</span>   
+   <span class="token number">2</span>、在集群其他节点上都把driver服务器的IP加上去。
 
-# spark on yarn任务提交缓慢解决
-## 问题背景
+<span class="token comment"># spark on yarn任务提交缓慢解决</span>
+<span class="token comment">## 问题背景</span>
    在使用pyspark提交任务导yarn上的时候，每次提交任务，都要等待好长时间，但是在之前公司中，提交任务导yarn上很快的，所以就调查了一下
    在提交任务的时候，有一个WARN的日志：
-&#96;&#96;&#96;shell
+<span class="token variable">`</span></span>``shell
     WARN yarn.Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>   在网上查了一下，每一次我们运行的时候，如果没有指定 <code>spark.yarn.archive or spark.yarn.jars</code>，Spark将在安装路径下的Jar目录，将其所有的Jar包打包然后将其上传到分布式缓存<br>   官网的原话：</p>
-<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME&#x2F;jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">To make Spark runtime jars accessible from YARN side, you can specify spark.yarn.archive or spark.yarn.jars. For details please refer to Spark Properties. If neither spark.yarn.archive nor spark.yarn.jars is specified, Spark will create a zip file with all jars under $SPARK_HOME/jars and upload it to the distributed cache.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <h2 id="调优方法"><a href="#调优方法" class="headerlink" title="调优方法"></a>调优方法</h2><ul>
 <li>首先将Spark安装路径下的所有jar包上传到HDFS上</li>
-<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs:&#x2F;&#x2F;ycluster-3&#x2F;data&#x2F;hadoop&#x2F;spark-jars&#x2F;*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<li>在spark的conf目录下的spark-defaults.conf添加<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">spark.yarn.archive               hdfs://ycluster-3/data/hadoop/spark-jars/*jar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h3 id="有个bug"><a href="#有个bug" class="headerlink" title="有个bug"></a>有个bug</h3>我记得我当时按照这个步骤修改完，提交任务导yarn上之后，会报以下错误<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">ERROR SparkContext: Error initializing SparkContext.
-org.apache.spark.SparkException: Yarn application has already ended! It might have been killed or unable to launch application master.
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication(YarnClientSchedulerBackend.scala:85)
-    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start(YarnClientSchedulerBackend.scala:62)
-    at org.apache.spark.scheduler.TaskSchedulerImpl.start(TaskSchedulerImpl.scala:156)
-    at org.apache.spark.SparkContext.&lt;init&gt;(SparkContext.scala:509)
-    at org.apache.spark.SparkContext$.getOrCreate(SparkContext.scala:2313)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:868)
-    at org.apache.spark.sql.SparkSession$Builder$$anonfun$6.apply(SparkSession.scala:860)
-    at scala.Option.getOrElse(Option.scala:121)
-    at org.apache.spark.sql.SparkSession$Builder.getOrCreate(SparkSession.scala:860)
-    at org.apache.spark.repl.Main$.createSparkSession(Main.scala:95)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+org.apache.spark.SparkException: Yarn application has already ended<span class="token operator">!</span> It might have been killed or unable to launch application master.
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.waitForApplication<span class="token punctuation">(</span>YarnClientSchedulerBackend.scala:85<span class="token punctuation">)</span>
+    at org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend.start<span class="token punctuation">(</span>YarnClientSchedulerBackend.scala:62<span class="token punctuation">)</span>
+    at org.apache.spark.scheduler.TaskSchedulerImpl.start<span class="token punctuation">(</span>TaskSchedulerImpl.scala:156<span class="token punctuation">)</span>
+    at org.apache.spark.SparkContext.<span class="token operator">&lt;</span>init<span class="token operator">></span><span class="token punctuation">(</span>SparkContext.scala:509<span class="token punctuation">)</span>
+    at org.apache.spark.SparkContext$.getOrCreate<span class="token punctuation">(</span>SparkContext.scala:2313<span class="token punctuation">)</span>
+    at org.apache.spark.sql.SparkSession<span class="token variable">$Builder</span><span class="token variable">$$</span>anonfun<span class="token variable">$6</span>.apply<span class="token punctuation">(</span>SparkSession.scala:868<span class="token punctuation">)</span>
+    at org.apache.spark.sql.SparkSession<span class="token variable">$Builder</span><span class="token variable">$$</span>anonfun<span class="token variable">$6</span>.apply<span class="token punctuation">(</span>SparkSession.scala:860<span class="token punctuation">)</span>
+    at scala.Option.getOrElse<span class="token punctuation">(</span>Option.scala:121<span class="token punctuation">)</span>
+    at org.apache.spark.sql.SparkSession<span class="token variable">$Builder</span>.getOrCreate<span class="token punctuation">(</span>SparkSession.scala:860<span class="token punctuation">)</span>
+    at org.apache.spark.repl.Main$.createSparkSession<span class="token punctuation">(</span>Main.scala:95<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 这里以前忘记怎么修复的了，现在果然又遇到了，查了很多资料，总结出两点：</li>
 <li>spark-env.sh文件中的HADOOP_CONF_DIR配置错误</li>
 <li>yarn的虚拟内存超限，contrainer被干杀死</li>
@@ -442,7 +442,7 @@ org.apache.spark.SparkException: Yarn application has already ended! It might ha
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

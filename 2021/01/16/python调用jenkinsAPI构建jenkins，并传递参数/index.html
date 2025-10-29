@@ -304,7 +304,7 @@
 <h2 id="创建jenkins项目"><a href="#创建jenkins项目" class="headerlink" title="创建jenkins项目"></a>创建jenkins项目</h2><p>这里创建的项目需要添加param</p>
 <p><img src="/uploads/202101/jenkins-param.png" alt="hive-import-data"></p>
 <p>需要几个参数，就添加几个参数</p>
-<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo pip install python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="安装python-jenkins"><a href="#安装python-jenkins" class="headerlink" title="安装python-jenkins"></a>安装python-jenkins</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">sudo</span> pip <span class="token function">install</span> python-jenkins<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>直接上代码：</p>
 <pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> jenkins
 server <span class="token operator">=</span> jenkins<span class="token punctuation">.</span>Jenkins<span class="token punctuation">(</span><span class="token string">'http://192.168.59.149:28080'</span><span class="token punctuation">,</span> username<span class="token operator">=</span><span class="token string">'jenkins'</span><span class="token punctuation">,</span> password<span class="token operator">=</span><span class="token string">'jenkins@!23'</span><span class="token punctuation">)</span>
@@ -412,7 +412,7 @@ server<span class="token punctuation">.</span>build_job<span class="token punctu
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

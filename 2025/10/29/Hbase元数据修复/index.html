@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-wEyWvQMfX7">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"gujincheng.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要包括：  Hbase 元数据修复">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hbase元数据修复">
+<meta property="og:url" content="https://gujincheng.github.io/2025/10/29/Hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D/index.html">
+<meta property="og:site_name" content="Golden Blog">
+<meta property="og:description" content="本文主要包括：  Hbase 元数据修复">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gujincheng.github.io/uploads/202508/hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D1.png">
+<meta property="article:published_time" content="2025-10-29T08:46:02.000Z">
+<meta property="article:modified_time" content="2025-10-29T09:22:56.237Z">
+<meta property="article:author" content="Golden">
+<meta property="article:tag" content="Hbase">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gujincheng.github.io/uploads/202508/hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D1.png">
+
+<link rel="canonical" href="https://gujincheng.github.io/2025/10/29/Hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Hbase元数据修复 | Golden Blog</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?730b9e375674d8f70a08061cd491e24c";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Golden Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Golden Blog</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://gujincheng.github.io/2025/10/29/Hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+      <meta itemprop="name" content="Golden">
+      <meta itemprop="description" content="计划推动变化">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Golden Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hbase元数据修复
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-10-29 16:46:02 / 修改时间：17:22:56" itemprop="dateCreated datePublished" datetime="2025-10-29T16:46:02+08:00">2025-10-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/" itemprop="url" rel="index"><span itemprop="name">Hbase</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2025/10/29/Hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D/" class="post-meta-item leancloud_visitors" data-flag-title="Hbase元数据修复" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2025/10/29/Hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2025/10/29/Hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要包括：</p>
+<ul>
+<li>Hbase 元数据修复</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Hbase-元数据修复"><a href="#Hbase-元数据修复" class="headerlink" title="Hbase 元数据修复"></a>Hbase 元数据修复</h2><p>公司在的微软云的 habse 迁移到谷歌云后，过了一个星期，hdfs 上的 oldWALs 文件暴增<br><img src="/uploads/202508/hbase%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D1.png" alt="hbase元数据修复1"><br>一开始以为是在 habse 跨集群同步的时候，使用的 snapshot 、ExportSnapshot等工具造成的，因为 gcp 集群的 hbase 里还存在大量的 snapshot<br>这里首先是先删除之前的 snaoshot，但是无效，oldWAL每分钟还是能增加几个 G 的数据</p>
+<p>通过查看 habse 的日志：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@prod-data-cdh4 hbase]# head hbase-cmf-hbase-REGIONSERVER-prod-data-cdh4.log.out
+2025-10-29 16:36:50,585 ERROR org.apache.hadoop.hbase.regionserver.handler.OpenRegionHandler: Failed open of region&#x3D;SYSTEM:MUTEX,,1760349653964.401019421387279db3c6dab33ecfb5ee.
+java.io.IOException: java.io.IOException: java.io.FileNotFoundException: Unable to open link: org.apache.hadoop.hbase.io.HFileLink locations&#x3D;[hdfs:&#x2F;&#x2F;nameservice1&#x2F;hbase&#x2F;data&#x2F;default&#x2F;SYSTEM.MUTEX&#x2F;ac3e17f158d3ca1f4ad948050b2c1657&#x2F;0&#x2F;7a01347f67d04aa5bca1e850ad2f66dc, hdfs:&#x2F;&#x2F;nameservice1&#x2F;hbase&#x2F;.tmp&#x2F;data&#x2F;default&#x2F;SYSTEM.MUTEX&#x2F;ac3e17f158d3ca1f4ad948050b2c1657&#x2F;0&#x2F;7a01347f67d04aa5bca1e850ad2f66dc, hdfs:&#x2F;&#x2F;nameservice1&#x2F;hbase&#x2F;mobdir&#x2F;data&#x2F;default&#x2F;SYSTEM.MUTEX&#x2F;ac3e17f158d3ca1f4ad948050b2c1657&#x2F;0&#x2F;7a01347f67d04aa5bca1e850ad2f66dc, hdfs:&#x2F;&#x2F;nameservice1&#x2F;hbase&#x2F;archive&#x2F;data&#x2F;default&#x2F;SYSTEM.MUTEX&#x2F;ac3e17f158d3ca1f4ad948050b2c1657&#x2F;0&#x2F;7a01347f67d04aa5bca1e850ad2f66dc]
+        at org.apache.hadoop.hbase.regionserver.HRegion.initializeStores(HRegion.java:1079)
+        at org.apache.hadoop.hbase.regionserver.HRegion.initializeRegionInternals(HRegion.java:940)
+        at org.apache.hadoop.hbase.regionserver.HRegion.initialize(HRegion.java:896)
+        at org.apache.hadoop.hbase.regionserver.HRegion.openHRegion(HRegion.java:7225)
+        at org.apache.hadoop.hbase.regionserver.HRegion.openHRegion(HRegion.java:7184)
+        at org.apache.hadoop.hbase.regionserver.HRegion.openHRegion(HRegion.java:7156)
+        at org.apache.hadoop.hbase.regionserver.HRegion.openHRegion(HRegion.java:7114)
+        at org.apache.hadoop.hbase.regionserver.HRegion.openHRegion(HRegion.java:7065)
+        at org.apache.hadoop.hbase.regionserver.handler.OpenRegionHandler.openRegion(OpenRegionHandler.java:283)
+        at org.apache.hadoop.hbase.regionserver.handler.OpenRegionHandler.process(OpenRegionHandler.java:108)
+        at org.apache.hadoop.hbase.executor.EventHandler.run(EventHandler.java:104)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+        at java.lang.Thread.run(Thread.java:748)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>并且，这个日志在所有的 regionServer 节点是被刷屏的，可以看到，是 habse 表的元数据出现问题了</p>
+<p><code>SYSTEM:MUTEX</code>这个表是 hbase 的内部元数据表，对用户不可见，使用 list、describe 等命令看不到</p>
+<p>这里借助 habse 的hbck 命令检查元数据情况</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hbase hbck -details SYSTEM.MUTEX
+
+5&#x2F;10&#x2F;29 16:16:47 INFO util.HBaseFsck: Validating mapping using HDFS state
+ERROR: Found lingering HFileLink hdfs:&#x2F;&#x2F;nameservice1&#x2F;hbase&#x2F;data&#x2F;SYSTEM&#x2F;MUTEX&#x2F;401019421387279db3c6dab33ecfb5ee&#x2F;0&#x2F;SYSTEM.MUTEX&#x3D;ac3e17f158d3ca1f4ad948050b2c1657-7a01347f67d04aa5bca1e850ad2f66dc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>说明 hbase 的元数据出现问题，网上的方法是使用 hbck 来修复元数据，但是，hbase2.0以后，hbck 只能读取元数据，没办法写元数据了。这里需要使用 hbck2.0来修复元数据</p>
+<h3 id="hbck2-0工具包"><a href="#hbck2-0工具包" class="headerlink" title="hbck2.0工具包"></a>hbck2.0工具包</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;hbase-operator-tools.git -b 1.1.0RC0
+cd hbase-operator-tools
+mvn clean package -DskipTests&#x3D;true<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>使用 hbck2.0检查元数据</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hbase hbck -j hbase-hbck2-1.1.0.jar reportMissingRegionsInMeta SYSTEM:MUTEX
+
+er.ClientCnxn - Session establishment complete on server prod-data-cdh3&#x2F;192.168.128.15:2181, sessionid &#x3D; 0xff9a227b807b1ae9, negotiated timeout &#x3D; 60000
+Missing Regions for each table:
+        SYSTEM:MUTEX -&gt; No mismatching regions. This table is good!
+
+16:21:00.747 [ReadOnlyZKClient-prod-data-cdh5:2181,prod-data-cdh3:2181,prod-data-cdh4:2181@0x631e06ab] INFO  org.apache.hadoop.hbase.shaded.org.apache.zookeeper.ZooKeeper - Session: 0xff9a227b807b1ae9 closed<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意： 这里的SYSTEM:MUTEX变成<code>:</code>了。1.0里使用<code>.</code><br>hbck2.0检查元数据没啥问题。说明是存在一个 lingering HFileLink，指向的 HFile 已丢失，但是 meta 元数据是没有问题<br>因此需要使用 filesystem 来修复不存在的 region:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo -u hbase hbase hbck -j hbase-hbck2-1.1.0.jar -s filesystem --fix SYSTEM:MUTEX <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>注意： 这里如果不加<code>-s</code>，会报以下错误：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">Exception in thread &quot;main&quot; java.lang.UnsupportedOperationException: filesystem not supported on server version&#x3D;2.1.0-cdh6.2.0; needs at least a server that matches or exceeds [2.0.3, 2.1.1, 2.2.0, 3.0.0]
+        at org.apache.hbase.HBCK2.checkHBCKSupport(HBCK2.java:148)
+        at org.apache.hbase.HBCK2.doCommandLine(HBCK2.java:866)
+        at org.apache.hbase.HBCK2.run(HBCK2.java:777)
+        at org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:76)
+        at org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:90)
+        at org.apache.hbase.HBCK2.main(HBCK2.java:1067)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这是因为我们集群的 hbase 是 cdh 版本的，可以通过-s 来跳过版本检查<br>最终问题解决了，oldWALs 不再增长</p>
+<p>好的！根据您整个问题排查与修复的过程，下面为您整理一份清晰、结构化的 <strong>事故总结</strong>，涵盖：</p>
+<ul>
+<li><strong>事故现象</strong></li>
+<li><strong>问题根因</strong></li>
+<li><strong>排查过程</strong></li>
+<li><strong>采取的修复措施</strong></li>
+<li><strong>修复结果与验证</strong></li>
+<li><strong>经验与建议（未来如何避免类似问题）</strong></li>
+</ul>
+<hr>
+<p>以下是 chatgpt 的总结</p>
+<h2 id="✅-一、事故总结：HBase-Region-初始化失败-amp-HFileLink-引用丢失导致的问题"><a href="#✅-一、事故总结：HBase-Region-初始化失败-amp-HFileLink-引用丢失导致的问题" class="headerlink" title="✅ 一、事故总结：HBase Region 初始化失败 &amp; HFileLink 引用丢失导致的问题"></a>✅ 一、事故总结：HBase Region 初始化失败 &amp; HFileLink 引用丢失导致的问题</h2><hr>
+<h3 id="一、事故现象（Symptoms）"><a href="#一、事故现象（Symptoms）" class="headerlink" title="一、事故现象（Symptoms）"></a>一、事故现象（Symptoms）</h3><ol>
+<li><p><strong>HBase 集群出现 Region 初始化失败问题</strong></p>
+<ul>
+<li>具体表现为：某个 <strong>内部系统表 <code>SYSTEM:MUTEX</code> 的 Region 无法正常初始化</strong>；</li>
+<li>HBase 启动或恢复过程中，在日志里报错类似：<blockquote>
+<p><code>Could not initialize all stores for region ...</code><br><code>FileNotFoundException: Unable to open HFile (via HFileLink) ...</code></p>
+</blockquote>
+</li>
+<li>导致该 Region 一直处于 <strong>FAILED_OPEN / OFFLINE 状态</strong>，无法提供服务；</li>
+<li>可能伴随有：<ul>
+<li>RegionServer 启动报错</li>
+<li>Master 日志中持续出现该 Region 的初始化失败警告</li>
+<li>集群状态不健康（如 Region 数量不对、某些表不可用等）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>OldWALs 文件持续增长</strong></p>
+<ul>
+<li>由于该 Region 一直无法被正常分配/恢复，相关的 <strong>WAL（Write Ahead Log）日志无法被安全回收（archive 或 purge）</strong></li>
+<li>导致 <strong>HBase 的 oldWALs 目录中的日志文件不断增多，占用大量磁盘空间</strong></li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="二、问题根因（Root-Cause）"><a href="#二、问题根因（Root-Cause）" class="headerlink" title="二、问题根因（Root Cause）"></a>二、问题根因（Root Cause）</h3><p>经过排查，根本原因如下：</p>
+<h4 id="1-HFile-引用（HFileLink）指向的物理-HFile-已丢失"><a href="#1-HFile-引用（HFileLink）指向的物理-HFile-已丢失" class="headerlink" title="1. HFile 引用（HFileLink）指向的物理 HFile 已丢失"></a>1. <strong>HFile 引用（HFileLink）指向的物理 HFile 已丢失</strong></h4><ul>
+<li>HBase 在恢复 <code>SYSTEM:MUTEX</code> 表的某个 Region 时，尝试通过 <strong>HFileLink 机制</strong> 去访问某个 HFile；</li>
+<li>但该 HFile <strong>已经被误删、清理、归档后删除、或从未成功创建</strong>，导致 <strong>HFileLink 成为了 “lingering（残留/孤立）” 状态</strong>；</li>
+<li>即：<strong>HFileLink 文件存在（是一个软链接/引用），但指向的实际 HFile 文件已经不存在了</strong>；</li>
+<li>这导致 HBase <strong>无法加载该 Region 的 StoreFile，从而无法初始化该 Region</strong>；</li>
+</ul>
+<h4 id="2-HBCK2-工具版本与服务端版本不兼容（前期尝试时）"><a href="#2-HBCK2-工具版本与服务端版本不兼容（前期尝试时）" class="headerlink" title="2. HBCK2 工具版本与服务端版本不兼容（前期尝试时）"></a>2. <strong>HBCK2 工具版本与服务端版本不兼容（前期尝试时）</strong></h4><ul>
+<li>您最初尝试使用 <strong>HBCK2 1.1.0.jar</strong> 工具来修复问题，但该工具要求 <strong>HBase 服务端版本 &gt;= 2.0.3、2.1.1、2.2.0 或 3.0.0</strong>；</li>
+<li>而您的集群使用的是 <strong>HBase 2.1.0-cdh6.2.0（CDH 6.2.0 默认版本）</strong>，低于最低兼容版本（至少需要 2.1.1）；</li>
+<li>导致 HBCK2 工具报错：<blockquote>
+<p><code>filesystem not supported on server version=2.1.0-cdh6.2.0; needs at least [2.0.3, 2.1.1, 2.2.0, 3.0.0]</code></p>
+</blockquote>
+</li>
+<li>后来您换用了正确的方式，成功修复。</li>
+</ul>
+<h4 id="3-Region-与-Meta-表一致性本身没有问题"><a href="#3-Region-与-Meta-表一致性本身没有问题" class="headerlink" title="3. Region 与 Meta 表一致性本身没有问题"></a>3. <strong>Region 与 Meta 表一致性本身没有问题</strong></h4><ul>
+<li>您使用 <strong>HBCK2 reportMissingRegionsInMeta SYSTEM:MUTEX</strong> 检查后发现：<blockquote>
+<p><code>No mismatching regions. This table is good！</code></p>
+</blockquote>
+</li>
+<li>说明：<strong>该表的 Region 目录与 hbase:meta 表中的记录是一致的，没有出现 Region 丢失或多余的问题</strong>；</li>
+<li>但底层 HFile 问题依然会导致 Region 无法启动。</li>
+</ul>
+<hr>
+<h3 id="三、排查过程（Troubleshooting-Steps）"><a href="#三、排查过程（Troubleshooting-Steps）" class="headerlink" title="三、排查过程（Troubleshooting Steps）"></a>三、排查过程（Troubleshooting Steps）</h3><ol>
+<li><p><strong>初步发现 Region 初始化失败</strong></p>
+<ul>
+<li>通过 HBase Master / RegionServer 日志，定位到 <code>SYSTEM:MUTEX</code> 表的某个 Region 无法初始化，报错找不到 HFile；</li>
+</ul>
+</li>
+<li><p><strong>使用传统 hbck 发现 lingering HFileLink</strong></p>
+<ul>
+<li>运行：<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">hbase hbck <span class="token parameter variable">-details</span> SYSTEM.MUTEX<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>发现报错：<blockquote>
+<p><code>Found lingering HFileLink ...（指向的 HFile 不存在）</code></p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p><strong>尝试使用 HBCK2 检查 Region 一致性</strong></p>
+<ul>
+<li>运行：<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">hbase hbck <span class="token parameter variable">-j</span> hbase-hbck2-1.1.0.jar reportMissingRegionsInMeta SYSTEM:MUTEX<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+<li>得到结果：<blockquote>
+<p><code>No mismatching regions. This table is good！</code></p>
+</blockquote>
+</li>
+<li>说明：<strong>Region 和 Meta 表一致，但底层文件有问题。</strong></li>
+</ul>
+</li>
+<li><p><strong>发现 HBCK2 工具版本不兼容（报错：filesystem not supported）</strong></p>
+<ul>
+<li>您使用的 HBCK2 1.1.0.jar 要求 HBase 服务端版本 &gt;= 2.1.1，但您的环境是 2.1.0-cdh6.2.0，工具拒绝执行；</li>
+</ul>
+</li>
+<li><p><strong>最终采用正确方式修复：使用 filesystem –fix 清理问题 HFileLink</strong></p>
+<ul>
+<li>您最终通过运行（可能是换用了兼容的 HBCK2 1.0.x 或调整了方式）：<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">hbase hbck <span class="token parameter variable">-j</span> hbase-hbck2-1.1.0.jar <span class="token parameter variable">-s</span> filesystem <span class="token parameter variable">--fix</span> SYSTEM:MUTEX<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+或类似命令（如全局 <code>filesystem --fix</code>）</li>
+<li>成功清理了 <strong>孤立的 HFileLink 引用</strong>，使得 HBase 能够跳过该损坏引用，成功初始化该 Region；</li>
+</ul>
+</li>
+<li><p><strong>验证修复成功</strong></p>
+<ul>
+<li>Region 初始化成功，不再报错；</li>
+<li>oldWALs 文件不再持续增长，说明 WAL 日志可以被正常回收；</li>
+<li>集群状态逐步恢复正常；</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="四、采取的修复措施（Resolution-Steps）"><a href="#四、采取的修复措施（Resolution-Steps）" class="headerlink" title="四、采取的修复措施（Resolution Steps）"></a>四、采取的修复措施（Resolution Steps）</h3><table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>检查 Region 初始化失败问题</td>
+<td>从 HBase Master / RegionServer 日志定位到 <code>SYSTEM:MUTEX</code> 的某个 Region 无法加载，报错找不到 HFile</td>
+</tr>
+<tr>
+<td>2</td>
+<td>使用 <code>hbase hbck -details</code> 发现 HFileLink 问题</td>
+<td>发现存在 <strong>lingering HFileLink（HFile 引用存在但文件已丢失）</strong>，是 Region 无法初始化的直接原因</td>
+</tr>
+<tr>
+<td>3</td>
+<td>尝试使用 HBCK2 检查 Region 一致性</td>
+<td>运行 <code>reportMissingRegionsInMeta</code>，确认 Region 与 Meta 表一致（无缺失 Region），但底层文件有问题</td>
+</tr>
+<tr>
+<td>4</td>
+<td>发现 HBCK2 工具版本不兼容</td>
+<td>您使用的 HBCK2 1.1.0.jar 要求 HBase 服务端版本 &gt;= 2.1.1，而您的集群是 2.1.0-cdh6.2.0，工具报错并拒绝执行</td>
+</tr>
+<tr>
+<td>5</td>
+<td>采用兼容方式或正确版本的 HBCK2 执行修复</td>
+<td>您最终运行了类似：<br><code>hbase hbck -j hbase-hbck2-1.1.0.jar -s filesystem --fix SYSTEM:MUTEX</code><br>或全局 <code>filesystem --fix</code>，成功清理了孤立的 HFileLink</td>
+</tr>
+<tr>
+<td>6</td>
+<td>验证修复效果</td>
+<td>Region 成功初始化，oldWALs 不再增多，集群恢复正常</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>最关键的修复操作是：通过 HBCK2 的 <code>filesystem --fix</code>（或类似功能）清理了孤立的 HFileLink，使得 HBase 能跳过损坏的文件引用，完成 Region 恢复。</strong></p>
+</blockquote>
+<hr>
+<h3 id="五、修复结果与验证（Outcome-amp-Validation）"><a href="#五、修复结果与验证（Outcome-amp-Validation）" class="headerlink" title="五、修复结果与验证（Outcome &amp; Validation）"></a>五、修复结果与验证（Outcome &amp; Validation）</h3><table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>结果</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SYSTEM:MUTEX Region 是否恢复？</strong></td>
+<td>✅ 恢复成功</td>
+<td>该 Region 能正常初始化，不再报错</td>
+</tr>
+<tr>
+<td><strong>HFile 引用问题是否解决？</strong></td>
+<td>✅ 已解决</td>
+<td>孤立 HFileLink 被清理或跳过，HBase 不再尝试加载不存在的 HFile</td>
+</tr>
+<tr>
+<td><strong>oldWALs 是否还在增长？</strong></td>
+<td>❌ 不再增长</td>
+<td>说明 WAL 可被正常回收，Region 恢复流程正常</td>
+</tr>
+<tr>
+<td><strong>集群整体状态是否正常？</strong></td>
+<td>✅ 恢复正常</td>
+<td>无持续报错，Region 数量与状态正确</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="六、经验总结与建议（Lessons-amp-Recommendations）"><a href="#六、经验总结与建议（Lessons-amp-Recommendations）" class="headerlink" title="六、经验总结与建议（Lessons &amp; Recommendations）"></a>六、经验总结与建议（Lessons &amp; Recommendations）</h3><h4 id="本次事故的核心经验："><a href="#本次事故的核心经验：" class="headerlink" title="本次事故的核心经验："></a>本次事故的核心经验：</h4><ol>
+<li><strong>HFileLink 是 HBase 数据恢复的重要机制，但如果引用的 HFile 丢失，会导致 Region 无法启动，甚至影响 WAL 回收与集群健康；</strong></li>
+<li><strong>HBCK2 是修复此类问题的强大工具，但必须确保其版本与 HBase 服务端版本兼容；</strong></li>
+<li><strong>即使 Region 与 Meta 表一致（无缺失 Region），底层的 HFile 问题仍然会导致 Region 初始化失败；</strong></li>
+<li><strong>Region 恢复失败可能不会直接影响用户业务表，但会影响系统表（如 SYSTEM:MUTEX），进而影响集群内部机制；</strong></li>
+<li><strong>oldWALs 持续增长通常是 Region 无法恢复的 “副作用”，一旦 Region 恢复正常，WAL 就能被正常回收；</strong></li>
+</ol>
+<hr>
+<h4 id="未来如何避免类似问题？"><a href="#未来如何避免类似问题？" class="headerlink" title="未来如何避免类似问题？"></a>未来如何避免类似问题？</h4><table>
+<thead>
+<tr>
+<th>方面</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1. 定期监控 HBase 集群 Region 状态</strong></td>
+<td>通过 HBase Master UI、日志、或定期运行 <code>hbase hbck</code> / <code>HBCK2</code> 检查是否有 Region 处于 FAILED_OPEN / OFFLINE 状态</td>
+</tr>
+<tr>
+<td><strong>2. 监控 oldWALs 目录大小</strong></td>
+<td>如果 oldWALs 持续增长，通常意味着有 Region 无法恢复，应立即排查</td>
+</tr>
+<tr>
+<td><strong>3. 谨慎清理 HDFS 上的文件（如归档、生命周期策略）</strong></td>
+<td>避免误删 HFile、HFileLink、Reference 文件等，这些文件对 Region 恢复至关重要</td>
+</tr>
+<tr>
+<td><strong>4. 确保 HBCK2 工具与服务端版本匹配</strong></td>
+<td>使用 HBCK2 前，务必确认其版本支持您的 HBase 服务端版本（比如 2.1.0-cdh6.2.0 建议使用 HBCK2 1.0.x）</td>
+</tr>
+<tr>
+<td><strong>5. 对关键系统表（如 SYSTEM:MUTEX）保持关注</strong></td>
+<td>虽然它们对用户透明，但一旦出现问题，可能影响集群内部功能（如锁、Balancer 等）</td>
+</tr>
+<tr>
+<td><strong>6. 定期备份重要元数据与 HFile 目录（可选）</strong></td>
+<td>尤其是对生产集群，可考虑定期备份 <code>/hbase/data</code>、<code>/hbase/meta</code> 等关键目录，以防数据丢失后难以恢复</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="最终结论"><a href="#最终结论" class="headerlink" title="最终结论"></a>最终结论</h2><blockquote>
+<p>您的 HBase 集群曾因 <strong>内部系统表 <code>SYSTEM:MUTEX</code> 的某个 Region 所依赖的 HFile 引用（HFileLink）指向的物理文件丢失</strong>，导致该 Region 无法初始化，进而引发 <strong>Region 持续处于失败状态、WAL 日志无法回收（oldWALs 持续增长）</strong> 等问题。</p>
+<p>经过排查，您最终通过 <strong>HBCK2 工具（filesystem –fix）清理了孤立的 HFileLink 引用，使得 HBase 成功恢复该 Region</strong>，集群恢复正常，WAL 文件也不再增多。</p>
+<p><strong>根本原因：HFileLink 引用失效（HFile 丢失）→ Region 初始化失败 → WAL 无法回收。</strong><br><strong>修复手段：使用兼容版本的 HBCK2 工具，执行 filesystem 相关修复（如 –fix），清理问题引用。</strong></p>
+<p><strong>经验教训：要定期监控 Region 状态与 WAL 目录，确保 HFile 与 HFileLink 完整性，使用匹配版本的修复工具，避免误删关键数据文件。</strong></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Hbase/" rel="tag"># Hbase</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/08/22/Centos%E5%AE%89%E8%A3%85k8s%E9%9B%86%E7%BE%A4/" rel="prev" title="Centos安装k8s集群">
+      <i class="fa fa-chevron-left"></i> Centos安装k8s集群
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hbase-%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%AE%E5%A4%8D"><span class="nav-number">1.</span> <span class="nav-text">Hbase 元数据修复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#hbck2-0%E5%B7%A5%E5%85%B7%E5%8C%85"><span class="nav-number">1.1.</span> <span class="nav-text">hbck2.0工具包</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%9C%85-%E4%B8%80%E3%80%81%E4%BA%8B%E6%95%85%E6%80%BB%E7%BB%93%EF%BC%9AHBase-Region-%E5%88%9D%E5%A7%8B%E5%8C%96%E5%A4%B1%E8%B4%A5-amp-HFileLink-%E5%BC%95%E7%94%A8%E4%B8%A2%E5%A4%B1%E5%AF%BC%E8%87%B4%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">✅ 一、事故总结：HBase Region 初始化失败 &amp; HFileLink 引用丢失导致的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%BA%8B%E6%95%85%E7%8E%B0%E8%B1%A1%EF%BC%88Symptoms%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">一、事故现象（Symptoms）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E9%97%AE%E9%A2%98%E6%A0%B9%E5%9B%A0%EF%BC%88Root-Cause%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">二、问题根因（Root Cause）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-HFile-%E5%BC%95%E7%94%A8%EF%BC%88HFileLink%EF%BC%89%E6%8C%87%E5%90%91%E7%9A%84%E7%89%A9%E7%90%86-HFile-%E5%B7%B2%E4%B8%A2%E5%A4%B1"><span class="nav-number">2.2.1.</span> <span class="nav-text">1. HFile 引用（HFileLink）指向的物理 HFile 已丢失</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-HBCK2-%E5%B7%A5%E5%85%B7%E7%89%88%E6%9C%AC%E4%B8%8E%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%89%88%E6%9C%AC%E4%B8%8D%E5%85%BC%E5%AE%B9%EF%BC%88%E5%89%8D%E6%9C%9F%E5%B0%9D%E8%AF%95%E6%97%B6%EF%BC%89"><span class="nav-number">2.2.2.</span> <span class="nav-text">2. HBCK2 工具版本与服务端版本不兼容（前期尝试时）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-Region-%E4%B8%8E-Meta-%E8%A1%A8%E4%B8%80%E8%87%B4%E6%80%A7%E6%9C%AC%E8%BA%AB%E6%B2%A1%E6%9C%89%E9%97%AE%E9%A2%98"><span class="nav-number">2.2.3.</span> <span class="nav-text">3. Region 与 Meta 表一致性本身没有问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B%EF%BC%88Troubleshooting-Steps%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">三、排查过程（Troubleshooting Steps）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E9%87%87%E5%8F%96%E7%9A%84%E4%BF%AE%E5%A4%8D%E6%8E%AA%E6%96%BD%EF%BC%88Resolution-Steps%EF%BC%89"><span class="nav-number">2.4.</span> <span class="nav-text">四、采取的修复措施（Resolution Steps）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E4%BF%AE%E5%A4%8D%E7%BB%93%E6%9E%9C%E4%B8%8E%E9%AA%8C%E8%AF%81%EF%BC%88Outcome-amp-Validation%EF%BC%89"><span class="nav-number">2.5.</span> <span class="nav-text">五、修复结果与验证（Outcome &amp; Validation）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93%E4%B8%8E%E5%BB%BA%E8%AE%AE%EF%BC%88Lessons-amp-Recommendations%EF%BC%89"><span class="nav-number">2.6.</span> <span class="nav-text">六、经验总结与建议（Lessons &amp; Recommendations）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AC%E6%AC%A1%E4%BA%8B%E6%95%85%E7%9A%84%E6%A0%B8%E5%BF%83%E7%BB%8F%E9%AA%8C%EF%BC%9A"><span class="nav-number">2.6.1.</span> <span class="nav-text">本次事故的核心经验：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AA%E6%9D%A5%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E7%B1%BB%E4%BC%BC%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="nav-number">2.6.2.</span> <span class="nav-text">未来如何避免类似问题？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E7%BB%88%E7%BB%93%E8%AE%BA"><span class="nav-number">3.</span> <span class="nav-text">最终结论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Golden"
+      src="/uploads/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Golden</p>
+  <div class="site-description" itemprop="description">计划推动变化</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">99</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">69</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Golden</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'SkWNsftcFwwI7sR8WGnbm8G0-gzGzoHsz',
+      appKey     : 'wHfJCMCqkaxidT5nJyOygkO7',
+      placeholder: "Just go go",
+      avatar     : 'wavatar',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

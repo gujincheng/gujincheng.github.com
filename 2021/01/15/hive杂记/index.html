@@ -323,9 +323,9 @@ location <span class="token string">'hdfs://ycluster-3/user/hive/warehouse/dws.d
 <p>如果用load data的方式：</p>
 <pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">load</span> <span class="token keyword">data</span> inpath <span class="token string">'hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701'</span> 
 overwrite <span class="token keyword">into</span> <span class="token keyword">table</span> dws<span class="token punctuation">.</span>dws_device_box_info_his_v2 <span class="token keyword">partition</span><span class="token punctuation">(</span>province_alias<span class="token operator">=</span><span class="token string">'js'</span><span class="token punctuation">,</span>dt<span class="token operator">=</span><span class="token string">'20190701'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span>
+<span class="token identifier"><span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span></span>
 就会报错：
-<span class="token punctuation">`</span><span class="token punctuation">`</span><span class="token punctuation">`</span>shell
+<span class="token identifier"><span class="token punctuation">`</span><span class="token punctuation">`</span></span><span class="token punctuation">`</span>shell
 FAILED: Execution Error<span class="token punctuation">,</span> <span class="token keyword">return</span> code <span class="token number">1</span> <span class="token keyword">from</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>hadoop<span class="token punctuation">.</span>hive<span class="token punctuation">.</span>ql<span class="token punctuation">.</span><span class="token keyword">exec</span><span class="token punctuation">.</span>MoveTask<span class="token punctuation">.</span> Unable <span class="token keyword">to</span> move source hdfs:<span class="token comment">//ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701 to destination hdfs://ycluster-3/user/hive/warehouse/dws.db/dws_device_box_info_his_v2/province_alias=js/dt=20190701</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>可以看出，报错是不能移动文件位置，因为文件已经在这个路径下了</p>
 <p>总结：</p>
@@ -576,9 +576,9 @@ stored <span class="token keyword">as</span> orc
 <span class="token punctuation">;</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="Hive优化技巧"><a href="#Hive优化技巧" class="headerlink" title="Hive优化技巧"></a>Hive优化技巧</h2><h3 id="控制reducer数量"><a href="#控制reducer数量" class="headerlink" title="控制reducer数量"></a>控制reducer数量</h3><p>控制hive中reducer的数量由三种方式，分别是：</p>
-<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell">set hive.exec.reducers.bytes.per.reducer&#x3D;&lt;number&gt; 
-set hive.exec.reducers.max&#x3D;&lt;number&gt;
-set mapreduce.job.reduces&#x3D;&lt;number&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><div class="caption"><span>script</span></div><code class="language-shell"><span class="token builtin class-name">set</span> <span class="token assign-left variable">hive.exec.reducers.bytes.per.reducer</span><span class="token operator">=</span><span class="token operator">&lt;</span>number<span class="token operator">></span> 
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">hive.exec.reducers.max</span><span class="token operator">=</span><span class="token operator">&lt;</span>number<span class="token operator">></span>
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">mapreduce.job.reduces</span><span class="token operator">=</span><span class="token operator">&lt;</span>number<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>其中<code>set mapreduce.job.reduces=&lt;number&gt;</code>的方式优先级最高，<br><code>set hive.exec.reducers.max=&lt;number&gt;</code>优先级次之，<br><code>set hive.exec.reducers.bytes.per.reducer=&lt;number&gt; </code>优先级最低。<br>从hive0.14开始，一个reducer处理文件的大小的默认值是256M。<br>reducer的数量并不是越多越好，我们知道有多少个reducer就会生成多少个文件，小文件过多在hdfs中就会占用大量的空间，造成资源的浪费。<br>如果reducer数量过小，导致某个reducer处理大量的数据（数据倾斜就会出现这样的现象），没有利用hadoop的分而治之功能，甚至会产生OOM内存溢出的错误。<br>使用多少个reducer处理数据和业务场景相关，不同的业务场景处理的办法不同。</p>
 <h3 id="使用Map-join"><a href="#使用Map-join" class="headerlink" title="使用Map join"></a>使用Map join</h3><p>set hive.auto.convert.join = true<br>或者使用</p>
 <pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">select</span> <span class="token comment">/*+ MAPJOIN(table_a)*/</span><span class="token punctuation">,</span>
@@ -738,7 +738,7 @@ set mapreduce.job.reduces&#x3D;&lt;number&gt;<span aria-hidden="true" class="lin
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

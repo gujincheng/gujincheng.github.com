@@ -292,9 +292,9 @@
 
 
 <h2 id="StreamPark简介"><a href="#StreamPark简介" class="headerlink" title="StreamPark简介"></a>StreamPark简介</h2><p>StreamPark 是主打一站式的实时计算平台，集成了项目编译、发布、参数配置、启动、停止、监控等诸多功能于一体， 大大简化了 Flink 任务的日常操作和维护，而且足够专注，比其他开源项目更加轻量</p>
-<h2 id="StreamPark源码调试"><a href="#StreamPark源码调试" class="headerlink" title="StreamPark源码调试"></a>StreamPark源码调试</h2><h3 id="下载StreamPark源码并编译源码"><a href="#下载StreamPark源码并编译源码" class="headerlink" title="下载StreamPark源码并编译源码"></a>下载StreamPark源码并编译源码</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone git@github.com:apache&#x2F;incubator-streampark.git
-git checkout -b 1.2.3-release
-mvn clean install -DskipTests -Dscala.version&#x3D;2.12.13 -Dscala.binary.version&#x3D;2.12 -Pwebapp -T10<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h2 id="StreamPark源码调试"><a href="#StreamPark源码调试" class="headerlink" title="StreamPark源码调试"></a>StreamPark源码调试</h2><h3 id="下载StreamPark源码并编译源码"><a href="#下载StreamPark源码并编译源码" class="headerlink" title="下载StreamPark源码并编译源码"></a>下载StreamPark源码并编译源码</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">git</span> clone git@github.com:apache/incubator-streampark.git
+<span class="token function">git</span> checkout <span class="token parameter variable">-b</span> <span class="token number">1.2</span>.3-release
+mvn clean <span class="token function">install</span> <span class="token parameter variable">-DskipTests</span> <span class="token parameter variable">-Dscala.version</span><span class="token operator">=</span><span class="token number">2.12</span>.13 <span class="token parameter variable">-Dscala.binary.version</span><span class="token operator">=</span><span class="token number">2.12</span> <span class="token parameter variable">-Pwebapp</span> <span class="token parameter variable">-T10</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>用IDEA打开streampark源码，勾选Profiles -&gt; webapp</p>
 <h3 id="StreamPark本地调试"><a href="#StreamPark本地调试" class="headerlink" title="StreamPark本地调试"></a>StreamPark本地调试</h3><p>查看StreamPark安装目录bin/streampark.sh，查看项目的启动类为<code>org.apache.streampark.console.StreamParkConsoleBootstrap</code></p>
 <ol>
@@ -409,7 +409,7 @@ source <span class="token operator">/</span>Users<span class="token operator">/<
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

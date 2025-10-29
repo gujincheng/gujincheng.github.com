@@ -293,174 +293,174 @@
 <h2 id="安装WSL"><a href="#安装WSL" class="headerlink" title="安装WSL"></a>安装WSL</h2><p>开发人员可以在 Windows 计算机上同时访问 Windows 和 Linux 的强大功能。 通过适用于 Linux 的 Windows 子系统 (WSL)，开发人员可以安装 Linux 发行版（例如 Ubuntu、OpenSUSE、Kali、Debian、Arch Linux 等），并直接在 Windows 上使用 Linux 应用程序、实用程序和 Bash 命令行工具，不用进行任何修改，也无需承担传统虚拟机或双启动设置的费用。</p>
 <h3 id="先决条件"><a href="#先决条件" class="headerlink" title="先决条件"></a>先决条件</h3><p>必须运行 Windows 10 版本 2004 及更高版本（内部版本 19041 及更高版本）或 Windows 11 才能使用以下命令。 如果使用的是更早的版本，请参阅手动安装页。</p>
 <h3 id="安装-WSL-命令"><a href="#安装-WSL-命令" class="headerlink" title="安装 WSL 命令"></a>安装 WSL 命令</h3><p>现在，可以使用单个命令安装运行 WSL 所需的一切内容。 在管理员模式下打开 PowerShell 或 Windows 命令提示符，方法是右键单击并选择“以管理员身份运行”，输入 wsl –install 命令，然后重启计算机。</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wsl --install<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="将-WSL-2-设置为默认版本"><a href="#将-WSL-2-设置为默认版本" class="headerlink" title="将 WSL 2 设置为默认版本"></a>将 WSL 2 设置为默认版本</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wsl --set-default-version 2<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wsl <span class="token parameter variable">--install</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="将-WSL-2-设置为默认版本"><a href="#将-WSL-2-设置为默认版本" class="headerlink" title="将 WSL 2 设置为默认版本"></a>将 WSL 2 设置为默认版本</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wsl --set-default-version <span class="token number">2</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h3 id="更改默认安装的-Linux-发行版"><a href="#更改默认安装的-Linux-发行版" class="headerlink" title="更改默认安装的 Linux 发行版"></a>更改默认安装的 Linux 发行版</h3><p>默认情况下，安装的 Linux 分发版为 Ubuntu。 可以使用 -d 标志进行更改。</p>
 <ul>
 <li>若要更改安装的发行版，请输入：<code>wsl --install -d &lt;Distribution Name&gt;</code>。 将 <code>&lt;Distribution Name&gt;</code> 替换为要安装的发行版的名称。</li>
 <li>若要查看可通过在线商店下载的可用 Linux 发行版列表，请输入：<code>wsl --list --online</code> 或 <code>wsl -l -o</code></li>
 <li>若要在初始安装后安装其他 Linux 发行版，还可使用命令：<code>wsl --install -d &lt;Distribution Name&gt;</code>。</li>
 </ul>
-<h2 id="WSl常用命令"><a href="#WSl常用命令" class="headerlink" title="WSl常用命令"></a>WSl常用命令</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 列出可用的 Linux 发行版
-wsl --list --online
-# 列出已安装的 Linux 发行版
-wsl -l -v 
-# 或者wsl --list --verbose
-#############################################################
-#  NAME                   STATE           VERSION
-#* docker-desktop         Stopped         2
-#  Ubuntu                 Stopped         2
-#  docker-desktop-data    Stopped         2
-#  CentOS7                Stopped         2
+<h2 id="WSl常用命令"><a href="#WSl常用命令" class="headerlink" title="WSl常用命令"></a>WSl常用命令</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 列出可用的 Linux 发行版</span>
+wsl <span class="token parameter variable">--list</span> <span class="token parameter variable">--online</span>
+<span class="token comment"># 列出已安装的 Linux 发行版</span>
+wsl <span class="token parameter variable">-l</span> <span class="token parameter variable">-v</span> 
+<span class="token comment"># 或者wsl --list --verbose</span>
+<span class="token comment">#############################################################</span>
+<span class="token comment">#  NAME                   STATE           VERSION</span>
+<span class="token comment">#* docker-desktop         Stopped         2</span>
+<span class="token comment">#  Ubuntu                 Stopped         2</span>
+<span class="token comment">#  docker-desktop-data    Stopped         2</span>
+<span class="token comment">#  CentOS7                Stopped         2</span>
   
-# 设置默认 Linux 发行版
+<span class="token comment"># 设置默认 Linux 发行版</span>
 wsl --set-default CentOS7
 
-# 更新 WSL
-wsl --update
-# 检查 WSL 状态
-wsl --status
+<span class="token comment"># 更新 WSL</span>
+wsl <span class="token parameter variable">--update</span>
+<span class="token comment"># 检查 WSL 状态</span>
+wsl <span class="token parameter variable">--status</span>
 
-# 通过 PowerShell 或 CMD 运行特定的 Linux 发行版
-wsl --distribution CentOS7 --user root
+<span class="token comment"># 通过 PowerShell 或 CMD 运行特定的 Linux 发行版</span>
+wsl <span class="token parameter variable">--distribution</span> CentOS7 <span class="token parameter variable">--user</span> root
 
-# 更改发行版的默认用户
-&lt;DistributionName&gt; config --default-user &lt;Username&gt;
+<span class="token comment"># 更改发行版的默认用户</span>
+<span class="token operator">&lt;</span>DistributionName<span class="token operator">></span> config --default-user <span class="token operator">&lt;</span>Username<span class="token operator">></span>
 
-# 关闭
-wsl --shutdown  
+<span class="token comment"># 关闭</span>
+wsl <span class="token parameter variable">--shutdown</span>  
 
-# 导入和导出发行版
-# 导出路径默认在C:\Users\Golden下
-#wsl --export &lt;Distribution Name&gt; &lt;FileName&gt;
-wsl --export CentOS7 CentOS7-Origion.tar.gz
-#wsl --import &lt;Distribution Name&gt; &lt;InstallLocation&gt; &lt;FileName&gt;
-wsl --import CentOS7-Origion D:\WSL\Centos7-Origion C:\Users\Golden\CentOS7-Origion.tar.gz
-# 注销或卸载 Linux 发行版
-wsl --unregister CentOS7-Origion<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token comment"># 导入和导出发行版</span>
+<span class="token comment"># 导出路径默认在C:\Users\Golden下</span>
+<span class="token comment">#wsl --export &lt;Distribution Name> &lt;FileName></span>
+wsl <span class="token parameter variable">--export</span> CentOS7 CentOS7-Origion.tar.gz
+<span class="token comment">#wsl --import &lt;Distribution Name> &lt;InstallLocation> &lt;FileName></span>
+wsl <span class="token parameter variable">--import</span> CentOS7-Origion D:<span class="token punctuation">\</span>WSL<span class="token punctuation">\</span>Centos7-Origion C:<span class="token punctuation">\</span>Users<span class="token punctuation">\</span>Golden<span class="token punctuation">\</span>CentOS7-Origion.tar.gz
+<span class="token comment"># 注销或卸载 Linux 发行版</span>
+wsl <span class="token parameter variable">--unregister</span> CentOS7-Origion<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h3 id="WSL安装Centos"><a href="#WSL安装Centos" class="headerlink" title="WSL安装Centos"></a>WSL安装Centos</h3><p>具体参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_38979465/article/details/131750084">windows10在WSL2中安装Centos发行版+git+miniconda+vscode</a></p>
 <p>在Centos中，默认使用不了systemctl，会报<code>Failed to get D-Bus connection: Operation not permitted</code><br>解决办法：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim &#x2F;etc&#x2F;wsl.conf
-## 加入以下内容
-[boot]
-systemd&#x3D;true<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">vim</span> /etc/wsl.conf
+<span class="token comment">## 加入以下内容</span>
+<span class="token punctuation">[</span>boot<span class="token punctuation">]</span>
+<span class="token assign-left variable">systemd</span><span class="token operator">=</span>true<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>执行：<code>wsl.exe --shutdown</code><br>再次启动wsl即可正常使用</p>
 <p>报错：<code>/usr/lib/wsl/lib/libcuda.so.1 is not a symbolic link</code></p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cd &#x2F;usr&#x2F;lib&#x2F;wsl
-sudo mkdir lib2
-sudo ln -s lib&#x2F;* lib2
-sudo ldconfig<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">cd</span> /usr/lib/wsl
+<span class="token function">sudo</span> <span class="token function">mkdir</span> lib2
+<span class="token function">sudo</span> <span class="token function">ln</span> <span class="token parameter variable">-s</span> lib/* lib2
+<span class="token function">sudo</span> ldconfig<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>修改/etc/ld.so.conf.d/ld.wsl.conf<br>/usr/lib/wsl/lib 改为<br>/usr/lib/wsl/lib2<br>最后，在/etc/wsl.conf中</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[automount]
-ldconfig &#x3D; false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token punctuation">[</span>automount<span class="token punctuation">]</span>
+ldconfig <span class="token operator">=</span> <span class="token boolean">false</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <h3 id="阻止-WSL-自动生成-etc-hosts-文件"><a href="#阻止-WSL-自动生成-etc-hosts-文件" class="headerlink" title="阻止 WSL 自动生成/etc/hosts 文件"></a>阻止 WSL 自动生成/etc/hosts 文件</h3><p>阻止WSL自动生成/etc/hosts文件<br>之前修改了/etc/hosts文件，但是重启wsl之后，发现该文件又被还原成之前的内容了<br>通过查看wsl内的/etc/hosts文件，发现文本里有以下内容：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># This file was automatically generated by WSL. To stop automatic generation of this file, add the following entry to &#x2F;etc&#x2F;wsl.conf:
-# [network]
-# generateHosts &#x3D; false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># This file was automatically generated by WSL. To stop automatic generation of this file, add the following entry to /etc/wsl.conf:</span>
+<span class="token comment"># [network]</span>
+<span class="token comment"># generateHosts = false</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>原来wsl会自动生成这一文件，并且它给出了停止自动生成的方法：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo vim &#x2F;etc&#x2F;wsl.conf
-# 添加以下内容：
-[network]
-generateHosts &#x3D; false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">sudo</span> <span class="token function">vim</span> /etc/wsl.conf
+<span class="token comment"># 添加以下内容：</span>
+<span class="token punctuation">[</span>network<span class="token punctuation">]</span>
+generateHosts <span class="token operator">=</span> <span class="token boolean">false</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>WSL每次重启后，都会自动生成hostname，也可以在这里设置：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 添加以下内容：
-[network]
-generateHosts &#x3D; false
-hostname &#x3D; golden-02<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment"># 添加以下内容：</span>
+<span class="token punctuation">[</span>network<span class="token punctuation">]</span>
+generateHosts <span class="token operator">=</span> <span class="token boolean">false</span>
+<span class="token function">hostname</span> <span class="token operator">=</span> golden-02<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>具体可以参考<a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/windows/wsl/wsl-config">WSL 中的高级设置配置</a></p>
 <h2 id="安装并配置oh-my-posh"><a href="#安装并配置oh-my-posh" class="headerlink" title="安装并配置oh-my-posh"></a>安装并配置oh-my-posh</h2><p>具体参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_62888264/article/details/132551059">【保姆级教程】使用oh-my-posh美化Windows终端</a></p>
 <h3 id="配置themes，并设置命令自动补全"><a href="#配置themes，并设置命令自动补全" class="headerlink" title="配置themes，并设置命令自动补全"></a>配置themes，并设置命令自动补全</h3><ol>
 <li>在Power Shell里执行<code>$PROFILE</code>,查看配置文件在哪</li>
-<li>Win +r 输入上面的地址：<code>C:\Users\Golden\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1</code>以打开文件<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">oh-my-posh init pwsh --config &quot;$env:POSH_THEMES_PATH\catppuccin_mocha.omp.json&quot; | Invoke-Expression 
-Import-Module posh-git # 引入 posh-git
-Import-Module oh-my-posh # 引入 oh-my-posh
-# Set-PSReadLineOption -PredictionSource History # 设置预测文本来源为历史记录
-Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete # 设置 Tab 键，命令行自动补全和提示
-Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward # 设置向上键为后向搜索历史记录
-Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward # 设置向下键为前向搜索历史纪录<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<li>Win +r 输入上面的地址：<code>C:\Users\Golden\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1</code>以打开文件<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">oh-my-posh init pwsh <span class="token parameter variable">--config</span> <span class="token string">"<span class="token variable">$env</span>:POSH_THEMES_PATH<span class="token entity" title="\c">\c</span>atppuccin_mocha.omp.json"</span> <span class="token operator">|</span> Invoke-Expression 
+Import-Module posh-git <span class="token comment"># 引入 posh-git</span>
+Import-Module oh-my-posh <span class="token comment"># 引入 oh-my-posh</span>
+<span class="token comment"># Set-PSReadLineOption -PredictionSource History # 设置预测文本来源为历史记录</span>
+Set-PSReadlineKeyHandler <span class="token parameter variable">-Key</span> Tab <span class="token parameter variable">-Function</span> MenuComplete <span class="token comment"># 设置 Tab 键，命令行自动补全和提示</span>
+Set-PSReadLineKeyHandler <span class="token parameter variable">-Key</span> UpArrow <span class="token parameter variable">-Function</span> HistorySearchBackward <span class="token comment"># 设置向上键为后向搜索历史记录</span>
+Set-PSReadLineKeyHandler <span class="token parameter variable">-Key</span> DownArrow <span class="token parameter variable">-Function</span> HistorySearchForward <span class="token comment"># 设置向下键为前向搜索历史纪录</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 这里使用了catppuccin_mocha主题，所有主题可以在<a target="_blank" rel="noopener" href="https://ohmyposh.dev/docs/themes">Themes</a>查看</li>
 </ol>
 <p>配置插件具体可以查看<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_21689457/article/details/129345662">oh-my-posh - 终端个性化工具 - 美化PowerShell / cmd </a><br>字体下载可参考：<a target="_blank" rel="noopener" href="https://www.nerdfonts.com/font-downloads">nerdfonts</a></p>
 <h2 id="在Centos配置oh-my-zsh"><a href="#在Centos配置oh-my-zsh" class="headerlink" title="在Centos配置oh-my-zsh"></a>在Centos配置oh-my-zsh</h2><p>需要先安装git</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install git
-yum install curl-devel expat-devel gettext-devel openssl-devel zlib-devel gcc perl-ExtUtils-MakeMaker
-wget https:&#x2F;&#x2F;gitee.com&#x2F;heyuanfly&#x2F;install-oh-my-zsh&#x2F;raw&#x2F;master&#x2F;centos-install-oh-my-zsh.sh
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum <span class="token function">install</span> <span class="token function">git</span>
+yum <span class="token function">install</span> curl-devel expat-devel gettext-devel openssl-devel zlib-devel gcc perl-ExtUtils-MakeMaker
+<span class="token function">wget</span> https://gitee.com/heyuanfly/install-oh-my-zsh/raw/master/centos-install-oh-my-zsh.sh
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>centos-install-oh-my-zsh.sh里的内容：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum install -y vim  
-yum install -y zsh
-yum install -y git
-wget https:&#x2F;&#x2F;gitee.com&#x2F;heyuanfly&#x2F;ohmyzsh&#x2F;raw&#x2F;master&#x2F;tools&#x2F;install.sh
-chmod +x install.sh
-.&#x2F;install.sh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token function">vim</span>  
+yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token function">zsh</span>
+yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token function">git</span>
+<span class="token function">wget</span> https://gitee.com/heyuanfly/ohmyzsh/raw/master/tools/install.sh
+<span class="token function">chmod</span> +x install.sh
+./install.sh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>具体可以参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/zenghao36/article/details/127980176">CentOS安装Oh my zsh</a><br>剩下的就是跟mac安装ohmyzsh是一样的，可以看另一篇博客<a href="https://gujincheng.github.io/2021/05/20/Mac%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/">Mac使用笔记（一）</a></p>
-<h3 id="安装完ls后的颜色不对，可执行文件是红色的"><a href="#安装完ls后的颜色不对，可执行文件是红色的" class="headerlink" title="安装完ls后的颜色不对，可执行文件是红色的"></a>安装完ls后的颜色不对，可执行文件是红色的</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">dircolors --print-database &gt; ~&#x2F;.dir_colors
-vim .zshrc
-# 在.zshrc里添加以下内容
-alias ls&#x3D;&#39;ls -F --show-control-chars --color&#x3D;auto&#39; 
-eval &#96;gdircolors -b $HOME&#x2F;.dir_colors&#96; <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="安装完ls后的颜色不对，可执行文件是红色的"><a href="#安装完ls后的颜色不对，可执行文件是红色的" class="headerlink" title="安装完ls后的颜色不对，可执行文件是红色的"></a>安装完ls后的颜色不对，可执行文件是红色的</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">dircolors</span> --print-database <span class="token operator">></span> ~/.dir_colors
+<span class="token function">vim</span> .zshrc
+<span class="token comment"># 在.zshrc里添加以下内容</span>
+<span class="token builtin class-name">alias</span> <span class="token assign-left variable">ls</span><span class="token operator">=</span><span class="token string">'ls -F --show-control-chars --color=auto'</span> 
+<span class="token builtin class-name">eval</span> <span class="token variable"><span class="token variable">`</span>gdircolors <span class="token parameter variable">-b</span> <span class="token environment constant">$HOME</span>/.dir_colors<span class="token variable">`</span></span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="Failed-to-get-D-Bus-connection-Operation-not-permitted"><a href="#Failed-to-get-D-Bus-connection-Operation-not-permitted" class="headerlink" title="Failed to get D-Bus connection: Operation not permitted"></a>Failed to get D-Bus connection: Operation not permitted</h3><p>具体参考<a target="_blank" rel="noopener" href="http://jiahaoyou.net/gwjeesns/article/detail/1198">Failed to get D-Bus connection: Operation not permitted</a></p>
-<h2 id="Ubuntu配置oh-my-posh"><a href="#Ubuntu配置oh-my-posh" class="headerlink" title="Ubuntu配置oh-my-posh"></a>Ubuntu配置oh-my-posh</h2><h3 id="安装-oh-my-posh"><a href="#安装-oh-my-posh" class="headerlink" title="安装 oh-my-posh"></a>安装 oh-my-posh</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wget https:&#x2F;&#x2F;github.com&#x2F;JanDeDobbeleer&#x2F;oh-my-posh&#x2F;releases&#x2F;latest&#x2F;download&#x2F;posh-linux-amd64 -O &#x2F;usr&#x2F;local&#x2F;bin&#x2F;oh-my-posh
-chmod +x &#x2F;usr&#x2F;local&#x2F;bin&#x2F;oh-my-posh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">mkdir -p &#x2F;mnt&#x2F;c&#x2F;Users&#x2F;Golden&#x2F;.posthemes
-wget https:&#x2F;&#x2F;github.com&#x2F;JanDeDobbeleer&#x2F;oh-my-posh&#x2F;releases&#x2F;latest&#x2F;download&#x2F;themes.zip -O  &#x2F;mnt&#x2F;c&#x2F;Users&#x2F;Golden&#x2F;.posthemes&#x2F;themes.zip
-unzip &#x2F;mnt&#x2F;c&#x2F;Users&#x2F;Golden&#x2F;.posthemes&#x2F;themes.zip -d  &#x2F;mnt&#x2F;c&#x2F;Users&#x2F;Golden&#x2F;.posthemes
-chmod u+rw &#x2F;mnt&#x2F;c&#x2F;Users&#x2F;Golden&#x2F;.posthemes&#x2F;*.json
-rm  &#x2F;mnt&#x2F;c&#x2F;Users&#x2F;Golden&#x2F;.posthemes&#x2F;themes.zip<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Ubuntu配置oh-my-posh"><a href="#Ubuntu配置oh-my-posh" class="headerlink" title="Ubuntu配置oh-my-posh"></a>Ubuntu配置oh-my-posh</h2><h3 id="安装-oh-my-posh"><a href="#安装-oh-my-posh" class="headerlink" title="安装 oh-my-posh"></a>安装 oh-my-posh</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">wget</span> https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 <span class="token parameter variable">-O</span> /usr/local/bin/oh-my-posh
+<span class="token function">chmod</span> +x /usr/local/bin/oh-my-posh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">mkdir</span> <span class="token parameter variable">-p</span> /mnt/c/Users/Golden/.posthemes
+<span class="token function">wget</span> https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/themes.zip <span class="token parameter variable">-O</span>  /mnt/c/Users/Golden/.posthemes/themes.zip
+<span class="token function">unzip</span> /mnt/c/Users/Golden/.posthemes/themes.zip <span class="token parameter variable">-d</span>  /mnt/c/Users/Golden/.posthemes
+<span class="token function">chmod</span> u+rw /mnt/c/Users/Golden/.posthemes/*.json
+<span class="token function">rm</span>  /mnt/c/Users/Golden/.posthemes/themes.zip<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <blockquote>
 <p>注意，这里如果是wsl里的ubuntu，一定要选择 <code>/mnt/c/Users/Golden/</code>下的路径，否则会报如下错误：<br><img src="/uploads/202310/Ubuntu%E5%AE%89%E8%A3%85oh-my-posh%E6%8A%A5%E9%94%991.png" alt="Ubuntu安装oh-my-posh报错1"><br>具体可以参考<a target="_blank" rel="noopener" href="https://github.com/JanDeDobbeleer/oh-my-posh/discussions/3412">CONFIG ERROR</a></p>
 </blockquote>
 <p>如果您使用的是 Ubuntu 18.04 或 16.04，则需要先安装正确版本的 golang：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sudo add-apt-repository ppa:longsleep&#x2F;golang-backports
-sudo apt update<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">sudo</span> add-apt-repository ppa:longsleep/golang-backports
+<span class="token function">sudo</span> <span class="token function">apt</span> update<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>在.bashrc里添加以下配置：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">eval &quot;$(oh-my-posh --init --shell bash --config &#x2F;mnt&#x2F;c&#x2F;Users&#x2F;Golden&#x2F;.posthemes&#x2F;catppuccin_mocha.omp.json)&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h3 id="在ubuntu也安装字体"><a href="#在ubuntu也安装字体" class="headerlink" title="在ubuntu也安装字体"></a>在ubuntu也安装字体</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">##不存在该文件时新建
-sudo mkdir &#x2F;usr&#x2F;share&#x2F;fonts&#x2F;ttf
-##下载好的文件放入ttf文件中
-sudo cp *.ttf &#x2F;usr&#x2F;share&#x2F;fonts&#x2F;ttf
-##给予权限
-cd &#x2F;usr&#x2F;share&#x2F;fonts&#x2F;ttf
-sudo chmod 744 *
-##重新生成索引
-sudo mkfontscale
-sudo mkfontdir
-sudo fc-cache -f -v<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">eval</span> <span class="token string">"<span class="token variable"><span class="token variable">$(</span>oh-my-posh <span class="token parameter variable">--init</span> <span class="token parameter variable">--shell</span> <span class="token function">bash</span> <span class="token parameter variable">--config</span> /mnt/c/Users/Golden/.posthemes/catppuccin_mocha.omp.json<span class="token variable">)</span></span>"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="在ubuntu也安装字体"><a href="#在ubuntu也安装字体" class="headerlink" title="在ubuntu也安装字体"></a>在ubuntu也安装字体</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token comment">##不存在该文件时新建</span>
+<span class="token function">sudo</span> <span class="token function">mkdir</span> /usr/share/fonts/ttf
+<span class="token comment">##下载好的文件放入ttf文件中</span>
+<span class="token function">sudo</span> <span class="token function">cp</span> *.ttf /usr/share/fonts/ttf
+<span class="token comment">##给予权限</span>
+<span class="token builtin class-name">cd</span> /usr/share/fonts/ttf
+<span class="token function">sudo</span> <span class="token function">chmod</span> <span class="token number">744</span> *
+<span class="token comment">##重新生成索引</span>
+<span class="token function">sudo</span> mkfontscale
+<span class="token function">sudo</span> mkfontdir
+<span class="token function">sudo</span> fc-cache <span class="token parameter variable">-f</span> <span class="token parameter variable">-v</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>最后发现，在oh-myposh没办法跟oh-my-zsh一样，设置各种插件。所以这里还是放弃，改用在ubuntu使用oh-my-zsh</p>
 <h2 id="Ubuntu配置oh-my-zsh"><a href="#Ubuntu配置oh-my-zsh" class="headerlink" title="Ubuntu配置oh-my-zsh"></a>Ubuntu配置oh-my-zsh</h2><h3 id="zsh安装与配置"><a href="#zsh安装与配置" class="headerlink" title="zsh安装与配置"></a>zsh安装与配置</h3><ol>
-<li>确定当前使用的shell，默认为bash：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">echo $SHELL
-&#x2F;bin&#x2F;bash<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
-<li>确定是否安装了zsh：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">cat &#x2F;etc&#x2F;shells 
-&#x2F;bin&#x2F;sh
-&#x2F;bin&#x2F;bash
-&#x2F;bin&#x2F;rbash
-&#x2F;bin&#x2F;dash
-&#x2F;bin&#x2F;zsh
-# 如果没有安装：
-sudo apt install zsh<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-<li>将shell由bash换为zsh：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">chsh -s &#x2F;bin&#x2F;zsh<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<li>确定当前使用的shell，默认为bash：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">echo</span> <span class="token environment constant">$SHELL</span>
+/bin/bash<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li>确定是否安装了zsh：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">cat</span> /etc/shells 
+/bin/sh
+/bin/bash
+/bin/rbash
+/bin/dash
+/bin/zsh
+<span class="token comment"># 如果没有安装：</span>
+<span class="token function">sudo</span> <span class="token function">apt</span> <span class="token function">install</span> <span class="token function">zsh</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li>将shell由bash换为zsh：<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">chsh <span class="token parameter variable">-s</span> /bin/zsh<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <blockquote>
 <p>上述过程只需要重启terminal，不需要重启服务器。</p>
 </blockquote>
 </li>
 </ol>
 <h3 id="oh-my-zsh安装"><a href="#oh-my-zsh安装" class="headerlink" title="oh my zsh安装"></a>oh my zsh安装</h3><p>在zsh的基础上，安装oh-my-zsh：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">wget https:&#x2F;&#x2F;github.com&#x2F;robbyrussell&#x2F;oh-my-zsh&#x2F;raw&#x2F;master&#x2F;tools&#x2F;install.sh -O - | sh<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">wget</span> https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh <span class="token parameter variable">-O</span> - <span class="token operator">|</span> <span class="token function">sh</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>修改.zshrc:</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export ZSH&#x3D;&quot;$HOME&#x2F;.oh-my-zsh&quot;
-ZSH_THEME&#x3D;&quot;arrow&quot;
-plugins&#x3D;(git zsh-autosuggestions zsh-syntax-highlighting)
-source &#x2F;etc&#x2F;profile
-source $ZSH&#x2F;oh-my-zsh.sh
-alias ls&#x3D;&#39;ls -F --show-control-chars --color&#x3D;auto&#39;
-eval &#96;dircolors -b $HOME&#x2F;.dir_colors&#96;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">git clone https:&#x2F;&#x2F;github.com&#x2F;zsh-users&#x2F;zsh-autosuggestions $&#123;ZSH_CUSTOM:-~&#x2F;.oh-my-zsh&#x2F;custom&#125;&#x2F;plugins&#x2F;zsh-autosuggestions
-git clone https:&#x2F;&#x2F;github.com&#x2F;zsh-users&#x2F;zsh-syntax-highlighting $&#123;ZSH_CUSTOM:-~&#x2F;.oh-my-zsh&#x2F;custom&#125;&#x2F;plugins&#x2F;zsh-syntax-highlighting<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">export</span> <span class="token assign-left variable">ZSH</span><span class="token operator">=</span><span class="token string">"<span class="token environment constant">$HOME</span>/.oh-my-zsh"</span>
+<span class="token assign-left variable">ZSH_THEME</span><span class="token operator">=</span><span class="token string">"arrow"</span>
+<span class="token assign-left variable">plugins</span><span class="token operator">=</span><span class="token punctuation">(</span>git zsh-autosuggestions zsh-syntax-highlighting<span class="token punctuation">)</span>
+<span class="token builtin class-name">source</span> /etc/profile
+<span class="token builtin class-name">source</span> <span class="token variable">$ZSH</span>/oh-my-zsh.sh
+<span class="token builtin class-name">alias</span> <span class="token assign-left variable">ls</span><span class="token operator">=</span><span class="token string">'ls -F --show-control-chars --color=auto'</span>
+<span class="token builtin class-name">eval</span> <span class="token variable"><span class="token variable">`</span><span class="token function">dircolors</span> <span class="token parameter variable">-b</span> <span class="token environment constant">$HOME</span>/.dir_colors<span class="token variable">`</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h3><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">git</span> clone https://github.com/zsh-users/zsh-autosuggestions <span class="token variable">$&#123;ZSH_CUSTOM<span class="token operator">:-</span>~<span class="token operator">/</span>.oh-my-zsh<span class="token operator">/</span>custom&#125;</span>/plugins/zsh-autosuggestions
+<span class="token function">git</span> clone https://github.com/zsh-users/zsh-syntax-highlighting <span class="token variable">$&#123;ZSH_CUSTOM<span class="token operator">:-</span>~<span class="token operator">/</span>.oh-my-zsh<span class="token operator">/</span>custom&#125;</span>/plugins/zsh-syntax-highlighting<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>这里下载可能有些需要梯子，幸好之前设置了clash</p>
 <h2 id="Windows系统下设置cmd命令行-终端-走代理的方法"><a href="#Windows系统下设置cmd命令行-终端-走代理的方法" class="headerlink" title="Windows系统下设置cmd命令行(终端)走代理的方法"></a>Windows系统下设置cmd命令行(终端)走代理的方法</h2><p>一直以为开了全局的代理，所有的网络都会走代理，但是发现我错了。<br>因为一些软件的所使用的在不同的协议层，有的在会话层，有的在应用层，这样的就造成代理不生效了。（这块我了解的也不是非常好，建议大家直接看OSI 七层模型）<br>首先打开我们的cmd窗口，然后输入以下的命令：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">set HTTP_PROXY&#x3D;http:&#x2F;&#x2F;127.0.0.1:1080
-set HTTPS_PROXY&#x3D;http:&#x2F;&#x2F;127.0.0.1:1080<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token builtin class-name">set</span> <span class="token assign-left variable">HTTP_PROXY</span><span class="token operator">=</span>http://127.0.0.1:1080
+<span class="token builtin class-name">set</span> <span class="token assign-left variable">HTTPS_PROXY</span><span class="token operator">=</span>http://127.0.0.1:1080<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>然后就可以愉快的去拉取Github里面代码了，不过要注意的都是，上面设置的命令行代码作用的范围是一次性的，也就是关闭cmd窗口后，就失效了，如果需要永久生效的话，是需要配置系统的环境变量的，配置方法如下：<br>1、右键【我的电脑 】-&gt; 属性 -&gt; 高级系统设置 -&gt; 高级 -&gt; 环境变量<br>2、添加如下的系统环境变量（对应的值记得修改）</p>
 <p>这里经过测试，直接在cmd里set环境变量是可以的，但是在环境变量里添加的方式，貌似不行</p>
 
@@ -563,7 +563,7 @@ set HTTPS_PROXY&#x3D;http:&#x2F;&#x2F;127.0.0.1:1080<span aria-hidden="true" cla
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
